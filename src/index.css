@@ -85,3 +85,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .menu-border li:not(.menu-title){
+    @apply hover:bg-transparent hover:text-red-500 hover:border-r-2 hover:border-red-500 hover:shadow-none;
+  }
+  .menu-border li:not(.menu-title) a{
+    @apply hover:bg-transparent hover:shadow-none;
+  }
+}
