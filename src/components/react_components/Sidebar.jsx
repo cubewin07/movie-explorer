@@ -23,8 +23,8 @@ function Sidebar({left = false, right = false}) {
               <div className="flex flex-col items-center justify-between mt-4">
                 <ul className="menu menu-border w-full pr-0">
                   <li className="menu-title">Menu</li>
-                  <li>
-                    <Link to="/">
+                  <li className="menu-item-active">
+                    <Link to="/" >
                       <Home className="h-5 w-5" />
                       Home
                     </Link>
