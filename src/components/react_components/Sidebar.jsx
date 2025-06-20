@@ -10,15 +10,16 @@ import {
   Settings,
   LogOut,
   HelpCircle,
+  Search,
 } from "lucide-react";
 
 function Sidebar({left = false, right = false}) {
     if(left) {
         return (
-            <aside className="w-48 border-r border-slate-800">
+            <aside className="w-52 border-r border-r-2 border-slate-50 border-opacity-20">
               <div>{/* <img src={logo} alt="logo" /> */}</div>
         
-              <div className="flex flex-col items-center justify-between">
+              <div className="flex flex-col items-center justify-between mt-4">
                 <ul className="menu menu-border w-full pr-0">
                   <li className="menu-title">Menu</li>
                   <li>
@@ -93,8 +94,35 @@ function Sidebar({left = false, right = false}) {
               </div>
             </aside>
           );
-    }
-  
+
+          
+        }
+        if(right) {
+          return (
+              <aside className="w-52 border-l border-l-2 border-slate-50 border-opacity-20">
+                <div className="flex flex-col items-center justify-between mt-4">
+                    <label className="input input-accent border border-primary text-white bg-slate-800 animate-pulse-glow">
+                        <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <g strokeLinejoin="round" strokeLinecap="round" strokeWidth="2.5" fill="none" stroke="currentColor">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.3-4.3"></path>
+                            </g>
+                        </svg>
+                        <input
+                            type="search"
+                            className="grow bg-transparent placeholder:text-gray-400 text-white"
+                            placeholder="Search"
+                        />
+                        <kbd className="kbd kbd-sm">⌘</kbd>
+                        <kbd className="kbd kbd-sm">K</kbd>
+                    </label>
+
+                </div>
+
+              </aside>
+          )
+        }
+        
 }
 
 export default Sidebar;
