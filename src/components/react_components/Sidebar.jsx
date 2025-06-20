@@ -1,18 +1,23 @@
+import { useQuery } from "@tanstack/react-query";
 import { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
-  Home,
-  Users,
-  Compass,
-  Clock,
-  User,
-  UserPlus,
-  List,
-  Settings,
-  LogOut,
-  HelpCircle,
-  Search,
+    Home,
+    Users,
+    Compass,
+    Clock,
+    User,
+    UserPlus,
+    List,
+    Settings,
+    LogOut,
+    HelpCircle,
+    Search,
 } from "lucide-react";
+
+
+import axiosInstance from '@/lib/axiosInstance'
+import PopularMovies from "./PopularMovies";
 
 function Sidebar({left = false, right = false}) {
     const [active, setActive] = useState("/");
@@ -140,9 +145,16 @@ function Sidebar({left = false, right = false}) {
                   return () => window.removeEventListener('keydown', handleKeyDown)
             }, [])
 
+            const { data: searchResults, isLoading } = useQuery({
+                queryKey: ['search', search],
+                queryFn: () => axiosInstance.get(`/search/movie?query=${search}`),
+                enabled: !!search,
+            })
+
+
           return (
               <aside className="w-52 border-l border-l-2 border-slate-50 border-opacity-20">
-                <div className="flex flex-col items-center justify-between mt-4 px-2 ">
+                <div className="flex flex-col items-center justify-between mt-4 px-2 space-y-5">
                     <label className="input input-accent border border-primary text-white bg-slate-800 animate-pulse-glow">
                         {isFocused ? (
                             // Only input when focused
@@ -180,6 +192,9 @@ function Sidebar({left = false, right = false}) {
                             </>
                         )}
                     </label>
+
+                    <PopularMovies />
+
 
                 </div>  
               </aside>

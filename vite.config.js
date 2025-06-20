@@ -4,7 +4,7 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
-  base: '/movie-explorer/',
+  base: process.env.NODE_ENV === 'production' ? '/movie-explorer' : '/',
   plugins: [react()],
   resolve: {
     alias: {

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import Layout from './layout/Layout'
 import Home from './components/pages/Home/Home'
@@ -6,6 +7,8 @@ import Home from './components/pages/Home/Home'
 // import Discovery from './pages/Discovery'
 // import ComingSoon from './pages/ComingSoon'
 // import Profile from './pages/Profile'
+
+const queryClient = new QueryClient()
 
 const router = createBrowserRouter([
   {
@@ -50,10 +53,16 @@ const router = createBrowserRouter([
     //   },
     ],
   },
-])
+], 
+  {
+    basename: import.meta.env.DEV ? '/' : '/movie-explorer'
+  }
+)
 function App() {
   return (
+    <QueryClientProvider client={queryClient}>
       <RouterProvider router={router} />
+    </QueryClientProvider>
 
   )
 }
