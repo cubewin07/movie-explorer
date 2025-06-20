@@ -136,7 +136,7 @@ function Sidebar({left = false, right = false}) {
 
           return (
               <aside className="w-52 border-l border-l-2 border-slate-50 border-opacity-20">
-                <div className="flex flex-col items-center justify-between mt-4">
+                <div className="flex flex-col items-center justify-between mt-4 px-2 ">
                     <label className="input input-accent border border-primary text-white bg-slate-800 animate-pulse-glow">
                         {isFocused ? (
                             // Only input when focused
