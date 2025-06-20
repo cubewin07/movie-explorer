@@ -1,14 +1,14 @@
 import { Link } from "react-router-dom";
 function Sidebar({}) {
     return (
-        <aside>
+        <aside className="w-48 border-r border-slate-800">
             <div>
                 {/* <img src={logo} alt="logo" /> */}
             </div>
             <div className="flex flex-col items-center justify-between">
                 <ul className="menu w-full">
                     <li className="menu-title">Menu</li>
-                    <li>
+                    <li className="menu-active">
                         <Link to="/"> 
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
