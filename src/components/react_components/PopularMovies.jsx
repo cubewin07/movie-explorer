@@ -18,13 +18,14 @@ function PopularMovies() {
 
     const isPopularMoviesLoading = true;
 
-    if(isPopularMoviesLoading) {
-        return <LoadingSideBar />
-    }
+    // if(isPopularMoviesLoading) {
+    //     return <LoadingSideBar />
+    // }
 
     return ( 
         <div>
-            <h1>Popular Movies</h1>
+            <h1 className="text-white text-opacity-50 text-lg font-bold mb-3">Popular Movies</h1>
+            {isPopularMoviesLoading && <LoadingSideBar />}
         </div>
     );
 }
