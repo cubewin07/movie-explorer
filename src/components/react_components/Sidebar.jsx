@@ -15,6 +15,12 @@ import {
 } from "lucide-react";
 
 function Sidebar({left = false, right = false}) {
+    const [active, setActive] = useState("/");
+
+    const handleActive = (path) => {
+        setActive(path);
+    }
+
     if(left) {
         return (
             <aside className="w-52 border-r border-r-2 border-slate-50 border-opacity-20">
@@ -23,26 +29,26 @@ function Sidebar({left = false, right = false}) {
               <div className="flex flex-col items-center justify-between mt-4">
                 <ul className="menu menu-border w-full pr-0">
                   <li className="menu-title">Menu</li>
-                  <li className="menu-item-active">
-                    <Link to="/" >
+                  <li className={active === "/" ? "menu-item-active" : ""}>
+                    <Link to="/" onClick={() => handleActive("/")}>
                       <Home className="h-5 w-5" />
                       Home
                     </Link>
                   </li>
-                  <li>
-                    <Link to="/community">
+                  <li className={active === "/community" ? "menu-item-active" : ""}>
+                    <Link to="/community" onClick={() => handleActive("/community")}>
                       <Users className="h-5 w-5" />
                       Community
                     </Link>
                   </li>
-                  <li>
-                    <Link to="/discovery">
+                  <li className={active === "/discovery" ? "menu-item-active" : ""}>
+                    <Link to="/discovery" onClick={() => handleActive("/discovery")}>
                       <Compass className="h-5 w-5" />
                       Discovery
                     </Link>
                   </li>
-                  <li>
-                    <Link to="/coming-soon">
+                  <li className={active === "/coming-soon" ? "menu-item-active" : ""}>
+                    <Link to="/coming-soon" onClick={() => handleActive("/coming-soon")}>
                       <Clock className="h-5 w-5" />
                       Coming Soon
                     </Link>
@@ -51,20 +57,20 @@ function Sidebar({left = false, right = false}) {
         
                 <ul className="menu w-full pr-0 menu-border">
                   <li className="menu-title">Social</li>
-                  <li>
-                    <Link to="/profile">
+                  <li className={active === "/profile" ? "menu-item-active" : ""}>
+                    <Link to="/profile" onClick={() => handleActive("/profile")}>
                       <User className="h-5 w-5" />
                       Profile
                     </Link>
                   </li>
-                  <li>
-                    <Link to="/friend">
+                  <li className={active === "/friend" ? "menu-item-active" : ""}>
+                    <Link to="/friend" onClick={() => handleActive("/friend")}>
                       <UserPlus className="h-5 w-5" />
                       Friend
                     </Link>
                   </li>
-                  <li>
-                    <Link to="/media">
+                  <li className={active === "/media" ? "menu-item-active" : ""}>
+                    <Link to="/media" onClick={() => handleActive("/media")}>
                       <List className="h-5 w-5" />
                       Media
                     </Link>
@@ -73,20 +79,20 @@ function Sidebar({left = false, right = false}) {
         
                 <ul className="menu w-full pr-0 menu-border">
                   <li className="menu-title">General</li>
-                  <li>
-                    <Link to="/settings">
+                  <li className={active === "/settings" ? "menu-item-active" : ""}>
+                    <Link to="/settings" onClick={() => handleActive("/settings")}>
                       <Settings className="h-5 w-5" />
                       Settings
                     </Link>
                   </li>
-                  <li>
-                    <Link to="/logout">
+                  <li className={active === "/logout" ? "menu-item-active" : ""}>
+                    <Link to="/logout" onClick={() => handleActive("/logout")}>
                       <LogOut className="h-5 w-5" />
                       Logout
                     </Link>
                   </li>
-                  <li>
-                    <Link to="/help">
+                  <li className={active === "/help" ? "menu-item-active" : ""}>
+                    <Link to="/help" onClick={() => handleActive("/help")}>
                       <HelpCircle className="h-5 w-5" />
                       Help & Support
                     </Link>
