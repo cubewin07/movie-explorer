@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { createHashRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import Layout from './layout/Layout'
 import Home from './components/pages/Home/Home'
 // import Community from './pages/Community'
@@ -7,7 +7,7 @@ import Home from './components/pages/Home/Home'
 // import ComingSoon from './pages/ComingSoon'
 // import Profile from './pages/Profile'
 
-const router = createHashRouter([
+const router = createBrowserRouter([
   {
     path: '/',
     element: <Layout />,
