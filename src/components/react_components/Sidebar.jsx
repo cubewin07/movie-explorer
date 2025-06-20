@@ -175,8 +175,7 @@ function Sidebar({left = false, right = false}) {
                         )}
                     </label>
 
-                </div>
-
+                </div>  
               </aside>
           )
         }
