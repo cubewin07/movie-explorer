@@ -3,11 +3,11 @@ import { Outlet } from "react-router-dom";
 function Layout() {
     return (  
         <>
-            <Sidebar />
+            <Sidebar left={true} />
             <main className="flex-1">
                 <Outlet />
             </main>
-            <Sidebar />
+            <Sidebar right={true} />
         </>
     );
 }
