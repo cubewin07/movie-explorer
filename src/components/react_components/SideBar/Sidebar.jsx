@@ -17,7 +17,7 @@ import {
 
 
 import axiosInstance from '@/lib/axiosInstance'
-import PopularMovies from "./PopularMovies";
+import PopularMovies from "./Popular/PopularMovies";
 
 function Sidebar({left = false, right = false}) {
     const [active, setActive] = useState("/");
