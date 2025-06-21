@@ -47,27 +47,42 @@ const genresArr = useMemo(() => movies.reduce((acc, movie) => {
                                 <p className="text-xs text-neutral-200">{movie.release_date}</p>
 
                                 {/* Genre Tags */}
+                                {genresArr[index].extraGenres.length > 0 ? (
                                 <div className="flex flex-wrap gap-1 mt-1 items-center">
-                                    {genresArr[index].visibleGenres.map((name) => (
-                                        <span
-                                            key={name}
-                                            className="bg-indigo-700/30 text-indigo-300 text-[10px] px-1.5 py-[1px] rounded"
-                                        >
-                                            {name}
-                                        </span>
-                                    ))}
-
-                                    {genresArr[index].extraGenres.length > 0 && (
-                                        <div className="indicator">
-                                            <span
-                                                className="indicator-item badge badge-sm bg-indigo-500 text-white text-[10px] tooltip"
-                                                data-tip={genresArr[index].extraGenres.join(', ')}
-                                            >
-                                                +{genresArr[index].extraGenres.length}
-                                            </span>
-                                        </div>
-                                    )}
+                                {/* All but the last visible genre */}
+                                {genresArr[index].visibleGenres.slice(0, -1).map(name => (
+                                  <span
+                                    key={name}
+                                    className="bg-indigo-700/30 text-indigo-300 text-[10px] px-1.5 py-[1px] rounded"
+                                  >
+                                    {name}
+                                  </span>
+                                ))}
+                            
+                                {/* Last visible genre + indicator */}
+                                <div className="indicator">
+                                  <span
+                                    className="indicator-item badge badge-sm bg-indigo-500 text-white text-[10px] w-[18px] h-5 tooltip"
+                                    data-tip={genresArr[index].extraGenres.join(', ')}
+                                  >
+                                    +{genresArr[index].extraGenres.length}
+                                  </span>
+                                  <span
+                                    className="bg-indigo-700/30 text-indigo-300 text-[10px] px-1.5 py-[1px] rounded"
+                                  >
+                                    {genresArr[index].visibleGenres.at(-1)}
+                                  </span>
                                 </div>
+                              </div>
+                                ) : (
+                                    <div className="flex flex-wrap gap-1 mt-1 items-center">
+                                        {genresArr[index].visibleGenres.map((name) => (
+                                            <span key={name} className="bg-indigo-700/30 text-indigo-300 text-[10px] px-1.5 py-[1px] rounded">
+                                                {name}
+                                            </span>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
 
                             {/* IMDb Rating */}
