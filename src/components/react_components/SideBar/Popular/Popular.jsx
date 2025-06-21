@@ -93,7 +93,7 @@ function Popular({ movies, genres }) {
 
                             {/* IMDb Rating */}
                             <div className="flex items-center gap-1">
-                                <div className="bg-yellow-400 text-black text-[12px] font-extrabold px-1.5 py-[1px] rounded-sm">
+                                <div className="bg-yellow-400 text-black text-[10px] font-extrabold px-1.5  rounded-sm">
                                     IMDb
                                 </div>
                                 <span className="text-xs text-slate-300 font-medium">
