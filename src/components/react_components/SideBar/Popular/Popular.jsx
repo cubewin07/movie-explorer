@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import clsx from "clsx";
 
 function Popular({ movies, genres }) {
@@ -14,13 +14,21 @@ function Popular({ movies, genres }) {
   const getGenreNames = (ids) => {
     return ids.map(id => genres.find(g => g.id === id)?.name).filter(Boolean);
   };
+const genresArr = useMemo(() => movies.reduce((acc, movie) => {
+    const genreNames = getGenreNames(movie.genre_ids);
+    const visibleGenres = genreNames.slice(0, 2);
+    const extraGenres = genreNames.slice(2);
 
+    acc.push({
+        genre_ids: movie.genre_ids,
+        visibleGenres,
+        extraGenres,
+    })
+    return acc;
+}, []), [movies, genres])
   return (
-    <div className="flex flex-col gap-4">
-      {movies.map(movie => {
-                const genreNames = getGenreNames(movie.genre_ids);
-                const visibleGenres = genreNames.slice(0, 2);
-                const extraGenres = genreNames.slice(2);
+      <div className="flex flex-col gap-4">
+      {movies.map((movie, index) => {
 
                 return (
                     <div key={movie.id} className="flex gap-4 items-start">
@@ -40,7 +48,7 @@ function Popular({ movies, genres }) {
 
                                 {/* Genre Tags */}
                                 <div className="flex flex-wrap gap-1 mt-1 items-center">
-                                    {visibleGenres.map((name) => (
+                                    {genresArr[index].visibleGenres.map((name) => (
                                         <span
                                             key={name}
                                             className="bg-indigo-700/30 text-indigo-300 text-[10px] px-1.5 py-[1px] rounded"
@@ -49,13 +57,13 @@ function Popular({ movies, genres }) {
                                         </span>
                                     ))}
 
-                                    {extraGenres.length > 0 && (
+                                    {genresArr[index].extraGenres.length > 0 && (
                                         <div className="indicator">
                                             <span
                                                 className="indicator-item badge badge-sm bg-indigo-500 text-white text-[10px] tooltip"
-                                                data-tip={extraGenres.join(', ')}
+                                                data-tip={genresArr[index].extraGenres.join(', ')}
                                             >
-                                                +{extraGenres.length}
+                                                +{genresArr[index].extraGenres.length}
                                             </span>
                                         </div>
                                     )}
