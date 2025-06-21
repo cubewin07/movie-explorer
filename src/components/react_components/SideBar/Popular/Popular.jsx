@@ -105,7 +105,7 @@ function Popular({ movies, genres }) {
                 );
             })}
 
-            {movies.length > 3 && (
+            {movies.length >= 3 && (
                 <button onClick={() => setShowAll((prev) => !prev)} className={design}>
                     {showAll ? 'Show Less' : 'See More'}
                 </button>
