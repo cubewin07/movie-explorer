@@ -65,10 +65,7 @@ function Popular({ movies, genres }) {
 
                                         {/* Last visible genre + indicator */}
                                         <div className="indicator">
-                                            <span
-                                                className="indicator-item badge badge-sm bg-indigo-500 text-white text-[10px] w-[18px] h-5 tooltip"
-                                                data-tip={genresArr[index].extraGenres.join(', ')}
-                                            >
+                                            <span className="indicator-item badge badge-sm bg-indigo-500 text-white text-[10px] w-[18px] h-5">
                                                 +{genresArr[index].extraGenres.length}
                                             </span>
                                             <span className="bg-indigo-700/30 text-indigo-300 text-[10px] px-1.5 py-[1px] rounded">
