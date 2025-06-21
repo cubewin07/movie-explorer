@@ -46,10 +46,10 @@ function Popular({ movies, genres }) {
                         <div className="flex flex-col justify-between h-24">
                             {/* Title + Release Date */}
                             <div>
-                                <h2 className="text-white text-sm font-semibold w-[110px] truncate whitespace-nowrap overflow-hidden">
+                                <h2 className="text-white text-xs font-semibold w-[100px] truncate whitespace-nowrap overflow-hidden">
                                     {movie.title}
                                 </h2>
-                                <p className="text-xs text-neutral-200">{movie.release_date}</p>
+                                <p className="text-[10px] text-neutral-200">{movie.release_date}</p>
 
                                 {/* Genre Tags */}
                                 {genresArr[index].extraGenres.length > 0 ? (
