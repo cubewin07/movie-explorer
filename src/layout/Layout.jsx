@@ -4,19 +4,19 @@ import { Outlet } from 'react-router-dom';
 function Layout() {
     return (
         <div className="min-h-screen w-full flex justify-center items-start bg-gray-100 py-8 px-2 animate-fade-in">
-            <div className="w-full flex rounded-2xl shadow-xl bg-white overflow-hidden border border-gray-200">
+            <div className="w-full flex rounded-2xl shadow-xl bg-white overflow-hidden border border-gray-200 h-[calc(100vh-4rem)]">
                 {/* Left Sidebar */}
-                <aside className="w-60 h-[calc(100vh-4rem)] overflow-y-auto border-r border-gray-200 bg-white">
+                <aside className="w-[25rem] h-full bg-white">
                     <Sidebar left={true} />
                 </aside>
 
                 {/* Main Content */}
-                <main className="flex-grow min-h-[calc(100vh-4rem)] overflow-y-auto bg-gray-50 px-8 py-6">
+                <main className="flex-grow h-full overflow-y-auto bg-gray-50 px-8 py-6">
                     <Outlet />
                 </main>
 
                 {/* Right Sidebar */}
-                <aside className="w-60 h-[calc(100vh-4rem)] overflow-y-auto border-l border-gray-200 bg-white">
+                <aside className="w-[25rem] h-full bg-white">
                     <Sidebar right={true} />
                 </aside>
             </div>

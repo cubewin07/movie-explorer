@@ -57,7 +57,7 @@ function Popular({ movies, genres }) {
                                         {genresArr[index].visibleGenres.slice(0, -1).map((name) => (
                                             <span
                                                 key={name}
-                                                className="bg-indigo-700/30 text-indigo-300 text-[10px] px-1.5 py-[1px] rounded"
+                                                className="text-[10px] px-1.5 py-[1px] rounded font-medium bg-blue-100 text-blue-700 dark:bg-violet-900 dark:text-violet-200"
                                             >
                                                 {name}
                                             </span>
@@ -65,10 +65,10 @@ function Popular({ movies, genres }) {
 
                                         {/* Last visible genre + indicator */}
                                         <div className="indicator">
-                                            <span className="indicator-item badge badge-sm bg-indigo-500 text-white text-[10px] w-[18px] h-5">
+                                            <span className="indicator-item badge badge-sm bg-blue-500 text-white text-[10px] w-[18px] h-5 dark:bg-violet-600">
                                                 +{genresArr[index].extraGenres.length}
                                             </span>
-                                            <span className="bg-indigo-700/30 text-indigo-300 text-[10px] px-1.5 py-[1px] rounded">
+                                            <span className="text-[10px] px-1.5 py-[1px] rounded font-medium bg-blue-100 text-blue-700 dark:bg-violet-900 dark:text-violet-200">
                                                 {genresArr[index].visibleGenres.at(-1)}
                                             </span>
                                         </div>
@@ -78,7 +78,7 @@ function Popular({ movies, genres }) {
                                         {genresArr[index].visibleGenres.map((name) => (
                                             <span
                                                 key={name}
-                                                className="bg-indigo-700/30 text-indigo-300 text-[10px] px-1.5 py-[1px] rounded"
+                                                className="text-[10px] px-1.5 py-[1px] rounded font-medium bg-blue-100 text-blue-700 dark:bg-violet-900 dark:text-violet-200"
                                             >
                                                 {name}
                                             </span>

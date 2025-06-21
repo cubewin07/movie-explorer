@@ -11,13 +11,39 @@ import SearchInput from './Search/SearchInput';
 function Sidebar({ left = false, right = false }) {
     const [active, setActive] = useState('/');
 
+    // DaisyUI theme toggle
+    const handleThemeToggle = (e) => {
+        const theme = e.target.checked ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', theme);
+    };
+
     const handleActive = (path) => {
         setActive(path);
     };
 
     if (left) {
         return (
-            <div className="flex flex-col h-full w-full bg-white rounded-2xl shadow-md p-4 gap-6 animate-fade-in">
+            <div className="flex flex-col h-full w-full bg-white rounded-2xl shadow-md p-4 gap-6 animate-fade-in overflow-y-auto">
+                {/* Theme Toggle */}
+                <div className="flex justify-end mb-2">
+                    <label className="swap swap-rotate">
+                        <input type="checkbox" onChange={handleThemeToggle} className="theme-controller" />
+                        <svg
+                            className="swap-on fill-current w-6 h-6 text-yellow-400"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                        >
+                            <path d="M5.64 17.66A9 9 0 0 1 12 3v0a9 9 0 1 0 9 9h0a9 9 0 0 1-15.36 5.66z"></path>
+                        </svg>
+                        <svg
+                            className="swap-off fill-current w-6 h-6 text-blue-600"
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                        >
+                            <path d="M21.64 13A9 9 0 0 1 12 21a9 9 0 0 1 0-18 9 9 0 0 1 9 9z"></path>
+                        </svg>
+                    </label>
+                </div>
                 {/* Logo Area */}
                 <div className="flex items-center justify-center mb-2">
                     <span className="text-2xl font-bold text-blue-600 tracking-tight">MovieHub</span>
@@ -140,7 +166,7 @@ function Sidebar({ left = false, right = false }) {
     }
     if (right) {
         return (
-            <div className="flex flex-col h-full w-full bg-white rounded-2xl shadow-md p-4 gap-6 animate-fade-in">
+            <div className="flex flex-col h-full w-full bg-white rounded-2xl shadow-md p-4 gap-6 animate-fade-in overflow-y-auto">
                 <div className="mb-4">
                     <SearchInput />
                 </div>
