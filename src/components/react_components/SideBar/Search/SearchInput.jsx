@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 function SearchInput() {
     const inputRef = useRef(null);
     const [search, setSearch] = useState('');
+    const [enableSearch, setEnableSearch] = useState(false);
     const [isFocused, setIsFocused] = useState(false);
     const handleSearch = () => {
         setSearch(inputRef.current.value);
@@ -18,7 +19,7 @@ function SearchInput() {
     useEffect(() => {
         inputRef.current.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                handleSearch();
+                setEnableSearch(true);
             }
         });
     }, [handleSearch]);
@@ -40,7 +41,7 @@ function SearchInput() {
     const { data: searchResults, isLoading } = useQuery({
         queryKey: ['search', search],
         queryFn: () => axiosInstance.get(`/search/movie?query=${search}`),
-        enabled: !!search,
+        enabled: enableSearch,
     });
     return (
         <label className="input input-accent border border-primary text-white bg-slate-800 animate-pulse-glow">
