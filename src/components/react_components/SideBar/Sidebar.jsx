@@ -166,7 +166,7 @@ function Sidebar({ left = false, right = false }) {
     }
     if (right) {
         return (
-            <div className="flex flex-col h-full w-full bg-card rounded-2xl shadow-md p-4 gap-6 animate-fade-in overflow-y-auto text-foreground border border-border">
+            <div className="flex flex-col h-full w-full bg-card rounded-2xl shadow-md p-4 gap-6 animate-fade-in overflow-y-auto text-foreground border-l border-border">
                 <div className="mb-4">
                     <SearchInput />
                 </div>
