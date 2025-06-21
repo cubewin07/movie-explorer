@@ -23,7 +23,7 @@ function Sidebar({ left = false, right = false }) {
 
     if (left) {
         return (
-            <div className="flex flex-col h-full w-full bg-white rounded-2xl shadow-md p-4 gap-6 animate-fade-in overflow-y-auto">
+            <div className="flex flex-col h-full w-full bg-card rounded-2xl shadow-md p-4 gap-6 animate-fade-in overflow-y-auto text-foreground border border-border">
                 {/* Theme Toggle */}
                 <div className="flex justify-end mb-2">
                     <label className="swap swap-rotate">
@@ -36,7 +36,7 @@ function Sidebar({ left = false, right = false }) {
                             <path d="M5.64 17.66A9 9 0 0 1 12 3v0a9 9 0 1 0 9 9h0a9 9 0 0 1-15.36 5.66z"></path>
                         </svg>
                         <svg
-                            className="swap-off fill-current w-6 h-6 text-blue-600"
+                            className="swap-off fill-current w-6 h-6 text-primary"
                             xmlns="http://www.w3.org/2000/svg"
                             viewBox="0 0 24 24"
                         >
@@ -46,11 +46,11 @@ function Sidebar({ left = false, right = false }) {
                 </div>
                 {/* Logo Area */}
                 <div className="flex items-center justify-center mb-2">
-                    <span className="text-2xl font-bold text-blue-600 tracking-tight">MovieHub</span>
+                    <span className="text-2xl font-bold text-primary tracking-tight">MovieHub</span>
                 </div>
                 <div className="flex flex-col justify-between flex-1 gap-6">
                     <ul className="menu menu-border w-full pr-0">
-                        <li className="menu-title text-xs text-gray-400 uppercase tracking-wider">Menu</li>
+                        <li className="menu-title text-xs text-muted-foreground uppercase tracking-wider">Menu</li>
                         <li className={active === '/' ? 'menu-item-active' : ''}>
                             <Link
                                 to="/"
@@ -94,7 +94,7 @@ function Sidebar({ left = false, right = false }) {
                     </ul>
 
                     <ul className="menu w-full pr-0 menu-border">
-                        <li className="menu-title text-xs text-gray-400 uppercase tracking-wider">Social</li>
+                        <li className="menu-title text-xs text-muted-foreground uppercase tracking-wider">Social</li>
                         <li className={active === '/profile' ? 'menu-item-active' : ''}>
                             <Link
                                 to="/profile"
@@ -128,7 +128,7 @@ function Sidebar({ left = false, right = false }) {
                     </ul>
 
                     <ul className="menu w-full pr-0 menu-border">
-                        <li className="menu-title text-xs text-gray-400 uppercase tracking-wider">General</li>
+                        <li className="menu-title text-xs text-muted-foreground uppercase tracking-wider">General</li>
                         <li className={active === '/settings' ? 'menu-item-active' : ''}>
                             <Link
                                 to="/settings"
@@ -166,7 +166,7 @@ function Sidebar({ left = false, right = false }) {
     }
     if (right) {
         return (
-            <div className="flex flex-col h-full w-full bg-white rounded-2xl shadow-md p-4 gap-6 animate-fade-in overflow-y-auto">
+            <div className="flex flex-col h-full w-full bg-card rounded-2xl shadow-md p-4 gap-6 animate-fade-in overflow-y-auto text-foreground border border-border">
                 <div className="mb-4">
                     <SearchInput />
                 </div>

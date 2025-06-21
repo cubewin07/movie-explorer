@@ -3,20 +3,20 @@ import { Outlet } from 'react-router-dom';
 
 function Layout() {
     return (
-        <div className="min-h-screen w-full flex justify-center items-start bg-gray-100 py-8 px-2 animate-fade-in">
-            <div className="w-full flex rounded-2xl shadow-xl bg-white overflow-hidden border border-gray-200 h-[calc(100vh-4rem)]">
+        <div className="min-h-screen w-full flex justify-center items-start bg-background py-8 px-2 animate-fade-in">
+            <div className="w-full flex rounded-2xl shadow-xl bg-card overflow-hidden border border-border h-[calc(100vh-4rem)]">
                 {/* Left Sidebar */}
-                <aside className="w-[25rem] h-full bg-white">
+                <aside className="w-[25rem] h-full bg-card">
                     <Sidebar left={true} />
                 </aside>
 
                 {/* Main Content */}
-                <main className="flex-grow h-full overflow-y-auto bg-gray-50 px-8 py-6">
+                <main className="flex-grow h-full overflow-y-auto bg-background px-8 py-6 text-foreground">
                     <Outlet />
                 </main>
 
                 {/* Right Sidebar */}
-                <aside className="w-[25rem] h-full bg-white">
+                <aside className="w-[25rem] h-full bg-card">
                     <Sidebar right={true} />
                 </aside>
             </div>

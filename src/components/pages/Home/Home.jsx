@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import axiosInstance from '@/lib/axiosInstance';
 import { Button } from '@/components/ui/button';
+import { TrendingCarousel } from '@/components/TrendingCarousel';
 
 function Home() {
     // Fetch popular movies and genres
@@ -26,51 +27,29 @@ function Home() {
     });
 
     const movies = popularMovies?.data?.results || [];
-    const featured = movies[0];
-    const rest = movies.slice(1, 8);
     const genreMap =
         genres?.data?.genres?.reduce((acc, g) => {
             acc[g.id] = g.name;
             return acc;
         }, {}) || {};
 
+    // Map movies to carousel items
+    const carouselItems = movies.slice(0, 8).map((movie) => ({
+        title: movie.title,
+        subtitle: movie.tagline,
+        image: movie.poster_path
+            ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+            : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(movie.title),
+        description: movie.overview,
+        rating: movie.vote_average?.toFixed(1),
+        year: movie.release_date?.slice(0, 4),
+        extra: movie.genre_ids?.map((id) => genreMap[id]) || [],
+    }));
+
     return (
         <div className="w-full flex flex-col gap-12">
-            {/* Hero Section */}
-            {featured && (
-                <div className="relative rounded-2xl overflow-hidden shadow-lg min-h-[320px] flex items-center bg-gradient-to-r from-blue-100 to-blue-50 animate-fade-in">
-                    <img
-                        src={`https://image.tmdb.org/t/p/original${featured.backdrop_path}`}
-                        alt={featured.title}
-                        className="absolute inset-0 w-full h-full object-cover opacity-60"
-                    />
-                    <div className="relative z-10 p-10 max-w-2xl">
-                        <h1 className="text-4xl font-extrabold text-gray-900 mb-4 drop-shadow-lg">{featured.title}</h1>
-                        <div className="flex items-center gap-3 mb-2">
-                            <span className="bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded shadow">
-                                ★ {featured.vote_average.toFixed(1)}
-                            </span>
-                            <span className="text-gray-700 text-sm font-medium">
-                                {featured.release_date?.slice(0, 4)}
-                            </span>
-                        </div>
-                        <div className="flex flex-wrap gap-2 mb-4">
-                            {featured.genre_ids.map((id) => (
-                                <span key={id} className="bg-blue-200 text-blue-800 text-xs px-2 py-1 rounded-full">
-                                    {genreMap[id]}
-                                </span>
-                            ))}
-                        </div>
-                        <p className="text-gray-700 mb-6 line-clamp-3">{featured.overview}</p>
-                        <Button
-                            size="lg"
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow transition-all"
-                        >
-                            View Details
-                        </Button>
-                    </div>
-                </div>
-            )}
+            {/* Hero Section: Trending Carousel */}
+            {carouselItems.length > 0 && <TrendingCarousel items={carouselItems} />}
 
             {/* Popular Movies Section */}
             <section>
@@ -90,10 +69,10 @@ function Home() {
                                 ))}
                         </div>
                     ) : (
-                        rest.map((movie) => (
+                        movies.slice(1, 8).map((movie) => (
                             <div
                                 key={movie.id}
-                                className="w-56 min-w-[14rem] bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-200 flex flex-col overflow-hidden group animate-fade-in"
+                                className="w-56 min-w-[14rem] bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-200 flex flex-col overflow-hidden group animate-pop-in"
                             >
                                 <div className="relative h-72 overflow-hidden">
                                     <img
