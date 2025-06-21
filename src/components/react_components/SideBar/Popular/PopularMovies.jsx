@@ -51,7 +51,7 @@ function PopularMovies() {
             <h1 className="text-white text-opacity-50 text-lg font-bold mb-3">Popular Movies</h1>
             {(isPopularMoviesLoading || isGenresLoading) && <LoadingSideBar />}
             {!isPopularMoviesLoading && !isGenresLoading && (
-                <Popular movies={visibleMovies} />
+                <Popular movies={visibleMovies} genres={genres?.data?.genres} />
             )} 
         </div>
     );
