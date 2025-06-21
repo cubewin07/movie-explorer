@@ -5,6 +5,7 @@ import { Home, Users, Compass, Clock, User, UserPlus, List, Settings, LogOut, He
 
 import axiosInstance from '@/lib/axiosInstance';
 import PopularMovies from './Popular/PopularMovies';
+import PopularTvSeries from './Popular/PopularTvSeries';
 
 function Sidebar({ left = false, right = false }) {
     const [active, setActive] = useState('/');
@@ -188,6 +189,7 @@ function Sidebar({ left = false, right = false }) {
                     </label>
 
                     <PopularMovies />
+                    <PopularTvSeries />
                 </div>
             </aside>
         );

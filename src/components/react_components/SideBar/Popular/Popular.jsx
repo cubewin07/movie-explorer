@@ -3,7 +3,6 @@ import clsx from 'clsx';
 
 function Popular({ movies, genres }) {
     const [showAll, setShowAll] = useState(false);
-    const visibleMovies = showAll ? movies : movies.slice(0, 3);
 
     const design = clsx({
         'btn btn-outline btn-sm border-indigo-400 text-indigo-300 hover:border-indigo-500 hover:bg-indigo-500/10 hover:text-white font-semibold rounded-lg transition duration-200 shadow-sm':
@@ -47,7 +46,7 @@ function Popular({ movies, genres }) {
                             {/* Title + Release Date */}
                             <div>
                                 <h2 className="text-white text-xs font-semibold w-[100px] truncate whitespace-nowrap overflow-hidden">
-                                    {movie.title}
+                                    {movie.title || movie.name}
                                 </h2>
                                 <p className="text-[10px] text-neutral-200">{movie.release_date}</p>
 
