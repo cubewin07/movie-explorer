@@ -17,7 +17,8 @@ function Sidebar({ left = false, right = false }) {
 
     if (left) {
         return (
-            <aside className="w-52 border-r-2 border-slate-50 border-opacity-20 ">
+            // <aside className="w-52 border-r-2 border-slate-50 border-opacity-20 ">
+            <>
                 <div>{/* <img src={logo} alt="logo" /> */}</div>
 
                 <div className="flex flex-col items-center justify-between mt-4">
@@ -93,18 +94,21 @@ function Sidebar({ left = false, right = false }) {
                         </li>
                     </ul>
                 </div>
-            </aside>
+            </>
+            // </aside>
         );
     }
     if (right) {
         return (
-            <aside className="w-52 border-l-2 border-slate-50 border-opacity-20">
-                <div className="flex flex-col items-center justify-between mt-4 pr-2 pl-6 space-y-5">
+            <>
+                {/* <aside className="w-52 border-l-2 border-slate-50 border-opacity-20"> */}
+                <div className="flex flex-col items-center justify-between mt-4 pr-2 pl-6 space-y-5 relative">
                     <SearchInput />
                     <PopularMovies />
                     <PopularTvSeries />
                 </div>
-            </aside>
+                {/* </aside> */}
+            </>
         );
     }
 }

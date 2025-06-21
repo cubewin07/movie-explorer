@@ -1,14 +1,25 @@
-import Sidebar from "../components/react_components/SideBar/Sidebar";
-import { Outlet } from "react-router-dom";
+import Sidebar from '../components/react_components/SideBar/Sidebar';
+import { Outlet } from 'react-router-dom';
 function Layout() {
-    return (  
+    return (
         <>
-            <Sidebar left={true} />
-            <main className="flex-1">
+            {/* // <div className="max-w-screen-xl mx-auto flex h-screen relative"> */}
+            {/* Left Sidebar */}
+            <aside className="w-52 h-full overflow-y-auto border-r border-slate-700 ">
+                <Sidebar left={true} />
+            </aside>
+
+            {/* Main Content */}
+            <main className="flex-grow overflow-y-auto">
                 <Outlet />
             </main>
-            <Sidebar right={true} />
+
+            {/* Right Sidebar */}
+            <aside className="w-52 h-full overflow-y-auto border-l border-slate-700">
+                <Sidebar right={true} />
+            </aside>
         </>
+        // </div>
     );
 }
 

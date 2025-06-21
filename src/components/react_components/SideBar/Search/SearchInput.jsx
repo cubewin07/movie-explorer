@@ -44,7 +44,7 @@ function SearchInput() {
         enabled: enableSearch,
     });
     return (
-        <label className="input input-accent border border-primary text-white bg-slate-800 animate-pulse-glow">
+        <label className="input input-accent border border-primary text-white bg-slate-800 animate-pulse-glow sticky top-4">
             {isFocused ? (
                 // Only input when focused
                 <input
