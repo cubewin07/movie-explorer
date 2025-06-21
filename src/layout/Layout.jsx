@@ -54,29 +54,17 @@ function SidebarContent({ active, setActive, handleThemeToggle }) {
         <div
             className={cn(
                 'flex flex-col h-full w-full bg-card rounded-2xl shadow-md p-4 gap-2 text-foreground border border-border',
-                open ? 'items-start' : 'items-center',
+                // open ? 'items-start' : 'items-center',
             )}
         >
             {/* Theme Toggle */}
-            <div className="flex justify-end mb-2 w-full">
-                <label className="swap swap-rotate">
-                    <input type="checkbox" onChange={handleThemeToggle} className="theme-controller" />
-                    <svg
-                        className="swap-on fill-current w-6 h-6 text-yellow-400"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                    >
-                        <path d="M5.64 17.66A9 9 0 0 1 12 3v0a9 9 0 1 0 9 9h0a9 9 0 0 1-15.36 5.66z"></path>
-                    </svg>
-                    <svg
-                        className="swap-off fill-current w-6 h-6 text-primary"
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 24 24"
-                    >
-                        <path d="M21.64 13A9 9 0 0 1 12 21a9 9 0 0 1 0-18 9 9 0 0 1 9 9z"></path>
-                    </svg>
-                </label>
-            </div>
+            <input
+                type="checkbox"
+                onChange={handleThemeToggle}
+                defaultChecked
+                className="w-10 h-6 theme-controller toggle toggle-success border-accent rounded-2xl ml-[-12px] "
+                style={{ backgroundColor: 'bisque' }}
+            />
             {/* Logo Area */}
             <div className="flex flex-col items-center justify-center min-h-[64px] mb-2 w-full">
                 <motion.span
