@@ -6,6 +6,7 @@ import { Home, Users, Compass, Clock, User, UserPlus, List, Settings, LogOut, He
 import axiosInstance from '@/lib/axiosInstance';
 import PopularMovies from './Popular/PopularMovies';
 import PopularTvSeries from './Popular/PopularTvSeries';
+import SearchInput from './Search/SearchInput';
 
 function Sidebar({ left = false, right = false }) {
     const [active, setActive] = useState('/');
@@ -96,98 +97,10 @@ function Sidebar({ left = false, right = false }) {
         );
     }
     if (right) {
-        const inputRef = useRef(null);
-        const [search, setSearch] = useState('');
-        const [isFocused, setIsFocused] = useState(false);
-        const handleSearch = () => {
-            setSearch(inputRef.current.value);
-        };
-
-        useEffect(() => {
-            if (isFocused) {
-                inputRef.current.focus();
-            }
-        }, [isFocused]);
-
-        useEffect(() => {
-            inputRef.current.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    handleSearch();
-                }
-            });
-        }, [handleSearch]);
-
-        useEffect(() => {
-            const handleKeyDown = (event) => {
-                const isCmdOrCtrl = event.metaKey || event.ctrlKey;
-
-                if (isCmdOrCtrl && event.key.toLowerCase() === 'k') {
-                    event.preventDefault();
-                    setIsFocused(true);
-                }
-            };
-
-            window.addEventListener('keydown', handleKeyDown);
-            return () => window.removeEventListener('keydown', handleKeyDown);
-        }, []);
-
-        const { data: searchResults, isLoading } = useQuery({
-            queryKey: ['search', search],
-            queryFn: () => axiosInstance.get(`/search/movie?query=${search}`),
-            enabled: !!search,
-        });
-
         return (
             <aside className="w-52 border-l-2 border-slate-50 border-opacity-20">
                 <div className="flex flex-col items-center justify-between mt-4 pr-2 pl-6 space-y-5">
-                    <label className="input input-accent border border-primary text-white bg-slate-800 animate-pulse-glow">
-                        {isFocused ? (
-                            // Only input when focused
-                            <input
-                                type="search"
-                                className="grow bg-transparent placeholder:text-gray-400 text-white"
-                                placeholder="Search"
-                                value={search}
-                                onChange={handleSearch}
-                                onFocus={() => setIsFocused(true)}
-                                onBlur={() => setIsFocused(false)}
-                                ref={inputRef}
-                            />
-                        ) : (
-                            // Full layout when not focused
-                            <>
-                                <svg
-                                    className="h-[1em] opacity-50"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <g
-                                        strokeLinejoin="round"
-                                        strokeLinecap="round"
-                                        strokeWidth="2.5"
-                                        fill="none"
-                                        stroke="currentColor"
-                                    >
-                                        <circle cx="11" cy="11" r="8"></circle>
-                                        <path d="m21 21-4.3-4.3"></path>
-                                    </g>
-                                </svg>
-                                <input
-                                    type="search"
-                                    className="grow bg-transparent placeholder:text-gray-400 text-white"
-                                    placeholder="Search"
-                                    value={search}
-                                    onChange={handleSearch}
-                                    onFocus={() => setIsFocused(true)}
-                                    onBlur={() => setIsFocused(false)}
-                                    ref={inputRef}
-                                />
-                                <kbd className="kbd kbd-sm">⌘</kbd>
-                                <kbd className="kbd kbd-sm">K</kbd>
-                            </>
-                        )}
-                    </label>
-
+                    <SearchInput />
                     <PopularMovies />
                     <PopularTvSeries />
                 </div>
