@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Search as SearchIcon, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import MovieCard from './MovieCard';
+import MovieCard from '@/components/ui/MovieCard';
 import axiosInstance from '@/lib/axiosInstance';
 
 function SearchInput() {
