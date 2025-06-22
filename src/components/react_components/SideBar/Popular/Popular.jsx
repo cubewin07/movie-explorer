@@ -2,38 +2,14 @@ import { useMemo, useState } from 'react';
 import clsx from 'clsx';
 
 function Popular({ movies, genres }) {
-    const [showAll, setShowAll] = useState(false);
-
-    const design = clsx({
-        'btn btn-outline btn-sm border-indigo-400 text-indigo-300 hover:border-indigo-500 hover:bg-indigo-500/10 hover:text-white font-semibold rounded-lg transition duration-200 shadow-sm':
-            !showAll,
-        'btn btn-outline btn-sm border-rose-400 text-rose-300 hover:border-rose-500 hover:bg-rose-500/10 hover:text-white font-semibold rounded-lg transition duration-200 shadow-sm':
-            showAll,
-    });
-
     // Utility to map genre IDs to names
     const getGenreNames = (ids) => {
         return ids.map((id) => genres.find((g) => g.id === id)?.name).filter(Boolean);
     };
-    const genresArr = useMemo(
-        () =>
-            movies.reduce((acc, movie) => {
-                const genreNames = getGenreNames(movie.genre_ids);
-                const visibleGenres = genreNames.slice(0, 2);
-                const extraGenres = genreNames.slice(2);
-
-                acc.push({
-                    genre_ids: movie.genre_ids,
-                    visibleGenres,
-                    extraGenres,
-                });
-                return acc;
-            }, []),
-        [movies, genres],
-    );
     return (
         <div className="flex flex-col gap-4">
             {movies.map((movie, index) => {
+                const genreNames = getGenreNames(movie.genre_ids);
                 return (
                     <div key={movie.id} className="flex gap-4 items-start">
                         <img
@@ -41,53 +17,23 @@ function Popular({ movies, genres }) {
                             alt={movie.title}
                             className="h-24 rounded-lg object-cover"
                         />
-
                         <div className="flex flex-col justify-between h-24">
-                            {/* Title + Release Date */}
                             <div>
                                 <h2 className="text-white text-xs font-semibold w-[100px] truncate whitespace-nowrap overflow-hidden">
                                     {movie.title || movie.name}
                                 </h2>
                                 <p className="text-[10px] text-neutral-200">{movie.release_date}</p>
-
-                                {/* Genre Tags */}
-                                {genresArr[index].extraGenres.length > 0 ? (
-                                    <div className="flex flex-wrap gap-1 mt-1 items-center">
-                                        {/* All but the last visible genre */}
-                                        {genresArr[index].visibleGenres.slice(0, -1).map((name) => (
-                                            <span
-                                                key={name}
-                                                className="text-[10px] px-1.5 py-[1px] rounded font-medium bg-blue-100 text-blue-700 dark:bg-violet-900 dark:text-violet-200"
-                                            >
-                                                {name}
-                                            </span>
-                                        ))}
-
-                                        {/* Last visible genre + indicator */}
-                                        <div className="indicator">
-                                            <span className="indicator-item badge badge-sm bg-blue-500 text-white text-[10px] w-[18px] h-5 dark:bg-violet-600">
-                                                +{genresArr[index].extraGenres.length}
-                                            </span>
-                                            <span className="text-[10px] px-1.5 py-[1px] rounded font-medium bg-blue-100 text-blue-700 dark:bg-violet-900 dark:text-violet-200">
-                                                {genresArr[index].visibleGenres.at(-1)}
-                                            </span>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="flex flex-wrap gap-1 mt-1 items-center">
-                                        {genresArr[index].visibleGenres.map((name) => (
-                                            <span
-                                                key={name}
-                                                className="text-[10px] px-1.5 py-[1px] rounded font-medium bg-blue-100 text-blue-700 dark:bg-violet-900 dark:text-violet-200"
-                                            >
-                                                {name}
-                                            </span>
-                                        ))}
-                                    </div>
-                                )}
+                                <div className="flex flex-wrap gap-1 mt-1 items-center">
+                                    {genreNames.map((name) => (
+                                        <span
+                                            key={name}
+                                            className="text-[10px] px-1.5 py-[1px] rounded font-medium bg-blue-100 text-blue-700 dark:bg-violet-900 dark:text-violet-200"
+                                        >
+                                            {name}
+                                        </span>
+                                    ))}
+                                </div>
                             </div>
-
-                            {/* IMDb Rating */}
                             <div className="flex items-center gap-1">
                                 <div className="bg-yellow-400 text-black text-[10px] font-extrabold px-1.5  rounded-sm">
                                     IMDb
@@ -100,12 +46,6 @@ function Popular({ movies, genres }) {
                     </div>
                 );
             })}
-
-            {movies.length >= 3 && (
-                <button onClick={() => setShowAll((prev) => !prev)} className={design}>
-                    {showAll ? 'Show Less' : 'See More'}
-                </button>
-            )}
         </div>
     );
 }

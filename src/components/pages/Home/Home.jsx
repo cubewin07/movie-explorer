@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import axiosInstance from '@/lib/axiosInstance';
 import { Button } from '@/components/ui/button';
 import { TrendingCarousel } from '@/components/TrendingCarousel';
+import { useState } from 'react';
 
 function Home() {
     // Fetch popular movies and genres
@@ -72,7 +73,7 @@ function Home() {
                         movies.slice(1, 8).map((movie) => (
                             <div
                                 key={movie.id}
-                                className="w-56 min-w-[14rem] bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-200 flex flex-col overflow-hidden group animate-pop-in"
+                                className="w-56 min-w-[14rem] bg-white rounded-xl shadow-md hover:shadow-xl transition-shadow duration-200 flex flex-col overflow-hidden group animate-pop-in cursor-pointer"
                             >
                                 <div className="relative h-72 overflow-hidden">
                                     <img

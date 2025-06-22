@@ -81,7 +81,7 @@ export default {
             },
         },
     },
-    plugins: [require('daisyui'), require('tailwindcss-animate')],
+    plugins: [require('daisyui'), require('tailwindcss-animate'), require('@tailwindcss/line-clamp')],
     daisyui: {
         themes: ['light', 'dark', 'dracula'],
     },

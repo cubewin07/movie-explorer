@@ -23,8 +23,10 @@ const MovieReviewModal = ({
 }) => {
     const [isMounted, setIsMounted] = useState(false);
     const [isAnimatingOut, setIsAnimatingOut] = useState(false);
+    const [dropdownOpen, setDropdownOpen] = useState(false);
     const modalRef = useRef(null);
     const closeButtonRef = useRef(null);
+    const dropdownRef = useRef(null);
 
     useEffect(() => {
         if (isOpen) {
@@ -53,28 +55,15 @@ const MovieReviewModal = ({
     }, [isOpen, isAnimatingOut]);
 
     useEffect(() => {
-        const handleKeyDown = (event) => {
-            if (event.key === 'Escape' && isOpen) {
-                onClose();
+        if (!dropdownOpen) return;
+        function handleClickOutside(event) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setDropdownOpen(false);
             }
-        };
-
-        const handleClickOutside = (event) => {
-            if (modalRef.current && !modalRef.current.contains(event.target)) {
-                onClose();
-            }
-        };
-
-        if (isOpen) {
-            document.addEventListener('keydown', handleKeyDown);
-            document.addEventListener('mousedown', handleClickOutside);
         }
-
-        return () => {
-            document.removeEventListener('keydown', handleKeyDown);
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [isOpen, onClose]);
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, [dropdownOpen]);
 
     const formatRuntime = (minutes) => {
         const hours = Math.floor(minutes / 60);
@@ -216,6 +205,43 @@ const MovieReviewModal = ({
                             <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                         </Button>
                     </div>
+                </div>
+
+                <div className="absolute top-6 left-6 z-20">
+                    <Button variant="outline" size="sm" onClick={() => setDropdownOpen((v) => !v)}>
+                        More Options
+                    </Button>
+                    {dropdownOpen && (
+                        <div
+                            ref={dropdownRef}
+                            className="mt-2 bg-white dark:bg-gray-800 rounded shadow-lg min-w-[160px] border border-gray-200 dark:border-gray-700"
+                        >
+                            <ul className="py-1">
+                                <li>
+                                    <button
+                                        className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        onClick={() => {
+                                            setDropdownOpen(false);
+                                            alert('Option 1 selected');
+                                        }}
+                                    >
+                                        Option 1
+                                    </button>
+                                </li>
+                                <li>
+                                    <button
+                                        className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        onClick={() => {
+                                            setDropdownOpen(false);
+                                            alert('Option 2 selected');
+                                        }}
+                                    >
+                                        Option 2
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+                    )}
                 </div>
             </Card>
         </div>

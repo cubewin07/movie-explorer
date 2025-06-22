@@ -1,92 +1,228 @@
-import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useState, useRef, useEffect } from 'react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Search as SearchIcon, X } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import MovieCard from './MovieCard';
+import axiosInstance from '@/lib/axiosInstance';
 
 function SearchInput() {
     const inputRef = useRef(null);
     const [search, setSearch] = useState('');
-    const [enableSearch, setEnableSearch] = useState(false);
-    const [isFocused, setIsFocused] = useState(false);
-    const handleSearch = () => {
-        setSearch(inputRef.current.value);
-    };
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [debouncedSearch, setDebouncedSearch] = useState('');
+    const navigate = useNavigate();
 
+    // Debounce input
     useEffect(() => {
-        if (isFocused) {
-            inputRef.current.focus();
-        }
-    }, [isFocused]);
+        const timer = setTimeout(() => {
+            setDebouncedSearch(search.trim());
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [search]);
 
-    useEffect(() => {
-        inputRef.current.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                setEnableSearch(true);
-            }
-        });
-    }, [handleSearch]);
-
+    // Cmd/Ctrl + K to open modal
     useEffect(() => {
         const handleKeyDown = (event) => {
-            const isCmdOrCtrl = event.metaKey || event.ctrlKey;
-
-            if (isCmdOrCtrl && event.key.toLowerCase() === 'k') {
+            if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
                 event.preventDefault();
-                setIsFocused(true);
+                setIsModalOpen(true);
             }
         };
-
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
-    const { data: searchResults, isLoading } = useQuery({
-        queryKey: ['search', search],
-        queryFn: () => axiosInstance.get(`/search/movie?query=${search}`),
-        enabled: enableSearch,
+    // Focus on input when modal opens
+    useEffect(() => {
+        if (isModalOpen) inputRef.current?.focus();
+    }, [isModalOpen]);
+
+    const { data, isLoading } = useQuery({
+        queryKey: ['search-all', debouncedSearch],
+        queryFn: async () => {
+            if (!debouncedSearch) {
+                const [trending, topRated] = await Promise.all([
+                    axiosInstance.get('/trending/all/week'),
+                    axiosInstance.get('/movie/top_rated'),
+                ]);
+                return {
+                    movies: [],
+                    tv: [],
+                    trending: trending.data.results,
+                    topRated: topRated.data.results,
+                };
+            }
+
+            const [movies, tv] = await Promise.all([
+                axiosInstance.get(`/search/movie?query=${debouncedSearch}`),
+                axiosInstance.get(`/search/tv?query=${debouncedSearch}`),
+            ]);
+            return {
+                movies: movies.data.results,
+                tv: tv.data.results,
+                trending: [],
+                topRated: [],
+            };
+        },
+        enabled: isModalOpen,
     });
+
     return (
-        <label className="input input-accent border border-primary text-white bg-slate-800 animate-pulse-glow sticky top-4">
-            {isFocused ? (
-                // Only input when focused
+        <>
+            {/* Search bar */}
+            <label
+                onClick={() => setIsModalOpen(true)}
+                className="input input-accent border border-primary text-white bg-slate-800 animate-pulse-glow sticky top-4 cursor-pointer"
+            >
+                <SearchIcon className="h-[1em] opacity-50" />
                 <input
                     type="search"
                     className="grow bg-transparent placeholder:text-gray-400 text-white"
                     placeholder="Search"
                     value={search}
-                    onChange={handleSearch}
-                    onFocus={() => setIsFocused(true)}
-                    onBlur={() => setIsFocused(false)}
+                    onChange={(e) => setSearch(e.target.value)}
                     ref={inputRef}
                 />
-            ) : (
-                // Full layout when not focused
-                <>
-                    <svg className="h-[1em] opacity-50" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                        <g
-                            strokeLinejoin="round"
-                            strokeLinecap="round"
-                            strokeWidth="2.5"
-                            fill="none"
-                            stroke="currentColor"
-                        >
-                            <circle cx="11" cy="11" r="8"></circle>
-                            <path d="m21 21-4.3-4.3"></path>
-                        </g>
-                    </svg>
-                    <input
-                        type="search"
-                        className="grow bg-transparent placeholder:text-gray-400 text-white"
-                        placeholder="Search"
-                        value={search}
-                        onChange={handleSearch}
-                        onFocus={() => setIsFocused(true)}
-                        onBlur={() => setIsFocused(false)}
-                        ref={inputRef}
-                    />
-                    <kbd className="kbd kbd-sm">⌘</kbd>
-                    <kbd className="kbd kbd-sm">K</kbd>
-                </>
-            )}
-        </label>
+                <kbd className="kbd kbd-sm">⌘</kbd>
+                <kbd className="kbd kbd-sm">K</kbd>
+            </label>
+
+            {/* Modal */}
+            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                <DialogContent className="max-w-2xl max-h-[80vh] p-0 overflow-hidden">
+                    <div className="flex flex-col h-full">
+                        {/* Header */}
+                        <div className="p-4 border-b">
+                            <h2 className="text-lg font-semibold text-gray-900">Search</h2>
+                        </div>
+
+                        {/* Input */}
+                        <div className="p-4 border-b">
+                            <input
+                                ref={inputRef}
+                                className="w-full h-10 px-4 rounded border bg-background text-foreground"
+                                placeholder="Search movies or TV series..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                        </div>
+
+                        {/* Results */}
+                        <div className="p-4 overflow-y-auto max-h-[calc(80vh-100px)] space-y-6">
+                            {/* Loading */}
+                            {isLoading && (
+                                <div className="space-y-3">
+                                    {Array.from({ length: 3 }).map((_, idx) => (
+                                        <div key={idx} className="flex items-center gap-4 animate-pulse">
+                                            <div className="w-[100px] h-[150px] bg-gray-300 rounded" />
+                                            <div className="space-y-2 w-full">
+                                                <div className="w-1/2 h-4 bg-gray-300 rounded" />
+                                                <div className="w-3/4 h-3 bg-gray-200 rounded" />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            {/* Empty */}
+                            {debouncedSearch && !isLoading && data?.movies?.length === 0 && data?.tv?.length === 0 && (
+                                <p className="text-muted text-center">No results found.</p>
+                            )}
+
+                            {/* Movies */}
+                            {data?.movies?.length > 0 && (
+                                <div>
+                                    <h3 className="font-semibold text-gray-800 mb-2">🎬 Movies</h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                        {data.movies.map((movie) => (
+                                            <MovieCard
+                                                key={movie.id}
+                                                title={movie.title}
+                                                year={movie.release_date?.split('-')[0]}
+                                                rating={movie.vote_average?.toFixed(1)}
+                                                genres={[]}
+                                                image={`https://image.tmdb.org/t/p/w154${movie.poster_path}`}
+                                                onClick={() => navigate(`/movie/${movie.id}`)}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* TV Series */}
+                            {data?.tv?.length > 0 && (
+                                <div>
+                                    <h3 className="font-semibold text-gray-800 mb-2">📺 TV Series</h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                        {data.tv.map((show) => (
+                                            <MovieCard
+                                                key={show.id}
+                                                title={show.name}
+                                                year={show.first_air_date?.split('-')[0]}
+                                                rating={show.vote_average?.toFixed(1)}
+                                                genres={[]}
+                                                image={`https://image.tmdb.org/t/p/w154${show.poster_path}`}
+                                                onClick={() => navigate(`/tv/${show.id}`)}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Fallback: Trending & Top Rated */}
+                            {!debouncedSearch && (
+                                <>
+                                    {data?.trending?.length > 0 && (
+                                        <div>
+                                            <h3 className="font-semibold text-gray-800 mb-2">🔥 Trending</h3>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                                {data.trending.slice(0, 5).map((item) => (
+                                                    <MovieCard
+                                                        key={item.id}
+                                                        title={item.title || item.name}
+                                                        year={(item.release_date || item.first_air_date)?.split('-')[0]}
+                                                        rating={item.vote_average?.toFixed(1)}
+                                                        genres={[]}
+                                                        image={`https://image.tmdb.org/t/p/w154${item.poster_path}`}
+                                                        onClick={() =>
+                                                            navigate(
+                                                                item.media_type === 'tv'
+                                                                    ? `/tv/${item.id}`
+                                                                    : `/movie/${item.id}`,
+                                                            )
+                                                        }
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {data?.topRated?.length > 0 && (
+                                        <div>
+                                            <h3 className="font-semibold text-gray-800 mb-2 mt-6">⭐ Top Rated</h3>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                                {data.topRated.slice(0, 5).map((movie) => (
+                                                    <MovieCard
+                                                        key={movie.id}
+                                                        title={movie.title}
+                                                        year={movie.release_date?.split('-')[0]}
+                                                        rating={movie.vote_average?.toFixed(1)}
+                                                        genres={[]}
+                                                        image={`https://image.tmdb.org/t/p/w154${movie.poster_path}`}
+                                                        onClick={() => navigate(`/movie/${movie.id}`)}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+        </>
     );
 }
 
