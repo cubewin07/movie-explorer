@@ -1,4 +1,5 @@
-import { Star, Calendar, Film, Tv, Badge } from 'lucide-react';
+import { Star, Calendar, Film, Tv } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 function MovieCard({ title, year, rating, genres = [], image, onClick, type }) {
     return (

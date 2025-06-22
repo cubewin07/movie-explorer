@@ -65,21 +65,53 @@ function SearchInput() {
         enabled: isModalOpen,
     });
 
+    const { data: genresData, isLoading: isGenresLoading } = useQuery({
+        queryKey: ['AllGenres'],
+        queryFn: async () => {
+            const [movieGenres, tvGenres] = await Promise.all([
+                axiosInstance.get('/genre/movie/list', {
+                    params: { language: 'en-US' },
+                }),
+                axiosInstance.get('/genre/tv/list', {
+                    params: { language: 'en-US' },
+                }),
+            ]);
+
+            const genreMap = {};
+            [...movieGenres.data.genres, ...tvGenres.data.genres].forEach((g) => {
+                genreMap[g.id] = g.name;
+            });
+
+            return genreMap;
+        },
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+        staleTime: Infinity,
+    });
+
+    console.log(genresData);
+
     const renderCards = (items, type) => (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {items.map((item, i) => (
-                <div key={item.id} className=" animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
-                    <MovieCard
-                        title={item.title || item.name}
-                        year={(item.release_date || item.first_air_date)?.split('-')[0]}
-                        rating={item.vote_average?.toFixed(1)}
-                        genres={[]}
-                        image={`https://image.tmdb.org/t/p/w154${item.poster_path}`}
-                        onClick={() => navigate(`/${type}/${item.id}`)}
-                        type={type}
-                    />
-                </div>
-            ))}
+            {items.map((item, i) => {
+                const genreNames = item.genre_ids?.map((id) => genresData?.[id]).filter(Boolean);
+
+                console.log(genreNames);
+
+                return (
+                    <div key={item.id} className="animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
+                        <MovieCard
+                            title={item.title || item.name}
+                            year={(item.release_date || item.first_air_date)?.split('-')[0]}
+                            rating={item.vote_average?.toFixed(1)}
+                            genres={genreNames}
+                            image={`https://image.tmdb.org/t/p/w154${item.poster_path}`}
+                            onClick={() => navigate(`/${type}/${item.id}`)}
+                            type={type}
+                        />
+                    </div>
+                );
+            })}
         </div>
     );
 
