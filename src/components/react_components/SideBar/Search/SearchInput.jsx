@@ -157,7 +157,7 @@ function SearchInput() {
 
                             {/* No Results */}
                             {debouncedSearch && !isLoading && data?.movies?.length === 0 && data?.tv?.length === 0 && (
-                                <p className="text-muted text-center">No results found.</p>
+                                <p className=" text-center text-warning">No results found.</p>
                             )}
 
                             {/* Movies */}

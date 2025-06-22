@@ -11,37 +11,6 @@ export function SearchModal({ isOpen, onClose }) {
 
     const recentSearches = ['Inception', 'The Dark Knight', 'Interstellar'];
 
-    const popularResults = [
-        {
-            title: 'Pulp Fiction',
-            year: '1994',
-            rating: '8.9',
-            genres: ['Crime', 'Drama'],
-            image: '/placeholder.svg?height=120&width=80',
-        },
-        {
-            title: 'The Shawshank Redemption',
-            year: '1994',
-            rating: '9.3',
-            genres: ['Drama'],
-            image: '/placeholder.svg?height=120&width=80',
-        },
-        {
-            title: 'The Godfather',
-            year: '1972',
-            rating: '9.2',
-            genres: ['Crime', 'Drama'],
-            image: '/placeholder.svg?height=120&width=80',
-        },
-        {
-            title: 'Forrest Gump',
-            year: '1994',
-            rating: '8.8',
-            genres: ['Drama', 'Romance'],
-            image: '/placeholder.svg?height=120&width=80',
-        },
-    ];
-
     useEffect(() => {
         const handleKeyDown = (event) => {
             if (event.key === 'Escape') {
