@@ -13,7 +13,6 @@ function SearchInput() {
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const navigate = useNavigate();
 
-    // Debounce input
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(search.trim());
@@ -21,7 +20,6 @@ function SearchInput() {
         return () => clearTimeout(timer);
     }, [search]);
 
-    // Cmd/Ctrl + K to open modal
     useEffect(() => {
         const handleKeyDown = (event) => {
             if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
@@ -33,7 +31,6 @@ function SearchInput() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
-    // Focus on input when modal opens
     useEffect(() => {
         if (isModalOpen) inputRef.current?.focus();
     }, [isModalOpen]);
@@ -70,7 +67,6 @@ function SearchInput() {
 
     return (
         <>
-            {/* Search bar */}
             <label
                 onClick={() => setIsModalOpen(true)}
                 className="input input-accent border border-primary text-white bg-slate-800 animate-pulse-glow sticky top-4 cursor-pointer"
@@ -88,16 +84,13 @@ function SearchInput() {
                 <kbd className="kbd kbd-sm">K</kbd>
             </label>
 
-            {/* Modal */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
                 <DialogContent className="max-w-2xl max-h-[80vh] p-0 overflow-hidden">
                     <div className="flex flex-col h-full">
-                        {/* Header */}
                         <div className="p-4 border-b">
                             <h2 className="text-lg font-semibold text-gray-900">Search</h2>
                         </div>
 
-                        {/* Input */}
                         <div className="p-4 border-b">
                             <input
                                 ref={inputRef}
@@ -108,9 +101,7 @@ function SearchInput() {
                             />
                         </div>
 
-                        {/* Results */}
                         <div className="p-4 overflow-y-auto max-h-[calc(80vh-100px)] space-y-6">
-                            {/* Loading */}
                             {isLoading && (
                                 <div className="space-y-3">
                                     {Array.from({ length: 3 }).map((_, idx) => (
@@ -125,52 +116,50 @@ function SearchInput() {
                                 </div>
                             )}
 
-                            {/* Empty */}
                             {debouncedSearch && !isLoading && data?.movies?.length === 0 && data?.tv?.length === 0 && (
                                 <p className="text-muted text-center">No results found.</p>
                             )}
 
-                            {/* Movies */}
                             {data?.movies?.length > 0 && (
                                 <div>
                                     <h3 className="font-semibold text-gray-800 mb-2">🎬 Movies</h3>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                         {data.movies.map((movie) => (
-                                            <MovieCard
-                                                key={movie.id}
-                                                title={movie.title}
-                                                year={movie.release_date?.split('-')[0]}
-                                                rating={movie.vote_average?.toFixed(1)}
-                                                genres={[]}
-                                                image={`https://image.tmdb.org/t/p/w154${movie.poster_path}`}
-                                                onClick={() => navigate(`/movie/${movie.id}`)}
-                                            />
+                                            <div key={movie.id} className="animate-bounce-in">
+                                                <MovieCard
+                                                    title={movie.title}
+                                                    year={movie.release_date?.split('-')[0]}
+                                                    rating={movie.vote_average?.toFixed(1)}
+                                                    genres={[]}
+                                                    image={`https://image.tmdb.org/t/p/w154${movie.poster_path}`}
+                                                    onClick={() => navigate(`/movie/${movie.id}`)}
+                                                />
+                                            </div>
                                         ))}
                                     </div>
                                 </div>
                             )}
 
-                            {/* TV Series */}
                             {data?.tv?.length > 0 && (
                                 <div>
                                     <h3 className="font-semibold text-gray-800 mb-2">📺 TV Series</h3>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                         {data.tv.map((show) => (
-                                            <MovieCard
-                                                key={show.id}
-                                                title={show.name}
-                                                year={show.first_air_date?.split('-')[0]}
-                                                rating={show.vote_average?.toFixed(1)}
-                                                genres={[]}
-                                                image={`https://image.tmdb.org/t/p/w154${show.poster_path}`}
-                                                onClick={() => navigate(`/tv/${show.id}`)}
-                                            />
+                                            <div key={show.id} className="animate-bounce-in">
+                                                <MovieCard
+                                                    title={show.name}
+                                                    year={show.first_air_date?.split('-')[0]}
+                                                    rating={show.vote_average?.toFixed(1)}
+                                                    genres={[]}
+                                                    image={`https://image.tmdb.org/t/p/w154${show.poster_path}`}
+                                                    onClick={() => navigate(`/tv/${show.id}`)}
+                                                />
+                                            </div>
                                         ))}
                                     </div>
                                 </div>
                             )}
 
-                            {/* Fallback: Trending & Top Rated */}
                             {!debouncedSearch && (
                                 <>
                                     {data?.trending?.length > 0 && (
@@ -178,21 +167,26 @@ function SearchInput() {
                                             <h3 className="font-semibold text-gray-800 mb-2">🔥 Trending</h3>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                                 {data.trending.slice(0, 5).map((item) => (
-                                                    <MovieCard
-                                                        key={item.id}
-                                                        title={item.title || item.name}
-                                                        year={(item.release_date || item.first_air_date)?.split('-')[0]}
-                                                        rating={item.vote_average?.toFixed(1)}
-                                                        genres={[]}
-                                                        image={`https://image.tmdb.org/t/p/w154${item.poster_path}`}
-                                                        onClick={() =>
-                                                            navigate(
-                                                                item.media_type === 'tv'
-                                                                    ? `/tv/${item.id}`
-                                                                    : `/movie/${item.id}`,
-                                                            )
-                                                        }
-                                                    />
+                                                    <div key={item.id} className="animate-bounce-in">
+                                                        <MovieCard
+                                                            title={item.title || item.name}
+                                                            year={
+                                                                (item.release_date || item.first_air_date)?.split(
+                                                                    '-',
+                                                                )[0]
+                                                            }
+                                                            rating={item.vote_average?.toFixed(1)}
+                                                            genres={[]}
+                                                            image={`https://image.tmdb.org/t/p/w154${item.poster_path}`}
+                                                            onClick={() =>
+                                                                navigate(
+                                                                    item.media_type === 'tv'
+                                                                        ? `/tv/${item.id}`
+                                                                        : `/movie/${item.id}`,
+                                                                )
+                                                            }
+                                                        />
+                                                    </div>
                                                 ))}
                                             </div>
                                         </div>
@@ -203,15 +197,16 @@ function SearchInput() {
                                             <h3 className="font-semibold text-gray-800 mb-2 mt-6">⭐ Top Rated</h3>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                                 {data.topRated.slice(0, 5).map((movie) => (
-                                                    <MovieCard
-                                                        key={movie.id}
-                                                        title={movie.title}
-                                                        year={movie.release_date?.split('-')[0]}
-                                                        rating={movie.vote_average?.toFixed(1)}
-                                                        genres={[]}
-                                                        image={`https://image.tmdb.org/t/p/w154${movie.poster_path}`}
-                                                        onClick={() => navigate(`/movie/${movie.id}`)}
-                                                    />
+                                                    <div key={movie.id} className="animate-bounce-in">
+                                                        <MovieCard
+                                                            title={movie.title}
+                                                            year={movie.release_date?.split('-')[0]}
+                                                            rating={movie.vote_average?.toFixed(1)}
+                                                            genres={[]}
+                                                            image={`https://image.tmdb.org/t/p/w154${movie.poster_path}`}
+                                                            onClick={() => navigate(`/movie/${movie.id}`)}
+                                                        />
+                                                    </div>
                                                 ))}
                                             </div>
                                         </div>
