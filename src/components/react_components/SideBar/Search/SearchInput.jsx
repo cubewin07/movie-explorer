@@ -145,10 +145,10 @@ function SearchInput() {
                                 <div className="space-y-3">
                                     {Array.from({ length: 3 }).map((_, idx) => (
                                         <div key={idx} className="flex items-center gap-4 animate-pulse">
-                                            <div className="w-[100px] h-[150px] bg-gray-300 rounded" />
+                                            <div className="w-[100px] h-[150px] skeleton rounded" />
                                             <div className="space-y-2 w-full">
-                                                <div className="w-1/2 h-4 bg-gray-300 rounded" />
-                                                <div className="w-3/4 h-3 bg-gray-200 rounded" />
+                                                <div className="w-1/2 h-4 skeleton rounded" />
+                                                <div className="w-3/4 h-3 skeleton rounded" />
                                             </div>
                                         </div>
                                     ))}

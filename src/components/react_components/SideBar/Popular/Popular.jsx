@@ -9,6 +9,7 @@ function Popular({ movies, genres }) {
     return (
         <div className="flex flex-col gap-4">
             {movies.map((movie, index) => {
+                console.log(movie);
                 const genreNames = getGenreNames(movie.genre_ids);
                 return (
                     <div key={movie.id} className="flex gap-4 items-start">
@@ -22,7 +23,9 @@ function Popular({ movies, genres }) {
                                 <h2 className="text-white text-xs font-semibold w-[100px] truncate whitespace-nowrap overflow-hidden">
                                     {movie.title || movie.name}
                                 </h2>
-                                <p className="text-[10px] text-neutral-200">{movie.release_date}</p>
+                                <p className="text-[10px] text-neutral-200">
+                                    {movie.release_date || movie.first_air_date}
+                                </p>
                                 <div className="flex flex-wrap gap-1 mt-1 items-center">
                                     {genreNames.map((name) => (
                                         <span

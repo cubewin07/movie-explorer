@@ -22,7 +22,7 @@ function PopularMovies() {
     });
 
     const { data: genres, isLoading: isGenresLoading } = useQuery({
-        queryKey: ['genres'],
+        queryKey: ['MovieGenres'],
         queryFn: () =>
             axiosInstance.get('/genre/movie/list', {
                 params: {

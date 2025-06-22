@@ -17,7 +17,7 @@ function Home() {
         staleTime: Infinity,
     });
     const { data: genres, isLoading: isGenresLoading } = useQuery({
-        queryKey: ['genres'],
+        queryKey: ['MovieGenres'],
         queryFn: () =>
             axiosInstance.get('/genre/movie/list', {
                 params: { language: 'en-US' },
