@@ -23,3 +23,5 @@ function useThemeToggle() {
 
     return [isDark, setIsDark];
 }
+
+export { useThemeToggle };

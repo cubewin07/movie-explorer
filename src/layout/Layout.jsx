@@ -7,6 +7,7 @@ import { SidebarLink, useSidebar } from '@/components/ui/Sidebar.jsx';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
+import { useThemeToggle } from '@/Hooks/useThemeToggle';
 function Layout() {
     // Active state for menu
     const [active, setActive] = useState('/');
@@ -50,6 +51,7 @@ function Layout() {
 
 function SidebarContent({ active, setActive, handleThemeToggle }) {
     const { open, animate } = useSidebar();
+    const [isDark, setIsDark] = useThemeToggle();
     return (
         <div
             className={cn(
@@ -60,8 +62,8 @@ function SidebarContent({ active, setActive, handleThemeToggle }) {
             {/* Theme Toggle */}
             <input
                 type="checkbox"
-                onChange={handleThemeToggle}
-                defaultChecked
+                onChange={(e) => setIsDark(e.target.checked)}
+                checked={isDark}
                 className="w-10 h-6 theme-controller toggle toggle-success border-accent rounded-2xl ml-[-12px] "
                 style={{ backgroundColor: 'bisque' }}
             />
