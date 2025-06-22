@@ -65,6 +65,24 @@ function SearchInput() {
         enabled: isModalOpen,
     });
 
+    const renderCards = (items, type) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {items.map((item, i) => (
+                <div key={item.id} className=" animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
+                    <MovieCard
+                        title={item.title || item.name}
+                        year={(item.release_date || item.first_air_date)?.split('-')[0]}
+                        rating={item.vote_average?.toFixed(1)}
+                        genres={[]}
+                        image={`https://image.tmdb.org/t/p/w154${item.poster_path}`}
+                        onClick={() => navigate(`/${type}/${item.id}`)}
+                        type={type}
+                    />
+                </div>
+            ))}
+        </div>
+    );
+
     return (
         <>
             <label
@@ -123,40 +141,14 @@ function SearchInput() {
                             {data?.movies?.length > 0 && (
                                 <div>
                                     <h3 className="font-semibold text-gray-800 mb-2">🎬 Movies</h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                        {data.movies.map((movie) => (
-                                            <div key={movie.id} className="animate-bounce-in">
-                                                <MovieCard
-                                                    title={movie.title}
-                                                    year={movie.release_date?.split('-')[0]}
-                                                    rating={movie.vote_average?.toFixed(1)}
-                                                    genres={[]}
-                                                    image={`https://image.tmdb.org/t/p/w154${movie.poster_path}`}
-                                                    onClick={() => navigate(`/movie/${movie.id}`)}
-                                                />
-                                            </div>
-                                        ))}
-                                    </div>
+                                    {renderCards(data.movies, 'movie')}
                                 </div>
                             )}
 
                             {data?.tv?.length > 0 && (
                                 <div>
                                     <h3 className="font-semibold text-gray-800 mb-2">📺 TV Series</h3>
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                        {data.tv.map((show) => (
-                                            <div key={show.id} className="animate-bounce-in">
-                                                <MovieCard
-                                                    title={show.name}
-                                                    year={show.first_air_date?.split('-')[0]}
-                                                    rating={show.vote_average?.toFixed(1)}
-                                                    genres={[]}
-                                                    image={`https://image.tmdb.org/t/p/w154${show.poster_path}`}
-                                                    onClick={() => navigate(`/tv/${show.id}`)}
-                                                />
-                                            </div>
-                                        ))}
-                                    </div>
+                                    {renderCards(data.tv, 'tv')}
                                 </div>
                             )}
 
@@ -165,50 +157,14 @@ function SearchInput() {
                                     {data?.trending?.length > 0 && (
                                         <div>
                                             <h3 className="font-semibold text-gray-800 mb-2">🔥 Trending</h3>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                                {data.trending.slice(0, 5).map((item) => (
-                                                    <div key={item.id} className="animate-bounce-in">
-                                                        <MovieCard
-                                                            title={item.title || item.name}
-                                                            year={
-                                                                (item.release_date || item.first_air_date)?.split(
-                                                                    '-',
-                                                                )[0]
-                                                            }
-                                                            rating={item.vote_average?.toFixed(1)}
-                                                            genres={[]}
-                                                            image={`https://image.tmdb.org/t/p/w154${item.poster_path}`}
-                                                            onClick={() =>
-                                                                navigate(
-                                                                    item.media_type === 'tv'
-                                                                        ? `/tv/${item.id}`
-                                                                        : `/movie/${item.id}`,
-                                                                )
-                                                            }
-                                                        />
-                                                    </div>
-                                                ))}
-                                            </div>
+                                            {renderCards(data.trending.slice(0, 5), 'movie')}
                                         </div>
                                     )}
 
                                     {data?.topRated?.length > 0 && (
                                         <div>
                                             <h3 className="font-semibold text-gray-800 mb-2 mt-6">⭐ Top Rated</h3>
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                                {data.topRated.slice(0, 5).map((movie) => (
-                                                    <div key={movie.id} className="animate-bounce-in">
-                                                        <MovieCard
-                                                            title={movie.title}
-                                                            year={movie.release_date?.split('-')[0]}
-                                                            rating={movie.vote_average?.toFixed(1)}
-                                                            genres={[]}
-                                                            image={`https://image.tmdb.org/t/p/w154${movie.poster_path}`}
-                                                            onClick={() => navigate(`/movie/${movie.id}`)}
-                                                        />
-                                                    </div>
-                                                ))}
-                                            </div>
+                                            {renderCards(data.topRated.slice(0, 5), 'movie')}
                                         </div>
                                     )}
                                 </>
