@@ -1,11 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Search as SearchIcon, X } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import MovieCard from '@/components/ui/MovieCard';
-import axiosInstance from '@/lib/axiosInstance';
 import { useSearchOrFallbackContent } from '@/Hooks/API/data';
+import MovieCard from '@/components/ui/MovieCard';
 
 function SearchInput() {
     const inputRef = useRef(null);
@@ -15,7 +13,7 @@ function SearchInput() {
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const navigate = useNavigate();
 
-    // Debounce search input
+    // Debounce user input
     useEffect(() => {
         const timer = setTimeout(() => {
             setDebouncedSearch(search.trim());
@@ -23,39 +21,36 @@ function SearchInput() {
         return () => clearTimeout(timer);
     }, [search]);
 
-    // Keyboard shortcut (⌘K or Ctrl+K)
+    // Keyboard shortcut
     useEffect(() => {
-        const handleKeyDown = (event) => {
-            if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
-                event.preventDefault();
+        const handler = (e) => {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
                 setIsModalOpen(true);
             }
         };
-        window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
+        window.addEventListener('keydown', handler);
+        return () => window.removeEventListener('keydown', handler);
     }, []);
 
-    // Focus on modal input when opened
+    // Autofocus inside modal
     useEffect(() => {
         if (isModalOpen) {
             setTimeout(() => modalInputRef.current?.focus(), 50);
         }
     }, [isModalOpen]);
 
-    // Main search query
     const { data, isLoading } = useSearchOrFallbackContent(isModalOpen, debouncedSearch);
 
-    console.log(data);
-    // Render cards
     const renderCards = (items, type) => (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {items.map((item, i) => (
                 <div key={item.id} className="animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
                     <MovieCard
                         title={item.title || item.name}
                         year={(item.release_date || item.first_air_date)?.split('-')[0]}
                         rating={item.vote_average?.toFixed(1)}
-                        genres={[]} // Add genre names here if needed later
+                        genres={[]}
                         image={`https://image.tmdb.org/t/p/w154${item.poster_path}`}
                         onClick={() => navigate(`/${type}/${item.id}`)}
                         type={type}
@@ -67,36 +62,36 @@ function SearchInput() {
 
     return (
         <>
-            {/* Static Search Input Bar */}
+            {/* Floating Search Input */}
             <label
                 onClick={() => setIsModalOpen(true)}
-                className="input input-accent border border-primary text-white bg-slate-800 animate-pulse-glow sticky top-4 cursor-pointer"
+                className="input input-bordered input-accent w-full max-w-md text-white bg-neutral dark:bg-neutral-content/10 dark:text-white border border-primary focus-within:ring focus-within:ring-blue-500 sticky top-4 z-10 cursor-pointer"
             >
-                <SearchIcon className="h-[1em] opacity-50" />
+                <SearchIcon className="h-[1.2em] opacity-60" />
                 <input
-                    type="search"
-                    className="grow bg-transparent placeholder:text-gray-400 text-white"
-                    placeholder="Search"
+                    ref={inputRef}
+                    type="text"
+                    placeholder="Search movies or shows..."
+                    className="grow bg-transparent placeholder:text-gray-400 dark:placeholder:text-gray-500 text-white"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    ref={inputRef}
                 />
-                <kbd className="kbd kbd-sm">⌘</kbd>
-                <kbd className="kbd kbd-sm">K</kbd>
+                <kbd className="kbd kbd-sm hidden sm:inline-flex">⌘</kbd>
+                <kbd className="kbd kbd-sm hidden sm:inline-flex">K</kbd>
             </label>
 
-            {/* Modal */}
+            {/* Modal Dialog */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent className="max-w-2xl max-h-[80vh] p-0 overflow-hidden">
+                <DialogContent className="max-w-2xl max-h-[80vh] p-0 overflow-hidden bg-base-100 text-base-content dark:bg-neutral dark:text-white border border-base-300">
                     <div className="flex flex-col h-full">
-                        {/* Header */}
-                        <DialogTitle className="text-lg font-semibold text-gray-900 border-b p-4">Search</DialogTitle>
+                        <DialogTitle className="text-lg font-bold border-b border-base-300 p-4">Search</DialogTitle>
 
-                        {/* Input with clear icon */}
-                        <div className="p-4 border-b relative">
+                        {/* Modal Input */}
+                        <div className="p-4 border-b border-base-300 relative">
                             <input
                                 ref={modalInputRef}
-                                className="w-full h-10 pl-4 pr-10 rounded border bg-background text-foreground"
+                                type="text"
+                                className="input input-bordered w-full bg-base-200 text-base-content"
                                 placeholder="Search movies or TV series..."
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
@@ -104,7 +99,7 @@ function SearchInput() {
                             {search && (
                                 <button
                                     onClick={() => setSearch('')}
-                                    className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500 transition"
+                                    className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500"
                                 >
                                     <X className="w-4 h-4" />
                                 </button>
@@ -112,55 +107,51 @@ function SearchInput() {
                         </div>
 
                         {/* Search Results */}
-                        <div className="p-4 overflow-y-auto max-h-[calc(80vh-100px)] space-y-6">
+                        <div className="p-4 overflow-y-auto max-h-[calc(80vh-120px)] space-y-6">
                             {isLoading && (
                                 <div className="space-y-3">
                                     {Array.from({ length: 3 }).map((_, idx) => (
                                         <div key={idx} className="flex items-center gap-4 animate-pulse">
-                                            <div className="w-[100px] h-[150px] skeleton rounded" />
+                                            <div className="w-[100px] h-[150px] bg-gray-300 dark:bg-gray-700 rounded" />
                                             <div className="space-y-2 w-full">
-                                                <div className="w-1/2 h-4 skeleton rounded" />
-                                                <div className="w-3/4 h-3 skeleton rounded" />
+                                                <div className="w-1/2 h-4 bg-gray-300 dark:bg-gray-600 rounded" />
+                                                <div className="w-3/4 h-3 bg-gray-300 dark:bg-gray-600 rounded" />
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             )}
 
-                            {/* No Results */}
                             {debouncedSearch && !isLoading && data?.movies?.length === 0 && data?.tv?.length === 0 && (
-                                <p className=" text-center text-warning">No results found.</p>
+                                <p className="text-center text-warning">No results found.</p>
                             )}
 
-                            {/* Movies */}
                             {data?.movies?.length > 0 && (
                                 <div>
-                                    <h3 className="font-semibold text-gray-800 mb-2">🎬 Movies</h3>
+                                    <h3 className="font-semibold text-lg mb-2">🎬 Movies</h3>
                                     {renderCards(data.movies, 'movie')}
                                 </div>
                             )}
 
-                            {/* TV Shows */}
                             {data?.tv?.length > 0 && (
                                 <div>
-                                    <h3 className="font-semibold text-gray-800 mb-2">📺 TV Series</h3>
+                                    <h3 className="font-semibold text-lg mb-2">📺 TV Series</h3>
                                     {renderCards(data.tv, 'tv')}
                                 </div>
                             )}
 
-                            {/* Trending / Top Rated (when no search) */}
                             {!debouncedSearch && (
                                 <>
                                     {data?.week?.length > 0 && (
                                         <div>
-                                            <h3 className="font-semibold text-gray-800 mb-2">🔥 Trending</h3>
+                                            <h3 className="font-semibold text-lg mb-2">🔥 Trending</h3>
                                             {renderCards(data.week.slice(0, 5), 'movie')}
                                         </div>
                                     )}
                                     {data?.top_rated?.length > 0 && (
                                         <div>
-                                            <h3 className="font-semibold text-gray-800 mb-2 mt-6">⭐ Top Rated</h3>
-                                            {renderCards(data['top_rated'].slice(0, 5), 'movie')}
+                                            <h3 className="font-semibold text-lg mb-2">⭐ Top Rated</h3>
+                                            {renderCards(data.top_rated.slice(0, 5), 'movie')}
                                         </div>
                                     )}
                                 </>
