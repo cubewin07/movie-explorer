@@ -26,7 +26,7 @@ function Popular({ movies, genres }) {
                                     {movie.release_date || movie.first_air_date}
                                 </p>
                                 <div className="flex flex-wrap gap-1 mt-1 items-center">
-                                    {genreNames.map((name) => (
+                                    {genreNames.slice(0, 2).map((name) => (
                                         <span
                                             key={name}
                                             className="text-[10px] px-1.5 py-[1px] rounded font-medium bg-blue-200 text-blue-800"
