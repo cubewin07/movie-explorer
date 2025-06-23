@@ -15,41 +15,48 @@ function Popular({ movies, genres }) {
         <div className="flex flex-col gap-4">
             {movies.map((movie) => {
                 const genreNames = getGenreNames(movie.genre_ids);
-                console.log(genreNames);
+
                 return (
                     <div
                         key={movie.id}
-                        className="flex gap-4 items-start cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 p-2 rounded-lg transition"
+                        className="flex gap-4 items-start p-3 rounded-lg transition hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer shadow-sm"
                         onClick={() => handleClick({ ...movie, genres: genreNames })}
                     >
+                        {/* Poster */}
                         <img
                             src={`https://image.tmdb.org/t/p/w92${movie.poster_path}`}
                             alt={movie.title}
-                            className="h-24 rounded-lg object-cover"
+                            className="h-24 w-auto rounded-lg object-cover shadow-md"
                         />
+
+                        {/* Info */}
                         <div className="flex flex-col justify-between h-24">
-                            <div>
-                                <h2 className="text-gray-900 dark:text-white text-xs font-semibold w-[100px] truncate whitespace-nowrap overflow-hidden">
+                            <div className="space-y-1">
+                                <h2 className="text-xs font-semibold text-gray-900 dark:text-white truncate w-[120px]">
                                     {movie.title || movie.name}
                                 </h2>
                                 <p className="text-[10px] text-gray-700 dark:text-gray-300">
                                     {movie.release_date || movie.first_air_date}
                                 </p>
-                                <div className="flex flex-wrap gap-1 mt-1 items-center">
+
+                                {/* Genres */}
+                                <div className="flex flex-wrap gap-1 mt-1">
                                     {genreNames.slice(0, 2).map((name) => (
                                         <span
                                             key={name}
-                                            className="text-[10px] px-1.5 py-[1px] rounded font-medium bg-blue-200 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
+                                            className="bg-blue-200 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-[10px] px-2 py-[2px] rounded-full font-medium"
                                         >
                                             {name}
                                         </span>
                                     ))}
                                 </div>
                             </div>
-                            <div className="flex items-center gap-1">
-                                <div className="bg-yellow-400 text-black text-[10px] font-extrabold px-1.5 rounded-sm">
+
+                            {/* Rating */}
+                            <div className="flex items-center gap-2 mt-1">
+                                <span className="bg-yellow-400 text-black text-[10px] font-bold px-1.5 py-[1px] rounded">
                                     IMDb
-                                </div>
+                                </span>
                                 <span className="text-xs text-gray-800 dark:text-gray-200 font-medium">
                                     {movie.vote_average.toFixed(1)}
                                 </span>
