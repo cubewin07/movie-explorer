@@ -15,7 +15,7 @@ function Popular({ movies, genres }) {
         <div className="flex flex-col gap-4">
             {movies.map((movie) => {
                 const genreNames = getGenreNames(movie.genre_ids);
-
+                console.log(movie);
                 return (
                     <div
                         key={movie.id}

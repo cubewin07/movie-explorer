@@ -21,15 +21,23 @@ const genreColorMap = {
     Music: 'bg-purple-200 text-purple-900 dark:bg-purple-800 dark:text-purple-100',
     Mystery: 'bg-gray-200 text-gray-800 dark:bg-gray-800 dark:text-gray-100',
     Romance: 'bg-pink-100 text-pink-700 dark:bg-pink-800 dark:text-pink-100',
+    'Science Fiction': 'bg-cyan-200 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-100',
     SciFi: 'bg-cyan-200 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-100',
-    TVMovie: 'bg-violet-200 text-violet-900 dark:bg-violet-800 dark:text-violet-100',
+    'TV Movie': 'bg-violet-200 text-violet-900 dark:bg-violet-800 dark:text-violet-100',
     Thriller: 'bg-pink-200 text-pink-800 dark:bg-pink-800 dark:text-pink-100',
     War: 'bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100',
     Western: 'bg-yellow-300 text-yellow-900 dark:bg-yellow-800 dark:text-yellow-100',
+    Biography: 'bg-lime-200 text-lime-900 dark:bg-lime-800 dark:text-lime-100',
+    Reality: 'bg-fuchsia-200 text-fuchsia-900 dark:bg-fuchsia-800 dark:text-fuchsia-100',
+    News: 'bg-blue-300 text-blue-900 dark:bg-blue-900 dark:text-blue-100',
+    Talk: 'bg-emerald-200 text-emerald-900 dark:bg-emerald-800 dark:text-emerald-100',
+    Politics: 'bg-red-100 text-red-700 dark:bg-red-800 dark:text-red-100',
 };
 
 export default function MovieReviewModal({
-    name = 'Unknown Title',
+    title,
+    name,
+    original_title,
     original_name,
     first_air_date,
     genres = [],
@@ -67,7 +75,7 @@ export default function MovieReviewModal({
                         <div className="flex-shrink-0">
                             <img
                                 src={posterUrl}
-                                alt={`${name} poster`}
+                                alt={`${title} poster`}
                                 className="w-48 h-72 mx-auto lg:mx-0 rounded-xl object-cover shadow-md"
                             />
                         </div>
@@ -75,9 +83,12 @@ export default function MovieReviewModal({
                         {/* Info */}
                         <div className="flex-1 space-y-4">
                             <div>
-                                <h1 className="text-3xl font-bold">{name}</h1>
-                                {original_name && original_name !== name && (
-                                    <p className="text-base text-muted-foreground">{original_name}</p>
+                                <h1 className="text-3xl font-bold">{title || name}</h1>
+                                {original_title && original_title !== title && original_title !== name && (
+                                    <p className="text-base text-muted-foreground italic">{original_title}</p>
+                                )}
+                                {original_name && original_name !== name && original_name !== title && (
+                                    <p className="text-base text-muted-foreground italic">{original_name}</p>
                                 )}
                             </div>
 
