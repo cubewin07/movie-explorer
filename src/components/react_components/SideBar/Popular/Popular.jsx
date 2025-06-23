@@ -11,6 +11,7 @@ function Popular({ movies, genres }) {
             {movies.map((movie) => {
                 const genreNames = getGenreNames(movie.genre_ids);
 
+                console.log(movie, genreNames);
                 return (
                     <div key={movie.id} className="flex gap-4 items-start">
                         <img
