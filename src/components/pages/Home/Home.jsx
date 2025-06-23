@@ -3,20 +3,11 @@ import axiosInstance from '@/lib/axiosInstance';
 import { Button } from '@/components/ui/button';
 import { TrendingCarousel } from '@/components/TrendingCarousel';
 import { useState } from 'react';
-import { useMovieGenres } from '@/Hooks/API/genres';
+import { useMovieGenres } from '@/hooks/API/genres';
+import { usePopularMovies } from '@/Hooks/API/data';
 
 function Home() {
-    const { data: popularMovies, isLoading: isPopularMoviesLoading } = useQuery({
-        queryKey: ['popularMovies'],
-        queryFn: () =>
-            axiosInstance.get('/movie/popular', {
-                params: { language: 'en-US', page: 1 },
-            }),
-        refetchOnWindowFocus: false,
-        refetchOnReconnect: false,
-        staleTime: Infinity,
-    });
-
+    const { popularMovies, isPopularMoviesLoading } = usePopularMovies();
     const { MovieGenres, isGenresLoading } = useMovieGenres();
 
     const movies = popularMovies?.data?.results || [];

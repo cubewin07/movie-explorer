@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { useState, useRef, useEffect } from 'react';
-import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Search as SearchIcon, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import MovieCard from '@/components/ui/MovieCard';
 import axiosInstance from '@/lib/axiosInstance';
-import { useUsingBothGenres } from '@/Hooks/API/genres';
+import { useSearchOrFallbackContent } from '@/Hooks/API/data';
 
 function SearchInput() {
     const inputRef = useRef(null);
@@ -43,8 +43,9 @@ function SearchInput() {
     }, [isModalOpen]);
 
     // Main search query
-    const { data, isLoading } = useUsingBothGenres(isModalOpen, debouncedSearch);
+    const { data, isLoading } = useSearchOrFallbackContent(isModalOpen, debouncedSearch);
 
+    console.log(data);
     // Render cards
     const renderCards = (items, type) => (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -89,9 +90,7 @@ function SearchInput() {
                 <DialogContent className="max-w-2xl max-h-[80vh] p-0 overflow-hidden">
                     <div className="flex flex-col h-full">
                         {/* Header */}
-                        <div className="p-4 border-b">
-                            <h2 className="text-lg font-semibold text-gray-900">Search</h2>
-                        </div>
+                        <DialogTitle className="text-lg font-semibold text-gray-900 border-b p-4">Search</DialogTitle>
 
                         {/* Input with clear icon */}
                         <div className="p-4 border-b relative">

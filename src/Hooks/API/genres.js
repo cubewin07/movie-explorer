@@ -33,37 +33,3 @@ export const useTvSeriesGenres = () => {
 
     return { TvSeriesGenresRes, isTvSeriesGenreLoading };
 };
-
-export const useUsingBothGenres = (isModalOpen, debouncedSearch) => {
-    const { data, isLoading } = useQuery({
-        queryKey: ['search-all', debouncedSearch],
-        queryFn: async () => {
-            if (!debouncedSearch) {
-                const [trending, topRated] = await Promise.all([
-                    axiosInstance.get('/trending/all/week'),
-                    axiosInstance.get('/movie/top_rated'),
-                ]);
-                return {
-                    movies: [],
-                    tv: [],
-                    trending: trending.data.results,
-                    topRated: topRated.data.results,
-                };
-            }
-
-            const [movies, tv] = await Promise.all([
-                axiosInstance.get(`/search/movie?query=${debouncedSearch}`),
-                axiosInstance.get(`/search/tv?query=${debouncedSearch}`),
-            ]);
-            return {
-                movies: movies.data.results,
-                tv: tv.data.results,
-                trending: [],
-                topRated: [],
-            };
-        },
-        enabled: isModalOpen,
-    });
-
-    return { data, isLoading };
-};

@@ -1,21 +1,10 @@
-import { useQuery } from '@tanstack/react-query';
-import axiosInstance from '@/lib/axiosInstance';
+import { usePopularMovies } from '@/Hooks/API/data';
+import { useMovieGenres } from '@/hooks/API/genres';
 import LoadingSideBar from '../Popular/LoadingSideBar';
 import Popular from '../Popular/Popular';
-import { useMovieGenres } from '@/Hooks/API/genres';
 
 function PopularMovies() {
-    const { data: popularMovies, isLoading: isPopularMoviesLoading } = useQuery({
-        queryKey: ['popularMovies'],
-        queryFn: () =>
-            axiosInstance.get('/movie/popular', {
-                params: { language: 'en-US', page: 1 },
-            }),
-        refetchOnWindowFocus: false,
-        refetchOnReconnect: false,
-        staleTime: Infinity,
-    });
-
+    const { popularMovies, isPopularMoviesLoading } = usePopularMovies();
     const { MovieGenres, isGenresLoading } = useMovieGenres();
 
     const movies = popularMovies?.data?.results?.slice(0, 3) || [];

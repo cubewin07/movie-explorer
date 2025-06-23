@@ -1,25 +1,11 @@
-import { useQuery } from '@tanstack/react-query';
+import { usePopularTvSeries } from '@/Hooks/API/data';
+import { useTvSeriesGenres } from '@/hooks/API/genres';
 
 import Popular from '@/components/react_components/SideBar/Popular/Popular.jsx';
 import LoadingSideBar from '@/components/react_components/SideBar/Popular/LoadingSideBar.jsx';
-import axiosInstance from '@/lib/axiosInstance.js';
-import { useTvSeriesGenres } from '@/Hooks/API/genres';
 
 function PopularTvSeries() {
-    const { data: PopularTvSeriesRes, isLoading: LoadingPopularTvSeries } = useQuery({
-        queryKey: ['popularTvSeries'],
-        queryFn: () => {
-            return axiosInstance.get('/tv/popular', {
-                params: {
-                    language: 'en-US',
-                    page: 1,
-                },
-            });
-        },
-        refetchOnWindowFocus: false,
-        refetchOnReconnect: false,
-        staleTime: Infinity,
-    });
+    const { PopularTvSeriesRes, LoadingPopularTvSeries } = usePopularTvSeries();
     const { TvSeriesGenresRes, isTvSeriesGenreLoading: LoadingTvSeriesGenre } = useTvSeriesGenres();
 
     const TvSeriesGenres = TvSeriesGenresRes?.data?.genres;
