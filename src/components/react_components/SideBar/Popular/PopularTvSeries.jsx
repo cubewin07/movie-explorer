@@ -1,4 +1,4 @@
-import { usePopularTvSeries } from '@/Hooks/API/data';
+import { usePopularTvSeries } from '@/hooks/API/data';
 import { useTvSeriesGenres } from '@/hooks/API/genres';
 
 import Popular from '@/components/react_components/SideBar/Popular/Popular.jsx';

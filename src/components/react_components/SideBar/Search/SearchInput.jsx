@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Search as SearchIcon, X } from 'lucide-react';
-import { useSearchOrFallbackContent } from '@/Hooks/API/data';
+import { useSearchOrFallbackContent } from '@/hooks/API/data';
 import MovieCard from '@/components/ui/MovieCard';
 import TabbedResults from './TabbedResults';
 function SearchInput() {

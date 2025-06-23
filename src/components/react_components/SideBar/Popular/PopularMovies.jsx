@@ -1,4 +1,4 @@
-import { usePopularMovies } from '@/Hooks/API/data';
+import { usePopularMovies } from '@/hooks/API/data';
 import { useMovieGenres } from '@/hooks/API/genres';
 import LoadingSideBar from '../Popular/LoadingSideBar';
 import Popular from '../Popular/Popular';

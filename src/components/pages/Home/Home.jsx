@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { TrendingCarousel } from '@/components/TrendingCarousel';
 import { useState } from 'react';
 import { useMovieGenres } from '@/hooks/API/genres';
-import { usePopularMovies } from '@/Hooks/API/data';
+import { usePopularMovies } from '@/hooks/API/data';
 
 function Home() {
     const { popularMovies, isPopularMoviesLoading } = usePopularMovies();

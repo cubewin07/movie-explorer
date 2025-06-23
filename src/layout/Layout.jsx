@@ -7,7 +7,7 @@ import { SidebarLink, useSidebar } from '@/components/ui/Sidebar.jsx';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-import { useThemeToggle } from '@/Hooks/useThemeToggle';
+import { useThemeToggle } from '@/hooks/useThemeToggle';
 function Layout() {
     // Active state for menu
     const [active, setActive] = useState('/');
