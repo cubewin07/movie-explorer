@@ -12,11 +12,7 @@ function FilmModalProvider({ children }) {
     return (
         <FilmModalContext.Provider value={{ setIsOpen, setContext }}>
             {children}
-            {isOpen && (
-                <AnimatePresence>
-                    <MovieReviewModalDemo {...content} />
-                </AnimatePresence>
-            )}
+            <AnimatePresence mode="wait">{isOpen && <MovieReviewModalDemo {...content} />}</AnimatePresence>
         </FilmModalContext.Provider>
     );
 }
