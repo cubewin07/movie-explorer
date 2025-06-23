@@ -151,16 +151,16 @@ function SearchInput() {
                             {/* Trending / Top Rated (when no search) */}
                             {!debouncedSearch && (
                                 <>
-                                    {data?.trending?.length > 0 && (
+                                    {data?.week?.length > 0 && (
                                         <div>
                                             <h3 className="font-semibold text-gray-800 mb-2">🔥 Trending</h3>
-                                            {renderCards(data.trending.slice(0, 5), 'movie')}
+                                            {renderCards(data.week.slice(0, 5), 'movie')}
                                         </div>
                                     )}
-                                    {data?.topRated?.length > 0 && (
+                                    {data?.top_rated?.length > 0 && (
                                         <div>
                                             <h3 className="font-semibold text-gray-800 mb-2 mt-6">⭐ Top Rated</h3>
-                                            {renderCards(data.topRated.slice(0, 5), 'movie')}
+                                            {renderCards(data['top_rated'].slice(0, 5), 'movie')}
                                         </div>
                                     )}
                                 </>
