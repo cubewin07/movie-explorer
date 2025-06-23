@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import axiosInstance from '@/lib/axiosInstance';
 import LoadingSideBar from '../Popular/LoadingSideBar';
 import Popular from '../Popular/Popular';
+import { useMovieGenres } from '@/Hooks/API/genres';
 
 function PopularMovies() {
     const { data: popularMovies, isLoading: isPopularMoviesLoading } = useQuery({
@@ -15,19 +16,10 @@ function PopularMovies() {
         staleTime: Infinity,
     });
 
-    const { data: genres, isLoading: isGenresLoading } = useQuery({
-        queryKey: ['MovieGenres'],
-        queryFn: () =>
-            axiosInstance.get('/genre/movie/list', {
-                params: { language: 'en-US' },
-            }),
-        refetchOnWindowFocus: false,
-        refetchOnReconnect: false,
-        staleTime: Infinity,
-    });
+    const { MovieGenres, isGenresLoading } = useMovieGenres();
 
     const movies = popularMovies?.data?.results?.slice(0, 3) || [];
-    const genreList = genres?.data?.genres || [];
+    const genreList = MovieGenres?.data?.genres || [];
 
     return (
         <div>

@@ -34,7 +34,7 @@ export const useTvSeriesGenres = () => {
     return { TvSeriesGenresRes, isTvSeriesGenreLoading };
 };
 
-export const useUsingBothGenres = (isModalOpen) => {
+export const useUsingBothGenres = (isModalOpen, debouncedSearch) => {
     const { data, isLoading } = useQuery({
         queryKey: ['search-all', debouncedSearch],
         queryFn: async () => {

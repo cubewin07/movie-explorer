@@ -3,6 +3,7 @@ import axiosInstance from '@/lib/axiosInstance';
 import { Button } from '@/components/ui/button';
 import { TrendingCarousel } from '@/components/TrendingCarousel';
 import { useState } from 'react';
+import { useMovieGenres } from '@/Hooks/API/genres';
 
 function Home() {
     const { data: popularMovies, isLoading: isPopularMoviesLoading } = useQuery({
@@ -16,20 +17,11 @@ function Home() {
         staleTime: Infinity,
     });
 
-    const { data: genres, isLoading: isGenresLoading } = useQuery({
-        queryKey: ['MovieGenres'],
-        queryFn: () =>
-            axiosInstance.get('/genre/movie/list', {
-                params: { language: 'en-US' },
-            }),
-        refetchOnWindowFocus: false,
-        refetchOnReconnect: false,
-        staleTime: Infinity,
-    });
+    const { MovieGenres, isGenresLoading } = useMovieGenres();
 
     const movies = popularMovies?.data?.results || [];
     const genreMap =
-        genres?.data?.genres?.reduce((acc, g) => {
+        MovieGenres?.data?.genres?.reduce((acc, g) => {
             acc[g.id] = g.name;
             return acc;
         }, {}) || {};

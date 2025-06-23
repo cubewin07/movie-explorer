@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import Popular from '@/components/react_components/SideBar/Popular/Popular.jsx';
 import LoadingSideBar from '@/components/react_components/SideBar/Popular/LoadingSideBar.jsx';
 import axiosInstance from '@/lib/axiosInstance.js';
+import { useTvSeriesGenres } from '@/Hooks/API/genres';
 
 function PopularTvSeries() {
     const { data: PopularTvSeriesRes, isLoading: LoadingPopularTvSeries } = useQuery({
@@ -19,19 +20,7 @@ function PopularTvSeries() {
         refetchOnReconnect: false,
         staleTime: Infinity,
     });
-    const { data: TvSeriesGenresRes, isLoading: LoadingTvSeriesGenre } = useQuery({
-        queryKey: ['tvSeriesGenres'],
-        queryFn: () => {
-            return axiosInstance.get('/genre/tv/list', {
-                params: {
-                    language: 'en-US',
-                },
-            });
-        },
-        refetchOnWindowFocus: false,
-        refetchOnReconnect: false,
-        staleTime: Infinity,
-    });
+    const { TvSeriesGenresRes, isTvSeriesGenreLoading: LoadingTvSeriesGenre } = useTvSeriesGenres();
 
     const TvSeriesGenres = TvSeriesGenresRes?.data?.genres;
     const PopularTvSeries = PopularTvSeriesRes?.data?.results || [];

@@ -5,6 +5,7 @@ import { Search as SearchIcon, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import MovieCard from '@/components/ui/MovieCard';
 import axiosInstance from '@/lib/axiosInstance';
+import { useUsingBothGenres } from '@/Hooks/API/genres';
 
 function SearchInput() {
     const inputRef = useRef(null);
@@ -42,35 +43,7 @@ function SearchInput() {
     }, [isModalOpen]);
 
     // Main search query
-    const { data, isLoading } = useQuery({
-        queryKey: ['search-all', debouncedSearch],
-        queryFn: async () => {
-            if (!debouncedSearch) {
-                const [trending, topRated] = await Promise.all([
-                    axiosInstance.get('/trending/all/week'),
-                    axiosInstance.get('/movie/top_rated'),
-                ]);
-                return {
-                    movies: [],
-                    tv: [],
-                    trending: trending.data.results,
-                    topRated: topRated.data.results,
-                };
-            }
-
-            const [movies, tv] = await Promise.all([
-                axiosInstance.get(`/search/movie?query=${debouncedSearch}`),
-                axiosInstance.get(`/search/tv?query=${debouncedSearch}`),
-            ]);
-            return {
-                movies: movies.data.results,
-                tv: tv.data.results,
-                trending: [],
-                topRated: [],
-            };
-        },
-        enabled: isModalOpen,
-    });
+    const { data, isLoading } = useUsingBothGenres(isModalOpen, debouncedSearch);
 
     // Render cards
     const renderCards = (items, type) => (
