@@ -64,9 +64,9 @@ export default function MovieReviewModal({
                             variant="ghost"
                             size="icon"
                             onClick={() => setIsOpen(false)}
-                            className="text-muted-foreground hover:bg-muted/50 rounded-full"
+                            className="text-muted-foreground hover:text-foreground hover:bg-muted/70 dark:hover:bg-muted/30 rounded-full border border-border transition-colors"
                         >
-                            <X className="h-5 w-5" />
+                            <X className="h-4 w-4" />
                         </Button>
                     </div>
 
