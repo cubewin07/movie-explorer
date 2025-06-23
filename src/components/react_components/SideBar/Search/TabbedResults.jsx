@@ -1,5 +1,6 @@
 import { Clapperboard, Tv } from 'lucide-react';
 import { useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 
 function TabbedResults({ data, renderCards }) {
     const [activeTab, setActiveTab] = useState(data?.movies?.length > 0 ? 'movie' : 'tv');
@@ -25,19 +26,39 @@ function TabbedResults({ data, renderCards }) {
                 </button>
             </div>
 
-            {/* Tab Content */}
-            <div className="p-4 sm:p-6 bg-base-100">
-                {activeTab === 'movie' ? (
-                    data?.movies?.length > 0 ? (
-                        renderCards(data.movies, 'movie')
+            {/* Animated Tab Content (no absolute, layout-safe) */}
+            <div className="p-4 sm:p-6 bg-base-100 min-h-[100px]">
+                <AnimatePresence mode="wait">
+                    {activeTab === 'movie' ? (
+                        <motion.div
+                            key="movie"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            {data?.movies?.length > 0 ? (
+                                renderCards(data.movies, 'movie')
+                            ) : (
+                                <p className="text-warning text-center">No movies found.</p>
+                            )}
+                        </motion.div>
                     ) : (
-                        <p className="text-warning text-center">No movies found.</p>
-                    )
-                ) : data?.tv?.length > 0 ? (
-                    renderCards(data.tv, 'tv')
-                ) : (
-                    <p className="text-warning text-center">No TV series found.</p>
-                )}
+                        <motion.div
+                            key="tv"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            {data?.tv?.length > 0 ? (
+                                renderCards(data.tv, 'tv')
+                            ) : (
+                                <p className="text-warning text-center">No TV series found.</p>
+                            )}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
         </div>
     );
