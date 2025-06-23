@@ -5,15 +5,27 @@ import { Badge } from '@/components/ui/badge';
 import { Star, Calendar, Globe, X, Eye, Clock } from 'lucide-react';
 import { FilmModalContext } from '@/context/FilmModalProvider';
 
-// Example genre color map
+// Enhanced genre color map
 const genreColorMap = {
-    Action: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-    Drama: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-    Mystery: 'bg-gray-200 text-gray-800 dark:bg-gray-800 dark:text-gray-100',
-    Horror: 'bg-red-200 text-red-900 dark:bg-red-900 dark:text-red-100',
-    Thriller: 'bg-pink-200 text-pink-900 dark:bg-pink-900 dark:text-pink-100',
-    SciFi: 'bg-cyan-200 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-100',
+    Action: 'bg-sky-200 text-sky-900 dark:bg-sky-800 dark:text-sky-100',
+    Adventure: 'bg-green-200 text-green-900 dark:bg-green-800 dark:text-green-100',
+    Animation: 'bg-orange-200 text-orange-800 dark:bg-orange-900 dark:text-orange-100',
     Comedy: 'bg-yellow-200 text-yellow-900 dark:bg-yellow-900 dark:text-yellow-100',
+    Crime: 'bg-red-200 text-red-900 dark:bg-red-900 dark:text-red-100',
+    Documentary: 'bg-teal-200 text-teal-900 dark:bg-teal-800 dark:text-teal-100',
+    Drama: 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-100',
+    Family: 'bg-amber-200 text-amber-900 dark:bg-amber-800 dark:text-amber-100',
+    Fantasy: 'bg-indigo-200 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100',
+    History: 'bg-stone-200 text-stone-800 dark:bg-stone-700 dark:text-stone-100',
+    Horror: 'bg-red-300 text-red-900 dark:bg-red-900 dark:text-red-100',
+    Music: 'bg-purple-200 text-purple-900 dark:bg-purple-800 dark:text-purple-100',
+    Mystery: 'bg-gray-200 text-gray-800 dark:bg-gray-800 dark:text-gray-100',
+    Romance: 'bg-pink-100 text-pink-700 dark:bg-pink-800 dark:text-pink-100',
+    SciFi: 'bg-cyan-200 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-100',
+    TVMovie: 'bg-violet-200 text-violet-900 dark:bg-violet-800 dark:text-violet-100',
+    Thriller: 'bg-pink-200 text-pink-800 dark:bg-pink-800 dark:text-pink-100',
+    War: 'bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100',
+    Western: 'bg-yellow-300 text-yellow-900 dark:bg-yellow-800 dark:text-yellow-100',
 };
 
 export default function MovieReviewModal({
@@ -26,7 +38,7 @@ export default function MovieReviewModal({
     vote_count = 0,
     overview = 'No overview available.',
     original_language,
-    runtime, // optional
+    runtime,
 }) {
     const { setIsOpen } = useContext(FilmModalContext);
 
@@ -35,8 +47,8 @@ export default function MovieReviewModal({
         : '/placeholder.svg?height=400&width=300';
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden bg-background border border-border text-foreground shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+            <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden bg-background border border-border text-foreground shadow-xl transform transition duration-300 ease-out scale-95 hover:scale-100">
                 <CardContent className="p-6 relative">
                     {/* Close Button */}
                     <div className="absolute top-4 right-4">
@@ -44,7 +56,7 @@ export default function MovieReviewModal({
                             variant="ghost"
                             size="icon"
                             onClick={() => setIsOpen(false)}
-                            className="text-muted-foreground hover:bg-muted"
+                            className="text-muted-foreground hover:bg-muted/50 rounded-full"
                         >
                             <X className="h-5 w-5" />
                         </Button>
@@ -62,7 +74,6 @@ export default function MovieReviewModal({
 
                         {/* Info */}
                         <div className="flex-1 space-y-4">
-                            {/* Title */}
                             <div>
                                 <h1 className="text-3xl font-bold">{name}</h1>
                                 {original_name && original_name !== name && (
@@ -70,7 +81,6 @@ export default function MovieReviewModal({
                                 )}
                             </div>
 
-                            {/* Meta */}
                             <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                                 {original_language && (
                                     <div className="flex items-center gap-1">
@@ -99,7 +109,7 @@ export default function MovieReviewModal({
                                 )}
                             </div>
 
-                            {/* Genres */}
+                            {/* Genre Tags */}
                             <div className="flex flex-wrap gap-2">
                                 {genres.map((genre) => (
                                     <span
