@@ -1,4 +1,5 @@
 import { useState, createContext } from 'react';
+import { AnimatePresence } from 'framer-motion';
 
 import MovieReviewModalDemo from '@/components/react_components/Modal/ReviewFilms';
 
@@ -11,7 +12,11 @@ function FilmModalProvider({ children }) {
     return (
         <FilmModalContext.Provider value={{ setIsOpen, setContext }}>
             {children}
-            {isOpen && <MovieReviewModalDemo {...content} />}
+            {isOpen && (
+                <AnimatePresence>
+                    <MovieReviewModalDemo {...content} />
+                </AnimatePresence>
+            )}
         </FilmModalContext.Provider>
     );
 }
