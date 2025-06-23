@@ -1,19 +1,27 @@
-import { useMemo, useState } from 'react';
-import clsx from 'clsx';
+import { useContext } from 'react';
+import { FilmModalContext } from '@/context/FilmModalProvider';
 
 function Popular({ movies, genres }) {
-    const getGenreNames = (ids) => {
-        return ids.map((id) => genres.find((g) => g.id === id)?.name).filter(Boolean);
+    const { setIsOpen, setContext } = useContext(FilmModalContext);
+
+    const getGenreNames = (ids) => ids.map((id) => genres.find((g) => g.id === id)?.name).filter(Boolean);
+
+    const handleClick = (movie) => {
+        setContext(movie);
+        setIsOpen(true);
     };
 
     return (
         <div className="flex flex-col gap-4">
             {movies.map((movie) => {
                 const genreNames = getGenreNames(movie.genre_ids);
-
-                console.log(movie, genreNames);
+                console.log(genreNames);
                 return (
-                    <div key={movie.id} className="flex gap-4 items-start">
+                    <div
+                        key={movie.id}
+                        className="flex gap-4 items-start cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 p-2 rounded-lg transition"
+                        onClick={() => handleClick({ ...movie, genres: genreNames })}
+                    >
                         <img
                             src={`https://image.tmdb.org/t/p/w92${movie.poster_path}`}
                             alt={movie.title}

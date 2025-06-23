@@ -1,47 +1,34 @@
+import { useContext } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Star, Calendar, Globe, X, Eye } from 'lucide-react';
-import Image from 'next/image';
-
-const genreMap = {
-    18: 'Drama',
-    10751: 'Family',
-    35: 'Comedy',
-    80: 'Crime',
-    99: 'Documentary',
-    10759: 'Action & Adventure',
-};
+import { FilmModalContext } from '@/context/FilmModalProvider';
 
 export default function MovieReviewModalDemo({
     name = 'Unknown Title',
     original_name,
     first_air_date,
-    genre_ids = [],
+    genres = [],
     poster_path,
     vote_average = 0,
     vote_count = 0,
     overview = 'No overview available.',
     original_language,
-    onClose,
 }) {
-    const posterUrl = poster_path
-        ? `https://image.tmdb.org/t/p/w500${poster_path}`
-        : '/placeholder.svg?height=400&width=300';
-
-    const genres = genre_ids.map((id) => genreMap[id]).filter(Boolean);
+    const { setIsOpen: toggleModal } = useContext(FilmModalContext);
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden bg-background border-border text-foreground">
+            <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 shadow-xl">
                 <CardContent className="p-6 relative">
                     {/* Close Button */}
                     <div className="absolute top-4 right-4">
                         <Button
                             variant="outline"
                             size="sm"
-                            onClick={onClose}
-                            className="bg-background/80 border-border text-foreground hover:bg-background"
+                            onClick={() => toggleModal(false)}
+                            className="border border-gray-300 dark:border-gray-600 bg-white/90 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-800 dark:text-gray-100"
                         >
                             <X className="h-4 w-4" />
                         </Button>
@@ -51,7 +38,11 @@ export default function MovieReviewModalDemo({
                         {/* Poster */}
                         <div className="flex-shrink-0">
                             <div className="relative w-48 h-72 mx-auto lg:mx-0 rounded-lg overflow-hidden shadow-lg">
-                                <Image src={posterUrl} alt={`${name} poster`} fill className="object-cover" />
+                                <img
+                                    src={`https://image.tmdb.org/t/p/w500${poster_path}`}
+                                    alt={`${name} poster`}
+                                    className="w-full h-full object-cover rounded-lg"
+                                />
                             </div>
                         </div>
 
@@ -60,11 +51,11 @@ export default function MovieReviewModalDemo({
                             <div>
                                 <h1 className="text-3xl font-bold mb-2">{name}</h1>
                                 {original_name && original_name !== name && (
-                                    <p className="text-lg text-muted-foreground">{original_name}</p>
+                                    <p className="text-lg text-gray-500 dark:text-gray-400">{original_name}</p>
                                 )}
                             </div>
 
-                            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                            <div className="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-300">
                                 {first_air_date && (
                                     <div className="flex items-center gap-1">
                                         <Calendar className="h-4 w-4" />
@@ -87,7 +78,11 @@ export default function MovieReviewModalDemo({
                             {/* Genres */}
                             <div className="flex flex-wrap gap-2">
                                 {genres.map((genre) => (
-                                    <Badge key={genre} variant="secondary">
+                                    <Badge
+                                        key={genre}
+                                        variant="secondary"
+                                        className="bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100"
+                                    >
                                         {genre}
                                     </Badge>
                                 ))}
@@ -96,7 +91,7 @@ export default function MovieReviewModalDemo({
                             {/* Overview */}
                             <div>
                                 <h3 className="text-lg font-semibold mb-2">Overview</h3>
-                                <p className="leading-relaxed text-sm">{overview}</p>
+                                <p className="leading-relaxed text-sm text-gray-700 dark:text-gray-300">{overview}</p>
                             </div>
 
                             {/* View Details Button */}

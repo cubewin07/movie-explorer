@@ -2,7 +2,7 @@ import { useState, createContext } from 'react';
 
 import MovieReviewModalDemo from '@/components/react_components/Modal/ReviewFilms';
 
-const FilmModalContext = createContext();
+export const FilmModalContext = createContext();
 
 function FilmModalProvider({ children }) {
     const [isOpen, setIsOpen] = useState(false);
