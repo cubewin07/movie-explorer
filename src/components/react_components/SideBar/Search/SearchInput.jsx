@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Search as SearchIcon, X } from 'lucide-react';
 import { useSearchOrFallbackContent } from '@/Hooks/API/data';
 import MovieCard from '@/components/ui/MovieCard';
-
+import TabbedResults from './TabbedResults';
 function SearchInput() {
     const inputRef = useRef(null);
     const modalInputRef = useRef(null);
@@ -126,18 +126,9 @@ function SearchInput() {
                                 <p className="text-center text-warning">No results found.</p>
                             )}
 
-                            {data?.movies?.length > 0 && (
-                                <div>
-                                    <h3 className="font-semibold text-lg mb-2">🎬 Movies</h3>
-                                    {renderCards(data.movies, 'movie')}
-                                </div>
-                            )}
-
-                            {data?.tv?.length > 0 && (
-                                <div>
-                                    <h3 className="font-semibold text-lg mb-2">📺 TV Series</h3>
-                                    {renderCards(data.tv, 'tv')}
-                                </div>
+                            {/* Tabs for Search Results */}
+                            {(data?.movies?.length > 0 || data?.tv?.length > 0) && (
+                                <TabbedResults data={data} renderCards={renderCards} />
                             )}
 
                             {!debouncedSearch && (
