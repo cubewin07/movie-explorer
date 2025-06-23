@@ -1,10 +1,10 @@
 import { useContext, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Star, Calendar, Globe, X, Eye, Clock } from 'lucide-react';
 import { FilmModalContext } from '@/context/FilmModalProvider';
 
-// Enhanced genre color map
 const genreColorMap = {
     Action: 'bg-sky-200 text-sky-900 dark:bg-sky-800 dark:text-sky-100',
     Adventure: 'bg-green-200 text-green-900 dark:bg-green-800 dark:text-green-100',
@@ -21,16 +21,9 @@ const genreColorMap = {
     Mystery: 'bg-gray-200 text-gray-800 dark:bg-gray-800 dark:text-gray-100',
     Romance: 'bg-pink-100 text-pink-700 dark:bg-pink-800 dark:text-pink-100',
     'Science Fiction': 'bg-cyan-200 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-100',
-    SciFi: 'bg-cyan-200 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-100',
-    'TV Movie': 'bg-violet-200 text-violet-900 dark:bg-violet-800 dark:text-violet-100',
     Thriller: 'bg-pink-200 text-pink-800 dark:bg-pink-800 dark:text-pink-100',
     War: 'bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100',
     Western: 'bg-yellow-300 text-yellow-900 dark:bg-yellow-800 dark:text-yellow-100',
-    Biography: 'bg-lime-200 text-lime-900 dark:bg-lime-800 dark:text-lime-100',
-    Reality: 'bg-fuchsia-200 text-fuchsia-900 dark:bg-fuchsia-800 dark:text-fuchsia-100',
-    News: 'bg-blue-300 text-blue-900 dark:bg-blue-900 dark:text-blue-100',
-    Talk: 'bg-emerald-200 text-emerald-900 dark:bg-emerald-800 dark:text-emerald-100',
-    Politics: 'bg-red-100 text-red-700 dark:bg-red-800 dark:text-red-100',
 };
 
 export default function MovieReviewModal({
@@ -53,7 +46,6 @@ export default function MovieReviewModal({
         ? `https://image.tmdb.org/t/p/w500${poster_path}`
         : '/placeholder.svg?height=400&width=300';
 
-    // Close on ESC
     useEffect(() => {
         const handleEsc = (e) => {
             if (e.key === 'Escape') setIsOpen(false);
@@ -63,12 +55,22 @@ export default function MovieReviewModal({
     }, [setIsOpen]);
 
     return (
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in"
-            onClick={() => setIsOpen(false)}
-        >
-            <div onClick={(e) => e.stopPropagation()} className="w-full max-w-4xl">
-                <Card className="max-h-[90vh] overflow-hidden bg-background border border-border text-foreground shadow-xl transform transition duration-300 ease-out scale-95 hover:scale-100">
+        <AnimatePresence>
+            <motion.div
+                className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsOpen(false)}
+            >
+                <motion.div
+                    onClick={(e) => e.stopPropagation()}
+                    initial={{ opacity: 0, y: 50, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 50, scale: 0.95 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 24 }}
+                    className="w-full max-w-4xl max-h-[90vh] overflow-hidden bg-background border border-border text-foreground shadow-xl rounded-xl"
+                >
                     <CardContent className="p-6 relative">
                         {/* Close Button */}
                         <div className="absolute top-4 right-4">
@@ -76,7 +78,7 @@ export default function MovieReviewModal({
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => setIsOpen(false)}
-                                className="text-foreground hover:text-primary hover:bg-accent/60 dark:hover:bg-muted/30 rounded-full border border-border transition-colors"
+                                className="text-muted-foreground hover:text-foreground hover:bg-muted/70 dark:hover:bg-muted/30 rounded-full border border-border"
                             >
                                 <X className="h-4 w-4" />
                             </Button>
@@ -84,13 +86,13 @@ export default function MovieReviewModal({
 
                         <div className="flex flex-col lg:flex-row gap-6">
                             {/* Poster */}
-                            <div className="flex-shrink-0">
-                                <img
-                                    src={posterUrl}
-                                    alt={`${title} poster`}
-                                    className="w-48 h-72 mx-auto lg:mx-0 rounded-xl object-cover shadow-md"
-                                />
-                            </div>
+                            <motion.img
+                                whileHover={{ scale: 1.03 }}
+                                transition={{ type: 'spring', stiffness: 200 }}
+                                src={posterUrl}
+                                alt={`${title} poster`}
+                                className="w-48 h-72 mx-auto lg:mx-0 rounded-xl object-cover shadow-md"
+                            />
 
                             {/* Info */}
                             <div className="flex-1 space-y-4">
@@ -133,19 +135,35 @@ export default function MovieReviewModal({
                                 </div>
 
                                 {/* Genre Tags */}
-                                <div className="flex flex-wrap gap-2">
+                                <motion.div
+                                    className="flex flex-wrap gap-2"
+                                    initial="hidden"
+                                    animate="visible"
+                                    variants={{
+                                        hidden: {},
+                                        visible: {
+                                            transition: {
+                                                staggerChildren: 0.06,
+                                            },
+                                        },
+                                    }}
+                                >
                                     {genres.map((genre) => (
-                                        <span
+                                        <motion.span
                                             key={genre}
                                             className={`px-2 py-1 text-xs font-semibold rounded-full ${
                                                 genreColorMap[genre] ||
                                                 'bg-gray-300 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
                                             }`}
+                                            variants={{
+                                                hidden: { opacity: 0, y: 10 },
+                                                visible: { opacity: 1, y: 0 },
+                                            }}
                                         >
                                             {genre}
-                                        </span>
+                                        </motion.span>
                                     ))}
-                                </div>
+                                </motion.div>
 
                                 {/* Overview */}
                                 <div>
@@ -154,17 +172,17 @@ export default function MovieReviewModal({
                                 </div>
 
                                 {/* CTA */}
-                                <div className="pt-4">
+                                <motion.div whileTap={{ scale: 0.95 }} className="pt-4">
                                     <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white">
                                         <Eye className="h-4 w-4 mr-2" />
                                         View Details
                                     </Button>
-                                </div>
+                                </motion.div>
                             </div>
                         </div>
                     </CardContent>
-                </Card>
-            </div>
-        </div>
+                </motion.div>
+            </motion.div>
+        </AnimatePresence>
     );
 }
