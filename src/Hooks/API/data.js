@@ -113,8 +113,10 @@ export const useInfinitePaginatedFetch = (url, key) => {
         queryKey: [key],
         queryFn: async ({ pageParam = 1 }) => {
             const res = await axiosInstance.get(`/${url}`, {
-                language: 'en-US',
-                page: pageParam,
+                params: {
+                    language: 'en-US',
+                    page: pageParam,
+                },
             });
             return res.data;
         },
