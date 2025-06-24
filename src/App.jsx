@@ -24,7 +24,7 @@ const router = createBrowserRouter(
                     element: <Home />,
                 },
                 {
-                    path: '/movie/popular',
+                    path: '/movies/popular',
                     element: <PopularMoviesPage />,
                 },
                 {

@@ -1,47 +1,61 @@
 import { useContext, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-
 import { FilmModalContext } from '@/context/FilmModalProvider';
 
 function Popular({ movies, genres }) {
     const { setIsOpen, setContext } = useContext(FilmModalContext);
     const [showAll, setShowAll] = useState(false);
+    const navigate = useNavigate();
 
     const getGenreNames = (ids) => ids.map((id) => genres.find((g) => g.id === id)?.name).filter(Boolean);
+    const isTvSeries = (item) => 'name' in item && !('title' in item);
 
     const handleClick = (movie) => {
         setContext(movie);
         setIsOpen(true);
     };
 
+    const handleToggle = () => {
+        if (!showAll) {
+            const firstItem = movies[0];
+            if (isTvSeries(firstItem)) {
+                navigate('/tvseries/popular');
+            } else {
+                navigate('/movies/popular');
+            }
+        } else {
+            setShowAll(false);
+        }
+    };
+
     return (
         <div className="flex flex-col gap-4">
-            {movies.map((movie) => {
-                const genreNames = getGenreNames(movie.genre_ids);
+            {movies.map((item) => {
+                const genreNames = getGenreNames(item.genre_ids);
+                const isTV = isTvSeries(item);
+                const displayTitle = isTV ? item.name : item.title;
+                const displayDate = isTV ? item.first_air_date : item.release_date;
+
                 return (
                     <div
-                        key={movie.id}
+                        key={item.id}
                         className="flex gap-4 items-start p-3 rounded-lg transition hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer shadow-sm"
-                        onClick={() => handleClick({ ...movie, genres: genreNames })}
+                        onClick={() => handleClick({ ...item, genres: genreNames })}
                     >
-                        {/* Poster */}
                         <img
-                            src={`https://image.tmdb.org/t/p/w92${movie.poster_path}`}
-                            alt={movie.title}
+                            src={`https://image.tmdb.org/t/p/w92${item.poster_path}`}
+                            alt={displayTitle}
                             className="h-24 w-auto rounded-lg object-cover shadow-md"
                         />
 
-                        {/* Info */}
                         <div className="flex flex-col justify-between h-24">
                             <div className="space-y-1">
                                 <h2 className="text-xs font-semibold text-gray-900 dark:text-white truncate w-[120px]">
-                                    {movie.title || movie.name}
+                                    {displayTitle}
                                 </h2>
-                                <p className="text-[10px] text-gray-700 dark:text-gray-300">
-                                    {movie.release_date || movie.first_air_date}
-                                </p>
+                                <p className="text-[10px] text-gray-700 dark:text-gray-300">{displayDate}</p>
 
-                                {/* Genres */}
                                 <div className="flex flex-wrap gap-1 mt-1">
                                     {genreNames.slice(0, 2).map((name) => (
                                         <span
@@ -54,23 +68,23 @@ function Popular({ movies, genres }) {
                                 </div>
                             </div>
 
-                            {/* Rating */}
                             <div className="flex items-center gap-2 mt-1">
                                 <span className="bg-yellow-400 text-black text-[10px] font-bold px-1.5 py-[1px] rounded">
                                     IMDb
                                 </span>
                                 <span className="text-xs text-gray-800 dark:text-gray-200 font-medium">
-                                    {movie.vote_average.toFixed(1)}
+                                    {item.vote_average.toFixed(1)}
                                 </span>
                             </div>
                         </div>
                     </div>
                 );
             })}
+
             <AnimatePresence mode="wait">
                 <motion.button
                     key={showAll ? 'less' : 'more'}
-                    onClick={() => setShowAll((prev) => !prev)}
+                    onClick={handleToggle}
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 6 }}
