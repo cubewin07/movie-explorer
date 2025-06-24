@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { Sidebar as ShadSidebar, SidebarBody } from '@/components/ui/Sidebar';
 import { useState } from 'react';
 import { Home, Users, Compass, Clock, User, UserPlus, List, Settings, LogOut, HelpCircle } from 'lucide-react';
@@ -52,6 +52,7 @@ function Layout() {
 function SidebarContent({ active, setActive, handleThemeToggle }) {
     const { open, animate } = useSidebar();
     const [isDark, setIsDark] = useThemeToggle();
+    const navigate = useNavigate();
     return (
         <div
             className={cn(
@@ -74,7 +75,8 @@ function SidebarContent({ active, setActive, handleThemeToggle }) {
                     animate={{ opacity: open ? 1 : 0, width: open ? 'auto' : 0 }}
                     transition={{ duration: 0.2 }}
                     className="text-2xl font-bold text-primary tracking-tight origin-left"
-                    style={{ display: open ? 'inline-block' : 'none' }}
+                    style={{ display: open ? 'inline-block' : 'none', cursor: 'pointer' }}
+                    onClick={() => navigate('/')}
                 >
                     MovieHub
                 </motion.span>
