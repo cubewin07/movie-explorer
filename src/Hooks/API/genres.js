@@ -33,3 +33,19 @@ export const useTvSeriesGenres = () => {
 
     return { TvSeriesGenresRes, isTvSeriesGenreLoading };
 };
+
+export const useAllGenres = () => {
+    const { MovieGenres, isGenresLoading } = useMovieGenres();
+    const { TvSeriesGenresRes, isTvSeriesGenreLoading } = useTvSeriesGenres();
+
+    const movieGenres = MovieGenres?.data?.genres || [];
+    const tvGenres = TvSeriesGenresRes?.data?.genres || [];
+
+    const isLoading = isGenresLoading || isTvSeriesGenreLoading;
+
+    return {
+        movieGenres,
+        tvGenres,
+        isLoading,
+    };
+};

@@ -1,5 +1,5 @@
 import { useInfinitePaginatedFetch } from '@/hooks/API/data';
-import { useMovieGenres } from '@/hooks/API/genres';
+import { useAllGenres } from '@/hooks/API/genres';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FilmModalContext } from '@/context/FilmModalProvider';
@@ -24,7 +24,7 @@ export default function InfiniteList({ url, queryKey }) {
         queryKey,
     );
 
-    const { MovieGenres, isGenresLoading } = useMovieGenres();
+    const { movieGenres, tvGenres, isLoading: isGenresLoading } = useAllGenres();
     const { setContext, setIsOpen } = useContext(FilmModalContext);
 
     const sentinelRef = useRef(null);
@@ -36,10 +36,12 @@ export default function InfiniteList({ url, queryKey }) {
 
     const movies = data?.pages?.flatMap((p) => p.results) || [];
     const genreMap =
-        MovieGenres?.data?.genres?.reduce((acc, g) => {
+        movieGenres.reduce((acc, g) => {
             acc[g.id] = g.name;
             return acc;
         }, {}) || {};
+
+    console.log(movieGenres);
 
     const isDataLoading = isLoading || isGenresLoading;
     const isPaginating = isFetchingNextPage || manualLoad;
