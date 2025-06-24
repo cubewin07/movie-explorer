@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { FilmModalContext } from '@/context/FilmModalProvider';
 
 function Home() {
-    const { popularMovies, isPopularMoviesLoading } = usePopularMovies();
+    const { popularMovies, isPopularMoviesLoading } = usePopularMovies(1);
     const { MovieGenres, isGenresLoading } = useMovieGenres();
     const navigate = useNavigate();
     const { setIsOpen, setContext } = useContext(FilmModalContext);

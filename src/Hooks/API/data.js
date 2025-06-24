@@ -1,12 +1,12 @@
 import axiosInstance from '@/lib/axiosInstance';
 import { useQuery } from '@tanstack/react-query';
 
-export const usePopularMovies = () => {
+export const usePopularMovies = (page) => {
     const { data: popularMovies, isLoading: isPopularMoviesLoading } = useQuery({
         queryKey: ['popularMovies'],
         queryFn: () =>
             axiosInstance.get('/movie/popular', {
-                params: { language: 'en-US', page: 1 },
+                params: { language: 'en-US', page: page },
             }),
         refetchOnWindowFocus: false,
         refetchOnReconnect: false,
