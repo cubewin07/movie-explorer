@@ -1,18 +1,11 @@
 import { useSearchParams } from 'react-router-dom';
-import List from '../List';
+import InfiniteList from '../List';
+import { usePaginatedFetch, usePopularMovies } from '@/hooks/API/data';
 
 function PopularMoviesPage() {
-    const [searchPage, setSearchPage] = useSearchParams();
-    const page = Number(searchPage.get('page')) || 1;
-
-    const handleSetPage = (newPage) => {
-        setSearchPage({ page: newPage });
-    };
-    return (
-        <div>
-            <List url="movie/popular" page={page} />
-        </div>
-    );
+    const data = usePopularMovies();
+    console.log(data);
+    return <InfiniteList url="movie/popular" key="moviePopular-infinite" />;
 }
 
 export default PopularMoviesPage;

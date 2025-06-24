@@ -112,13 +112,14 @@ export const useInfinitePaginatedFetch = (url, key) => {
     return useInfiniteQuery({
         queryKey: [key],
         queryFn: async ({ pageParam = 1 }) => {
-            const res = axiosInstance.get(`/${url}`, {
+            const res = await axiosInstance.get(`/${url}`, {
                 language: 'en-US',
                 page: pageParam,
             });
             return res.data;
         },
         getNextPageParam: (lastPage) => {
+            console.log(lastPage);
             const { page, total_pages } = lastPage;
             if (page < total_pages && page < 500) return page + 1;
             return undefined;
