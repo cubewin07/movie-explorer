@@ -1,8 +1,11 @@
-import { useContext } from 'react';
+import { useContext, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
 import { FilmModalContext } from '@/context/FilmModalProvider';
 
 function Popular({ movies, genres }) {
     const { setIsOpen, setContext } = useContext(FilmModalContext);
+    const [showAll, setShowAll] = useState(false);
 
     const getGenreNames = (ids) => ids.map((id) => genres.find((g) => g.id === id)?.name).filter(Boolean);
 
@@ -64,6 +67,23 @@ function Popular({ movies, genres }) {
                     </div>
                 );
             })}
+            <AnimatePresence mode="wait">
+                <motion.button
+                    key={showAll ? 'less' : 'more'}
+                    onClick={() => setShowAll((prev) => !prev)}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 6 }}
+                    transition={{ duration: 0.3, ease: 'easeInOut' }}
+                    className={`mt-3 px-4 py-1.5 border text-sm font-medium rounded-md transition-colors duration-200 ${
+                        showAll
+                            ? 'border-red-500 text-red-600 hover:bg-red-100 dark:hover:bg-red-500/10'
+                            : 'border-blue-500 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-500/10'
+                    }`}
+                >
+                    {showAll ? 'Show Less' : 'Show More'}
+                </motion.button>
+            </AnimatePresence>
         </div>
     );
 }
