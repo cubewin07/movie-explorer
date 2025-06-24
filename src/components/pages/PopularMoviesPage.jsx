@@ -1,12 +1,14 @@
 import { usePopularMovies } from '@/hooks/API/data';
 import { useMovieGenres } from '@/hooks/API/genres';
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useContext } from 'react';
+import { FilmModalContext } from '@/context/FilmModalProvider';
 
 export default function PopularMoviesPage() {
     const { popularMovies, isPopularMoviesLoading } = usePopularMovies();
     const { MovieGenres, isGenresLoading } = useMovieGenres();
     const navigate = useNavigate();
+    const { setIsOpen, setContext } = useContext(FilmModalContext);
 
     const movies = popularMovies?.data?.results || [];
     const genreMap =
@@ -37,47 +39,54 @@ export default function PopularMoviesPage() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                        {movies.map((movie, idx) => (
-                            <div
-                                key={movie.id}
-                                className="bg-white dark:bg-slate-800 border border-border dark:border-slate-700 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col overflow-hidden group cursor-pointer animate-pop-in"
-                                style={{ animationDelay: `${idx * 60}ms`, animationFillMode: 'both' }}
-                                onClick={() => navigate(`/movie/${movie.id}`)}
-                            >
-                                <div className="relative h-72 overflow-hidden">
-                                    <img
-                                        src={
-                                            movie.poster_path
-                                                ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
-                                                : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(movie.title)
-                                        }
-                                        alt={movie.title}
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                    />
-                                    <span className="absolute top-2 right-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded shadow">
-                                        ★ {movie.vote_average.toFixed(1)}
-                                    </span>
-                                </div>
-                                <div className="p-4 flex flex-col gap-2 flex-1">
-                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
-                                        {movie.title}
-                                    </h3>
-                                    <div className="flex flex-wrap gap-1">
-                                        {movie.genre_ids.slice(0, 3).map((id) => (
-                                            <span
-                                                key={id}
-                                                className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full"
-                                            >
-                                                {genreMap[id]}
-                                            </span>
-                                        ))}
+                        {movies.map((movie, idx) => {
+                            const genreNames = movie.genre_ids.map((id) => genreMap[id]).filter(Boolean);
+                            return (
+                                <div
+                                    key={movie.id}
+                                    className="bg-white dark:bg-slate-800 border border-border dark:border-slate-700 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-300 flex flex-col overflow-hidden group cursor-pointer animate-pop-in"
+                                    style={{ animationDelay: `${idx * 60}ms`, animationFillMode: 'both' }}
+                                    onClick={() => {
+                                        setContext({ ...movie, genres: genreNames });
+                                        setIsOpen(true);
+                                    }}
+                                >
+                                    <div className="relative h-72 overflow-hidden">
+                                        <img
+                                            src={
+                                                movie.poster_path
+                                                    ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                                                    : 'https://ui-avatars.com/api/?name=' +
+                                                      encodeURIComponent(movie.title)
+                                            }
+                                            alt={movie.title}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                        />
+                                        <span className="absolute top-2 right-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded shadow">
+                                            ★ {movie.vote_average.toFixed(1)}
+                                        </span>
                                     </div>
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                                        {movie.release_date?.slice(0, 4)}
-                                    </span>
+                                    <div className="p-4 flex flex-col gap-2 flex-1">
+                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+                                            {movie.title}
+                                        </h3>
+                                        <div className="flex flex-wrap gap-1">
+                                            {movie.genre_ids.slice(0, 3).map((id) => (
+                                                <span
+                                                    key={id}
+                                                    className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full"
+                                                >
+                                                    {genreMap[id]}
+                                                </span>
+                                            ))}
+                                        </div>
+                                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                                            {movie.release_date?.slice(0, 4)}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
             </div>

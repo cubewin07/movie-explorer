@@ -7,14 +7,12 @@ import { useMovieGenres } from '@/hooks/API/genres';
 import { usePopularMovies } from '@/hooks/API/data';
 import { useNavigate } from 'react-router-dom';
 import { FilmModalContext } from '@/context/FilmModalProvider';
-import MovieReviewModal from '@/components/react_components/Modal/ReviewFilms';
 
 function Home() {
     const { popularMovies, isPopularMoviesLoading } = usePopularMovies();
     const { MovieGenres, isGenresLoading } = useMovieGenres();
     const navigate = useNavigate();
     const { setIsOpen, setContext } = useContext(FilmModalContext);
-    const [modalMovie, setModalMovie] = useState(null);
 
     const movies = popularMovies?.data?.results || [];
     const genreMap =
@@ -73,7 +71,6 @@ function Home() {
                                     onClick={() => {
                                         setContext({ ...movie, genres: genreNames });
                                         setIsOpen(true);
-                                        setModalMovie({ ...movie, genres: genreNames });
                                     }}
                                 >
                                     <div className="relative h-72 overflow-hidden">
@@ -110,8 +107,6 @@ function Home() {
                     )}
                 </div>
             </section>
-            {/* Modal for movie details */}
-            {modalMovie && <MovieReviewModal {...modalMovie} />}
         </div>
     );
 }
