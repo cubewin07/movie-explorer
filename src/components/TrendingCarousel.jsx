@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 
+// ...imports remain unchanged
 export function TrendingCarousel({ items }) {
     const [current, setCurrent] = useState(0);
     const [direction, setDirection] = useState(0);
@@ -43,7 +44,7 @@ export function TrendingCarousel({ items }) {
 
     return (
         <section className="relative py-12 md:py-20 bg-gradient-to-r from-blue-100 to-blue-50 rounded-2xl shadow-lg overflow-hidden">
-            <div className="relative max-w-4xl mx-auto min-h-[320px] flex items-center">
+            <div className="relative max-w-4xl mx-auto min-h-[360px] flex items-center">
                 <AnimatePresence initial={false} custom={direction}>
                     <motion.div
                         key={current}
@@ -80,8 +81,9 @@ export function TrendingCarousel({ items }) {
                                     </span>
                                 )}
                                 <p className="text-gray-700 mb-4">{items[current].description}</p>
+
                                 {items[current].extra && (
-                                    <div className="flex flex-wrap gap-2">
+                                    <div className="flex flex-wrap gap-2 mb-4">
                                         {items[current].extra.map((e, i) => (
                                             <span
                                                 key={i}
@@ -92,11 +94,61 @@ export function TrendingCarousel({ items }) {
                                         ))}
                                     </div>
                                 )}
+
+                                {/* Buttons */}
+                                <div className="flex gap-4 mt-4">
+                                    {/* View Details – Gradient + Icon + Hover Glow */}
+                                    <button
+                                        onClick={() => console.log('View details:', items[current])}
+                                        className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold 
+                   text-white bg-gradient-to-r from-blue-500 to-cyan-500 
+                   shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300
+                   dark:from-blue-600 dark:to-cyan-600"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="h-4 w-4"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                            strokeWidth={2}
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                d="M15 17h5l-1.405-1.405M21 21l-6-6m0 0a7 7 0 10-9.9 0 7 7 0 009.9 0z"
+                                            />
+                                        </svg>
+                                        View Details
+                                    </button>
+
+                                    {/* Add to List – Outline + Icon + Improved Hover */}
+                                    <button
+                                        onClick={() => console.log('Add to list:', items[current])}
+                                        className="flex items-center gap-2 px-5 py-2 border border-blue-500 text-blue-600 
+                   text-sm font-medium rounded-lg bg-transparent 
+                   hover:bg-blue-50 dark:hover:bg-blue-900/20 
+                   hover:shadow transition-all duration-300"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="h-4 w-4"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                            strokeWidth={2}
+                                        >
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                                        </svg>
+                                        Add to List
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </motion.div>
                 </AnimatePresence>
             </div>
+
             {/* Navigation */}
             <div className="flex justify-center items-center gap-6 mt-8 relative z-10">
                 <button onClick={prev} className="p-2 rounded-full bg-white/80 hover:bg-blue-100 shadow transition">
