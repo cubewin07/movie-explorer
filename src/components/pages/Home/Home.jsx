@@ -2,13 +2,19 @@ import { useQuery } from '@tanstack/react-query';
 import axiosInstance from '@/lib/axiosInstance';
 import { Button } from '@/components/ui/button';
 import { TrendingCarousel } from '@/components/TrendingCarousel';
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { useMovieGenres } from '@/hooks/API/genres';
 import { usePopularMovies } from '@/hooks/API/data';
+import { useNavigate } from 'react-router-dom';
+import { FilmModalContext } from '@/context/FilmModalProvider';
+import MovieReviewModal from '@/components/react_components/Modal/ReviewFilms';
 
 function Home() {
     const { popularMovies, isPopularMoviesLoading } = usePopularMovies();
     const { MovieGenres, isGenresLoading } = useMovieGenres();
+    const navigate = useNavigate();
+    const { setIsOpen, setContext } = useContext(FilmModalContext);
+    const [modalMovie, setModalMovie] = useState(null);
 
     const movies = popularMovies?.data?.results || [];
     const genreMap =
@@ -38,9 +44,12 @@ function Home() {
             <section>
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Popular Movies</h2>
-                    <Button variant="link" className="text-blue-600 dark:text-blue-400">
+                    <button
+                        onClick={() => navigate('/movie/popular')}
+                        className="text-blue-600 dark:text-blue-400 font-semibold hover:underline transition-colors"
+                    >
                         View All
-                    </Button>
+                    </button>
                 </div>
                 <div className="flex gap-6 overflow-x-auto pb-2">
                     {isPopularMoviesLoading || isGenresLoading ? (
@@ -55,44 +64,54 @@ function Home() {
                                 ))}
                         </div>
                     ) : (
-                        movies.slice(1, 8).map((movie) => (
-                            <div
-                                key={movie.id}
-                                className="w-56 min-w-[14rem] bg-white dark:bg-slate-800 border border-border dark:border-slate-700 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-200 flex flex-col overflow-hidden group animate-pop-in cursor-pointer"
-                            >
-                                <div className="relative h-72 overflow-hidden">
-                                    <img
-                                        src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                                        alt={movie.title}
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                    />
-                                    <span className="absolute top-2 right-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded shadow">
-                                        ★ {movie.vote_average.toFixed(1)}
-                                    </span>
-                                </div>
-                                <div className="p-4 flex flex-col gap-2 flex-1">
-                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
-                                        {movie.title}
-                                    </h3>
-                                    <div className="flex flex-wrap gap-1">
-                                        {movie.genre_ids.slice(0, 2).map((id) => (
-                                            <span
-                                                key={id}
-                                                className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full"
-                                            >
-                                                {genreMap[id]}
-                                            </span>
-                                        ))}
+                        movies.slice(1, 8).map((movie) => {
+                            const genreNames = movie.genre_ids.map((id) => genreMap[id]).filter(Boolean);
+                            return (
+                                <div
+                                    key={movie.id}
+                                    className="w-56 min-w-[14rem] bg-white dark:bg-slate-800 border border-border dark:border-slate-700 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-200 flex flex-col overflow-hidden group animate-pop-in cursor-pointer"
+                                    onClick={() => {
+                                        setContext({ ...movie, genres: genreNames });
+                                        setIsOpen(true);
+                                        setModalMovie({ ...movie, genres: genreNames });
+                                    }}
+                                >
+                                    <div className="relative h-72 overflow-hidden">
+                                        <img
+                                            src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                                            alt={movie.title}
+                                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                        />
+                                        <span className="absolute top-2 right-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded shadow">
+                                            ★ {movie.vote_average.toFixed(1)}
+                                        </span>
                                     </div>
-                                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                                        {movie.release_date?.slice(0, 4)}
-                                    </span>
+                                    <div className="p-4 flex flex-col gap-2 flex-1">
+                                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+                                            {movie.title}
+                                        </h3>
+                                        <div className="flex flex-wrap gap-1">
+                                            {movie.genre_ids.slice(0, 2).map((id) => (
+                                                <span
+                                                    key={id}
+                                                    className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full"
+                                                >
+                                                    {genreMap[id]}
+                                                </span>
+                                            ))}
+                                        </div>
+                                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                                            {movie.release_date?.slice(0, 4)}
+                                        </span>
+                                    </div>
                                 </div>
-                            </div>
-                        ))
+                            );
+                        })
                     )}
                 </div>
             </section>
+            {/* Modal for movie details */}
+            {modalMovie && <MovieReviewModal {...modalMovie} />}
         </div>
     );
 }

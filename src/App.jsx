@@ -4,6 +4,7 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Layout from './layout/Layout';
 import Home from './components/pages/Home/Home';
 import FilmModalProvider from './context/FilmModalProvider';
+import PopularMoviesPage from './components/pages/PopularMoviesPage';
 // import Community from './pages/Community'
 // import Discovery from './pages/Discovery'
 // import ComingSoon from './pages/ComingSoon'
@@ -20,6 +21,10 @@ const router = createBrowserRouter(
                 {
                     path: '/',
                     element: <Home />,
+                },
+                {
+                    path: '/movie/popular',
+                    element: <PopularMoviesPage />,
                 },
                 //   {
                 //     path: '/community',
