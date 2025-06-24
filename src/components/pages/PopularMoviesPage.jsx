@@ -5,7 +5,7 @@ import { useEffect, useContext } from 'react';
 import { FilmModalContext } from '@/context/FilmModalProvider';
 
 export default function PopularMoviesPage() {
-    const { popularMovies, isPopularMoviesLoading } = usePopularMovies();
+    const { popularMovies, isPopularMoviesLoading, isError } = usePopularMovies();
     const { MovieGenres, isGenresLoading } = useMovieGenres();
     const navigate = useNavigate();
     const { setIsOpen, setContext } = useContext(FilmModalContext);
@@ -29,7 +29,11 @@ export default function PopularMoviesPage() {
                         Back
                     </button>
                 </div>
-                {isPopularMoviesLoading || isGenresLoading ? (
+                {isError ? (
+                    <div className="text-red-500 font-semibold p-4">
+                        Failed to load popular movies. Please try again later.
+                    </div>
+                ) : isPopularMoviesLoading || isGenresLoading ? (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
                         {Array(10)
                             .fill(0)

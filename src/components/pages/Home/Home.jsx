@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { FilmModalContext } from '@/context/FilmModalProvider';
 
 function Home() {
-    const { popularMovies, isPopularMoviesLoading } = usePopularMovies(1);
+    const { popularMovies, isPopularMoviesLoading, isError } = usePopularMovies(1);
     const { MovieGenres, isGenresLoading } = useMovieGenres();
     const navigate = useNavigate();
     const { setIsOpen, setContext } = useContext(FilmModalContext);
@@ -50,7 +50,11 @@ function Home() {
                     </button>
                 </div>
                 <div className="flex gap-6 overflow-x-auto pb-2">
-                    {isPopularMoviesLoading || isGenresLoading ? (
+                    {isError ? (
+                        <div className="text-red-500 font-semibold p-4">
+                            Failed to load popular movies. Please try again later.
+                        </div>
+                    ) : isPopularMoviesLoading || isGenresLoading ? (
                         <div className="flex gap-6 w-full">
                             {Array(6)
                                 .fill(0)

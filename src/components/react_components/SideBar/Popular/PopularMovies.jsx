@@ -4,7 +4,7 @@ import LoadingSideBar from '../Popular/LoadingSideBar';
 import Popular from '../Popular/Popular';
 
 function PopularMovies() {
-    const { popularMovies, isPopularMoviesLoading } = usePopularMovies(1);
+    const { popularMovies, isPopularMoviesLoading, isError } = usePopularMovies(1);
     const { MovieGenres, isGenresLoading } = useMovieGenres();
 
     const movies = popularMovies?.data?.results?.slice(0, 3) || [];
@@ -14,9 +14,15 @@ function PopularMovies() {
         <div>
             <h1 className="text-white text-opacity-50 text-lg font-bold mb-3">Popular Movies</h1>
 
-            {(isPopularMoviesLoading || isGenresLoading) && <LoadingSideBar />}
-
-            {!isPopularMoviesLoading && !isGenresLoading && <Popular movies={movies} genres={genreList} />}
+            {isError ? (
+                <div className="text-red-500 font-semibold p-4">
+                    Failed to load popular movies. Please try again later.
+                </div>
+            ) : isPopularMoviesLoading || isGenresLoading ? (
+                <LoadingSideBar />
+            ) : (
+                <Popular movies={movies} genres={genreList} />
+            )}
         </div>
     );
 }
