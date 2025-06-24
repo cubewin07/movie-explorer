@@ -121,7 +121,6 @@ export const useInfinitePaginatedFetch = (url, key) => {
             return res.data;
         },
         getNextPageParam: (lastPage) => {
-            console.log(lastPage);
             const { page, total_pages } = lastPage;
             if (page < total_pages && page < 500) return page + 1;
             return undefined;
