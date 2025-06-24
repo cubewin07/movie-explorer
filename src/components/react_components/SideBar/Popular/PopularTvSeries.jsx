@@ -5,12 +5,14 @@ import Popular from '@/components/react_components/SideBar/Popular/Popular.jsx';
 import LoadingSideBar from '@/components/react_components/SideBar/Popular/LoadingSideBar.jsx';
 
 function PopularTvSeries() {
-    const { PopularTvSeriesRes, LoadingPopularTvSeries, isError } = usePopularTvSeries(1);
+    const { popularTvSeries, LoadingPopularTvSeries, isError } = usePopularTvSeries(1);
     const { TvSeriesGenresRes, isTvSeriesGenreLoading: LoadingTvSeriesGenre } = useTvSeriesGenres();
 
     const TvSeriesGenres = TvSeriesGenresRes?.data?.genres;
-    const PopularTvSeries = PopularTvSeriesRes?.data?.results || [];
+    const PopularTvSeries = popularTvSeries?.results || [];
     const visiblePopularTvSeries = PopularTvSeries.slice(0, 3);
+
+    console.log(PopularTvSeries);
 
     return (
         <div>

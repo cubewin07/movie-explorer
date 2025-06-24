@@ -5,12 +5,12 @@ import { useEffect, useContext } from 'react';
 import { FilmModalContext } from '@/context/FilmModalProvider';
 
 export default function PopularMoviesPage() {
-    const { popularMovies, isPopularMoviesLoading, isError } = usePopularMovies();
+    const { popularMovies, isPopularMoviesLoading, isError } = usePopularMovies(1);
     const { MovieGenres, isGenresLoading } = useMovieGenres();
     const navigate = useNavigate();
     const { setIsOpen, setContext } = useContext(FilmModalContext);
 
-    const movies = popularMovies?.data?.results || [];
+    const movies = popularMovies?.results || [];
     const genreMap =
         MovieGenres?.data?.genres?.reduce((acc, g) => {
             acc[g.id] = g.name;

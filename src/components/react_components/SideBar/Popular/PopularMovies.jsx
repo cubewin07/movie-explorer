@@ -7,7 +7,7 @@ function PopularMovies() {
     const { popularMovies, isPopularMoviesLoading, isError } = usePopularMovies(1);
     const { MovieGenres, isGenresLoading } = useMovieGenres();
 
-    const movies = popularMovies?.data?.results?.slice(0, 3) || [];
+    const movies = popularMovies?.results?.slice(0, 3) || [];
     const genreList = MovieGenres?.data?.genres || [];
 
     return (

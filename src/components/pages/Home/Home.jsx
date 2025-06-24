@@ -14,7 +14,7 @@ function Home() {
     const navigate = useNavigate();
     const { setIsOpen, setContext } = useContext(FilmModalContext);
 
-    const movies = popularMovies?.data?.results || [];
+    const movies = popularMovies?.results || [];
     const genreMap =
         MovieGenres?.data?.genres?.reduce((acc, g) => {
             acc[g.id] = g.name;
