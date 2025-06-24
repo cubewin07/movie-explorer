@@ -26,6 +26,7 @@ function Popular({ movies = [], genres = [] }) {
         if (!showAll) {
             navigate(isTV ? '/tvseries/popular' : '/movies/popular');
         } else {
+            navigate(-1);
             setShowAll(false);
         }
     };
