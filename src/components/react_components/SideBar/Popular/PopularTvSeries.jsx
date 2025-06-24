@@ -5,7 +5,7 @@ import Popular from '@/components/react_components/SideBar/Popular/Popular.jsx';
 import LoadingSideBar from '@/components/react_components/SideBar/Popular/LoadingSideBar.jsx';
 
 function PopularTvSeries() {
-    const { PopularTvSeriesRes, LoadingPopularTvSeries } = usePopularTvSeries();
+    const { PopularTvSeriesRes, LoadingPopularTvSeries } = usePopularTvSeries(1);
     const { TvSeriesGenresRes, isTvSeriesGenreLoading: LoadingTvSeriesGenre } = useTvSeriesGenres();
 
     const TvSeriesGenres = TvSeriesGenresRes?.data?.genres;

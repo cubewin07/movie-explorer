@@ -2,37 +2,50 @@ import axiosInstance from '@/lib/axiosInstance';
 import { useQuery } from '@tanstack/react-query';
 
 export const usePopularMovies = (page) => {
-    const { data: popularMovies, isLoading: isPopularMoviesLoading } = useQuery({
-        queryKey: ['popularMovies'],
+    const {
+        data: popularMovies,
+        isLoading,
+        isError,
+    } = useQuery({
+        queryKey: ['popularMovies', page],
         queryFn: () =>
-            axiosInstance.get('/movie/popular', {
-                params: { language: 'en-US', page: page },
-            }),
+            axiosInstance
+                .get('/movie/popular', {
+                    params: { language: 'en-US', page },
+                })
+                .then((res) => res.data),
+        keepPreviousData: true,
         refetchOnWindowFocus: false,
         refetchOnReconnect: false,
-        staleTime: Infinity,
+        staleTime: 1000 * 60 * 5, // 5 mins
     });
 
-    return { popularMovies, isPopularMoviesLoading };
+    return { popularMovies, isLoading, isError };
 };
 
-export const usePopularTvSeries = () => {
-    const { data: PopularTvSeriesRes, isLoading: LoadingPopularTvSeries } = useQuery({
-        queryKey: ['popularTvSeries'],
-        queryFn: () => {
-            return axiosInstance.get('/tv/popular', {
-                params: {
-                    language: 'en-US',
-                    page: 1,
-                },
-            });
-        },
+export const usePopularTvSeries = (page) => {
+    const {
+        data: popularTvSeries,
+        isLoading: isLoadingPopularTvSeries,
+        isError,
+    } = useQuery({
+        queryKey: ['popularTvSeries', page],
+        queryFn: () =>
+            axiosInstance
+                .get('/tv/popular', {
+                    params: {
+                        language: 'en-US',
+                        page: page,
+                    },
+                })
+                .then((res) => res.data),
         refetchOnWindowFocus: false,
         refetchOnReconnect: false,
-        staleTime: Infinity,
+        staleTime: 1000 * 60 * 5, // or Infinity if truly static
+        keepPreviousData: true,
     });
 
-    return { PopularTvSeriesRes, LoadingPopularTvSeries };
+    return { popularTvSeries, isLoadingPopularTvSeries, isError };
 };
 
 export const useSearchOrFallbackContent = (

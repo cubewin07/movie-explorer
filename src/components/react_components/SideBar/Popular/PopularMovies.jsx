@@ -4,7 +4,7 @@ import LoadingSideBar from '../Popular/LoadingSideBar';
 import Popular from '../Popular/Popular';
 
 function PopularMovies() {
-    const { popularMovies, isPopularMoviesLoading } = usePopularMovies();
+    const { popularMovies, isPopularMoviesLoading } = usePopularMovies(1);
     const { MovieGenres, isGenresLoading } = useMovieGenres();
 
     const movies = popularMovies?.data?.results?.slice(0, 3) || [];
