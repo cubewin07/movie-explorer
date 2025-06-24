@@ -1,43 +1,42 @@
-import { useContext, useState, useEffect } from 'react';
+import { useContext, useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FilmModalContext } from '@/context/FilmModalProvider';
 
-function Popular({ movies, genres }) {
+function Popular({ movies = [], genres = [] }) {
     const { setIsOpen, setContext } = useContext(FilmModalContext);
     const [showAll, setShowAll] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
 
-    useEffect(() => {});
+    const firstItem = useMemo(() => movies[0], [movies]);
 
-    const getGenreNames = (ids) => ids.map((id) => genres.find((g) => g.id === id)?.name).filter(Boolean);
-    const isTvSeries = (item) => 'name' in item && !('title' in item);
+    const getGenreNames = (ids) => ids?.map((id) => genres.find((g) => g.id === id)?.name).filter(Boolean) || [];
+
+    const isTvSeries = (item) => !!item?.name && !item?.title;
 
     const handleClick = (movie) => {
         setContext(movie);
         setIsOpen(true);
     };
-    const firstItem = movies[0];
 
-    useEffect(() => {
-        if (isTvSeries(firstItem)) {
-            location.pathname === '/tvseries/popular' ? setShowAll(true) : setShowAll(false);
-        } else {
-            location.pathname === '/movies/popular' ? setShowAll(true) : setShowAll(false);
-        }
-    }, [location.pathname]);
     const handleToggle = () => {
+        if (!firstItem) return;
+        const isTV = isTvSeries(firstItem);
         if (!showAll) {
-            if (isTvSeries(firstItem)) {
-                navigate('/tvseries/popular');
-            } else {
-                navigate('/movies/popular');
-            }
+            navigate(isTV ? '/tvseries/popular' : '/movies/popular');
         } else {
             setShowAll(false);
         }
     };
+
+    useEffect(() => {
+        if (!firstItem) return;
+
+        const isTV = isTvSeries(firstItem);
+        const expectedPath = isTV ? '/tvseries/popular' : '/movies/popular';
+        setShowAll(location.pathname === expectedPath);
+    }, [location.pathname, firstItem]);
 
     return (
         <div className="flex flex-col gap-4">
@@ -83,7 +82,7 @@ function Popular({ movies, genres }) {
                                     IMDb
                                 </span>
                                 <span className="text-xs text-gray-800 dark:text-gray-200 font-medium">
-                                    {item.vote_average.toFixed(1)}
+                                    {item.vote_average?.toFixed(1)}
                                 </span>
                             </div>
                         </div>
@@ -91,23 +90,25 @@ function Popular({ movies, genres }) {
                 );
             })}
 
-            <AnimatePresence mode="wait">
-                <motion.button
-                    key={showAll ? 'less' : 'more'}
-                    onClick={handleToggle}
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 6 }}
-                    transition={{ duration: 0.3, ease: 'easeInOut' }}
-                    className={`mt-3 px-4 py-1.5 border text-sm font-medium rounded-md transition-colors duration-200 ${
-                        showAll
-                            ? 'border-red-500 text-red-600 hover:bg-red-100 dark:hover:bg-red-500/10'
-                            : 'border-blue-500 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-500/10'
-                    }`}
-                >
-                    {showAll ? 'Show Less' : 'Show More'}
-                </motion.button>
-            </AnimatePresence>
+            {firstItem && (
+                <AnimatePresence mode="wait">
+                    <motion.button
+                        key={showAll ? 'less' : 'more'}
+                        onClick={handleToggle}
+                        initial={{ opacity: 0, y: 6 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 6 }}
+                        transition={{ duration: 0.3, ease: 'easeInOut' }}
+                        className={`mt-3 px-4 py-1.5 border text-sm font-medium rounded-md transition-colors duration-200 ${
+                            showAll
+                                ? 'border-red-500 text-red-600 hover:bg-red-100 dark:hover:bg-red-500/10'
+                                : 'border-blue-500 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-500/10'
+                        }`}
+                    >
+                        {showAll ? 'Show Less' : 'Show More'}
+                    </motion.button>
+                </AnimatePresence>
+            )}
         </div>
     );
 }
