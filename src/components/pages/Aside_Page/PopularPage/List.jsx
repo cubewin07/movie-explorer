@@ -1,7 +1,9 @@
+import { motion, AnimatePresence } from 'framer-motion';
+import { useContext, useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import { useInfinitePaginatedFetch } from '@/hooks/API/data';
 import { useAllGenres } from '@/hooks/API/genres';
-import { useContext, useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { FilmModalContext } from '@/context/FilmModalProvider';
 
 const cardVariants = {
@@ -30,10 +32,13 @@ export default function InfiniteList({ url, queryKey, type }) {
 
     const sentinelRef = useRef(null);
     const scrollYRef = useRef(0);
+    const previousMovieCount = useRef(0);
+
     const [manualLoad, setManualLoad] = useState(false);
     const [isRenderComplete, setIsRenderComplete] = useState(false);
     const [shouldPreventScroll, setShouldPreventScroll] = useState(false);
-    const previousMovieCount = useRef(0);
+
+    const navigate = useNavigate();
 
     const movies = data?.pages?.flatMap((p) => p.results) || [];
     const genreMap =
@@ -146,6 +151,20 @@ export default function InfiniteList({ url, queryKey, type }) {
             transition={{ duration: 0.5 }}
         >
             <motion.div className="max-w-6xl mx-auto" initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
+                <div className="sticky top-6 z-30 flex justify-end">
+                    <motion.button
+                        onClick={() => navigate(-1)}
+                        className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 
+                   rounded-full text-xs font-semibold text-gray-700 dark:text-gray-200 
+                   bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-white/10 
+                   transition w-fit"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                    >
+                        ← Back
+                    </motion.button>
+                </div>
+
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">{`Popular ${type}`}</h1>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
