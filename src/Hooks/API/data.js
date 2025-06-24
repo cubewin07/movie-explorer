@@ -48,6 +48,24 @@ export const usePopularTvSeries = (page) => {
     return { popularTvSeries, isLoadingPopularTvSeries, isError };
 };
 
+export const usePaginatedFetch = (url, page) => {
+    const { data, isLoading, isError } = useQuery({
+        queryKey: [url, page],
+        queryFn: async () => {
+            const res = await axiosInstance.get(`/${url}`, {
+                params: { language: 'en-US', page },
+            });
+            return res.data;
+        },
+        keepPreviousData: true,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+        staleTime: 1000 * 60 * 5,
+    });
+
+    return { data, isLoading, isError };
+};
+
 export const useSearchOrFallbackContent = (
     isModalOpen,
     debouncedSearch,

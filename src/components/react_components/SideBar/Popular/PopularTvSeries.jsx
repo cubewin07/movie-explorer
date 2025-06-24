@@ -12,8 +12,6 @@ function PopularTvSeries() {
     const PopularTvSeries = popularTvSeries?.results || [];
     const visiblePopularTvSeries = PopularTvSeries.slice(0, 3);
 
-    console.log(PopularTvSeries);
-
     return (
         <div>
             <h1 className="text-white text-opacity-50 text-lg font-bold mb-3">Popular TV Series</h1>
