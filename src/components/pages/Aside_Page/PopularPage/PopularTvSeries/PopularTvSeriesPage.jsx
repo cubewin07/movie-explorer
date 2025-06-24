@@ -1,7 +1,7 @@
 import InfiniteList from '../List';
 
 function PopularTvSeriesPage() {
-    return <InfiniteList url="movie/popular" key="moviePopular-infinite" type="movies" />;
+    return <InfiniteList url="tv/popular" key="moviePopular-infinite" type="Tv series" />;
 }
 
 export default PopularTvSeriesPage;

@@ -1,17 +1,19 @@
-import { useQuery } from '@tanstack/react-query';
-import axiosInstance from '@/lib/axiosInstance';
-import { Button } from '@/components/ui/button';
-import { TrendingCarousel } from '@/components/TrendingCarousel';
 import { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import { Button } from '@/components/ui/button';
+import axiosInstance from '@/lib/axiosInstance';
+import { TrendingCarousel } from '@/components/TrendingCarousel';
 import { useMovieGenres } from '@/hooks/API/genres';
 import { usePopularMovies } from '@/hooks/API/data';
-import { useNavigate } from 'react-router-dom';
 import { FilmModalContext } from '@/context/FilmModalProvider';
 
 function Home() {
     const { popularMovies, isPopularMoviesLoading, isError } = usePopularMovies(1);
     const { MovieGenres, isGenresLoading } = useMovieGenres();
+
     const navigate = useNavigate();
+
     const { setIsOpen, setContext } = useContext(FilmModalContext);
 
     const movies = popularMovies?.results || [];

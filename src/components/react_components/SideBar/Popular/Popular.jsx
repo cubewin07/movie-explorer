@@ -1,5 +1,5 @@
-import { useContext, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useContext, useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FilmModalContext } from '@/context/FilmModalProvider';
 
@@ -7,6 +7,9 @@ function Popular({ movies, genres }) {
     const { setIsOpen, setContext } = useContext(FilmModalContext);
     const [showAll, setShowAll] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
+
+    useEffect(() => {});
 
     const getGenreNames = (ids) => ids.map((id) => genres.find((g) => g.id === id)?.name).filter(Boolean);
     const isTvSeries = (item) => 'name' in item && !('title' in item);
@@ -15,10 +18,17 @@ function Popular({ movies, genres }) {
         setContext(movie);
         setIsOpen(true);
     };
+    const firstItem = movies[0];
 
+    useEffect(() => {
+        if (isTvSeries(firstItem)) {
+            location.pathname === '/tvseries/popular' ? setShowAll(true) : setShowAll(false);
+        } else {
+            location.pathname === '/movies/popular' ? setShowAll(true) : setShowAll(false);
+        }
+    }, [location.pathname]);
     const handleToggle = () => {
         if (!showAll) {
-            const firstItem = movies[0];
             if (isTvSeries(firstItem)) {
                 navigate('/tvseries/popular');
             } else {
