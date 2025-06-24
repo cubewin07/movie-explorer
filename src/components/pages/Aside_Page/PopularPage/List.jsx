@@ -166,20 +166,28 @@ export default function InfiniteList({ url, queryKey }) {
                                 setIsOpen(true);
                             }}
                         >
-                            <motion.img
-                                src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                                alt={movie.title}
-                                className="w-full h-64 object-cover rounded mb-2"
-                                initial={{ opacity: 0, scale: 0.98 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{
-                                    delay: Math.min(i * 0.015, 0.5) + 0.2,
-                                    duration: 0.4,
-                                    ease: 'easeOut',
-                                }}
-                                loading="lazy"
-                                onError={(e) => (e.target.src = '/placeholder-movie.jpg')}
-                            />
+                            <div className="relative w-full h-64 mb-2">
+                                {/* Rating Badge */}
+                                <div className="absolute top-2 right-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded shadow-sm z-10">
+                                    ⭐ {movie.vote_average?.toFixed(1)}
+                                </div>
+
+                                {/* Animated Image */}
+                                <motion.img
+                                    src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                                    alt={movie.title}
+                                    className="w-full h-full object-cover rounded"
+                                    initial={{ opacity: 0, scale: 0.98 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{
+                                        delay: Math.min(i * 0.015, 0.5) + 0.2,
+                                        duration: 0.4,
+                                        ease: 'easeOut',
+                                    }}
+                                    loading="lazy"
+                                    onError={(e) => (e.target.src = '/placeholder-movie.jpg')}
+                                />
+                            </div>
 
                             <h3 className="text-md font-bold text-gray-900 dark:text-white line-clamp-2">
                                 {movie.title}
