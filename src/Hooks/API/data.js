@@ -1,5 +1,5 @@
 import axiosInstance from '@/lib/axiosInstance';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery } from '@tanstack/react-query';
 
 export const usePopularMovies = (page) => {
     const {
@@ -106,4 +106,24 @@ export const useSearchOrFallbackContent = (
     });
 
     return { data, isLoading };
+};
+
+export const useInfinitePaginatedFetch = (url, key) => {
+    return useInfiniteQuery({
+        queryKey: [key],
+        queryFn: async ({ pageParam = 1 }) => {
+            const res = axiosInstance.get(`/${url}`, {
+                language: 'en-US',
+                page: pageParam,
+            });
+            return res.data;
+        },
+        getNextPageParam: (lastPage) => {
+            const { page, total_pages } = lastPage;
+            if (page < total_pages && page < 500) return page + 1;
+            return undefined;
+        },
+        refetchOnWindowFocus: false,
+        staleTime: 1000 * 60 * 5,
+    });
 };
