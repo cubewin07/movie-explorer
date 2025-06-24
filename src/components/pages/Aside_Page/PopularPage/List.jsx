@@ -18,13 +18,14 @@ const cardVariants = {
     }),
 };
 
-export default function InfiniteList({ url, queryKey }) {
+export default function InfiniteList({ url, queryKey, type }) {
     const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfinitePaginatedFetch(
         url,
         queryKey,
     );
 
     const { movieGenres, tvGenres, isLoading: isGenresLoading } = useAllGenres();
+    const allGenres = [...movieGenres, ...tvGenres];
     const { setContext, setIsOpen } = useContext(FilmModalContext);
 
     const sentinelRef = useRef(null);
@@ -36,12 +37,10 @@ export default function InfiniteList({ url, queryKey }) {
 
     const movies = data?.pages?.flatMap((p) => p.results) || [];
     const genreMap =
-        movieGenres.reduce((acc, g) => {
+        allGenres.reduce((acc, g) => {
             acc[g.id] = g.name;
             return acc;
         }, {}) || {};
-
-    console.log(movieGenres);
 
     const isDataLoading = isLoading || isGenresLoading;
     const isPaginating = isFetchingNextPage || manualLoad;
@@ -134,7 +133,7 @@ export default function InfiniteList({ url, queryKey }) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
             >
-                Failed to load popular movies.
+                {`Failed to load popular ${type}`}
             </motion.div>
         );
     }
@@ -147,7 +146,7 @@ export default function InfiniteList({ url, queryKey }) {
             transition={{ duration: 0.5 }}
         >
             <motion.div className="max-w-6xl mx-auto" initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Popular Movies</h1>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">{`Popular ${type}`}</h1>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
                     {movies.map((movie, i) => (

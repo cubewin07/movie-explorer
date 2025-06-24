@@ -3,7 +3,7 @@ import InfiniteList from '../List';
 import { usePaginatedFetch, usePopularMovies } from '@/hooks/API/data';
 
 function PopularMoviesPage() {
-    return <InfiniteList url="movie/popular" key="moviePopular-infinite" />;
+    return <InfiniteList url="movie/popular" key="moviePopular-infinite" type="movies" />;
 }
 
 export default PopularMoviesPage;
