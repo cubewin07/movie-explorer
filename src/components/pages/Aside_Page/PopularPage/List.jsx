@@ -1,15 +1,20 @@
 import { useInfinitePaginatedFetch } from '@/hooks/API/data';
 import { useMovieGenres } from '@/hooks/API/genres';
 import { useContext, useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { FilmModalContext } from '@/context/FilmModalProvider';
 
 const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
+    hidden: { opacity: 0, y: 20, scale: 0.95 },
     visible: (i) => ({
         opacity: 1,
         y: 0,
-        transition: { delay: Math.min(i * 0.015, 0.5), duration: 0.25, ease: 'easeOut' },
+        scale: 1,
+        transition: {
+            delay: Math.min(i * 0.02, 0.4),
+            duration: 0.4,
+            ease: 'easeOut',
+        },
     }),
 };
 
@@ -61,7 +66,6 @@ export default function InfiniteList({ url, queryKey }) {
         };
     }, [isRenderComplete, shouldPreventScroll]);
 
-    // Handle render timing
     useEffect(() => {
         const currentMovieCount = movies.length;
         const hasNewMovies = currentMovieCount > previousMovieCount.current;
@@ -71,7 +75,7 @@ export default function InfiniteList({ url, queryKey }) {
             setShouldPreventScroll(true);
             previousMovieCount.current = currentMovieCount;
 
-            const totalDelay = 1000 + Math.min(currentMovieCount, 40) * 15; // Max ~850ms
+            const totalDelay = 800 + Math.min(currentMovieCount, 40) * 20;
             const timeout = setTimeout(() => {
                 setIsRenderComplete(true);
                 setShouldPreventScroll(false);
@@ -81,7 +85,6 @@ export default function InfiniteList({ url, queryKey }) {
         }
     }, [movies.length, isPaginating]);
 
-    // IntersectionObserver for infinite scroll
     useEffect(() => {
         if (!hasNextPage || isDataLoading || isPaginating || !isRenderComplete || shouldPreventScroll) return;
 
@@ -111,23 +114,37 @@ export default function InfiniteList({ url, queryKey }) {
 
     if (isDataLoading) {
         return (
-            <div className="min-h-screen flex justify-center items-center">
-                <span className="loading loading-bars loading-lg text-primary" />
+            <div className="min-h-screen flex justify-center items-center animate-pulse">
+                <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                    className="w-12 h-12 border-4 border-blue-400 border-t-transparent rounded-full animate-spin"
+                />
             </div>
         );
     }
 
     if (isError) {
         return (
-            <div className="min-h-screen py-10 px-4 text-center text-red-500 font-semibold">
+            <motion.div
+                className="min-h-screen py-10 px-4 text-center text-red-500 font-semibold"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+            >
                 Failed to load popular movies.
-            </div>
+            </motion.div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 py-10 px-4">
-            <div className="max-w-6xl mx-auto">
+        <motion.div
+            className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 py-10 px-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+        >
+            <motion.div className="max-w-6xl mx-auto" initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">Popular Movies</h1>
 
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
@@ -149,13 +166,21 @@ export default function InfiniteList({ url, queryKey }) {
                                 setIsOpen(true);
                             }}
                         >
-                            <img
+                            <motion.img
                                 src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                                 alt={movie.title}
                                 className="w-full h-64 object-cover rounded mb-2"
+                                initial={{ opacity: 0, scale: 0.98 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{
+                                    delay: Math.min(i * 0.015, 0.5) + 0.2,
+                                    duration: 0.4,
+                                    ease: 'easeOut',
+                                }}
                                 loading="lazy"
                                 onError={(e) => (e.target.src = '/placeholder-movie.jpg')}
                             />
+
                             <h3 className="text-md font-bold text-gray-900 dark:text-white line-clamp-2">
                                 {movie.title}
                             </h3>
@@ -166,29 +191,33 @@ export default function InfiniteList({ url, queryKey }) {
                     ))}
                 </div>
 
-                {/* Scroll sentinel */}
                 {hasNextPage && !isPaginating && isRenderComplete && !shouldPreventScroll && (
                     <div ref={sentinelRef} className="h-20 flex items-center justify-center mt-8">
                         <div className="text-sm text-gray-500 dark:text-gray-400">Scroll for more movies...</div>
                     </div>
                 )}
 
-                {/* Load more button */}
                 {hasNextPage && (
                     <div className="flex justify-center mt-8">
-                        <button
+                        <motion.button
                             onClick={handleManualLoad}
                             disabled={isPaginating || !isRenderComplete || shouldPreventScroll}
-                            className={`relative btn btn-primary flex items-center justify-center gap-2 ${
+                            className={`relative btn btn-primary flex items-center justify-center gap-2 shadow-md ${
                                 isPaginating
                                     ? 'opacity-80 cursor-wait'
                                     : !isRenderComplete || shouldPreventScroll
                                       ? 'opacity-60 cursor-not-allowed'
                                       : ''
-                            } min-w-[140px] px-6 py-2 rounded-lg transition-all duration-200`}
+                            } min-w-[140px] px-6 py-2 rounded-lg transition-all duration-300`}
+                            whileTap={{ scale: 0.98 }}
                         >
                             {isPaginating && (
-                                <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                <motion.span
+                                    className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"
+                                    initial={{ rotate: 0 }}
+                                    animate={{ rotate: 360 }}
+                                    transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+                                />
                             )}
                             <span className="text-sm font-medium">
                                 {isPaginating
@@ -197,14 +226,20 @@ export default function InfiniteList({ url, queryKey }) {
                                       ? 'Please wait...'
                                       : 'Load More'}
                             </span>
-                        </button>
+                        </motion.button>
                     </div>
                 )}
 
                 {!hasNextPage && hasMovies && isRenderComplete && (
-                    <div className="text-center mt-10 text-gray-600 dark:text-gray-400">You've reached the end!</div>
+                    <motion.div
+                        className="text-center mt-10 text-gray-600 dark:text-gray-400"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                    >
+                        You've reached the end!
+                    </motion.div>
                 )}
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 }
