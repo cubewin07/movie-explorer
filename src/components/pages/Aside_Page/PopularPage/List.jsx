@@ -210,10 +210,10 @@ export default function InfiniteList({ url, queryKey, type }) {
                             </div>
 
                             <h3 className="text-md font-bold text-gray-900 dark:text-white line-clamp-2">
-                                {movie.title}
+                                {movie.title || movie.name}
                             </h3>
                             <p className="text-xs text-gray-600 dark:text-gray-400">
-                                {movie.release_date?.slice(0, 4) || 'TBA'}
+                                {movie.release_date?.slice(0, 4) || movie.first_air_date?.slice(0, 4) || 'TBA'}
                             </p>
                         </motion.div>
                     ))}
