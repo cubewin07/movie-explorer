@@ -4,7 +4,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Star, PlayCircle, ChevronDown, ChevronUp } from 'lucide-react';
 
 export default function EpisodeModal({ open, onClose, episode }) {
-    const [showStars, setShowStars] = useState(false);
     if (!episode) return null;
 
     const trailer = episode.videos?.find((v) => v.type === 'Trailer' && v.site === 'YouTube');

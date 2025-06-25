@@ -3,7 +3,7 @@ import { Play, Plus, Share, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader } from '@/components/ui/Loader';
+import { Skeleton } from '@/components/ui/skeleton';
 
 import { useTVSeriesDetails, useTVSeriesTrailer } from '@/hooks/API/data';
 import SeasonAccordion from './SeasonAccordion';
@@ -13,8 +13,17 @@ export default function TVSeriesDetailPage() {
     const { series, isLoading, isError } = useTVSeriesDetails(id);
     const { trailerUrl, isLoadingTrailer } = useTVSeriesTrailer(id);
 
-    if (isLoading) return <Loader />;
-    if (isError || !series) return <div className="p-8 text-red-400">Failed to load series.</div>;
+    if (isLoading) {
+        return (
+            <div className="p-8 space-y-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                    <Skeleton key={i} className="w-full h-32 rounded-lg" />
+                ))}
+            </div>
+        );
+    }
+
+    if (isError || !series) return <div className="p-8 text-red-500">Failed to load series.</div>;
 
     return (
         <div className="flex-1 bg-white dark:bg-slate-950 text-slate-900 dark:text-white overflow-y-auto">
@@ -71,7 +80,7 @@ export default function TVSeriesDetailPage() {
 
                     <div className="flex flex-wrap gap-3 pt-4">
                         <Button
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 text-sm sm:text-base"
+                            className="bg-blue-600 hover:scale-105 transition-transform duration-200 ease-in-out hover:bg-blue-700 text-white px-6 py-2 text-sm sm:text-base"
                             onClick={() => window.open(trailerUrl, '_blank')}
                             disabled={!trailerUrl || isLoadingTrailer}
                         >
@@ -80,14 +89,14 @@ export default function TVSeriesDetailPage() {
 
                         <Button
                             variant="outline"
-                            className="border-slate-400 dark:border-slate-600 text-slate-800 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 px-6 py-2 text-sm sm:text-base"
+                            className="bg-white text-slate-800 border-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:bg-transparent dark:text-white dark:border-slate-600 dark:hover:bg-slate-800"
                         >
                             <Plus className="w-4 h-4 mr-2" /> Add to Watchlist
                         </Button>
 
                         <Button
                             variant="outline"
-                            className="border-slate-400 dark:border-slate-600 text-slate-800 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 px-6 py-2 text-sm sm:text-base"
+                            className="bg-white text-slate-800 border-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:bg-transparent dark:text-white dark:border-slate-600 dark:hover:bg-slate-800"
                         >
                             <Share className="w-4 h-4 mr-2" /> Share
                         </Button>
@@ -96,9 +105,9 @@ export default function TVSeriesDetailPage() {
             </div>
 
             {/* Tabs */}
-            <div className="p-8">
+            <div className="p-6 sm:p-8">
                 <Tabs defaultValue="overview">
-                    <TabsList className="grid grid-cols-3 md:grid-cols-5 bg-slate-800">
+                    <TabsList className="grid grid-cols-3 md:grid-cols-5 bg-slate-200 dark:bg-slate-800 rounded-lg mb-6">
                         <TabsTrigger value="overview">Overview</TabsTrigger>
                         <TabsTrigger value="episodes">Episodes</TabsTrigger>
                         <TabsTrigger value="cast">Cast</TabsTrigger>
@@ -107,7 +116,9 @@ export default function TVSeriesDetailPage() {
                     </TabsList>
 
                     <TabsContent value="overview">
-                        <p>{series.overview}</p>
+                        <p className="text-base text-slate-600 dark:text-slate-300 leading-relaxed">
+                            {series.overview}
+                        </p>
                     </TabsContent>
 
                     <TabsContent value="episodes">
@@ -124,7 +135,7 @@ export default function TVSeriesDetailPage() {
                     </TabsContent>
 
                     <TabsContent value="cast">
-                        <p>
+                        <p className="text-slate-600 dark:text-slate-300">
                             {series.credits?.cast
                                 ?.slice(0, 10)
                                 .map((c) => c.name)
@@ -133,7 +144,7 @@ export default function TVSeriesDetailPage() {
                     </TabsContent>
 
                     <TabsContent value="details">
-                        <ul className="text-slate-300 space-y-1">
+                        <ul className="text-slate-600 dark:text-slate-300 space-y-1">
                             <li>Language: {series.original_language?.toUpperCase()}</li>
                             <li>Country: {series.origin_country?.join(', ')}</li>
                             <li>Runtime: {series.episode_run_time?.[0] || 0} min</li>
@@ -143,7 +154,7 @@ export default function TVSeriesDetailPage() {
                     </TabsContent>
 
                     <TabsContent value="similar">
-                        <p>Similar shows coming soon.</p>
+                        <p className="text-slate-600 dark:text-slate-300">Similar shows coming soon.</p>
                     </TabsContent>
                 </Tabs>
             </div>
