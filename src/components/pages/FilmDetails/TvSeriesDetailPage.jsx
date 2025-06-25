@@ -1,10 +1,12 @@
 import { useParams } from 'react-router-dom';
-import { useTVSeriesDetails, useTVSeriesTrailer } from '@/hooks/API/data';
 import { Play, Plus, Share, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader } from '@/components/ui/Loader';
+
+import { useTVSeriesDetails, useTVSeriesTrailer } from '@/hooks/API/data';
+import SeasonAccordion from './SeasonAccordion';
 
 export default function TVSeriesDetailPage() {
     const { id } = useParams();
@@ -109,7 +111,16 @@ export default function TVSeriesDetailPage() {
                     </TabsContent>
 
                     <TabsContent value="episodes">
-                        <p>Episodes accordion to be added here.</p>
+                        <div className="space-y-4">
+                            {series.seasons?.map((season) => (
+                                <SeasonAccordion
+                                    key={season.id}
+                                    tvId={series.id}
+                                    seasonNumber={season.season_number}
+                                    season={season}
+                                />
+                            ))}
+                        </div>
                     </TabsContent>
 
                     <TabsContent value="cast">
