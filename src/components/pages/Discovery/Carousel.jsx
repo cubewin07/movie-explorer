@@ -90,7 +90,7 @@ export default function Carousel({ title, url, type }) {
                         return (
                             <motion.div
                                 key={item.id}
-                                className="relative w-[180px] flex-shrink-0 group rounded-xl overflow-hidden cursor-pointer shadow-md transition-all duration-300 hover:shadow-blue-300/20 dark:hover:shadow-blue-900/30"
+                                className="relative w-[200px] flex-shrink-0 group rounded-xl overflow-hidden cursor-pointer shadow-md transition-all duration-300 hover:shadow-blue-300/20 dark:hover:shadow-blue-900/30"
                                 variants={cardVariants}
                                 custom={i}
                                 initial="hidden"
@@ -122,12 +122,13 @@ export default function Carousel({ title, url, type }) {
                                     </p>
                                 </div>
 
-                                {/* Minimal badge (top-right for less clutter) */}
-                                <div className="absolute top-2 right-2 z-10">
-                                    <span className="text-[11px] px-1.5 py-0.5 rounded bg-black/40 text-white font-medium backdrop-blur-sm shadow-sm">
-                                        {title === 'Trending' ? '🔥' : title === 'Top Rated' ? '⭐' : '📺'}
-                                    </span>
-                                </div>
+                                {item.vote_average > 0 && (
+                                    <div className="absolute top-2 right-2 z-10">
+                                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-yellow-400/80 text-black shadow-sm">
+                                            ⭐ {item.vote_average.toFixed(1)}
+                                        </span>
+                                    </div>
+                                )}
                             </motion.div>
                         );
                     })}
