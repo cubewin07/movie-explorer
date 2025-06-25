@@ -76,7 +76,10 @@
         @apply border-border;
     }
     body {
-        @apply text-foreground bg-white dark:bg-background;
+        @apply min-h-screen text-base font-sans antialiased text-foreground bg-white dark:bg-background;
+    }
+    html {
+        @apply transition-colors duration-300 ease-in-out;
     }
 }
 @layer components {
