@@ -61,9 +61,10 @@ export default function MovieReviewModal({
     return (
         <motion.div
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0, y: 20, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.98 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
             onClick={() => setIsOpen(false)}
         >
             <motion.div
@@ -178,7 +179,10 @@ export default function MovieReviewModal({
                             <motion.div
                                 whileTap={{ scale: 0.95 }}
                                 className="pt-4"
-                                onClick={() => navigate(title ? `/movie/${id}` : `tvseries/${id}`)}
+                                onClick={() => {
+                                    navigate(title ? `/movie/${id}` : `tvseries/${id}`);
+                                    setIsOpen(false);
+                                }}
                             >
                                 <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white">
                                     <Eye className="h-4 w-4 mr-2" />
