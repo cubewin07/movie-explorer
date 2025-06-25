@@ -129,3 +129,42 @@ export const useInfinitePaginatedFetch = (url, key) => {
         staleTime: 1000 * 60 * 5,
     });
 };
+
+export const useMovieDetail = (id) => {
+    const {
+        data: movie,
+        isLoading,
+        isError,
+    } = useQuery({
+        queryKey: [id],
+        queryFn: async () => {
+            const res = await axiosInstance.get(`/movie/${id}`);
+        },
+    });
+
+    return { movie, isLoading, isError };
+};
+
+export const useMovieTrailer = (id) => {
+    const {
+        data: trailerUrl,
+        isLoading,
+        isError,
+    } = useQuery({
+        queryKey: ['movieTrailer', id],
+        enabled: !!id,
+        queryFn: async () => {
+            const { data } = await axiosInstance.get(`/movie/${id}/videos`, {
+                params: { language: 'en-US' },
+            });
+
+            const trailer = data.results.find((video) => video.type === 'Trailer' && video.site === 'YouTube');
+
+            return trailer ? `https://www.youtube.com/watch?v=${trailer.key}` : null;
+        },
+        staleTime: 1000 * 60 * 10,
+        refetchOnWindowFocus: false,
+    });
+
+    return { trailerUrl, isLoading, isError };
+};
