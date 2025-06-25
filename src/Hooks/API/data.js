@@ -130,7 +130,7 @@ export const useInfinitePaginatedFetch = (url, key) => {
     });
 };
 
-export const useMovieDetail = (id) => {
+export const useMovieDetails = (id) => {
     const {
         data: movie,
         isLoading,

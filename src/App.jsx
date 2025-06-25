@@ -3,7 +3,6 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Layout from './layout/Layout';
 import Home from './components/pages/Home/Home';
-import FilmModalProvider from './context/FilmModalProvider';
 import PopularMoviesPage from './components/pages/Aside_Page/PopularPage/PopularMovies/PopularMoviesPage';
 import PopularTvSeriesPage from './components/pages/Aside_Page/PopularPage/PopularTvSeries/PopularTvSeriesPage';
 import MovieDetailPage from './components/pages/FilmDetails/MovieDetailPage';
@@ -62,9 +61,7 @@ const router = createBrowserRouter(
 function App() {
     return (
         <QueryClientProvider client={queryClient}>
-            <FilmModalProvider>
-                <RouterProvider router={router} />
-            </FilmModalProvider>
+            <RouterProvider router={router} />
         </QueryClientProvider>
     );
 }

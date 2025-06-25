@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 import { useThemeToggle } from '@/hooks/useThemeToggle';
+import FilmModalProvider from '@/context/FilmModalProvider';
 function Layout() {
     // Active state for menu
     const [active, setActive] = useState('/');
@@ -20,32 +21,34 @@ function Layout() {
     };
 
     return (
-        <div className="min-h-screen w-full flex justify-center items-start bg-background py-8 px-2 animate-fade-in">
-            <div className="w-full flex rounded-2xl shadow-xl bg-card overflow-hidden border border-border h-[calc(100vh-4rem)]">
-                {/* Left Sidebar (hybrid) */}
-                <aside className="h-full">
-                    <ShadSidebar open={open} setOpen={setOpen}>
-                        <SidebarBody>
-                            <SidebarContent
-                                active={active}
-                                setActive={setActive}
-                                handleThemeToggle={handleThemeToggle}
-                            />
-                        </SidebarBody>
-                    </ShadSidebar>
-                </aside>
+        <FilmModalProvider>
+            <div className="min-h-screen w-full flex justify-center items-start bg-background py-8 px-2 animate-fade-in">
+                <div className="w-full flex rounded-2xl shadow-xl bg-card overflow-hidden border border-border h-[calc(100vh-4rem)]">
+                    {/* Left Sidebar (hybrid) */}
+                    <aside className="h-full">
+                        <ShadSidebar open={open} setOpen={setOpen}>
+                            <SidebarBody>
+                                <SidebarContent
+                                    active={active}
+                                    setActive={setActive}
+                                    handleThemeToggle={handleThemeToggle}
+                                />
+                            </SidebarBody>
+                        </ShadSidebar>
+                    </aside>
 
-                {/* Main Content */}
-                <main className="flex-grow h-full overflow-y-auto bg-background px-8 py-6 text-foreground">
-                    <Outlet />
-                </main>
+                    {/* Main Content */}
+                    <main className="flex-grow h-full overflow-y-auto bg-background px-8 py-6 text-foreground">
+                        <Outlet />
+                    </main>
 
-                {/* Right Sidebar */}
-                <aside className="w-[25rem] h-full bg-card">
-                    <Sidebar right={true} />
-                </aside>
+                    {/* Right Sidebar */}
+                    <aside className="w-[25rem] h-full bg-card">
+                        <Sidebar right={true} />
+                    </aside>
+                </div>
             </div>
-        </div>
+        </FilmModalProvider>
     );
 }
 

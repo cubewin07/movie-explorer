@@ -1,8 +1,10 @@
 import { useContext, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Star, Calendar, Globe, X, Eye, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Star, Calendar, Globe, X, Eye, Clock } from 'lucide-react';
+
 import { FilmModalContext } from '@/context/FilmModalProvider';
 
 const genreColorMap = {
@@ -28,6 +30,7 @@ const genreColorMap = {
 
 export default function MovieReviewModal({
     title,
+    id,
     name,
     original_title,
     original_name,
@@ -41,11 +44,12 @@ export default function MovieReviewModal({
     runtime,
 }) {
     const { setIsOpen } = useContext(FilmModalContext);
-
+    console.log(id);
     const posterUrl = poster_path
         ? `https://image.tmdb.org/t/p/w500${poster_path}`
         : '/placeholder.svg?height=400&width=300';
 
+    const navigate = useNavigate();
     useEffect(() => {
         const handleEsc = (e) => {
             if (e.key === 'Escape') setIsOpen(false);
@@ -171,7 +175,11 @@ export default function MovieReviewModal({
                             </div>
 
                             {/* CTA */}
-                            <motion.div whileTap={{ scale: 0.95 }} className="pt-4">
+                            <motion.div
+                                whileTap={{ scale: 0.95 }}
+                                className="pt-4"
+                                onClick={() => navigate(title ? '/movie/id' : 'tvseries/id')}
+                            >
                                 <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white">
                                     <Eye className="h-4 w-4 mr-2" />
                                     View Details
