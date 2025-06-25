@@ -214,3 +214,17 @@ export const useTVSeriesTrailer = (id) => {
 
     return { trailerUrl, isLoadingTrailer, isError };
 };
+
+export const useSeasonDetails = (tvId, seasonNumber, enabled = true) => {
+    const { data, isLoading } = useQuery({
+        queryKey: ['seasonDetails', tvId, seasonNumber],
+        queryFn: async () => {
+            const { data } = await axiosInstance.get(`/tv/${tvId}/season/${seasonNumber}`);
+            return data.episodes || [];
+        },
+        enabled,
+        staleTime: 1000 * 60 * 10,
+    });
+
+    return { episodes: data, isLoading };
+};
