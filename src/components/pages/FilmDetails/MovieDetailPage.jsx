@@ -5,13 +5,14 @@ import { Play, Plus, Share, Heart, Star, Clock, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Loader } from '@/components/ui/Loader';
 
 export default function MovieDetailPage() {
     const { id } = useParams();
     const { movie, isLoading, error } = useMovieDetails(id);
     const { trailerUrl, isLoadingTrailer } = useMovieTrailer(id);
 
-    if (isLoading) return <div className="p-8 text-white">Loading...</div>;
+    if (isLoading) return <Loader />;
     if (error || !movie) return <div className="p-8 text-red-400">Failed to load movie.</div>;
 
     return (
