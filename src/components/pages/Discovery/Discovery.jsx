@@ -22,7 +22,7 @@ export default function Discovery() {
             {/* Tabs */}
             <div className="flex space-x-4 mb-6 border-b">
                 <NavLink
-                    to="/movies/popular"
+                    to="/movies"
                     className={({ isActive }) =>
                         cn(
                             'pb-2 text-lg font-medium',
@@ -35,7 +35,7 @@ export default function Discovery() {
                     Movies
                 </NavLink>
                 <NavLink
-                    to="/tvseries/popular"
+                    to="/tvseries"
                     className={({ isActive }) =>
                         cn(
                             'pb-2 text-lg font-medium',
