@@ -33,7 +33,7 @@ const movieData = {
     similarMovies: [],
 };
 
-export function MovieDetailPage() {
+export default function MovieDetailPage() {
     const [isInWatchlist, setIsInWatchlist] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
 

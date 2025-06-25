@@ -6,6 +6,8 @@ import Home from './components/pages/Home/Home';
 import FilmModalProvider from './context/FilmModalProvider';
 import PopularMoviesPage from './components/pages/Aside_Page/PopularPage/PopularMovies/PopularMoviesPage';
 import PopularTvSeriesPage from './components/pages/Aside_Page/PopularPage/PopularTvSeries/PopularTvSeriesPage';
+import MovieDetailPage from './components/pages/FilmDetails/MovieDetailPage';
+import TVSeriesDetailPage from './components/pages/FilmDetails/TvSeriesDetailPage';
 import Discovery from './components/pages/Discovery/Discovery';
 // import Community from './pages/Community'
 // import Discovery from './pages/Discovery'
@@ -33,12 +35,20 @@ const router = createBrowserRouter(
                     element: <PopularMoviesPage />,
                 },
                 {
+                    path: '/movies/:id',
+                    element: <MovieDetailPage />,
+                },
+                {
                     path: '/tvseries',
                     element: <Discovery />,
                 },
                 {
                     path: '/tvseries/:type',
                     element: <PopularTvSeriesPage />,
+                },
+                {
+                    path: '/tvseries/:id',
+                    element: <TVSeriesDetailPage />,
                 },
                 // Add other routes here
             ],
