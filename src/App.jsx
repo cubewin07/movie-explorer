@@ -6,6 +6,7 @@ import Home from './components/pages/Home/Home';
 import FilmModalProvider from './context/FilmModalProvider';
 import PopularMoviesPage from './components/pages/Aside_Page/PopularPage/PopularMovies/PopularMoviesPage';
 import PopularTvSeriesPage from './components/pages/Aside_Page/PopularPage/PopularTvSeries/PopularTvSeriesPage';
+import Discovery from './components/pages/Discovery/Discovery';
 // import Community from './pages/Community'
 // import Discovery from './pages/Discovery'
 // import ComingSoon from './pages/ComingSoon'
@@ -24,45 +25,43 @@ const router = createBrowserRouter(
                     element: <Home />,
                 },
                 {
-                    path: '/popular/movies',
-                    element: <PopularMoviesPage />,
+                    path: '/movies',
+                    element: <Discovery />, // this contains the tabs + carousels + <Outlet />
+                    children: [
+                        {
+                            path: 'popular',
+                            element: <PopularMoviesPage />,
+                        },
+                        {
+                            path: 'treding',
+                            element: <PopularMoviesPage />,
+                        },
+                        {
+                            path: 'top_rated',
+                            element: <PopularTvSeriesPage />,
+                        },
+                    ],
                 },
                 {
-                    path: '/popular/tvseries',
-                    element: <PopularTvSeriesPage />,
+                    path: '/tvseries',
+                    element: <Discovery />,
+                    children: [
+                        {
+                            path: 'popular',
+                            element: <PopularTvSeriesPage />,
+                        },
+                        ,
+                        {
+                            path: 'trending',
+                            element: <PopularTvSeriesPage />,
+                        },
+                        {
+                            path: 'top_rated',
+                            element: <PopularTvSeriesPage />,
+                        },
+                    ],
                 },
-                //   {
-                //     path: '/community',
-                //     element: <Community />,
-                //   },
-                //   {
-                //     path: '/discovery',
-                //     element: <Discovery />,
-                //   },
-                //   {
-                //     path: '/coming-soon',
-                //     element: <ComingSoon />,
-                //   },
-                //   {
-                //     path: '/profile',
-                //     element: <Profile />,
-                //   },
-                //   {
-                //     path: '/friend',
-                //     element: <Friend />,
-                //   },
-                //   {
-                //     path: '/media',
-                //     element: <Media />,
-                //   },
-                //   {
-                //     path: '/settings',
-                //     element: <Settings />,
-                //   },
-                //   {
-                //     path: '/help',
-                //     element: <Help />,
-                //   },
+                // Add other routes here
             ],
         },
     ],
@@ -70,6 +69,7 @@ const router = createBrowserRouter(
         basename: import.meta.env.DEV ? '/' : '/movie-explorer',
     },
 );
+
 function App() {
     return (
         <QueryClientProvider client={queryClient}>
