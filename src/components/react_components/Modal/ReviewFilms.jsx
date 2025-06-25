@@ -178,7 +178,7 @@ export default function MovieReviewModal({
                             <motion.div
                                 whileTap={{ scale: 0.95 }}
                                 className="pt-4"
-                                onClick={() => navigate(title ? '/movie/id' : 'tvseries/id')}
+                                onClick={() => navigate(title ? `/movie/${id}` : `tvseries/${id}`)}
                             >
                                 <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white">
                                     <Eye className="h-4 w-4 mr-2" />

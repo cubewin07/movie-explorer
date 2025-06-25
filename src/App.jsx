@@ -34,7 +34,7 @@ const router = createBrowserRouter(
                     element: <PopularMoviesPage />,
                 },
                 {
-                    path: '/movies/:id',
+                    path: '/movie/:id',
                     element: <MovieDetailPage />,
                 },
                 {
@@ -46,7 +46,7 @@ const router = createBrowserRouter(
                     element: <PopularTvSeriesPage />,
                 },
                 {
-                    path: '/tvseries/:id',
+                    path: '/tvserie/:id',
                     element: <TVSeriesDetailPage />,
                 },
                 // Add other routes here

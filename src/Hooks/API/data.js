@@ -139,6 +139,7 @@ export const useMovieDetails = (id) => {
         queryKey: [id],
         queryFn: async () => {
             const res = await axiosInstance.get(`/movie/${id}`);
+            return res.data;
         },
     });
 
