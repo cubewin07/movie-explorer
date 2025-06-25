@@ -24,7 +24,7 @@ function Popular({ movies = [], genres = [] }) {
         if (!firstItem) return;
         const isTV = isTvSeries(firstItem);
         if (!showAll) {
-            navigate(isTV ? '/popular/tvseries' : '/popular/movies');
+            navigate(isTV ? '/tvseries/popular' : '/movies/popular');
         } else {
             navigate(-1, { replace: true });
             setShowAll(false);
@@ -33,14 +33,13 @@ function Popular({ movies = [], genres = [] }) {
 
     useEffect(() => {
         if (!firstItem) return;
-
         const isTV = isTvSeries(firstItem);
         const expectedPath = isTV ? '/popular/tvseries' : '/popular/movies';
         setShowAll(location.pathname === expectedPath);
     }, [location.pathname, firstItem]);
 
     return (
-        <div className="flex flex-col gap-4">
+        <div className="rounded-2xl p-4 bg-slate-50 dark:bg-slate-900 shadow-md space-y-3">
             {movies.map((item) => {
                 const genreNames = getGenreNames(item.genre_ids);
                 const isTV = isTvSeries(item);
@@ -50,27 +49,27 @@ function Popular({ movies = [], genres = [] }) {
                 return (
                     <div
                         key={item.id}
-                        className="flex gap-4 items-start p-3 rounded-lg transition hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer shadow-sm"
+                        className="flex flex-col sm:flex-row gap-3 items-stretch p-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer shadow-sm"
                         onClick={() => handleClick({ ...item, genres: genreNames })}
                     >
                         <img
-                            src={`https://image.tmdb.org/t/p/w92${item.poster_path}`}
+                            src={`https://image.tmdb.org/t/p/w154${item.poster_path}`}
                             alt={displayTitle}
-                            className="h-24 w-auto rounded-lg object-cover shadow-md"
+                            className="h-32 sm:h-full w-auto min-w-[4rem] rounded-lg object-cover shadow-sm self-center sm:self-stretch"
                         />
 
-                        <div className="flex flex-col justify-between h-24">
+                        <div className="flex flex-col justify-between w-full">
                             <div className="space-y-1">
-                                <h2 className="text-xs font-semibold text-gray-900 dark:text-white truncate w-[120px]">
+                                <h2 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2">
                                     {displayTitle}
                                 </h2>
-                                <p className="text-[10px] text-gray-700 dark:text-gray-300">{displayDate}</p>
+                                <p className="text-[11px] text-gray-600 dark:text-slate-300">{displayDate}</p>
 
                                 <div className="flex flex-wrap gap-1 mt-1">
                                     {genreNames.slice(0, 2).map((name) => (
                                         <span
                                             key={name}
-                                            className="bg-blue-200 dark:bg-blue-900 text-blue-800 dark:text-blue-200 text-[10px] px-2 py-[2px] rounded-full font-medium"
+                                            className="bg-indigo-600 text-white text-[10px] font-medium px-2 py-[2px] rounded-full"
                                         >
                                             {name}
                                         </span>
@@ -78,11 +77,11 @@ function Popular({ movies = [], genres = [] }) {
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2 mt-1">
-                                <span className="bg-yellow-400 text-black text-[10px] font-bold px-1.5 py-[1px] rounded">
+                            <div className="flex items-center gap-2 mt-2">
+                                <span className="bg-yellow-400 text-black text-[10px] font-bold px-2 py-[2px] rounded-full">
                                     IMDb
                                 </span>
-                                <span className="text-xs text-gray-800 dark:text-gray-200 font-medium">
+                                <span className="text-[13px] text-gray-900 dark:text-white font-semibold">
                                     {item.vote_average?.toFixed(1)}
                                 </span>
                             </div>
@@ -100,7 +99,7 @@ function Popular({ movies = [], genres = [] }) {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 6 }}
                         transition={{ duration: 0.3, ease: 'easeInOut' }}
-                        className={`mt-3 px-4 py-1.5 border text-sm font-medium rounded-md transition-colors duration-200 ${
+                        className={`w-full mt-2 px-4 py-2 border text-sm font-medium rounded-md text-center transition-colors duration-200 ${
                             showAll
                                 ? 'border-red-500 text-red-600 hover:bg-red-100 dark:hover:bg-red-500/10'
                                 : 'border-blue-500 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-500/10'
