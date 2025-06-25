@@ -1,16 +1,30 @@
 import { motion } from 'framer-motion';
 import { useInfinitePaginatedFetch } from '@/hooks/API/data';
+import { useNavigate } from 'react-router-dom';
 
 export default function Carousel({ title, url, type }) {
     const { data, isLoading, isError } = useInfinitePaginatedFetch(url, [url, type]);
     const items = data?.pages?.[0]?.results || [];
+    const navigate = useNavigate();
+
+    const handleViewAll = () => {
+        const section = title.toLowerCase().replace(' ', '_'); // e.g., "Top Rated" → "top_rated"
+        const basePath = type === 'movie' ? '/movies' : '/tvseries';
+        navigate(`${basePath}/${section}`);
+    };
 
     if (isLoading) return <div className="py-6 animate-pulse">Loading {title}...</div>;
     if (isError) return <div className="py-6 text-red-500">Failed to load {title}</div>;
 
     return (
         <section className="mb-8">
-            <h2 className="text-2xl font-bold mb-4">{title}</h2>
+            <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold">{title}</h2>
+                <button onClick={handleViewAll} className="text-sm text-blue-500 hover:underline transition-all">
+                    View All →
+                </button>
+            </div>
+
             <div className="flex space-x-4 overflow-x-auto px-1 no-scrollbar">
                 {items.map((item) => (
                     <motion.div

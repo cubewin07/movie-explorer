@@ -27,39 +27,18 @@ const router = createBrowserRouter(
                 {
                     path: '/movies',
                     element: <Discovery />, // this contains the tabs + carousels + <Outlet />
-                    children: [
-                        {
-                            path: 'popular',
-                            element: <PopularMoviesPage />,
-                        },
-                        {
-                            path: 'treding',
-                            element: <PopularMoviesPage />,
-                        },
-                        {
-                            path: 'top_rated',
-                            element: <PopularTvSeriesPage />,
-                        },
-                    ],
+                },
+                {
+                    path: '/movie/:type',
+                    element: <PopularMoviesPage />,
                 },
                 {
                     path: '/tvseries',
                     element: <Discovery />,
-                    children: [
-                        {
-                            path: 'popular',
-                            element: <PopularTvSeriesPage />,
-                        },
-                        ,
-                        {
-                            path: 'trending',
-                            element: <PopularTvSeriesPage />,
-                        },
-                        {
-                            path: 'top_rated',
-                            element: <PopularTvSeriesPage />,
-                        },
-                    ],
+                },
+                {
+                    path: '/tvseries/:type',
+                    element: <PopularTvSeriesPage />,
                 },
                 // Add other routes here
             ],
