@@ -69,26 +69,40 @@ export default function Carousel({ title, url, type }) {
                     {items.map((item, i) => (
                         <motion.div
                             key={item.id}
-                            className="min-w-[160px] flex-shrink-0 bg-white dark:bg-slate-800 rounded-lg shadow-md p-2 cursor-pointer"
+                            className="relative w-[180px] flex-shrink-0 group rounded-xl overflow-hidden cursor-pointer shadow-md transition-all duration-300 hover:shadow-blue-300/20 dark:hover:shadow-blue-900/30"
+                            variants={cardVariants}
                             custom={i}
                             initial="hidden"
                             animate="visible"
-                            variants={cardVariants}
-                            whileHover={{ scale: 1.05 }}
                         >
+                            {/* Image */}
                             <img
                                 src={`https://image.tmdb.org/t/p/w300${item.poster_path}`}
                                 alt={item.title || item.name}
-                                className="w-full h-40 object-cover rounded"
+                                className="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                                 loading="lazy"
                                 onError={(e) => (e.target.src = '/placeholder-movie.jpg')}
                             />
-                            <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white line-clamp-2">
-                                {item.title || item.name}
-                            </h3>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">
-                                {(item.release_date || item.first_air_date || '—').slice(0, 4)}
-                            </p>
+
+                            {/* Bottom gradient fade only */}
+                            <div className="absolute bottom-0 w-full h-1/3 bg-gradient-to-t from-black/60 via-black/30 to-transparent pointer-events-none" />
+
+                            {/* Text with backdrop */}
+                            <div className="absolute bottom-2 left-2 right-2 z-10 text-white">
+                                <h3 className="text-sm font-semibold truncate drop-shadow">
+                                    {item.title || item.name}
+                                </h3>
+                                <p className="text-xs text-white/80 drop-shadow-sm">
+                                    {(item.release_date || item.first_air_date || '—').slice(0, 4)}
+                                </p>
+                            </div>
+
+                            {/* Minimal badge (top-right for less clutter) */}
+                            <div className="absolute top-2 right-2 z-10">
+                                <span className="text-[11px] px-1.5 py-0.5 rounded bg-black/40 text-white font-medium backdrop-blur-sm shadow-sm">
+                                    {title === 'Trending' ? '🔥' : title === 'Top Rated' ? '⭐' : '📺'}
+                                </span>
+                            </div>
                         </motion.div>
                     ))}
                 </div>
