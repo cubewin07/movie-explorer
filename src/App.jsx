@@ -24,11 +24,11 @@ const router = createBrowserRouter(
                     element: <Home />,
                 },
                 {
-                    path: '/movies/popular',
+                    path: '/popular/movies',
                     element: <PopularMoviesPage />,
                 },
                 {
-                    path: '/tvseries/popular',
+                    path: '/popular/tvseries',
                     element: <PopularTvSeriesPage />,
                 },
                 //   {

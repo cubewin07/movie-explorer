@@ -24,7 +24,7 @@ function Popular({ movies = [], genres = [] }) {
         if (!firstItem) return;
         const isTV = isTvSeries(firstItem);
         if (!showAll) {
-            navigate(isTV ? '/tvseries/popular' : '/movies/popular');
+            navigate(isTV ? '/tvseries/popular' : '/popular/movies');
         } else {
             navigate(-1, { replace: true });
             setShowAll(false);
@@ -35,7 +35,7 @@ function Popular({ movies = [], genres = [] }) {
         if (!firstItem) return;
 
         const isTV = isTvSeries(firstItem);
-        const expectedPath = isTV ? '/tvseries/popular' : '/movies/popular';
+        const expectedPath = isTV ? '/tvseries/popular' : '/popular/movies';
         setShowAll(location.pathname === expectedPath);
     }, [location.pathname, firstItem]);
 

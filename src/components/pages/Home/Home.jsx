@@ -45,7 +45,7 @@ function Home() {
                 <div className="flex items-center justify-between mb-4">
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Popular Movies</h2>
                     <button
-                        onClick={() => navigate('/movies/popular')}
+                        onClick={() => navigate('/popular/movies')}
                         className="text-blue-600 dark:text-blue-400 font-semibold hover:underline transition-colors"
                     >
                         View All
