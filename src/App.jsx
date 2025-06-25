@@ -29,7 +29,7 @@ const router = createBrowserRouter(
                     element: <Discovery />, // this contains the tabs + carousels + <Outlet />
                 },
                 {
-                    path: '/movie/:type',
+                    path: '/movies/:type',
                     element: <PopularMoviesPage />,
                 },
                 {
