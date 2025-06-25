@@ -58,7 +58,7 @@ export default function SeasonAccordion({ tvId, seasonNumber, season }) {
             {/* Episode Modal */}
             <EpisodeModal
                 open={!!selectedEpisode}
-                onOpenChange={() => setSelectedEpisode(null)}
+                onClose={() => setSelectedEpisode(null)} // ✅ THIS MUST BE onClose
                 episode={selectedEpisode}
             />
         </>
