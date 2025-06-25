@@ -90,7 +90,7 @@ export default function Carousel({ title, url, type }) {
                         return (
                             <motion.div
                                 key={item.id}
-                                className="relative w-[200px] flex-shrink-0 group rounded-xl overflow-hidden cursor-pointer shadow-md transition-all duration-300 hover:shadow-blue-300/20 dark:hover:shadow-blue-900/30"
+                                className="relative min-w-[160px] sm:min-w-[180px] md:min-w-[200px] lg:min-w-[220px] xl:min-w-[240px] flex-shrink-0 group rounded-xl overflow-hidden cursor-pointer shadow-md transition-all duration-300 hover:shadow-blue-300/20 dark:hover:shadow-blue-900/30"
                                 variants={cardVariants}
                                 custom={i}
                                 initial="hidden"
@@ -104,7 +104,7 @@ export default function Carousel({ title, url, type }) {
                                 <img
                                     src={`https://image.tmdb.org/t/p/w300${item.poster_path}`}
                                     alt={item.title || item.name}
-                                    className="aspect-square w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                                    className="w-full h-[280px] sm:h-[300px] md:h-[320px] lg:h-[360px] xl:h-[400px] object-cover transition-transform duration-300 group-hover:scale-[1.02]"
                                     loading="lazy"
                                     onError={(e) => (e.target.src = '/placeholder-movie.jpg')}
                                 />
@@ -114,7 +114,7 @@ export default function Carousel({ title, url, type }) {
 
                                 {/* Text with backdrop */}
                                 <div className="absolute bottom-2 left-2 right-2 z-10 text-white">
-                                    <h3 className="text-sm font-semibold truncate drop-shadow">
+                                    <h3 className="text-xs sm:text-sm font-semibold truncate drop-shadow">
                                         {item.title || item.name}
                                     </h3>
                                     <p className="text-xs text-white/80 drop-shadow-sm">
