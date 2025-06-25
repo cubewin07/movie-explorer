@@ -9,11 +9,11 @@ import { Loader } from '@/components/ui/Loader';
 
 export default function MovieDetailPage() {
     const { id } = useParams();
-    const { movie, isLoading, error } = useMovieDetails(id);
+    const { movie, isLoading, isError } = useMovieDetails(id);
     const { trailerUrl, isLoadingTrailer } = useMovieTrailer(id);
 
     if (isLoading) return <Loader />;
-    if (error || !movie) return <div className="p-8 text-red-400">Failed to load movie.</div>;
+    if (isError || !movie) return <div className="p-8 text-red-400">Failed to load movie.</div>;
 
     return (
         <div className="flex-1 bg-white dark:bg-slate-950 text-slate-900 dark:text-white overflow-y-auto">

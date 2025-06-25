@@ -169,3 +169,48 @@ export const useMovieTrailer = (id) => {
 
     return { trailerUrl, isLoading, isError };
 };
+
+export const useTVSeriesDetails = (id) => {
+    const {
+        data: series,
+        isLoading,
+        isError,
+    } = useQuery({
+        queryKey: ['tvSeriesDetails', id],
+        enabled: !!id,
+        queryFn: async () => {
+            const { data } = await axiosInstance.get(`/tv/${id}`, {
+                params: { append_to_response: 'credits,seasons,similar' },
+            });
+            return data;
+        },
+        staleTime: 1000 * 60 * 10,
+        refetchOnWindowFocus: false,
+    });
+
+    return { series, isLoading, isError };
+};
+
+export const useTVSeriesTrailer = (id) => {
+    const {
+        data: trailerUrl,
+        isLoading: isLoadingTrailer,
+        isError,
+    } = useQuery({
+        queryKey: ['tvSeriesTrailer', id],
+        enabled: !!id,
+        queryFn: async () => {
+            const { data } = await axiosInstance.get(`/tv/${id}/videos`, {
+                params: { language: 'en-US' },
+            });
+
+            const trailer = data.results.find((video) => video.type === 'Trailer' && video.site === 'YouTube');
+
+            return trailer ? `https://www.youtube.com/watch?v=${trailer.key}` : null;
+        },
+        staleTime: 1000 * 60 * 10,
+        refetchOnWindowFocus: false,
+    });
+
+    return { trailerUrl, isLoading, isError };
+};
