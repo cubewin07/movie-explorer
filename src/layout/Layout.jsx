@@ -116,10 +116,10 @@ function SidebarContent({ active, setActive, handleThemeToggle }) {
                         onClick={() => setActive('/community')}
                     />
                     <SidebarLink
-                        link={{ icon: <Compass className="h-5 w-5" />, label: 'Discovery', href: '/discovery' }}
-                        className={active === '/discovery' ? 'menu-item-active' : ''}
-                        active={active === '/discovery'}
-                        onClick={() => setActive('/discovery')}
+                        link={{ icon: <Compass className="h-5 w-5" />, label: 'Discovery', href: '/movies' }}
+                        className={active === '/movies' ? 'menu-item-active' : ''}
+                        active={active === '/movies'}
+                        onClick={() => setActive('/movies')}
                     />
                     <SidebarLink
                         link={{ icon: <Clock className="h-5 w-5" />, label: 'Coming Soon', href: '/coming-soon' }}
