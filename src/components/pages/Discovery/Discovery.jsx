@@ -1,5 +1,6 @@
-import { useLocation, NavLink, Outlet } from 'react-router-dom';
+import { useLocation, NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 import Breadcrumb from './Breadcrumb';
 import Carousel from './Carousel';
@@ -16,11 +17,22 @@ export default function Discovery() {
     ];
 
     return (
-        <div className="max-w-6xl mx-auto px-4 py-6">
+        <motion.div
+            className="max-w-6xl mx-auto px-4 py-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.4, ease: 'easeOut' }}
+        >
             <Breadcrumb items={breadcrumbItems} />
 
             {/* Tabs */}
-            <div className="flex space-x-4 mb-6 border-b">
+            <motion.div
+                className="flex space-x-4 mb-6 border-b"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+            >
                 <NavLink
                     to="/movies"
                     className={({ isActive }) =>
@@ -47,15 +59,12 @@ export default function Discovery() {
                 >
                     TV Series
                 </NavLink>
-            </div>
+            </motion.div>
 
             {/* Carousels */}
             <Carousel title="Trending" url={`trending/${apiType}/week`} type={apiType} />
             <Carousel title="Popular" url={`${apiType}/popular`} type={apiType} />
             <Carousel title="Top Rated" url={`${apiType}/top_rated`} type={apiType} />
-
-            {/* Nested detail routes will render here */}
-            <Outlet />
-        </div>
+        </motion.div>
     );
 }
