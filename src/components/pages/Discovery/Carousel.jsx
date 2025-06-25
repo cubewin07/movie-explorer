@@ -86,7 +86,6 @@ export default function Carousel({ title, url, type }) {
                 <div className="flex space-x-4 overflow-x-auto overflow-y-hidden px-1 no-scrollbar">
                     {items.map((item, i) => {
                         const genreNames = item.genre_ids.map((id) => genreMap[id]).filter(Boolean);
-                        console.log(genreMap);
                         return (
                             <motion.div
                                 key={item.id}

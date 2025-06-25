@@ -212,5 +212,5 @@ export const useTVSeriesTrailer = (id) => {
         refetchOnWindowFocus: false,
     });
 
-    return { trailerUrl, isLoading, isError };
+    return { trailerUrl, isLoadingTrailer, isError };
 };

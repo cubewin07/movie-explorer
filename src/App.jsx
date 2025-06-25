@@ -42,12 +42,12 @@ const router = createBrowserRouter(
                     element: <Discovery />,
                 },
                 {
-                    path: '/tvseries/:type',
-                    element: <PopularTvSeriesPage />,
+                    path: '/tvseries/:id',
+                    element: <TVSeriesDetailPage />,
                 },
                 {
-                    path: '/tvserie/:id',
-                    element: <TVSeriesDetailPage />,
+                    path: '/tvseries/:type',
+                    element: <PopularTvSeriesPage />,
                 },
                 // Add other routes here
             ],
