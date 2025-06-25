@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -51,7 +51,6 @@ export default function InfiniteList({ url, queryKey, type }) {
     const isPaginating = isFetchingNextPage || manualLoad;
     const hasMovies = movies.length > 0;
 
-    // Freeze scroll while animating
     useEffect(() => {
         if (!isRenderComplete || shouldPreventScroll) {
             scrollYRef.current = window.scrollY;
@@ -150,14 +149,15 @@ export default function InfiniteList({ url, queryKey, type }) {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
         >
-            <motion.div className="max-w-6xl mx-auto" initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
+            <motion.div
+                className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6"
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+            >
                 <div className="sticky top-6 z-30 flex justify-end">
                     <motion.button
                         onClick={() => navigate(-1)}
-                        className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 
-                   rounded-full text-xs font-semibold text-gray-700 dark:text-gray-200 
-                   bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-white/10 
-                   transition w-fit"
+                        className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-full text-xs font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-white/10 transition w-fit"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                     >
@@ -165,9 +165,9 @@ export default function InfiniteList({ url, queryKey, type }) {
                     </motion.button>
                 </div>
 
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8">{`Popular ${type}`}</h1>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center sm:text-left">{`Popular ${type}`}</h1>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                <div className="grid gap-6 grid-cols-[repeat(auto-fit,minmax(160px,1fr))]">
                     {movies.map((movie, i) => (
                         <motion.div
                             key={`movie-${movie.id}`}
@@ -175,8 +175,8 @@ export default function InfiniteList({ url, queryKey, type }) {
                             variants={cardVariants}
                             initial="hidden"
                             animate="visible"
-                            whileHover={{ scale: 1.03 }}
-                            className="bg-white dark:bg-slate-800 border rounded-xl shadow-md p-4 cursor-pointer transition-shadow duration-200"
+                            whileHover={{ y: -4 }}
+                            className="bg-white dark:bg-slate-800 border rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer group"
                             onClick={() => {
                                 if (!isRenderComplete || shouldPreventScroll) return;
                                 setContext({
@@ -186,35 +186,29 @@ export default function InfiniteList({ url, queryKey, type }) {
                                 setIsOpen(true);
                             }}
                         >
-                            <div className="relative w-full h-64 mb-2">
-                                {/* Rating Badge */}
-                                <div className="absolute top-2 right-2 bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded shadow-sm z-10">
+                            <div className="relative w-full aspect-[2/3] overflow-hidden rounded-t-xl">
+                                <div className="absolute top-2 right-2 z-10 bg-yellow-400 text-black text-xs font-semibold px-2 py-1 rounded shadow-sm">
                                     ⭐ {movie.vote_average?.toFixed(1)}
                                 </div>
-
-                                {/* Animated Image */}
                                 <motion.img
                                     src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                                     alt={movie.title}
-                                    className="w-full h-full object-cover rounded"
-                                    initial={{ opacity: 0, scale: 0.98 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    transition={{
-                                        delay: Math.min(i * 0.015, 0.5) + 0.2,
-                                        duration: 0.4,
-                                        ease: 'easeOut',
-                                    }}
+                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: Math.min(i * 0.015, 0.5) + 0.2, duration: 0.4 }}
                                     loading="lazy"
                                     onError={(e) => (e.target.src = '/placeholder-movie.jpg')}
                                 />
                             </div>
-
-                            <h3 className="text-md font-bold text-gray-900 dark:text-white line-clamp-2">
-                                {movie.title || movie.name}
-                            </h3>
-                            <p className="text-xs text-gray-600 dark:text-gray-400">
-                                {movie.release_date?.slice(0, 4) || movie.first_air_date?.slice(0, 4) || 'TBA'}
-                            </p>
+                            <div className="p-3">
+                                <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2">
+                                    {movie.title || movie.name}
+                                </h3>
+                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    {movie.release_date?.slice(0, 4) || movie.first_air_date?.slice(0, 4) || 'TBA'}
+                                </p>
+                            </div>
                         </motion.div>
                     ))}
                 </div>
