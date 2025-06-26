@@ -25,6 +25,7 @@ function Home() {
 
     const carouselItems = movies.slice(0, 8).map((movie) => ({
         title: movie.title,
+        id: movie.id,
         subtitle: movie.tagline,
         image: movie.poster_path
             ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`

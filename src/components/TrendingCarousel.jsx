@@ -1,11 +1,13 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 // ...imports remain unchanged
 export function TrendingCarousel({ items }) {
     const [current, setCurrent] = useState(0);
     const [direction, setDirection] = useState(0);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -99,7 +101,7 @@ export function TrendingCarousel({ items }) {
                                 <div className="flex gap-4 mt-4">
                                     {/* View Details – Gradient + Icon + Hover Glow */}
                                     <button
-                                        onClick={() => console.log('View details:', items[current])}
+                                        onClick={() => navigate(`/movie/${items[current].id}`)}
                                         className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold 
                    text-white bg-gradient-to-r from-blue-500 to-cyan-500 
                    shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300
