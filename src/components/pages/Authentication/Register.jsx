@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 
 const schema = z
     .object({
+        username: z.string().min(2, 'Username is required'),
         email: z.string().email(),
         password: z.string().min(6),
         confirmPassword: z.string().min(6),
@@ -39,6 +40,11 @@ export default function Register({ onSuccess }) {
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div>
+                <label>Username</label>
+                <input {...register('username')} className="input input-bordered w-full" />
+                {errors.username && <p className="text-red-500 text-xs">{errors.username.message}</p>}
+            </div>
             <div>
                 <label>Email</label>
                 <input {...register('email')} className="input input-bordered w-full" />

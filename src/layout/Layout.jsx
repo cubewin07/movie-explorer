@@ -175,21 +175,28 @@ function SidebarContent({ active, setActive, handleThemeToggle, setLoginOpen, se
                     {user && (
                         <div className="flex items-center gap-2 px-2 py-2 mb-2">
                             <img
-                                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.email)}`}
+                                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.username || user.email)}`}
                                 alt="avatar"
                                 className="w-8 h-8 rounded-full border"
                             />
-                            <span className="font-medium truncate max-w-[120px]">{user.email}</span>
+                            <span className="font-medium truncate max-w-[120px]">{user.username || user.email}</span>
                         </div>
                     )}
-                    <SidebarLink
-                        link={{ icon: <User className="h-5 w-5" />, label: 'Profile', href: user ? '/profile' : '#' }}
-                        className={active === '/profile' ? 'menu-item-active' : ''}
-                        active={active === '/profile'}
-                        onClick={() => {
-                            user ? setActive('/profile') : setLoginOpen(true);
-                        }}
-                    />
+                    {user ? (
+                        <SidebarLink
+                            link={{ icon: <User className="h-5 w-5" />, label: 'Profile', href: '/profile' }}
+                            className={active === '/profile' ? 'menu-item-active' : ''}
+                            active={active === '/profile'}
+                            onClick={() => setActive('/profile')}
+                        />
+                    ) : (
+                        <SidebarLink
+                            link={{ icon: <User className="h-5 w-5" />, label: 'Login', href: '#' }}
+                            className={active === '/login' ? 'menu-item-active' : ''}
+                            active={active === '/login'}
+                            onClick={() => setLoginOpen(true)}
+                        />
+                    )}
                     <SidebarLink
                         link={{ icon: <Users className="h-5 w-5" />, label: 'Friend', href: user ? '/friend' : '#' }}
                         className={active === '/friend' ? 'menu-item-active' : ''}

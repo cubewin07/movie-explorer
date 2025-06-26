@@ -13,16 +13,23 @@ export function AuthenProvider({ children }) {
     }, []);
 
     const login = async ({ email, password }) => {
-        // Demo: accept any email/password
-        const fakeUser = { email };
+        // Demo: accept any email/password, retrieve username if exists
+        const storedUser = localStorage.getItem('user');
+        let username = '';
+        if (storedUser) {
+            try {
+                username = JSON.parse(storedUser).username || '';
+            } catch {}
+        }
+        const fakeUser = { email, username };
         setUser(fakeUser);
         localStorage.setItem('user', JSON.stringify(fakeUser));
         return { success: true };
     };
 
-    const register = async ({ email, password }) => {
-        // Demo: accept any email/password
-        const fakeUser = { email };
+    const register = async ({ email, password, username }) => {
+        // Demo: accept any email/password/username
+        const fakeUser = { email, username };
         setUser(fakeUser);
         localStorage.setItem('user', JSON.stringify(fakeUser));
         return { success: true };
