@@ -2,6 +2,8 @@ import { useContext, useState, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FilmModalContext } from '@/context/FilmModalProvider';
+import { Card } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton'; // Optional
 
 function Popular({ movies = [], genres = [] }) {
     const { setIsOpen, setContext } = useContext(FilmModalContext);
@@ -39,7 +41,7 @@ function Popular({ movies = [], genres = [] }) {
     }, [location.pathname, firstItem]);
 
     return (
-        <div className="rounded-2xl p-4 bg-slate-50 dark:bg-slate-900 shadow-md space-y-3">
+        <div className="rounded-2xl p-3 bg-slate-50 dark:bg-slate-900 shadow-md space-y-3">
             {movies.map((item) => {
                 const genreNames = getGenreNames(item.genre_ids);
                 const isTV = isTvSeries(item);
@@ -49,27 +51,29 @@ function Popular({ movies = [], genres = [] }) {
                 return (
                     <div
                         key={item.id}
-                        className="flex flex-col sm:flex-row gap-3 items-stretch p-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer shadow-sm"
+                        className="flex gap-3 p-2 min-h-[110px] rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 hover:ring-1 hover:ring-blue-400 dark:hover:ring-blue-500 transition cursor-pointer shadow-sm"
                         onClick={() => handleClick({ ...item, genres: genreNames })}
                     >
-                        <img
-                            src={`https://image.tmdb.org/t/p/w154${item.poster_path}`}
-                            alt={displayTitle}
-                            className="h-32 sm:h-full w-auto min-w-[4rem] rounded-lg object-cover shadow-sm self-center sm:self-stretch"
-                        />
+                        <Card className="w-14 h-full overflow-hidden rounded-md shadow-sm flex-shrink-0 bg-muted my-auto">
+                            <img
+                                src={`https://image.tmdb.org/t/p/w92${item.poster_path}`}
+                                alt={displayTitle}
+                                className="w-full h-full object-cover"
+                            />
+                        </Card>
 
-                        <div className="flex flex-col justify-between w-full">
-                            <div className="space-y-1">
-                                <h2 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2">
+                        <div className="flex flex-col justify-between w-full overflow-hidden">
+                            <div className="space-y-0.5">
+                                <h2 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                                     {displayTitle}
                                 </h2>
-                                <p className="text-[11px] text-gray-600 dark:text-slate-300">{displayDate}</p>
+                                <p className="text-[10px] text-gray-500 dark:text-slate-400 truncate">{displayDate}</p>
 
-                                <div className="flex flex-wrap gap-1 mt-1">
+                                <div className="flex flex-wrap gap-[4px] mt-1">
                                     {genreNames.slice(0, 2).map((name) => (
                                         <span
                                             key={name}
-                                            className="bg-indigo-600 text-white text-[10px] font-medium px-2 py-[2px] rounded-full"
+                                            className="bg-indigo-100 dark:bg-indigo-600 text-indigo-800 dark:text-white text-[10px] font-medium px-2 py-[3px] rounded leading-none min-w-[48px] text-center"
                                         >
                                             {name}
                                         </span>
@@ -77,11 +81,11 @@ function Popular({ movies = [], genres = [] }) {
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2 mt-2">
-                                <span className="bg-yellow-400 text-black text-[10px] font-bold px-2 py-[2px] rounded-full">
+                            <div className="flex items-center gap-[4px] mt-1">
+                                <span className="bg-yellow-300 text-black text-[10px] font-bold px-2 py-[3px] rounded-md leading-none min-w-[40px] text-center">
                                     IMDb
                                 </span>
-                                <span className="text-[13px] text-gray-900 dark:text-white font-semibold">
+                                <span className="text-[10px] text-gray-900 dark:text-white font-semibold">
                                     {item.vote_average?.toFixed(1)}
                                 </span>
                             </div>

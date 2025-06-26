@@ -10,6 +10,13 @@ export default function SeasonAccordion({ tvId, seasonNumber, season }) {
     const [selectedEpisode, setSelectedEpisode] = useState(null);
     const { episodes, isLoading } = useSeasonDetails(tvId, seasonNumber, open);
 
+    const isFutureDate = (dateStr) => {
+        if (!dateStr) return false;
+        const today = new Date();
+        const airDate = new Date(dateStr);
+        return airDate > today;
+    };
+
     return (
         <TooltipProvider>
             <>
@@ -28,25 +35,31 @@ export default function SeasonAccordion({ tvId, seasonNumber, season }) {
                         ) : (
                             <div className="grid md:grid-cols-2 gap-4">
                                 {episodes?.map((ep) => {
-                                    const isComingSoon = !ep.still_path;
+                                    const isImageMissing = !ep.still_path;
+                                    const isFutureEpisode = isFutureDate(ep.air_date);
 
                                     const episodeCard = (
                                         <div
                                             key={ep.id}
                                             onClick={() => {
-                                                if (!isComingSoon) setSelectedEpisode(ep);
+                                                if (!isImageMissing) setSelectedEpisode(ep);
                                             }}
                                             className={`
-                                                flex gap-4 p-3 rounded-lg border transition cursor-pointer
+                                                flex gap-4 p-3 rounded-lg border transition
+                                                ${isImageMissing ? 'cursor-not-allowed' : 'cursor-pointer'}
                                                 border-slate-200 dark:border-slate-700 
-                                                bg-slate-50 dark:bg-slate-800 
-                                                hover:bg-slate-100 dark:hover:bg-slate-700
-                                                ${isComingSoon ? 'opacity-90' : ''}
+                                                ${
+                                                    isImageMissing
+                                                        ? 'bg-yellow-100 dark:bg-yellow-200/10 text-yellow-900'
+                                                        : isFutureEpisode
+                                                          ? 'bg-indigo-100 dark:bg-indigo-800/30 text-indigo-900 dark:text-indigo-100'
+                                                          : 'bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-900 dark:text-white'
+                                                }
                                             `}
                                         >
                                             <div className="w-32 h-20 flex items-center justify-center bg-slate-200 dark:bg-slate-700 rounded">
-                                                {isComingSoon ? (
-                                                    <span className="text-xs font-medium text-yellow-700">
+                                                {isImageMissing ? (
+                                                    <span className="text-xs font-medium text-yellow-800">
                                                         Coming Soon
                                                     </span>
                                                 ) : (
@@ -59,6 +72,16 @@ export default function SeasonAccordion({ tvId, seasonNumber, season }) {
                                             </div>
 
                                             <div className="flex-1">
+                                                {isImageMissing && (
+                                                    <span className="inline-block mb-1 bg-yellow-400 text-yellow-900 text-xs font-semibold px-2 py-0.5 rounded">
+                                                        Coming Soon
+                                                    </span>
+                                                )}
+                                                {!isImageMissing && isFutureEpisode && (
+                                                    <span className="inline-block mb-1 bg-indigo-600 text-white text-xs font-semibold px-2 py-0.5 rounded">
+                                                        Airs Soon
+                                                    </span>
+                                                )}
                                                 <h4 className="font-semibold text-base">
                                                     {ep.episode_number}. {ep.name}
                                                 </h4>
@@ -67,20 +90,22 @@ export default function SeasonAccordion({ tvId, seasonNumber, season }) {
                                                 </p>
                                                 <p
                                                     className={`text-xs mt-1 flex items-center gap-1 ${
-                                                        isComingSoon
-                                                            ? 'font-semibold text-yellow-900 bg-yellow-200 px-2 py-1 rounded w-fit'
-                                                            : 'text-slate-500'
+                                                        isImageMissing
+                                                            ? 'font-semibold text-yellow-900'
+                                                            : isFutureEpisode
+                                                              ? 'font-medium text-indigo-800 dark:text-indigo-300'
+                                                              : 'text-slate-500'
                                                     }`}
                                                 >
                                                     <Calendar className="w-4 h-4" />
                                                     Air Date: {ep.air_date}
-                                                    {!isComingSoon && <> • {ep.runtime || 'N/A'} min</>}
+                                                    {!isImageMissing && <> • {ep.runtime || 'N/A'} min</>}
                                                 </p>
                                             </div>
                                         </div>
                                     );
 
-                                    return isComingSoon ? (
+                                    return isImageMissing ? (
                                         <Tooltip key={ep.id}>
                                             <TooltipTrigger asChild>{episodeCard}</TooltipTrigger>
                                             <TooltipContent side="top">Episode not yet released</TooltipContent>

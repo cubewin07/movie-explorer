@@ -17,14 +17,12 @@ function Sidebar({ left = false, right = false }) {
 
     if (right) {
         return (
-            <div className="flex flex-col h-full w-full bg-card rounded-2xl shadow-md p-4 gap-6 animate-fade-in overflow-y-auto text-foreground border-l border-border">
-                <div className="mb-4">
+            <div className="flex flex-col h-full min-w-[250px] max-w-[250px] bg-card rounded-2xl shadow-md p-4 text-foreground border-l border-border">
+                <div className="mb-4 flex-shrink-0">
                     <SearchInput />
                 </div>
-                <div className="mb-4">
+                <div className="overflow-y-auto space-y-4 flex-1">
                     <PopularMovies />
-                </div>
-                <div>
                     <PopularTvSeries />
                 </div>
             </div>
