@@ -67,7 +67,7 @@ export default function TVSeriesDetailPage() {
                     </div>
 
                     <div className="flex flex-wrap gap-2">
-                        {series.genres.map((g) => (
+                        {series?.genres?.map((g) => (
                             <Badge key={g.id} className="bg-indigo-600 dark:bg-indigo-500 text-white text-xs">
                                 {g.name}
                             </Badge>
