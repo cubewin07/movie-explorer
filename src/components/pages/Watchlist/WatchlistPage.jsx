@@ -3,12 +3,13 @@ import { useNavigate } from 'react-router-dom';
 import useWatchlist from '@/hooks/watchList/useWatchList';
 import { Button } from '@/components/ui/button';
 import { Loader } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 function WatchlistPage() {
     const { user } = useAuthen();
     const navigate = useNavigate();
 
-    const { data: watchlist = [], isLoading, isError } = useWatchlist(user?.email || 'guest'); // you can change key to `user?.id` later
+    const { data: watchlist = [], isLoading, isError } = useWatchlist(user?.email || 'guest');
 
     if (!user) {
         return (
@@ -37,29 +38,69 @@ function WatchlistPage() {
 
     return (
         <section className="px-4 py-8">
-            <h1 className="text-3xl font-bold mb-6">Your Watchlist</h1>
+            <motion.h1
+                className="text-3xl font-bold mb-6"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+            >
+                Your Watchlist
+            </motion.h1>
+
             {watchlist.length === 0 ? (
-                <p className="text-muted-foreground">You haven’t added anything yet.</p>
+                <motion.p className="text-muted-foreground" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                    You haven’t added anything yet.
+                </motion.p>
             ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                    {watchlist.map((movie) => (
-                        <div key={movie.id} className="bg-card border rounded-lg shadow p-2">
-                            <img
-                                src={movie.image || '/placeholder.svg'}
-                                alt={movie.title}
-                                className="rounded-md mb-2 w-full h-48 object-cover"
-                            />
-                            <h3 className="text-sm font-semibold truncate">{movie.title}</h3>
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                className="mt-2 text-xs"
-                                onClick={() => console.log('Remove feature coming soon')}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+                    <AnimatePresence>
+                        {watchlist.map((movie) => (
+                            <motion.div
+                                key={movie.id}
+                                initial={{ opacity: 0, y: 30 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 30 }}
+                                transition={{ duration: 0.3 }}
+                                className="bg-card border border-border rounded-xl shadow-lg overflow-hidden flex flex-col"
                             >
-                                Remove
-                            </Button>
-                        </div>
-                    ))}
+                                <img
+                                    src={movie.image || '/placeholder.svg'}
+                                    alt={movie.title}
+                                    className="w-full h-56 object-cover"
+                                />
+                                <div className="p-4 flex flex-col gap-2 flex-grow">
+                                    <div className="flex justify-between items-center">
+                                        <h3 className="text-base font-bold truncate">{movie.title}</h3>
+                                        <span className="bg-yellow-400 text-black text-xs font-bold px-2 py-0.5 rounded shadow-sm">
+                                            ★ {movie.rating}
+                                        </span>
+                                    </div>
+
+                                    <div className="text-xs text-muted-foreground">{movie.year}</div>
+
+                                    <div className="flex gap-2 flex-wrap">
+                                        {movie.extra?.map((tag, index) => (
+                                            <span
+                                                key={index}
+                                                className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full"
+                                            >
+                                                {tag}
+                                            </span>
+                                        ))}
+                                    </div>
+
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="mt-auto text-xs"
+                                        onClick={() => console.log('Remove feature coming soon')}
+                                    >
+                                        Remove
+                                    </Button>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
                 </div>
             )}
         </section>
