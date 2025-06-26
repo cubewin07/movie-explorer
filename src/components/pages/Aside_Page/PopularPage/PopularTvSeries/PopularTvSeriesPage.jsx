@@ -10,7 +10,6 @@ const typeMap = {
 function PopularTvSeriesPage() {
     const { type } = useParams();
     const endpoint = typeMap[type] || 'tv/popular';
-    console.log(type);
 
     const breadcrumbItems = [
         { name: 'Home', to: '/' },

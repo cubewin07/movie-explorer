@@ -44,7 +44,6 @@ export default function MovieReviewModal({
     runtime,
 }) {
     const { setIsOpen } = useContext(FilmModalContext);
-    console.log(id);
     const posterUrl = poster_path
         ? `https://image.tmdb.org/t/p/w500${poster_path}`
         : '/placeholder.svg?height=400&width=300';
