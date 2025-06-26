@@ -77,7 +77,7 @@ function Layout() {
                         <Register onSuccess={() => setRegisterOpen(false)} />
                     </DialogContent>
                 </Dialog>
-                <Toaster />
+                <Toaster richColors position="top-center" closeButton />
             </FilmModalProvider>
         </AuthenProvider>
     );

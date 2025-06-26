@@ -1,11 +1,11 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useState } from 'react';
 import { useAuthen } from '@/context/AuthenProvider';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
 const schema = z.object({
@@ -15,7 +15,7 @@ const schema = z.object({
 
 export default function Login({ onSuccess, onShowRegister }) {
     const { login } = useAuthen();
-    const [error, setError] = useState('');
+
     const {
         register,
         handleSubmit,
@@ -24,14 +24,19 @@ export default function Login({ onSuccess, onShowRegister }) {
         resolver: zodResolver(schema),
     });
 
-    const onSubmit = async (data) => {
-        setError('');
-        const res = await login(data);
-        if (res.success) {
-            onSuccess?.();
-        } else {
-            setError('Invalid credentials');
-        }
+    const onSubmit = (data) => {
+        toast.promise(login(data), {
+            loading: 'Logging in...',
+            success: (res) => {
+                if (res.success) {
+                    onSuccess?.();
+                    return 'Logged in successfully!';
+                } else {
+                    throw new Error('Invalid credentials');
+                }
+            },
+            error: (err) => err.message || 'Login failed',
+        });
     };
 
     return (
@@ -44,41 +49,23 @@ export default function Login({ onSuccess, onShowRegister }) {
         >
             <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input
-                    id="email"
-                    type="email"
-                    {...register('email')}
-                    placeholder="you@example.com"
-                    className={errors.email && 'border-red-500'}
-                />
+                <Input id="email" {...register('email')} />
                 {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
             </div>
 
             <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input
-                    id="password"
-                    type="password"
-                    {...register('password')}
-                    placeholder="Enter your password"
-                    className={errors.password && 'border-red-500'}
-                />
+                <Input id="password" type="password" {...register('password')} />
                 {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
             </div>
-
-            {error && (
-                <motion.p className="text-sm text-red-500" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                    {error}
-                </motion.p>
-            )}
 
             <Button type="submit" disabled={isSubmitting} className="w-full">
                 {isSubmitting ? 'Logging in...' : 'Login'}
             </Button>
 
-            <div className="text-sm text-center">
-                Don’t have an account?{' '}
-                <button type="button" onClick={onShowRegister} className="text-primary underline hover:text-primary/80">
+            <div className="text-center text-sm mt-4">
+                Don't have an account?{' '}
+                <button type="button" onClick={onShowRegister} className="text-blue-600 underline">
                     Register
                 </button>
             </div>
