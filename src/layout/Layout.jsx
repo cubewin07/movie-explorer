@@ -6,6 +6,7 @@ import Sidebar from '@/components/react_components/SideBar/Sidebar';
 import { SidebarLink, useSidebar } from '@/components/ui/Sidebar.jsx';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { Toaster } from 'sonner';
 
 import { useThemeToggle } from '@/hooks/useThemeToggle';
 import FilmModalProvider from '@/context/FilmModalProvider';
@@ -76,6 +77,7 @@ function Layout() {
                         <Register onSuccess={() => setRegisterOpen(false)} />
                     </DialogContent>
                 </Dialog>
+                <Toaster />
             </FilmModalProvider>
         </AuthenProvider>
     );
