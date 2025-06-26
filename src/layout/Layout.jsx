@@ -9,10 +9,17 @@ import { cn } from '@/lib/utils';
 
 import { useThemeToggle } from '@/hooks/useThemeToggle';
 import FilmModalProvider from '@/context/FilmModalProvider';
+import { AuthenProvider, useAuthen } from '@/context/AuthenProvider';
+import Login from '@/components/pages/Authentication/Login';
+import Register from '@/components/pages/Authentication/Register';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+
 function Layout() {
     // Active state for menu
     const [active, setActive] = useState('/');
     const [open, setOpen] = useState(false);
+    const [loginOpen, setLoginOpen] = useState(false);
+    const [registerOpen, setRegisterOpen] = useState(false);
 
     // Theme toggle handler
     const handleThemeToggle = (e) => {
@@ -21,46 +28,68 @@ function Layout() {
     };
 
     return (
-        <FilmModalProvider>
-            <div className="min-h-screen w-full flex justify-center items-start bg-background py-8 px-2 animate-fade-in">
-                <div className="w-full flex rounded-2xl shadow-xl bg-card overflow-hidden border border-border h-[calc(100vh-4rem)]">
-                    {/* Left Sidebar (hybrid) */}
-                    <aside className="h-full">
-                        <ShadSidebar open={open} setOpen={setOpen}>
-                            <SidebarBody>
-                                <SidebarContent
-                                    active={active}
-                                    setActive={setActive}
-                                    handleThemeToggle={handleThemeToggle}
-                                />
-                            </SidebarBody>
-                        </ShadSidebar>
-                    </aside>
+        <AuthenProvider>
+            <FilmModalProvider>
+                <div className="min-h-screen w-full flex justify-center items-start bg-background py-8 px-2 animate-fade-in">
+                    <div className="w-full flex rounded-2xl shadow-xl bg-card overflow-hidden border border-border h-[calc(100vh-4rem)]">
+                        {/* Left Sidebar (hybrid) */}
+                        <aside className="h-full">
+                            <ShadSidebar open={open} setOpen={setOpen}>
+                                <SidebarBody>
+                                    <SidebarContent
+                                        active={active}
+                                        setActive={setActive}
+                                        handleThemeToggle={handleThemeToggle}
+                                        setLoginOpen={setLoginOpen}
+                                        setRegisterOpen={setRegisterOpen}
+                                    />
+                                </SidebarBody>
+                            </ShadSidebar>
+                        </aside>
 
-                    {/* Main Content */}
-                    <main className="flex-grow h-full overflow-y-auto bg-background px-8 py-6 text-foreground">
-                        <Outlet />
-                    </main>
+                        {/* Main Content */}
+                        <main className="flex-grow h-full overflow-y-auto bg-background px-8 py-6 text-foreground">
+                            <Outlet />
+                        </main>
 
-                    {/* Right Sidebar */}
-                    <aside className="w-[25rem] h-full bg-card">
-                        <Sidebar right={true} />
-                    </aside>
+                        {/* Right Sidebar */}
+                        <aside className="w-[25rem] h-full bg-card">
+                            <Sidebar right={true} />
+                        </aside>
+                    </div>
                 </div>
-            </div>
-        </FilmModalProvider>
+                {/* Login Dialog */}
+                <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
+                    <DialogContent>
+                        <Login
+                            onSuccess={() => setLoginOpen(false)}
+                            onShowRegister={() => {
+                                setLoginOpen(false);
+                                setRegisterOpen(true);
+                            }}
+                        />
+                    </DialogContent>
+                </Dialog>
+                {/* Register Dialog */}
+                <Dialog open={registerOpen} onOpenChange={setRegisterOpen}>
+                    <DialogContent>
+                        <Register onSuccess={() => setRegisterOpen(false)} />
+                    </DialogContent>
+                </Dialog>
+            </FilmModalProvider>
+        </AuthenProvider>
     );
 }
 
-function SidebarContent({ active, setActive, handleThemeToggle }) {
+function SidebarContent({ active, setActive, handleThemeToggle, setLoginOpen, setRegisterOpen }) {
     const { open, animate } = useSidebar();
     const [isDark, setIsDark] = useThemeToggle();
     const navigate = useNavigate();
+    const { user, logout } = useAuthen();
     return (
         <div
             className={cn(
                 'flex flex-col h-full w-full bg-card rounded-2xl shadow-md p-4 gap-2 text-foreground border border-border',
-                // open ? 'items-start' : 'items-center',
             )}
         >
             {/* Theme Toggle */}
@@ -142,23 +171,40 @@ function SidebarContent({ active, setActive, handleThemeToggle }) {
                     >
                         Social
                     </li>
+                    {/* Show user avatar/name if logged in */}
+                    {user && (
+                        <div className="flex items-center gap-2 px-2 py-2 mb-2">
+                            <img
+                                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.email)}`}
+                                alt="avatar"
+                                className="w-8 h-8 rounded-full border"
+                            />
+                            <span className="font-medium truncate max-w-[120px]">{user.email}</span>
+                        </div>
+                    )}
                     <SidebarLink
-                        link={{ icon: <User className="h-5 w-5" />, label: 'Profile', href: '/profile' }}
+                        link={{ icon: <User className="h-5 w-5" />, label: 'Profile', href: user ? '/profile' : '#' }}
                         className={active === '/profile' ? 'menu-item-active' : ''}
                         active={active === '/profile'}
-                        onClick={() => setActive('/profile')}
+                        onClick={() => {
+                            user ? setActive('/profile') : setLoginOpen(true);
+                        }}
                     />
                     <SidebarLink
-                        link={{ icon: <UserPlus className="h-5 w-5" />, label: 'Friend', href: '/friend' }}
+                        link={{ icon: <Users className="h-5 w-5" />, label: 'Friend', href: user ? '/friend' : '#' }}
                         className={active === '/friend' ? 'menu-item-active' : ''}
                         active={active === '/friend'}
-                        onClick={() => setActive('/friend')}
+                        onClick={() => {
+                            user ? setActive('/friend') : setLoginOpen(true);
+                        }}
                     />
                     <SidebarLink
-                        link={{ icon: <List className="h-5 w-5" />, label: 'Media', href: '/media' }}
+                        link={{ icon: <List className="h-5 w-5" />, label: 'Media', href: user ? '/media' : '#' }}
                         className={active === '/media' ? 'menu-item-active' : ''}
                         active={active === '/media'}
-                        onClick={() => setActive('/media')}
+                        onClick={() => {
+                            user ? setActive('/media') : setLoginOpen(true);
+                        }}
                     />
                 </ul>
                 <ul className="menu w-full pr-0 menu-border">
@@ -179,17 +225,22 @@ function SidebarContent({ active, setActive, handleThemeToggle }) {
                         onClick={() => setActive('/settings')}
                     />
                     <SidebarLink
-                        link={{ icon: <LogOut className="h-5 w-5" />, label: 'Logout', href: '/logout' }}
-                        className={active === '/logout' ? 'menu-item-active' : ''}
-                        active={active === '/logout'}
-                        onClick={() => setActive('/logout')}
-                    />
-                    <SidebarLink
                         link={{ icon: <HelpCircle className="h-5 w-5" />, label: 'Help & Support', href: '/help' }}
                         className={active === '/help' ? 'menu-item-active' : ''}
                         active={active === '/help'}
                         onClick={() => setActive('/help')}
                     />
+                    {user && (
+                        <SidebarLink
+                            link={{ icon: <LogOut className="h-5 w-5" />, label: 'Logout', href: '#' }}
+                            className={active === '/logout' ? 'menu-item-active' : ''}
+                            active={active === '/logout'}
+                            onClick={() => {
+                                logout();
+                                setActive('/');
+                            }}
+                        />
+                    )}
                 </ul>
             </div>
         </div>
