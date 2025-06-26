@@ -2,11 +2,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import useAddToWatchlist from '@/hooks/watchList/useAddtoWatchList';
 
 // ...imports remain unchanged
 export function TrendingCarousel({ items }) {
     const [current, setCurrent] = useState(0);
     const [direction, setDirection] = useState(0);
+
+    const { mutate: addToWatchlist, isPending } = useAddToWatchlist();
+
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -126,11 +130,12 @@ export function TrendingCarousel({ items }) {
 
                                     {/* Add to List – Outline + Icon + Improved Hover */}
                                     <button
-                                        onClick={() => console.log('Add to list:', items[current])}
+                                        onClick={() => addToWatchlist(items[current])}
                                         className="flex items-center gap-2 px-5 py-2 border border-blue-500 text-blue-600 
                    text-sm font-medium rounded-lg bg-transparent 
                    hover:bg-blue-50 dark:hover:bg-blue-900/20 
                    hover:shadow transition-all duration-300"
+                                        disabled={isPending}
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
@@ -142,7 +147,7 @@ export function TrendingCarousel({ items }) {
                                         >
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
                                         </svg>
-                                        Add to List
+                                        {isPending ? 'Adding...' : 'Add to Watchlist'}
                                     </button>
                                 </div>
                             </div>
