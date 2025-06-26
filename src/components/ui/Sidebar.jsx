@@ -109,7 +109,7 @@ export const MobileSidebar = ({ className, children, ...props }) => {
 
 export const SidebarLink = ({ link, className, active, ...props }) => {
     const { open, animate } = useSidebar();
-    // Inject color class into icon if active
+
     const iconWithColor =
         link.icon &&
         React.cloneElement(link.icon, {
@@ -119,6 +119,7 @@ export const SidebarLink = ({ link, className, active, ...props }) => {
                 'transition-colors duration-150',
             ),
         });
+
     return (
         <Link
             to={link.href}
@@ -135,7 +136,8 @@ export const SidebarLink = ({ link, className, active, ...props }) => {
                     display: animate ? (open ? 'inline-block' : 'none') : 'inline-block',
                     opacity: animate ? (open ? 1 : 0) : 1,
                 }}
-                className="text-neutral-700 dark:text-neutral-200 text-sm group-hover/sidebar:translate-x-1 transition duration-150 whitespace-pre inline-block !p-0 !m-0"
+                className="text-neutral-700 dark:text-neutral-200 text-sm group-hover/sidebar:translate-x-1 transition duration-150 !p-0 !m-0 
+                truncate max-w-[130px] overflow-hidden whitespace-nowrap"
             >
                 {link.label}
             </motion.span>
