@@ -1,7 +1,7 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Sidebar as ShadSidebar, SidebarBody } from '@/components/ui/Sidebar';
 import { useState } from 'react';
-import { Home, Users, Compass, Clock, User, List, Settings, LogOut, HelpCircle } from 'lucide-react';
+import { Home, Users, Compass, Clock, User, List, Settings, LogOut, HelpCircle, Bookmark } from 'lucide-react';
 import Sidebar from '@/components/react_components/SideBar/Sidebar';
 import { SidebarLink, useSidebar } from '@/components/ui/Sidebar.jsx';
 import { motion } from 'framer-motion';
@@ -150,20 +150,31 @@ function SidebarContent({ handleThemeToggle, setLoginOpen, setRegisterOpen }) {
                         Social
                     </li>
                     {user ? (
-                        <SidebarLink
-                            link={{
-                                icon: (
-                                    <img
-                                        src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.username || user.email)}`}
-                                        alt="avatar"
-                                        className="w-6 h-6 rounded-full border"
-                                    />
-                                ),
-                                label: user.username || user.email,
-                                href: '/profile',
-                            }}
-                            active={pathname.startsWith('/profile')}
-                        />
+                        <>
+                            <SidebarLink
+                                link={{
+                                    icon: (
+                                        <img
+                                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user.username || user.email)}`}
+                                            alt="avatar"
+                                            className="w-6 h-6 rounded-full border"
+                                        />
+                                    ),
+                                    label: user.username || user.email,
+                                    href: '/profile',
+                                }}
+                                active={pathname.startsWith('/profile')}
+                            />
+                            <SidebarLink
+                                link={{
+                                    icon: <Bookmark className="h-5 w-5" />,
+                                    label: 'Watchlist',
+                                    href: user ? '/watchlist' : '#',
+                                }}
+                                active={pathname.startsWith('/watchlist')}
+                                onClick={() => !user && setLoginOpen(true)}
+                            />
+                        </>
                     ) : (
                         <SidebarLink
                             link={{ icon: <User className="h-5 w-5" />, label: 'Login', href: '#' }}
