@@ -13,7 +13,6 @@ export function AuthenProvider({ children }) {
     }, []);
 
     const login = async ({ email, password }) => {
-        // Demo: accept any email/password, retrieve username if exists
         const storedUser = localStorage.getItem('user');
         let username = '';
         if (storedUser) {
@@ -28,7 +27,6 @@ export function AuthenProvider({ children }) {
     };
 
     const register = async ({ email, password, username }) => {
-        // Demo: accept any email/password/username
         const fakeUser = { email, username };
         setUser(fakeUser);
         localStorage.setItem('user', JSON.stringify(fakeUser));

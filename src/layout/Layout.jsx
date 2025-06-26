@@ -1,7 +1,7 @@
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Sidebar as ShadSidebar, SidebarBody } from '@/components/ui/Sidebar';
 import { useState } from 'react';
-import { Home, Users, Compass, Clock, User, UserPlus, List, Settings, LogOut, HelpCircle } from 'lucide-react';
+import { Home, Users, Compass, Clock, User, List, Settings, LogOut, HelpCircle } from 'lucide-react';
 import Sidebar from '@/components/react_components/SideBar/Sidebar';
 import { SidebarLink, useSidebar } from '@/components/ui/Sidebar.jsx';
 import { motion } from 'framer-motion';
@@ -16,50 +16,34 @@ import Register from '@/components/pages/Authentication/Register';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 function Layout() {
-    // Active state for menu
-    const [active, setActive] = useState('/');
     const [open, setOpen] = useState(false);
     const [loginOpen, setLoginOpen] = useState(false);
     const [registerOpen, setRegisterOpen] = useState(false);
-
-    // Theme toggle handler
-    const handleThemeToggle = (e) => {
-        const theme = e.target.checked ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', theme);
-    };
 
     return (
         <AuthenProvider>
             <FilmModalProvider>
                 <div className="min-h-screen w-full flex justify-center items-start bg-background py-8 px-2 animate-fade-in">
                     <div className="w-full flex rounded-2xl shadow-xl bg-card overflow-hidden border border-border h-[calc(100vh-4rem)]">
-                        {/* Left Sidebar (hybrid) */}
                         <aside className="h-full">
                             <ShadSidebar open={open} setOpen={setOpen}>
                                 <SidebarBody>
                                     <SidebarContent
-                                        active={active}
-                                        setActive={setActive}
-                                        handleThemeToggle={handleThemeToggle}
+                                        // handleThemeToggle={handleThemeToggle}
                                         setLoginOpen={setLoginOpen}
                                         setRegisterOpen={setRegisterOpen}
                                     />
                                 </SidebarBody>
                             </ShadSidebar>
                         </aside>
-
-                        {/* Main Content */}
                         <main className="flex-grow h-full overflow-y-auto bg-background px-8 py-6 text-foreground">
                             <Outlet />
                         </main>
-
-                        {/* Right Sidebar */}
                         <aside className="w-[25rem] h-full bg-card">
                             <Sidebar right={true} />
                         </aside>
                     </div>
                 </div>
-                {/* Login Dialog */}
                 <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
                     <DialogContent className="p-0 w-full max-w-sm bg-background border-border shadow-md rounded-xl">
                         <Login
@@ -71,7 +55,6 @@ function Layout() {
                         />
                     </DialogContent>
                 </Dialog>
-                {/* Register Dialog */}
                 <Dialog open={registerOpen} onOpenChange={setRegisterOpen}>
                     <DialogContent className="p-0 w-full max-w-sm bg-background border-border shadow-md rounded-xl">
                         <Register onSuccess={() => setRegisterOpen(false)} />
@@ -83,18 +66,20 @@ function Layout() {
     );
 }
 
-function SidebarContent({ active, setActive, handleThemeToggle, setLoginOpen, setRegisterOpen }) {
+function SidebarContent({ handleThemeToggle, setLoginOpen, setRegisterOpen }) {
     const { open, animate } = useSidebar();
     const [isDark, setIsDark] = useThemeToggle();
     const navigate = useNavigate();
+    const location = useLocation();
     const { user, logout } = useAuthen();
+    const pathname = location.pathname;
+
     return (
         <div
             className={cn(
                 'flex flex-col h-full w-full bg-card rounded-2xl shadow-md p-4 gap-2 text-foreground border border-border',
             )}
         >
-            {/* Theme Toggle */}
             <input
                 type="checkbox"
                 onChange={(e) => setIsDark(e.target.checked)}
@@ -102,7 +87,6 @@ function SidebarContent({ active, setActive, handleThemeToggle, setLoginOpen, se
                 className="w-10 h-6 theme-controller toggle toggle-success border-accent rounded-2xl ml-[-12px] "
                 style={{ backgroundColor: 'bisque' }}
             />
-            {/* Logo Area */}
             <div className="flex flex-col items-center justify-center min-h-[64px] mb-2 w-full">
                 <motion.span
                     initial={false}
@@ -139,27 +123,19 @@ function SidebarContent({ active, setActive, handleThemeToggle, setLoginOpen, se
                     </li>
                     <SidebarLink
                         link={{ icon: <Home className="h-5 w-5" />, label: 'Home', href: '/' }}
-                        className={active === '/' ? 'menu-item-active' : ''}
-                        active={active === '/'}
-                        onClick={() => setActive('/')}
+                        active={pathname === '/'}
                     />
                     <SidebarLink
                         link={{ icon: <Users className="h-5 w-5" />, label: 'Community', href: '/community' }}
-                        className={active === '/community' ? 'menu-item-active' : ''}
-                        active={active === '/community'}
-                        onClick={() => setActive('/community')}
+                        active={pathname.startsWith('/community')}
                     />
                     <SidebarLink
                         link={{ icon: <Compass className="h-5 w-5" />, label: 'Discovery', href: '/movies' }}
-                        className={active === '/movies' ? 'menu-item-active' : ''}
-                        active={active === '/movies'}
-                        onClick={() => setActive('/movies')}
+                        active={pathname.startsWith('/movies') || pathname.startsWith('/movie')}
                     />
                     <SidebarLink
                         link={{ icon: <Clock className="h-5 w-5" />, label: 'Coming Soon', href: '/coming-soon' }}
-                        className={active === '/coming-soon' ? 'menu-item-active' : ''}
-                        active={active === '/coming-soon'}
-                        onClick={() => setActive('/coming-soon')}
+                        active={pathname.startsWith('/coming-soon')}
                     />
                 </ul>
                 <ul className="menu w-full pr-0 menu-border">
@@ -173,7 +149,6 @@ function SidebarContent({ active, setActive, handleThemeToggle, setLoginOpen, se
                     >
                         Social
                     </li>
-                    {/* Show user avatar/name if logged in */}
                     {user ? (
                         <SidebarLink
                             link={{
@@ -187,38 +162,24 @@ function SidebarContent({ active, setActive, handleThemeToggle, setLoginOpen, se
                                 label: user.username || user.email,
                                 href: '/profile',
                             }}
-                            className={active === '/profile' ? 'menu-item-active' : ''}
-                            active={active === '/profile'}
-                            onClick={() => setActive('/profile')}
+                            active={pathname.startsWith('/profile')}
                         />
                     ) : (
                         <SidebarLink
-                            link={{
-                                icon: <User className="h-5 w-5" />,
-                                label: 'Login',
-                                href: '#',
-                            }}
-                            className={active === '/login' ? 'menu-item-active' : ''}
-                            active={active === '/login'}
+                            link={{ icon: <User className="h-5 w-5" />, label: 'Login', href: '#' }}
                             onClick={() => setLoginOpen(true)}
+                            active={false}
                         />
                     )}
-
                     <SidebarLink
                         link={{ icon: <Users className="h-5 w-5" />, label: 'Friend', href: user ? '/friend' : '#' }}
-                        className={active === '/friend' ? 'menu-item-active' : ''}
-                        active={active === '/friend'}
-                        onClick={() => {
-                            user ? setActive('/friend') : setLoginOpen(true);
-                        }}
+                        active={pathname.startsWith('/friend')}
+                        onClick={() => !user && setLoginOpen(true)}
                     />
                     <SidebarLink
                         link={{ icon: <List className="h-5 w-5" />, label: 'Media', href: user ? '/media' : '#' }}
-                        className={active === '/media' ? 'menu-item-active' : ''}
-                        active={active === '/media'}
-                        onClick={() => {
-                            user ? setActive('/media') : setLoginOpen(true);
-                        }}
+                        active={pathname.startsWith('/media')}
+                        onClick={() => !user && setLoginOpen(true)}
                     />
                 </ul>
                 <ul className="menu w-full pr-0 menu-border">
@@ -234,25 +195,19 @@ function SidebarContent({ active, setActive, handleThemeToggle, setLoginOpen, se
                     </li>
                     <SidebarLink
                         link={{ icon: <Settings className="h-5 w-5" />, label: 'Settings', href: '/settings' }}
-                        className={active === '/settings' ? 'menu-item-active' : ''}
-                        active={active === '/settings'}
-                        onClick={() => setActive('/settings')}
+                        active={pathname.startsWith('/settings')}
                     />
                     <SidebarLink
                         link={{ icon: <HelpCircle className="h-5 w-5" />, label: 'Help & Support', href: '/help' }}
-                        className={active === '/help' ? 'menu-item-active' : ''}
-                        active={active === '/help'}
-                        onClick={() => setActive('/help')}
+                        active={pathname.startsWith('/help')}
                     />
                     {user && (
                         <SidebarLink
                             link={{ icon: <LogOut className="h-5 w-5" />, label: 'Logout', href: '#' }}
-                            className={active === '/logout' ? 'menu-item-active' : ''}
-                            active={active === '/logout'}
                             onClick={() => {
                                 logout();
-                                setActive('/');
                             }}
+                            active={false}
                         />
                     )}
                 </ul>
@@ -262,7 +217,3 @@ function SidebarContent({ active, setActive, handleThemeToggle, setLoginOpen, se
 }
 
 export default Layout;
-
-// Add this animation to your tailwind.config.js if not present:
-// theme.extend.animation: { 'fade-in': 'fadeIn 0.6s ease' },
-// theme.extend.keyframes: { fadeIn: { '0%': { opacity: 0 }, '100%': { opacity: 1 } } }
