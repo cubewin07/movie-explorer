@@ -39,7 +39,7 @@ function Layout() {
                         <main className="flex-grow h-full overflow-y-auto bg-background px-8 py-6 text-foreground">
                             <Outlet />
                         </main>
-                        <aside className="w-[25rem] h-full bg-card">
+                        <aside className="w-72 h-full bg-card">
                             <Sidebar right={true} />
                         </aside>
                     </div>
