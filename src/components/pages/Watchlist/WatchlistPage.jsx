@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuthen } from '@/context/AuthenProvider';
-import { getWatchlist } from '@/services/api';
+import useWatchlist from '@/hooks/watchList/useWatchList';
 import { useNavigate } from 'react-router-dom';
 
 function WatchlistPage() {
@@ -13,7 +13,7 @@ function WatchlistPage() {
         isError,
     } = useQuery({
         queryKey: ['watchlist', user?.email],
-        queryFn: () => getWatchlist(user.email),
+        queryFn: () => useWatchlist(user.email),
         enabled: !!user,
     });
 
