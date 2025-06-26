@@ -5,6 +5,7 @@ import { Search as SearchIcon, X } from 'lucide-react';
 import { useSearchOrFallbackContent } from '@/hooks/API/data';
 import MovieCard from '@/components/ui/MovieCard';
 import TabbedResults from './TabbedResults';
+import SkeletonCard from '@/components/ui/skeletonCard';
 function SearchInput() {
     const inputRef = useRef(null);
     const modalInputRef = useRef(null);
@@ -62,7 +63,10 @@ function SearchInput() {
                             rating={item.vote_average?.toFixed(1)}
                             genres={[]}
                             image={`https://image.tmdb.org/t/p/w154${item.poster_path}`}
-                            onClick={() => navigate(`/${type}/${item.id}`)}
+                            onClick={() => {
+                                navigate(`/${type}/${item.id}`);
+                                setIsModalOpen(false);
+                            }}
                             type={type}
                         />
                     </div>
@@ -120,15 +124,9 @@ function SearchInput() {
                         {/* Search Results */}
                         <div className="p-4 overflow-y-auto max-h-[calc(80vh-120px)] space-y-6">
                             {isLoading && (
-                                <div className="space-y-3">
-                                    {Array.from({ length: 3 }).map((_, idx) => (
-                                        <div key={idx} className="flex items-center gap-4 animate-pulse">
-                                            <div className="w-[100px] h-[150px] bg-gray-300 dark:bg-gray-700 rounded" />
-                                            <div className="space-y-2 w-full">
-                                                <div className="w-1/2 h-4 bg-gray-300 dark:bg-gray-600 rounded" />
-                                                <div className="w-3/4 h-3 bg-gray-300 dark:bg-gray-600 rounded" />
-                                            </div>
-                                        </div>
+                                <div className="space-y-4">
+                                    {Array.from({ length: 5 }).map((_, idx) => (
+                                        <SkeletonCard key={idx} delay={idx * 0.05} />
                                     ))}
                                 </div>
                             )}
