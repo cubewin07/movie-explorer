@@ -89,10 +89,10 @@ export const useSearchOrFallbackContent = (
 
             const { data: results } = await axiosInstance.get(`/search/multi?query=${debouncedSearch}`);
 
-            return {
-                movies: results.results || [],
-                tv: [],
-            };
+            const movies = results.results.filter((item) => item.media_type === 'movie');
+            const tv = results.results.filter((item) => item.media_type === 'tv');
+
+            return { movies, tv };
         },
     });
 
