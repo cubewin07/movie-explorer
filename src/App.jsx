@@ -8,6 +8,7 @@ import PopularTvSeriesPage from './components/pages/Aside_Page/PopularPage/Popul
 import MovieDetailPage from './components/pages/FilmDetails/MovieDetailPage';
 import TVSeriesDetailPage from './components/pages/FilmDetails/TvSeriesDetailPage';
 import Discovery from './components/pages/Discovery/Discovery';
+import WatchlistPage from './components/pages/Watchlist/WatchlistPage';
 // import Community from './pages/Community'
 // import Discovery from './pages/Discovery'
 // import ComingSoon from './pages/ComingSoon'
@@ -48,6 +49,10 @@ const router = createBrowserRouter(
                 {
                     path: '/tvseries/:type',
                     element: <PopularTvSeriesPage />,
+                },
+                {
+                    path: '/watchlist',
+                    element: <WatchlistPage />,
                 },
                 // Add other routes here
             ],
