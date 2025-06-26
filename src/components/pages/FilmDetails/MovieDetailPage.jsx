@@ -6,12 +6,25 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader } from '@/components/ui/Loader';
+import useAddToWatchlist from '@/hooks/watchList/useAddtoWatchList';
 
 export default function MovieDetailPage() {
     const { id } = useParams();
     const { movie, isLoading, isError } = useMovieDetails(id);
     const { trailerUrl, isLoadingTrailer } = useMovieTrailer(id);
+    const genres = movie?.genres?.map((g) => g.name) || [];
+    const watchlistData = movie && {
+        id: movie.id,
+        title: movie.title,
+        image: movie.poster_path
+            ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+            : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(movie.title),
+        rating: movie.rating,
+        year: movie.release_date?.slice(0, 4),
+        extra: genres,
+    };
 
+    const { mutate: addToWatchlist, isPending } = useAddToWatchlist();
     if (isLoading) return <Loader />;
     if (isError || !movie) return <div className="p-8 text-red-400">Failed to load movie.</div>;
 
@@ -89,6 +102,7 @@ export default function MovieDetailPage() {
                         <Button
                             variant="outline"
                             className="border-slate-400 dark:border-slate-600 text-slate-800 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 px-6 py-2 text-sm sm:text-base"
+                            onClick={() => addToWatchlist(watchlistData)}
                         >
                             <Plus className="w-4 h-4 mr-2" /> Add to Watchlist
                         </Button>
