@@ -42,7 +42,7 @@ export default function Login({ onSuccess, onShowRegister }) {
     return (
         <motion.form
             onSubmit={handleSubmit(onSubmit)}
-            className="space-y-6 p-6 bg-background border border-border rounded-xl shadow-lg w-full max-w-sm"
+            className="w-full max-w-sm space-y-6 px-6 py-8 bg-background border border-border rounded-xl shadow-lg"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}

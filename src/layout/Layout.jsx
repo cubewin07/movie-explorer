@@ -61,7 +61,7 @@ function Layout() {
                 </div>
                 {/* Login Dialog */}
                 <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
-                    <DialogContent>
+                    <DialogContent className="p-0 w-full max-w-sm bg-background border-border shadow-md rounded-xl">
                         <Login
                             onSuccess={() => setLoginOpen(false)}
                             onShowRegister={() => {
@@ -73,7 +73,7 @@ function Layout() {
                 </Dialog>
                 {/* Register Dialog */}
                 <Dialog open={registerOpen} onOpenChange={setRegisterOpen}>
-                    <DialogContent>
+                    <DialogContent className="p-0 w-full max-w-sm bg-background border-border shadow-md rounded-xl">
                         <Register onSuccess={() => setRegisterOpen(false)} />
                     </DialogContent>
                 </Dialog>
