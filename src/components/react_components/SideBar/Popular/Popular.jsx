@@ -36,7 +36,7 @@ function Popular({ movies = [], genres = [] }) {
     useEffect(() => {
         if (!firstItem) return;
         const isTV = isTvSeries(firstItem);
-        const expectedPath = isTV ? '/popular/tvseries' : '/popular/movies';
+        const expectedPath = isTV ? '/tvseries/popular' : '/movies/popular';
         setShowAll(location.pathname === expectedPath);
     }, [location.pathname, firstItem]);
 

@@ -16,7 +16,7 @@ function SearchInput() {
 
     const handleNavigate = (movie) => {
         const isTV = !!movie.name && !movie.title; // Typical way to detect TV
-        const path = isTV ? `/tvseries/${movie.id}` : `/movies/${movie.id}`;
+        const path = isTV ? `/tvserie/${movie.id}` : `/movies/${movie.id}`;
         navigate(path);
     };
 
@@ -139,8 +139,6 @@ function SearchInput() {
                             {(data?.movies?.length > 0 || data?.tv?.length > 0) && (
                                 <TabbedResults data={data} renderCards={renderCards} />
                             )}
-
-                            {console.log(data)}
 
                             {!debouncedSearch && (
                                 <>

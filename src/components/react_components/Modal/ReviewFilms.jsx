@@ -180,7 +180,7 @@ export default function MovieReviewModal({
                                 whileTap={{ scale: 0.95 }}
                                 className="pt-4"
                                 onClick={() => {
-                                    navigate(title ? `/movie/${id}` : `/tvseries/${id}`);
+                                    navigate(title ? `/movie/${id}` : `/tvserie/${id}`);
                                     setIsOpen(false);
                                 }}
                             >
