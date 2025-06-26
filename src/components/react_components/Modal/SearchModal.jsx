@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Search, X, Clock, Star, Calendar } from 'lucide-react';
 import Image from 'next/image';
+import { useNavigate } from 'react-router-dom';
 
 export function SearchModal({ isOpen, onClose }) {
     const [searchQuery, setSearchQuery] = useState('');
@@ -105,6 +106,7 @@ export function SearchModal({ isOpen, onClose }) {
                                             animationDelay: `${index * 100}ms`,
                                             animationFillMode: 'both',
                                         }}
+                                        onClick={handleNavigate}
                                     >
                                         <div className="relative flex-shrink-0">
                                             <Image

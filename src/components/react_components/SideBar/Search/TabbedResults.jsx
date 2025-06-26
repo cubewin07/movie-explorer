@@ -3,30 +3,44 @@ import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 function TabbedResults({ data, renderCards }) {
-    const [activeTab, setActiveTab] = useState(data?.movies?.length > 0 ? 'movie' : 'tv');
+    const [activeTab, setActiveTab] = useState(() => {
+        if (data?.movies?.length > 0) return 'movie';
+        if (data?.tv?.length > 0) return 'tv';
+        return 'movie';
+    });
 
-    const tabClass = (tab) =>
+    const tabClass = (tab, isDisabled) =>
         `flex items-center gap-2 px-4 py-2 rounded-t-lg font-medium cursor-pointer border-b-2 transition-all duration-200 ${
             activeTab === tab
                 ? 'text-primary border-primary bg-base-100'
-                : 'text-base-content/70 border-transparent hover:text-primary hover:border-base-300 hover:bg-base-200'
+                : isDisabled
+                  ? 'opacity-50 cursor-not-allowed text-base-content/50'
+                  : 'text-base-content/70 border-transparent hover:text-primary hover:border-base-300 hover:bg-base-200'
         }`;
 
     return (
         <div className="w-full">
-            {/* Custom Tab Headers */}
+            {/* Tabs */}
             <div className="flex gap-4 border-b border-base-300 px-4 sm:px-6">
-                <button onClick={() => setActiveTab('movie')} className={tabClass('movie')}>
+                <button
+                    onClick={() => data?.movies?.length > 0 && setActiveTab('movie')}
+                    className={tabClass('movie', !data?.movies?.length)}
+                    disabled={!data?.movies?.length}
+                >
                     <Clapperboard className="w-4 h-4" />
                     <span>Movies</span>
                 </button>
-                <button onClick={() => setActiveTab('tv')} className={tabClass('tv')}>
+                <button
+                    onClick={() => data?.tv?.length > 0 && setActiveTab('tv')}
+                    className={tabClass('tv', !data?.tv?.length)}
+                    disabled={!data?.tv?.length}
+                >
                     <Tv className="w-4 h-4" />
                     <span>TV Series</span>
                 </button>
             </div>
 
-            {/* Animated Tab Content (no absolute, layout-safe) */}
+            {/* Content */}
             <div className="p-4 sm:p-6 bg-base-100 min-h-[100px]">
                 <AnimatePresence mode="wait">
                     {activeTab === 'movie' ? (

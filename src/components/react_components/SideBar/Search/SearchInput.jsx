@@ -13,6 +13,12 @@ function SearchInput() {
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const navigate = useNavigate();
 
+    const handleNavigate = (movie) => {
+        const isTV = !!movie.name && !movie.title; // Typical way to detect TV
+        const path = isTV ? `/tvseries/${movie.id}` : `/movies/${movie.id}`;
+        navigate(path);
+    };
+
     // Debounce user input
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -42,21 +48,26 @@ function SearchInput() {
 
     const { data, isLoading } = useSearchOrFallbackContent(isModalOpen, debouncedSearch);
 
-    const renderCards = (items, type) => (
+    const renderCards = (items) => (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {items.map((item, i) => (
-                <div key={item.id} className="animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
-                    <MovieCard
-                        title={item.title || item.name}
-                        year={(item.release_date || item.first_air_date)?.split('-')[0]}
-                        rating={item.vote_average?.toFixed(1)}
-                        genres={[]}
-                        image={`https://image.tmdb.org/t/p/w154${item.poster_path}`}
-                        onClick={() => navigate(`/${type}/${item.id}`)}
-                        type={type}
-                    />
-                </div>
-            ))}
+            {items.map((item, i) => {
+                const isTV = !!item.name && !item.title;
+                const type = isTV ? 'tvseries' : 'movies';
+
+                return (
+                    <div key={item.id} className="animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
+                        <MovieCard
+                            title={item.title || item.name}
+                            year={(item.release_date || item.first_air_date)?.split('-')[0]}
+                            rating={item.vote_average?.toFixed(1)}
+                            genres={[]}
+                            image={`https://image.tmdb.org/t/p/w154${item.poster_path}`}
+                            onClick={() => navigate(`/${type}/${item.id}`)}
+                            type={type}
+                        />
+                    </div>
+                );
+            })}
         </div>
     );
 
@@ -131,18 +142,21 @@ function SearchInput() {
                                 <TabbedResults data={data} renderCards={renderCards} />
                             )}
 
+                            {console.log(data)}
+
                             {!debouncedSearch && (
                                 <>
                                     {data?.week?.length > 0 && (
                                         <div>
                                             <h3 className="font-semibold text-lg mb-2">🔥 Trending</h3>
-                                            {renderCards(data.week.slice(0, 5), 'movie')}
+
+                                            {renderCards(data.week.slice(0, 5))}
                                         </div>
                                     )}
                                     {data?.top_rated?.length > 0 && (
                                         <div>
                                             <h3 className="font-semibold text-lg mb-2">⭐ Top Rated</h3>
-                                            {renderCards(data.top_rated.slice(0, 5), 'movie')}
+                                            {renderCards(data.top_rated.slice(0, 5))}
                                         </div>
                                     )}
                                 </>

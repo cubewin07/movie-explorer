@@ -72,36 +72,36 @@ export const useSearchOrFallbackContent = (
     fallbackEndpoints = ['trending/all/week', 'movie/top_rated'],
 ) => {
     const { data, isLoading } = useQuery({
-        queryKey: ['search-or-fallback', debouncedSearch],
+        queryKey: ['search-multi', debouncedSearch],
         enabled: isModalOpen,
         queryFn: async () => {
             if (!debouncedSearch) {
                 const fallbackResults = await Promise.all(
                     fallbackEndpoints.map((endpoint) => axiosInstance.get(`/${endpoint}`)),
                 );
-
                 const fallbackData = {};
-                fallbackEndpoints.forEach((key, index) => {
+                fallbackEndpoints.forEach((key, i) => {
                     const label = key.split('/').pop();
-                    fallbackData[label] = fallbackResults[index]?.data?.results || [];
+                    fallbackData[label] = fallbackResults[i]?.data?.results || [];
                 });
-
-                return {
-                    movies: [],
-                    tv: [],
-                    ...fallbackData,
-                };
+                return { movies: [], tv: [], ...fallbackData };
             }
 
-            const [movies, tv] = await Promise.all([
-                axiosInstance.get(`/search/movie?query=${debouncedSearch}`),
-                axiosInstance.get(`/search/tv?query=${debouncedSearch}`),
-            ]);
+            const res = await axiosInstance.get(`/search/multi?query=${debouncedSearch}`);
+            const movies = [],
+                tv = [];
+            const seen = new Set();
 
-            return {
-                movies: movies.data.results,
-                tv: tv.data.results,
-            };
+            for (const item of res.data.results) {
+                if (!['movie', 'tv'].includes(item.media_type)) continue;
+                const uniqueKey = `${item.media_type}:${item.id}`;
+                if (seen.has(uniqueKey)) continue;
+                seen.add(uniqueKey);
+                if (item.media_type === 'movie') movies.push(item);
+                else tv.push(item);
+            }
+
+            return { movies, tv };
         },
     });
 
