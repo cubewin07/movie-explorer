@@ -2,20 +2,25 @@ import { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { Button } from '@/components/ui/button';
-import axiosInstance from '@/lib/axiosInstance';
 import { TrendingCarousel } from '@/components/TrendingCarousel';
 import { useMovieGenres } from '@/hooks/API/genres';
-import { usePopularMovies } from '@/hooks/API/data';
+import { usePopularMovies, usePaginatedFetch } from '@/hooks/API/data';
 import { FilmModalContext } from '@/context/FilmModalProvider';
 
 function Home() {
-    const { popularMovies, isPopularMoviesLoading, isError } = usePopularMovies(1);
+    const { data, isLoading, isError } = usePaginatedFetch('trending/movie/week', 1);
+    const {
+        popularMovies,
+        isLoading: IsLoadingPopularMovies,
+        isError: isFetchingPopularMovieError,
+    } = usePopularMovies(1);
     const { MovieGenres, isGenresLoading } = useMovieGenres();
 
     const navigate = useNavigate();
 
     const { setIsOpen, setContext } = useContext(FilmModalContext);
 
+    const TrendingMovies = data?.results || [];
     const movies = popularMovies?.results || [];
     const genreMap =
         MovieGenres?.data?.genres?.reduce((acc, g) => {
@@ -23,7 +28,7 @@ function Home() {
             return acc;
         }, {}) || {};
 
-    const carouselItems = movies.slice(0, 8).map((movie) => ({
+    const carouselItems = TrendingMovies.slice(0, 8).map((movie) => ({
         title: movie.title,
         id: movie.id,
         subtitle: movie.tagline,
@@ -57,7 +62,7 @@ function Home() {
                         <div className="text-red-500 font-semibold p-4">
                             Failed to load popular movies. Please try again later.
                         </div>
-                    ) : isPopularMoviesLoading || isGenresLoading ? (
+                    ) : isLoading || isGenresLoading || IsLoadingPopularMovies ? (
                         <div className="flex gap-6 w-full">
                             {Array(6)
                                 .fill(0)
