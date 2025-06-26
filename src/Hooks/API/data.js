@@ -87,21 +87,12 @@ export const useSearchOrFallbackContent = (
                 return { movies: [], tv: [], ...fallbackData };
             }
 
-            const res = await axiosInstance.get(`/search/multi?query=${debouncedSearch}`);
-            const movies = [],
-                tv = [];
-            const seen = new Set();
+            const { data: results } = await axiosInstance.get(`/search/multi?query=${debouncedSearch}`);
 
-            for (const item of res.data.results) {
-                if (!['movie', 'tv'].includes(item.media_type)) continue;
-                const uniqueKey = `${item.media_type}:${item.id}`;
-                if (seen.has(uniqueKey)) continue;
-                seen.add(uniqueKey);
-                if (item.media_type === 'movie') movies.push(item);
-                else tv.push(item);
-            }
-
-            return { movies, tv };
+            return {
+                movies: results.results || [],
+                tv: [],
+            };
         },
     });
 
