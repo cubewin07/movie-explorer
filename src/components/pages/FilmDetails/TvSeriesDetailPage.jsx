@@ -4,15 +4,18 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useState } from 'react';
 
 import { useTVSeriesDetails, useTVSeriesTrailer } from '@/hooks/API/data';
 import { useAuthen } from '@/context/AuthenProvider';
 import useAddToWatchlist from '@/hooks/watchList/useAddtoWatchList';
+import { LoginNotificationModal } from '@/components/react_components/Modal/LoginNotificationModal';
 import SeasonAccordion from './SeasonAccordion';
 
 export default function TVSeriesDetailPage() {
     const { id } = useParams();
     const { user } = useAuthen();
+    const [showLoginModal, setShowLoginModal] = useState(false);
     const { series, isLoading, isError } = useTVSeriesDetails(id);
     const { trailerUrl, isLoadingTrailer } = useTVSeriesTrailer(id);
 
@@ -30,6 +33,19 @@ export default function TVSeriesDetailPage() {
     };
 
     const { mutate: addToWatchlist, isPending } = useAddToWatchlist();
+
+    const handleAddToWatchlist = () => {
+        if (!user) {
+            setShowLoginModal(true);
+            return;
+        }
+        addToWatchlist(watchlistData);
+    };
+
+    const handleLoginSuccess = () => {
+        // After successful login, add the item to watchlist
+        addToWatchlist(watchlistData);
+    };
 
     if (isLoading) {
         return (
@@ -108,7 +124,7 @@ export default function TVSeriesDetailPage() {
                         <Button
                             variant="outline"
                             className="bg-white text-slate-800 border-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:bg-transparent dark:text-white dark:border-slate-600 dark:hover:bg-slate-800"
-                            onClick={() => addToWatchlist(watchlistData)}
+                            onClick={handleAddToWatchlist}
                             disabled={isPending}
                         >
                             <Plus className="w-4 h-4 mr-2" /> Add to Watchlist
@@ -178,6 +194,14 @@ export default function TVSeriesDetailPage() {
                     </TabsContent>
                 </Tabs>
             </div>
+
+            {showLoginModal && (
+                <LoginNotificationModal
+                    isOpen={showLoginModal}
+                    onClose={() => setShowLoginModal(false)}
+                    onLoginSuccess={handleLoginSuccess}
+                />
+            )}
         </div>
     );
 }

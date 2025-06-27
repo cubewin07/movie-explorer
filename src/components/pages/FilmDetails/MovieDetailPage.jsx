@@ -7,9 +7,14 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader } from '@/components/ui/Loader';
 import useAddToWatchlist from '@/hooks/watchList/useAddtoWatchList';
+import { useAuthen } from '@/context/AuthenProvider';
+import { useState } from 'react';
+import { LoginNotificationModal } from '@/components/react_components/Modal/LoginNotificationModal';
 
 export default function MovieDetailPage() {
     const { id } = useParams();
+    const { user } = useAuthen();
+    const [showLoginModal, setShowLoginModal] = useState(false);
     const { movie, isLoading, isError } = useMovieDetails(id);
     const { trailerUrl, isLoadingTrailer } = useMovieTrailer(id);
     const genres = movie?.genres?.map((g) => g.name) || [];
@@ -25,6 +30,20 @@ export default function MovieDetailPage() {
     };
 
     const { mutate: addToWatchlist, isPending } = useAddToWatchlist();
+
+    const handleAddToWatchlist = () => {
+        if (!user) {
+            setShowLoginModal(true);
+            return;
+        }
+        addToWatchlist(watchlistData);
+    };
+
+    const handleLoginSuccess = () => {
+        // After successful login, add the item to watchlist
+        addToWatchlist(watchlistData);
+    };
+
     if (isLoading) return <Loader />;
     if (isError || !movie) return <div className="p-8 text-red-400">Failed to load movie.</div>;
 
@@ -103,7 +122,7 @@ export default function MovieDetailPage() {
                         <Button
                             variant="outline"
                             className="border-slate-400 dark:border-slate-600 text-slate-800 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 px-6 py-2 text-sm sm:text-base"
-                            onClick={() => addToWatchlist(watchlistData)}
+                            onClick={handleAddToWatchlist}
                         >
                             <Plus className="w-4 h-4 mr-2" /> Add to Watchlist
                         </Button>
@@ -149,6 +168,14 @@ export default function MovieDetailPage() {
                     </TabsContent>
                 </Tabs>
             </div>
+
+            {showLoginModal && (
+                <LoginNotificationModal
+                    isOpen={showLoginModal}
+                    onClose={() => setShowLoginModal(false)}
+                    onLoginSuccess={handleLoginSuccess}
+                />
+            )}
         </div>
     );
 }

@@ -3,12 +3,16 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useAddToWatchlist from '@/hooks/watchList/useAddtoWatchList';
+import { useAuthen } from '@/context/AuthenProvider';
+import { LoginNotificationModal } from '@/components/react_components/Modal/LoginNotificationModal';
 
 // ...imports remain unchanged
 export function TrendingCarousel({ items }) {
     const [current, setCurrent] = useState(0);
     const [direction, setDirection] = useState(0);
+    const [showLoginModal, setShowLoginModal] = useState(false);
 
+    const { user } = useAuthen();
     const { mutate: addToWatchlist, isPending } = useAddToWatchlist();
 
     const navigate = useNavigate();
@@ -46,6 +50,19 @@ export function TrendingCarousel({ items }) {
     const prev = () => {
         setDirection(-1);
         setCurrent((prev) => (prev - 1 + items.length) % items.length);
+    };
+
+    const handleAddToWatchlist = () => {
+        if (!user) {
+            setShowLoginModal(true);
+            return;
+        }
+        addToWatchlist(items[current]);
+    };
+
+    const handleLoginSuccess = () => {
+        // After successful login, add the current item to watchlist
+        addToWatchlist(items[current]);
     };
 
     return (
@@ -130,7 +147,7 @@ export function TrendingCarousel({ items }) {
 
                                     {/* Add to List – Outline + Icon + Improved Hover */}
                                     <button
-                                        onClick={() => addToWatchlist(items[current])}
+                                        onClick={handleAddToWatchlist}
                                         className="flex items-center gap-2 px-5 py-2 border border-blue-500 text-blue-600 
                    text-sm font-medium rounded-lg bg-transparent 
                    hover:bg-blue-50 dark:hover:bg-blue-900/20 
@@ -179,6 +196,14 @@ export function TrendingCarousel({ items }) {
                     <ArrowRight className="w-5 h-5 text-blue-600" />
                 </button>
             </div>
+
+            {showLoginModal && (
+                <LoginNotificationModal
+                    isOpen={showLoginModal}
+                    onClose={() => setShowLoginModal(false)}
+                    onLoginSuccess={handleLoginSuccess}
+                />
+            )}
         </section>
     );
 }
