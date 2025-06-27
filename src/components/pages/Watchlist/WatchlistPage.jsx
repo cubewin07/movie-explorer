@@ -75,14 +75,15 @@ function WatchlistPage() {
                                         <span className="bg-black/80 text-white text-[10px] px-2 py-0.5 rounded">
                                             {isTVSeries ? 'TV Series' : 'Movie'}
                                         </span>
+                                    </div>
 
-                                        {/* Highlight total seasons */}
-                                        {isTVSeries && item.totalSeasons && (
-                                            <span className="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded shadow">
+                                    {isTVSeries && item.totalSeasons && (
+                                        <div className="absolute top-2 right-2 z-10">
+                                            <span className="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded shadow-sm">
                                                 {item.totalSeasons} Seasons
                                             </span>
-                                        )}
-                                    </div>
+                                        </div>
+                                    )}
 
                                     <img
                                         src={item.image || '/placeholder.svg'}
@@ -115,7 +116,7 @@ function WatchlistPage() {
                                         <Button
                                             size="sm"
                                             variant="outline"
-                                            className="mt-auto text-xs pointer-events-none"
+                                            className="mt-auto text-xs hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-800 dark:hover:text-white"
                                         >
                                             Remove
                                         </Button>
