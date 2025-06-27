@@ -19,7 +19,7 @@ export default function MovieDetailPage() {
         image: movie.poster_path
             ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
             : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(movie.title),
-        rating: movie.rating,
+        rating: movie.vote_average,
         year: movie.release_date?.slice(0, 4),
         extra: genres,
     };
@@ -28,6 +28,7 @@ export default function MovieDetailPage() {
     if (isLoading) return <Loader />;
     if (isError || !movie) return <div className="p-8 text-red-400">Failed to load movie.</div>;
 
+    console.log(movie);
     return (
         <div className="flex-1 bg-white dark:bg-slate-950 text-slate-900 dark:text-white overflow-y-auto">
             {/* Backdrop */}
