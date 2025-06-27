@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { Lock, User, Mail, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
+import clsx from 'clsx';
 
 const schema = z
     .object({
@@ -48,7 +49,10 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
 
     return (
         <motion.div
-            className="w-full max-w-md mx-auto"
+            className={clsx('w-full', {
+                'max-w-lg p-6': !hideHeader,
+                // 'max-w-md': hideHeader,
+            })}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}

@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
+import clsx from 'clsx';
 
 const schema = z.object({
     email: z.string().email({ message: 'Invalid email format' }),
@@ -44,7 +45,10 @@ export default function Login({ onSuccess, onShowRegister, hideHeader }) {
 
     return (
         <motion.div
-            className="w-full max-w-md mx-auto"
+            className={clsx('w-full', {
+                'max-w-lg p-6': !hideHeader,
+                // 'max-w-md': hideHeader,
+            })}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
@@ -63,7 +67,7 @@ export default function Login({ onSuccess, onShowRegister, hideHeader }) {
             {/* Form */}
             <motion.form
                 onSubmit={handleSubmit(onSubmit)}
-                className="space-y-6 p-8 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-lg"
+                className="space-y-6 p-6 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-lg"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.1 }}
@@ -77,7 +81,7 @@ export default function Login({ onSuccess, onShowRegister, hideHeader }) {
                         <Input
                             id="email"
                             {...register('email')}
-                            className="pl-10 h-12"
+                            className="pl-10 h-12 w-full"
                             placeholder="Enter your email"
                         />
                     </div>
@@ -100,7 +104,7 @@ export default function Login({ onSuccess, onShowRegister, hideHeader }) {
                             id="password"
                             type={showPassword ? 'text' : 'password'}
                             {...register('password')}
-                            className="pr-10 h-12"
+                            className="pr-10 h-12 w-full"
                             placeholder="Enter your password"
                         />
                     </div>
