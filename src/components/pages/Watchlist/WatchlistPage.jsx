@@ -37,7 +37,7 @@ function WatchlistPage() {
     }
 
     return (
-        <section className="px-4 py-8">
+        <section className="px-4 py-8 max-w-screen-xl mx-auto min-h-[80vh]">
             <motion.h1
                 className="text-3xl font-bold mb-6"
                 initial={{ opacity: 0, y: -20 }}
@@ -52,7 +52,12 @@ function WatchlistPage() {
                     You haven’t added anything yet.
                 </motion.p>
             ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+                <div
+                    className="grid gap-6"
+                    style={{
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+                    }}
+                >
                     <AnimatePresence>
                         {watchlist.map((item) => {
                             const isTVSeries = !!item.name;
@@ -68,7 +73,7 @@ function WatchlistPage() {
                                     whileHover={{ scale: 1.03, boxShadow: '0 8px 20px rgba(0,0,0,0.15)' }}
                                     transition={{ duration: 0.4, ease: 'easeOut' }}
                                     onClick={() => navigate(redirectPath)}
-                                    className="relative bg-card border border-border rounded-xl overflow-hidden flex flex-col cursor-pointer transition-all"
+                                    className="relative bg-card border border-border rounded-xl overflow-hidden flex flex-col cursor-pointer transition-all min-w-[240px]"
                                 >
                                     {/* Floating type badge */}
                                     <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
