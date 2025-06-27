@@ -6,12 +6,30 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 
 import { useTVSeriesDetails, useTVSeriesTrailer } from '@/hooks/API/data';
+import { useAuthen } from '@/context/AuthenProvider';
+import useAddToWatchlist from '@/hooks/watchList/useAddtoWatchList';
 import SeasonAccordion from './SeasonAccordion';
 
 export default function TVSeriesDetailPage() {
     const { id } = useParams();
+    const { user } = useAuthen();
     const { series, isLoading, isError } = useTVSeriesDetails(id);
     const { trailerUrl, isLoadingTrailer } = useTVSeriesTrailer(id);
+
+    const genres = series?.genres?.map((g) => g.name) || [];
+    const watchlistData = series && {
+        id: series.id,
+        name: series.name,
+        image: series.poster_path
+            ? `https://image.tmdb.org/t/p/w500${series.poster_path}`
+            : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(series.name),
+        rating: series.vote_average,
+        year: series.first_air_date?.slice(0, 4),
+        totalSeasons: series.number_of_seasons,
+        extra: genres,
+    };
+
+    const { mutate: addToWatchlist, isPending } = useAddToWatchlist();
 
     if (isLoading) {
         return (
@@ -90,6 +108,8 @@ export default function TVSeriesDetailPage() {
                         <Button
                             variant="outline"
                             className="bg-white text-slate-800 border-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:bg-transparent dark:text-white dark:border-slate-600 dark:hover:bg-slate-800"
+                            onClick={() => addToWatchlist(watchlistData)}
+                            disabled={isPending}
                         >
                             <Plus className="w-4 h-4 mr-2" /> Add to Watchlist
                         </Button>
