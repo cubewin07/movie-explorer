@@ -22,7 +22,7 @@ const schema = z
         path: ['confirmPassword'],
     });
 
-export default function Register({ onSuccess, onShowLogin }) {
+export default function Register({ onSuccess, onShowLogin, hideHeader }) {
     const { register: registerUser } = useAuthen();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -54,13 +54,15 @@ export default function Register({ onSuccess, onShowLogin }) {
             transition={{ duration: 0.3 }}
         >
             {/* Header */}
-            <div className="text-center mb-8">
-                <div className="mx-auto mb-4 w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
-                    <Lock className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+            {!hideHeader && (
+                <div className="text-center mb-8">
+                    <div className="mx-auto mb-4 w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                        <Lock className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Create Account</h1>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Join us to start building your watchlist</p>
                 </div>
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Create Account</h1>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Join us to start building your watchlist</p>
-            </div>
+            )}
 
             {/* Form */}
             <motion.form
