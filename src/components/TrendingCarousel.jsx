@@ -6,7 +6,6 @@ import useAddToWatchlist from '@/hooks/watchList/useAddtoWatchList';
 import { useAuthen } from '@/context/AuthenProvider';
 import { LoginNotificationModal } from '@/components/react_components/Modal/LoginNotificationModal';
 
-// ...imports remain unchanged
 export function TrendingCarousel({ items }) {
     const [current, setCurrent] = useState(0);
     const [direction, setDirection] = useState(0);
