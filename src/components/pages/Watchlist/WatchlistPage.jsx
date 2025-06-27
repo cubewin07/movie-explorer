@@ -71,8 +71,17 @@ function WatchlistPage() {
                                     className="relative bg-card border border-border rounded-xl overflow-hidden flex flex-col cursor-pointer transition-all"
                                 >
                                     {/* Floating type badge */}
-                                    <div className="absolute top-2 left-2 bg-black/80 text-white text-[10px] px-2 py-0.5 rounded z-10">
-                                        {isTVSeries ? 'TV Series' : 'Movie'}
+                                    <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
+                                        <span className="bg-black/80 text-white text-[10px] px-2 py-0.5 rounded">
+                                            {isTVSeries ? 'TV Series' : 'Movie'}
+                                        </span>
+
+                                        {/* Highlight total seasons */}
+                                        {isTVSeries && item.totalSeasons && (
+                                            <span className="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded shadow">
+                                                {item.totalSeasons} Seasons
+                                            </span>
+                                        )}
                                     </div>
 
                                     <img
@@ -80,6 +89,7 @@ function WatchlistPage() {
                                         alt={displayTitle}
                                         className="w-full h-56 object-cover"
                                     />
+
                                     <div className="p-4 flex flex-col gap-2 flex-grow">
                                         <div className="flex justify-between items-center">
                                             <h3 className="text-base font-bold truncate">{displayTitle}</h3>
@@ -90,12 +100,7 @@ function WatchlistPage() {
 
                                         <div className="text-xs text-muted-foreground">{item.year}</div>
 
-                                        {isTVSeries && item.totalSeasons && (
-                                            <div className="text-xs text-blue-700 font-semibold">
-                                                {item.totalSeasons} Seasons
-                                            </div>
-                                        )}
-
+                                        {/* Tags */}
                                         <div className="flex gap-2 flex-wrap">
                                             {item.extra?.map((tag, index) => (
                                                 <span
