@@ -59,76 +59,110 @@ function WatchlistPage() {
                     }}
                 >
                     <AnimatePresence>
-                        {watchlist.map((item) => {
-                            const isTVSeries = !!item.name;
-                            const displayTitle = item.title || item.name;
-                            const redirectPath = isTVSeries ? `/tv/${item.id}` : `/movie/${item.id}`;
+                        <motion.div
+                            initial="hidden"
+                            animate="visible"
+                            variants={{
+                                hidden: {},
+                                visible: {
+                                    transition: {
+                                        staggerChildren: 0.1,
+                                    },
+                                },
+                            }}
+                            className="contents"
+                        >
+                            {watchlist.map((item) => {
+                                const isTVSeries = !!item.name;
+                                const displayTitle = item.title || item.name;
+                                const redirectPath = isTVSeries ? `/tv/${item.id}` : `/movie/${item.id}`;
 
-                            return (
-                                <motion.div
-                                    key={item.id}
-                                    initial={{ opacity: 0, y: 40, scale: 0.95 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, y: 40, scale: 0.95 }}
-                                    whileHover={{ scale: 1.03, boxShadow: '0 8px 20px rgba(0,0,0,0.15)' }}
-                                    transition={{ duration: 0.4, ease: 'easeOut' }}
-                                    onClick={() => navigate(redirectPath)}
-                                    className="relative bg-card border border-border rounded-xl overflow-hidden flex flex-col cursor-pointer transition-all min-w-[240px]"
-                                >
-                                    {/* Floating type badge */}
-                                    <div className="absolute top-2 left-2 z-10 flex flex-col gap-1">
-                                        <span className="bg-black/80 text-white text-[10px] px-2 py-0.5 rounded">
-                                            {isTVSeries ? 'TV Series' : 'Movie'}
-                                        </span>
-                                    </div>
-
-                                    {isTVSeries && item.totalSeasons && (
-                                        <div className="absolute top-2 right-2 z-10">
-                                            <span className="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded shadow-sm">
-                                                {item.totalSeasons} Seasons
+                                return (
+                                    <motion.div
+                                        key={item.id}
+                                        variants={{
+                                            hidden: { opacity: 0, y: 50, scale: 0.9 },
+                                            visible: {
+                                                opacity: 1,
+                                                y: 0,
+                                                scale: 1,
+                                                transition: {
+                                                    type: 'spring',
+                                                    stiffness: 300,
+                                                    damping: 24,
+                                                },
+                                            },
+                                        }}
+                                        whileHover={{
+                                            scale: 1.05,
+                                            rotate: -0.2,
+                                            transition: { type: 'spring', stiffness: 200 },
+                                            boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+                                        }}
+                                        exit={{
+                                            opacity: 0,
+                                            y: 50,
+                                            scale: 0.8,
+                                            transition: { duration: 0.2 },
+                                        }}
+                                        onClick={() => navigate(redirectPath)}
+                                        className="relative bg-card border border-border rounded-xl overflow-hidden flex flex-col cursor-pointer transition-all"
+                                    >
+                                        {/* Floating badges */}
+                                        <div className="absolute top-2 left-2 z-10">
+                                            <span className="bg-black/80 text-white text-[10px] px-2 py-0.5 rounded">
+                                                {isTVSeries ? 'TV Series' : 'Movie'}
                                             </span>
                                         </div>
-                                    )}
 
-                                    <img
-                                        src={item.image || '/placeholder.svg'}
-                                        alt={displayTitle}
-                                        className="w-full h-56 object-cover"
-                                    />
-
-                                    <div className="p-4 flex flex-col gap-2 flex-grow">
-                                        <div className="flex justify-between items-center">
-                                            <h3 className="text-base font-bold truncate">{displayTitle}</h3>
-                                            <span className="bg-yellow-400 text-black text-xs font-bold px-2 py-0.5 rounded shadow-sm">
-                                                ★ {item.rating}
-                                            </span>
-                                        </div>
-
-                                        <div className="text-xs text-muted-foreground">{item.year}</div>
-
-                                        {/* Tags */}
-                                        <div className="flex gap-2 flex-wrap">
-                                            {item.extra?.map((tag, index) => (
-                                                <span
-                                                    key={index}
-                                                    className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full"
-                                                >
-                                                    {tag}
+                                        {isTVSeries && item.totalSeasons && (
+                                            <div className="absolute top-2 right-2 z-10">
+                                                <span className="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded shadow-sm">
+                                                    {item.totalSeasons} Seasons
                                                 </span>
-                                            ))}
-                                        </div>
+                                            </div>
+                                        )}
 
-                                        <Button
-                                            size="sm"
-                                            variant="outline"
-                                            className="mt-auto text-xs hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-800 dark:hover:text-white"
-                                        >
-                                            Remove
-                                        </Button>
-                                    </div>
-                                </motion.div>
-                            );
-                        })}
+                                        <img
+                                            src={item.image || '/placeholder.svg'}
+                                            alt={displayTitle}
+                                            className="w-full h-56 object-cover"
+                                        />
+
+                                        <div className="p-4 flex flex-col gap-2 flex-grow">
+                                            <div className="flex justify-between items-center">
+                                                <h3 className="text-base font-bold truncate">{displayTitle}</h3>
+                                                <span className="bg-yellow-400 text-black text-xs font-bold px-2 py-0.5 rounded shadow-sm">
+                                                    ★ {item.rating}
+                                                </span>
+                                            </div>
+
+                                            <div className="text-xs text-muted-foreground">{item.year}</div>
+
+                                            <div className="flex gap-2 flex-wrap">
+                                                {item.extra?.map((tag, index) => (
+                                                    <span
+                                                        key={index}
+                                                        className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full"
+                                                    >
+                                                        {tag}
+                                                    </span>
+                                                ))}
+                                            </div>
+
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="mt-auto text-xs hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-800 dark:hover:text-white transition-colors"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                Remove
+                                            </Button>
+                                        </div>
+                                    </motion.div>
+                                );
+                            })}
+                        </motion.div>
                     </AnimatePresence>
                 </div>
             )}
