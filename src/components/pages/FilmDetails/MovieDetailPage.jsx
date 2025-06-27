@@ -19,7 +19,7 @@ export default function MovieDetailPage() {
         image: movie.poster_path
             ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
             : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(movie.title),
-        rating: movie.vote_average,
+        rating: movie.vote_average?.toFixed(1),
         year: movie.release_date?.slice(0, 4),
         extra: genres,
     };

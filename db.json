@@ -1,20 +1,39 @@
 {
-    "watchlist": [
-        {
-            "id": 911430,
-            "title": "F1 The Movie",
-            "image": "https://image.tmdb.org/t/p/w500/vqBmyAj0Xm9LnS1xe1MSlMAJyHq.jpg",
-            "description": "Racing legend Sonny Hayes is coaxed out of retirement to lead a struggling Formula 1 team—and mentor a young hotshot driver—while chasing one more chance at glory.",
-            "rating": "7.9",
-            "year": "2025",
-            "extra": ["Action", "Drama"]
-        },
-        {
-            "id": 605722,
-            "title": "Distant",
-            "image": "https://image.tmdb.org/t/p/w500/czh8HOhsbBUKoKsmRmLQMCLHUev.jpg",
-            "year": "2024",
-            "extra": ["Science Fiction", "Comedy", "Action"]
-        }
-    ]
+  "watchlist": [
+    {
+      "id": 911430,
+      "title": "F1 The Movie",
+      "image": "https://image.tmdb.org/t/p/w500/vqBmyAj0Xm9LnS1xe1MSlMAJyHq.jpg",
+      "description": "Racing legend Sonny Hayes is coaxed out of retirement to lead a struggling Formula 1 team—and mentor a young hotshot driver—while chasing one more chance at glory.",
+      "rating": "7.9",
+      "year": "2025",
+      "extra": [
+        "Action",
+        "Drama"
+      ]
+    },
+    {
+      "id": 605722,
+      "title": "Distant",
+      "image": "https://image.tmdb.org/t/p/w500/czh8HOhsbBUKoKsmRmLQMCLHUev.jpg",
+      "year": "2024",
+      "extra": [
+        "Science Fiction",
+        "Comedy",
+        "Action"
+      ]
+    },
+    {
+      "id": 14981,
+      "name": "The Late Late Show with Craig Ferguson",
+      "image": "https://image.tmdb.org/t/p/w500/gGC7zSDgG0FY0MbM1pjfhTCWQBI.jpg",
+      "rating": 6.785,
+      "year": "2005",
+      "totalSeasons": 11,
+      "extra": [
+        "Comedy",
+        "Talk"
+      ]
+    }
+  ]
 }

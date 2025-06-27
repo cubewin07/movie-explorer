@@ -23,7 +23,7 @@ export default function TVSeriesDetailPage() {
         image: series.poster_path
             ? `https://image.tmdb.org/t/p/w500${series.poster_path}`
             : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(series.name),
-        rating: series.vote_average,
+        rating: series.vote_average?.toFixed(1),
         year: series.first_air_date?.slice(0, 4),
         totalSeasons: series.number_of_seasons,
         extra: genres,
