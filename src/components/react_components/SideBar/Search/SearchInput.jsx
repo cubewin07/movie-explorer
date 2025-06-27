@@ -16,7 +16,7 @@ function SearchInput() {
 
     const handleNavigate = (movie) => {
         const isTV = !!movie.name && !movie.title; // Typical way to detect TV
-        const path = isTV ? `/tvserie/${movie.id}` : `/movies/${movie.id}`;
+        const path = isTV ? `/tv/${movie.id}` : `/movies/${movie.id}`;
         navigate(path);
     };
 

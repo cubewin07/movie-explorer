@@ -57,17 +57,20 @@ function WatchlistPage() {
                         {watchlist.map((item) => {
                             const isTVSeries = !!item.name;
                             const displayTitle = item.title || item.name;
+                            const redirectPath = isTVSeries ? `/tv/${item.id}` : `/movie/${item.id}`;
 
                             return (
                                 <motion.div
                                     key={item.id}
-                                    initial={{ opacity: 0, y: 30 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: 30 }}
-                                    transition={{ duration: 0.3 }}
-                                    className="relative bg-card border border-border rounded-xl shadow-lg overflow-hidden flex flex-col"
+                                    initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: 40, scale: 0.95 }}
+                                    whileHover={{ scale: 1.03, boxShadow: '0 8px 20px rgba(0,0,0,0.15)' }}
+                                    transition={{ duration: 0.4, ease: 'easeOut' }}
+                                    onClick={() => navigate(redirectPath)}
+                                    className="relative bg-card border border-border rounded-xl overflow-hidden flex flex-col cursor-pointer transition-all"
                                 >
-                                    {/* Floating badge for type */}
+                                    {/* Floating type badge */}
                                     <div className="absolute top-2 left-2 bg-black/80 text-white text-[10px] px-2 py-0.5 rounded z-10">
                                         {isTVSeries ? 'TV Series' : 'Movie'}
                                     </div>
@@ -87,7 +90,6 @@ function WatchlistPage() {
 
                                         <div className="text-xs text-muted-foreground">{item.year}</div>
 
-                                        {/* Show seasons if it's a TV series */}
                                         {isTVSeries && item.totalSeasons && (
                                             <div className="text-xs text-blue-700 font-semibold">
                                                 {item.totalSeasons} Seasons
@@ -108,8 +110,7 @@ function WatchlistPage() {
                                         <Button
                                             size="sm"
                                             variant="outline"
-                                            className="mt-auto text-xs"
-                                            onClick={() => console.log('Remove feature coming soon')}
+                                            className="mt-auto text-xs pointer-events-none"
                                         >
                                             Remove
                                         </Button>
