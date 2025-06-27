@@ -130,9 +130,11 @@ function WatchlistPage() {
                                         />
 
                                         <div className="p-4 flex flex-col gap-2 flex-grow">
-                                            <div className="flex justify-between items-center">
-                                                <h3 className="text-base font-bold truncate">{displayTitle}</h3>
-                                                <span className="bg-yellow-400 text-black text-xs font-bold px-2 py-0.5 rounded shadow-sm">
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="text-base font-bold truncate flex-grow">
+                                                    {displayTitle}
+                                                </h3>
+                                                <span className="flex-shrink-0 bg-yellow-400 text-black text-xs font-bold px-2 py-0.5 rounded shadow-sm">
                                                     ★ {item.rating}
                                                 </span>
                                             </div>
