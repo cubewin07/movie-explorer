@@ -54,52 +54,69 @@ function WatchlistPage() {
             ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
                     <AnimatePresence>
-                        {watchlist.map((movie) => (
-                            <motion.div
-                                key={movie.id}
-                                initial={{ opacity: 0, y: 30 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 30 }}
-                                transition={{ duration: 0.3 }}
-                                className="bg-card border border-border rounded-xl shadow-lg overflow-hidden flex flex-col"
-                            >
-                                <img
-                                    src={movie.image || '/placeholder.svg'}
-                                    alt={movie.title}
-                                    className="w-full h-56 object-cover"
-                                />
-                                <div className="p-4 flex flex-col gap-2 flex-grow">
-                                    <div className="flex justify-between items-center">
-                                        <h3 className="text-base font-bold truncate">{movie.title}</h3>
-                                        <span className="bg-yellow-400 text-black text-xs font-bold px-2 py-0.5 rounded shadow-sm">
-                                            ★ {movie.rating}
-                                        </span>
+                        {watchlist.map((item) => {
+                            const isTVSeries = !!item.name;
+                            const displayTitle = item.title || item.name;
+
+                            return (
+                                <motion.div
+                                    key={item.id}
+                                    initial={{ opacity: 0, y: 30 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: 30 }}
+                                    transition={{ duration: 0.3 }}
+                                    className="relative bg-card border border-border rounded-xl shadow-lg overflow-hidden flex flex-col"
+                                >
+                                    {/* Floating badge for type */}
+                                    <div className="absolute top-2 left-2 bg-black/80 text-white text-[10px] px-2 py-0.5 rounded z-10">
+                                        {isTVSeries ? 'TV Series' : 'Movie'}
                                     </div>
 
-                                    <div className="text-xs text-muted-foreground">{movie.year}</div>
-
-                                    <div className="flex gap-2 flex-wrap">
-                                        {movie.extra?.map((tag, index) => (
-                                            <span
-                                                key={index}
-                                                className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full"
-                                            >
-                                                {tag}
+                                    <img
+                                        src={item.image || '/placeholder.svg'}
+                                        alt={displayTitle}
+                                        className="w-full h-56 object-cover"
+                                    />
+                                    <div className="p-4 flex flex-col gap-2 flex-grow">
+                                        <div className="flex justify-between items-center">
+                                            <h3 className="text-base font-bold truncate">{displayTitle}</h3>
+                                            <span className="bg-yellow-400 text-black text-xs font-bold px-2 py-0.5 rounded shadow-sm">
+                                                ★ {item.rating}
                                             </span>
-                                        ))}
-                                    </div>
+                                        </div>
 
-                                    <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="mt-auto text-xs"
-                                        onClick={() => console.log('Remove feature coming soon')}
-                                    >
-                                        Remove
-                                    </Button>
-                                </div>
-                            </motion.div>
-                        ))}
+                                        <div className="text-xs text-muted-foreground">{item.year}</div>
+
+                                        {/* Show seasons if it's a TV series */}
+                                        {isTVSeries && item.totalSeasons && (
+                                            <div className="text-xs text-blue-700 font-semibold">
+                                                {item.totalSeasons} Seasons
+                                            </div>
+                                        )}
+
+                                        <div className="flex gap-2 flex-wrap">
+                                            {item.extra?.map((tag, index) => (
+                                                <span
+                                                    key={index}
+                                                    className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full"
+                                                >
+                                                    {tag}
+                                                </span>
+                                            ))}
+                                        </div>
+
+                                        <Button
+                                            size="sm"
+                                            variant="outline"
+                                            className="mt-auto text-xs"
+                                            onClick={() => console.log('Remove feature coming soon')}
+                                        >
+                                            Remove
+                                        </Button>
+                                    </div>
+                                </motion.div>
+                            );
+                        })}
                     </AnimatePresence>
                 </div>
             )}
