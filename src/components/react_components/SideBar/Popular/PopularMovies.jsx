@@ -12,10 +12,10 @@ function PopularMovies() {
 
     return (
         <div>
-            <h1 className="text-white text-opacity-50 text-lg font-bold mb-3">Popular Movies</h1>
+            <h1 className="text-white text-opacity-50 text-base sm:text-lg font-bold mb-2 sm:mb-3">Popular Movies</h1>
 
             {isError ? (
-                <div className="text-red-500 font-semibold p-4">
+                <div className="text-red-500 font-semibold p-3 sm:p-4 text-sm sm:text-base">
                     Failed to load popular movies. Please try again later.
                 </div>
             ) : isPopularMoviesLoading || isGenresLoading ? (
