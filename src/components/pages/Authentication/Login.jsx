@@ -45,10 +45,10 @@ export default function Login({ onSuccess, onShowRegister, hideHeader }) {
 
     return (
         <motion.div
-            className={clsx('w-full', {
-                'max-w-lg p-6': !hideHeader,
-                // 'max-w-md': hideHeader,
+            className={clsx('w-full', 'sm:max-w-sm', 'md:max-w-md', 'lg:max-w-lg', 'xl:max-w-xl', {
+                'p-6': !hideHeader,
             })}
+            style={{ minWidth: 0 }}
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.3 }}
@@ -67,7 +67,7 @@ export default function Login({ onSuccess, onShowRegister, hideHeader }) {
             {/* Form */}
             <motion.form
                 onSubmit={handleSubmit(onSubmit)}
-                className="space-y-6 p-6 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-lg"
+                className="space-y-6 p-4 sm:p-6 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-lg"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: 0.1 }}
