@@ -219,3 +219,76 @@ export const useSeasonDetails = (tvId, seasonNumber, enabled = true) => {
 
     return { episodes: data, isLoading };
 };
+
+// New hooks for enhanced home page
+export const useFeaturedContent = () => {
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['featuredContent'],
+        queryFn: async () => {
+            // Get trending movies for the week to use as featured content
+            const { data } = await axiosInstance.get('/trending/movie/week', {
+                params: { language: 'en-US' },
+            });
+            return data.results[0]; // Return the top trending movie as featured
+        },
+        staleTime: 1000 * 60 * 10,
+        refetchOnWindowFocus: false,
+    });
+
+    return { featuredContent: data, isLoading, isError };
+};
+
+export const useNewReleases = () => {
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['newReleases'],
+        queryFn: async () => {
+            // Get movies released in the current year, sorted by popularity
+            const currentYear = new Date().getFullYear();
+            const { data } = await axiosInstance.get('/discover/movie', {
+                params: {
+                    language: 'en-US',
+                    sort_by: 'popularity.desc',
+                    primary_release_year: currentYear,
+                    page: 1,
+                },
+            });
+            return data.results.slice(0, 8); // Return top 8 new releases
+        },
+        staleTime: 1000 * 60 * 15,
+        refetchOnWindowFocus: false,
+    });
+
+    return { newReleases: data, isLoading, isError };
+};
+
+export const useTopRatedMovies = () => {
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['topRatedMovies'],
+        queryFn: async () => {
+            const { data } = await axiosInstance.get('/movie/top_rated', {
+                params: { language: 'en-US', page: 1 },
+            });
+            return data.results.slice(0, 8); // Return top 8 rated movies
+        },
+        staleTime: 1000 * 60 * 20,
+        refetchOnWindowFocus: false,
+    });
+
+    return { topRatedMovies: data, isLoading, isError };
+};
+
+export const usePopularTVShows = () => {
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['popularTVShows'],
+        queryFn: async () => {
+            const { data } = await axiosInstance.get('/tv/popular', {
+                params: { language: 'en-US', page: 1 },
+            });
+            return data.results.slice(0, 8); // Return top 8 popular TV shows
+        },
+        staleTime: 1000 * 60 * 15,
+        refetchOnWindowFocus: false,
+    });
+
+    return { popularTVShows: data, isLoading, isError };
+};
