@@ -25,7 +25,7 @@ export default function Discovery() {
         <AnimatePresence mode="wait">
             <motion.div
                 key={location.pathname}
-                className="w-full px-4 sm:px-6 lg:px-8 py-6 mx-auto max-w-screen-2xl"
+                className="w-full px-2 sm:px-4 md:px-8 py-6 mx-auto max-w-screen-2xl"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
@@ -34,12 +34,12 @@ export default function Discovery() {
                 <Breadcrumb items={breadcrumbItems} />
 
                 {/* Tabs */}
-                <div className="flex flex-wrap gap-4 mb-6 border-b border-slate-300 dark:border-slate-700">
+                <div className="flex flex-wrap gap-4 mb-6 border-b border-slate-300 dark:border-slate-700 overflow-x-auto">
                     <NavLink
                         to="/movies"
                         className={({ isActive }) =>
                             cn(
-                                'pb-2 text-lg font-medium transition-colors duration-200',
+                                'pb-2 text-base sm:text-lg font-medium transition-colors duration-200',
                                 isActive
                                     ? 'text-blue-600 border-b-2 border-blue-500 font-semibold'
                                     : 'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200',
@@ -52,7 +52,7 @@ export default function Discovery() {
                         to="/tvseries"
                         className={({ isActive }) =>
                             cn(
-                                'pb-2 text-lg font-medium transition-colors duration-200',
+                                'pb-2 text-base sm:text-lg font-medium transition-colors duration-200',
                                 isActive
                                     ? 'text-blue-600 border-b-2 border-blue-500 font-semibold'
                                     : 'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200',
