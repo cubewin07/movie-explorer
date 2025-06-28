@@ -37,7 +37,7 @@ export function SearchModal({ isOpen, onClose }) {
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="w-full max-w-sm sm:max-w-md md:max-w-lg xl:max-w-2xl max-h-[80vh] p-0 overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300">
+            <DialogContent className="w-full max-w-xs sm:max-w-md md:max-w-lg xl:max-w-2xl max-h-[80vh] p-0 overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300">
                 <div className="flex flex-col h-full">
                     {/* Header */}
                     <div className="flex items-center justify-between p-4 sm:p-6 border-b">

@@ -59,7 +59,7 @@ export default function MovieReviewModal({
 
     return (
         <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm"
             initial={{ opacity: 0, y: 20, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.98 }}
@@ -72,9 +72,9 @@ export default function MovieReviewModal({
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 50, scale: 0.95 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-                className="w-full max-w-4xl max-h-[90vh] overflow-hidden bg-background border border-border text-foreground shadow-xl rounded-xl"
+                className="w-full max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl max-h-[90vh] overflow-hidden bg-background border border-border text-foreground shadow-xl rounded-xl"
             >
-                <CardContent className="p-6 relative">
+                <CardContent className="p-4 sm:p-6 relative">
                     {/* Close Button */}
                     <div className="absolute top-4 right-4">
                         <Button
@@ -87,14 +87,14 @@ export default function MovieReviewModal({
                         </Button>
                     </div>
 
-                    <div className="flex flex-col lg:flex-row gap-6">
+                    <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
                         {/* Poster */}
                         <motion.img
                             whileHover={{ scale: 1.03 }}
                             transition={{ type: 'spring', stiffness: 200 }}
                             src={posterUrl}
                             alt={`${title} poster`}
-                            className="w-48 h-72 mx-auto lg:mx-0 rounded-xl object-cover shadow-md"
+                            className="w-32 h-48 sm:w-48 sm:h-72 mx-auto lg:mx-0 rounded-xl object-cover shadow-md"
                         />
 
                         {/* Info */}

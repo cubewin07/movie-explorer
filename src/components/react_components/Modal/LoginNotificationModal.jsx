@@ -30,12 +30,12 @@ export function LoginNotificationModal({ isOpen, onClose, onLoginSuccess }) {
 
     return (
         <Dialog open={isOpen} onOpenChange={handleClose}>
-            <DialogContent className="max-w-md p-0 overflow-hidden">
+            <DialogContent className="w-full max-w-xs sm:max-w-md md:max-w-lg p-0 overflow-hidden">
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.2 }}
-                    className="p-6"
+                    className="p-4 sm:p-6"
                 >
                     {/* Header */}
                     <DialogHeader className="text-center mb-6">
