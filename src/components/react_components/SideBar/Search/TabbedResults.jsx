@@ -10,7 +10,7 @@ function TabbedResults({ data, renderCards }) {
     });
 
     const tabClass = (tab, isDisabled) =>
-        `flex items-center gap-2 px-4 py-2 rounded-t-lg font-medium cursor-pointer border-b-2 transition-all duration-200 ${
+        `flex items-center gap-2 px-3 sm:px-4 py-2 rounded-t-lg font-medium cursor-pointer border-b-2 transition-all duration-200 ${
             activeTab === tab
                 ? 'text-primary border-primary bg-base-100'
                 : isDisabled
@@ -21,14 +21,14 @@ function TabbedResults({ data, renderCards }) {
     return (
         <div className="w-full">
             {/* Tabs */}
-            <div className="flex gap-4 border-b border-base-300 px-4 sm:px-6">
+            <div className="flex gap-2 sm:gap-4 border-b border-base-300 px-3 sm:px-4 md:px-6">
                 <button
                     onClick={() => data?.movies?.length > 0 && setActiveTab('movie')}
                     className={tabClass('movie', !data?.movies?.length)}
                     disabled={!data?.movies?.length}
                 >
                     <Clapperboard className="w-4 h-4" />
-                    <span>Movies</span>
+                    <span className="text-sm sm:text-base">Movies</span>
                 </button>
                 <button
                     onClick={() => data?.tv?.length > 0 && setActiveTab('tv')}
@@ -36,12 +36,12 @@ function TabbedResults({ data, renderCards }) {
                     disabled={!data?.tv?.length}
                 >
                     <Tv className="w-4 h-4" />
-                    <span>TV Series</span>
+                    <span className="text-sm sm:text-base">TV Series</span>
                 </button>
             </div>
 
             {/* Content */}
-            <div className="p-4 sm:p-6 bg-base-100 min-h-[100px]">
+            <div className="p-3 sm:p-4 md:p-6 bg-base-100 min-h-[100px]">
                 <AnimatePresence mode="wait">
                     {activeTab === 'movie' ? (
                         <motion.div

@@ -50,7 +50,7 @@ function SearchInput() {
     const { data, isLoading } = useSearchOrFallbackContent(isModalOpen, debouncedSearch);
 
     const renderCards = (items) => (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {items.map((item, i) => {
                 if (!['movie', 'tv'].includes(item.media_type)) return null;
                 const type = item.media_type === 'tv' ? 'tvseries' : 'movie';
@@ -80,7 +80,7 @@ function SearchInput() {
             {/* Floating Search Input */}
             <label
                 onClick={() => setIsModalOpen(true)}
-                className="input input-bordered input-accent w-full max-w-md text-white bg-neutral dark:bg-neutral-content/10 dark:text-white border border-primary focus-within:ring focus-within:ring-blue-500 sticky top-4 z-10 cursor-pointer"
+                className="input input-bordered input-accent w-full max-w-xs sm:max-w-md text-white bg-neutral dark:bg-neutral-content/10 dark:text-white border border-primary focus-within:ring focus-within:ring-blue-500 sticky top-4 z-10 cursor-pointer"
             >
                 <SearchIcon className="h-[1.2em] opacity-60" />
                 <input
@@ -97,12 +97,14 @@ function SearchInput() {
 
             {/* Modal Dialog */}
             <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent className="max-w-2xl max-h-[80vh] p-0 overflow-hidden bg-base-100 text-base-content dark:bg-neutral dark:text-white border border-base-300">
+                <DialogContent className="w-full max-w-xs sm:max-w-md md:max-w-2xl max-h-[80vh] p-0 overflow-hidden bg-base-100 text-base-content dark:bg-neutral dark:text-white border border-base-300">
                     <div className="flex flex-col h-full">
-                        <DialogTitle className="text-lg font-bold border-b border-base-300 p-4">Search</DialogTitle>
+                        <DialogTitle className="text-base sm:text-lg font-bold border-b border-base-300 p-3 sm:p-4">
+                            Search
+                        </DialogTitle>
 
                         {/* Modal Input */}
-                        <div className="p-4 border-b border-base-300 relative">
+                        <div className="p-3 sm:p-4 border-b border-base-300 relative">
                             <input
                                 ref={modalInputRef}
                                 type="text"
@@ -114,7 +116,7 @@ function SearchInput() {
                             {search && (
                                 <button
                                     onClick={() => setSearch('')}
-                                    className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500"
+                                    className="absolute right-4 sm:right-6 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500"
                                 >
                                     <X className="w-4 h-4" />
                                 </button>
@@ -122,7 +124,7 @@ function SearchInput() {
                         </div>
 
                         {/* Search Results */}
-                        <div className="p-4 overflow-y-auto max-h-[calc(80vh-120px)] space-y-6">
+                        <div className="p-3 sm:p-4 overflow-y-auto max-h-[calc(80vh-120px)] space-y-4 sm:space-y-6">
                             {isLoading && (
                                 <div className="space-y-4">
                                     {Array.from({ length: 5 }).map((_, idx) => (
@@ -144,14 +146,14 @@ function SearchInput() {
                                 <>
                                     {data?.week?.length > 0 && (
                                         <div>
-                                            <h3 className="font-semibold text-lg mb-2">🔥 Trending</h3>
+                                            <h3 className="font-semibold text-base sm:text-lg mb-2">🔥 Trending</h3>
 
                                             {renderCards(data.week.slice(0, 5))}
                                         </div>
                                     )}
                                     {data?.top_rated?.length > 0 && (
                                         <div>
-                                            <h3 className="font-semibold text-lg mb-2">⭐ Top Rated</h3>
+                                            <h3 className="font-semibold text-base sm:text-lg mb-2">⭐ Top Rated</h3>
                                             {renderCards(data.top_rated.slice(0, 5))}
                                         </div>
                                     )}
