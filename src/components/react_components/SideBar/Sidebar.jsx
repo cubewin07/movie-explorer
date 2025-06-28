@@ -17,11 +17,11 @@ function Sidebar({ left = false, right = false }) {
 
     if (right) {
         return (
-            <div className="flex flex-col h-full w-full max-w-xs sm:max-w-sm md:max-w-md bg-card rounded-2xl shadow-md p-2 sm:p-4 text-foreground border-l border-border min-w-0">
-                <div className="mb-4 flex-shrink-0">
+            <div className="flex flex-col h-full w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg bg-card rounded-2xl shadow-md p-2 sm:p-3 md:p-4 text-foreground border-l border-border min-w-0">
+                <div className="mb-3 sm:mb-4 flex-shrink-0">
                     <SearchInput />
                 </div>
-                <div className="overflow-y-auto space-y-4 flex-1 min-w-0">
+                <div className="overflow-y-auto space-y-3 sm:space-y-4 flex-1 min-w-0">
                     <PopularMovies />
                     <PopularTvSeries />
                 </div>
