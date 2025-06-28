@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Play, Plus, ArrowRight } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { TrendingCarousel } from '@/components/TrendingCarousel';
 import { useMovieGenres } from '@/hooks/API/genres';
 import {
     useFeaturedContent,
@@ -36,6 +37,21 @@ function Home() {
             acc[g.id] = g.name;
             return acc;
         }, {}) || {};
+
+    // Create carousel items for trending carousel
+    const carouselItems =
+        trendingData?.results?.slice(0, 8).map((movie) => ({
+            title: movie.title,
+            id: movie.id,
+            subtitle: movie.tagline,
+            image: movie.poster_path
+                ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+                : 'https://ui-avatars.com/api/?name=' + encodeURIComponent(movie.title),
+            description: movie.overview,
+            rating: movie.vote_average?.toFixed(1),
+            year: movie.release_date?.slice(0, 4),
+            extra: movie.genre_ids?.map((id) => genreMap[id]) || [],
+        })) || [];
 
     const handleAddToWatchlist = (item) => {
         if (!user) {
@@ -195,13 +211,11 @@ function Home() {
                 </section>
             )}
 
-            {/* Trending Now Carousel */}
-            {renderSection(
-                'Trending Now',
-                trendingData?.results?.slice(0, 8),
-                isTrendingLoading,
-                '🔥',
-                '/movies/popular',
+            {/* Trending Carousel */}
+            {carouselItems.length > 0 && !isTrendingLoading && (
+                <section className="mb-8">
+                    <TrendingCarousel items={carouselItems} />
+                </section>
             )}
 
             {/* New Releases */}
