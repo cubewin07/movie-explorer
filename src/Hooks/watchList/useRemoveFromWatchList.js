@@ -12,7 +12,7 @@ function useRemoveFromWatchList(userId = null) {
         },
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['watchlist'] });
-            toast.success(`Removed "${data.title}" from your watchlist`);
+            toast.success(`Removed "${data.title || data.name}" from your watchlist`);
         },
         onError: (error) => {
             toast.error('Failed to remove from watchlist. Please try again.');
