@@ -46,7 +46,7 @@ export const DesktopSidebar = ({ className, children, ...props }) => {
     return (
         <motion.div
             className={cn(
-                'h-full px-4 py-4 hidden md:flex md:flex-col bg-neutral-100 dark:bg-neutral-800 w-[250px] flex-shrink-0',
+                'h-full px-2 sm:px-4 py-4 hidden md:flex md:flex-col bg-neutral-100 dark:bg-neutral-800 w-[250px] flex-shrink-0',
                 className,
             )}
             animate={{
@@ -67,13 +67,13 @@ export const MobileSidebar = ({ className, children, ...props }) => {
         <>
             <div
                 className={cn(
-                    'h-10 px-4 py-4 flex flex-row md:hidden items-center justify-between bg-neutral-100 dark:bg-neutral-800 w-full',
+                    'h-12 sm:h-10 px-2 sm:px-4 py-2 sm:py-4 flex flex-row md:hidden items-center justify-between bg-neutral-100 dark:bg-neutral-800 w-full',
                 )}
                 {...props}
             >
                 <div className="flex justify-end z-20 w-full">
                     <Menu
-                        className="text-neutral-800 dark:text-neutral-200 cursor-pointer"
+                        className="text-neutral-800 dark:text-neutral-200 cursor-pointer w-6 h-6 sm:w-5 sm:h-5"
                         onClick={() => setOpen(!open)}
                     />
                 </div>
@@ -88,15 +88,15 @@ export const MobileSidebar = ({ className, children, ...props }) => {
                                 ease: 'easeInOut',
                             }}
                             className={cn(
-                                'fixed h-full w-full inset-0 bg-white dark:bg-neutral-900 p-10 z-[100] flex flex-col justify-between',
+                                'fixed h-full w-full inset-0 bg-white dark:bg-neutral-900 p-4 sm:p-6 md:p-10 z-[100] flex flex-col justify-between',
                                 className,
                             )}
                         >
                             <div
-                                className="absolute right-10 top-10 z-50 text-neutral-800 dark:text-neutral-200 cursor-pointer"
+                                className="absolute right-4 sm:right-6 md:right-10 top-4 sm:top-6 md:top-10 z-50 text-neutral-800 dark:text-neutral-200 cursor-pointer"
                                 onClick={() => setOpen(!open)}
                             >
-                                <X />
+                                <X className="w-6 h-6 sm:w-5 sm:h-5" />
                             </div>
                             {children}
                         </motion.div>
@@ -124,7 +124,7 @@ export const SidebarLink = ({ link, className, active, ...props }) => {
         <Link
             to={link.href}
             className={cn(
-                'flex items-center justify-center md:justify-start gap-2 group/sidebar py-2',
+                'flex items-center justify-center md:justify-start gap-2 group/sidebar py-2 px-2 sm:px-3',
                 className,
                 !open ? 'ml-[-11px]' : '',
             )}
