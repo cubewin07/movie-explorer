@@ -47,11 +47,10 @@ export default function MovieDetailPage() {
     if (isLoading) return <Loader />;
     if (isError || !movie) return <div className="p-8 text-red-400">Failed to load movie.</div>;
 
-    console.log(movie);
     return (
-        <div className="flex-1 bg-white dark:bg-slate-950 text-slate-900 dark:text-white overflow-y-auto">
+        <div className="flex-1 bg-white dark:bg-slate-950 text-slate-900 dark:text-white overflow-y-auto max-w-screen-xl mx-auto px-2 sm:px-4 md:px-8">
             {/* Backdrop */}
-            <div className="relative h-[500px] overflow-hidden">
+            <div className="relative h-64 sm:h-96 md:h-[500px] overflow-hidden">
                 <img
                     src={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}
                     alt={movie.title}
@@ -61,15 +60,15 @@ export default function MovieDetailPage() {
             </div>
 
             {/* Poster + Info */}
-            <div className="p-6 sm:p-8 flex flex-col md:flex-row gap-8 -mt-48 relative z-10">
+            <div className="p-4 sm:p-8 flex flex-col md:flex-row gap-6 md:gap-8 -mt-32 sm:-mt-40 md:-mt-48 relative z-10">
                 <img
                     src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
                     alt={movie.title}
-                    className="w-60 h-90 rounded-xl object-cover shadow-2xl border border-white dark:border-slate-700"
+                    className="w-32 sm:w-48 md:w-60 h-48 sm:h-72 md:h-90 rounded-xl object-cover shadow-2xl border border-white dark:border-slate-700 mx-auto md:mx-0"
                 />
 
                 <div className="flex-1 space-y-4">
-                    <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">{movie.title}</h1>
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight">{movie.title}</h1>
 
                     {/* Metadata */}
                     <div className="flex flex-wrap items-center gap-3 text-sm sm:text-base text-slate-600 dark:text-slate-300 font-medium">
@@ -110,9 +109,9 @@ export default function MovieDetailPage() {
                     </p>
 
                     {/* Actions */}
-                    <div className="flex flex-wrap gap-3 pt-4">
+                    <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-4">
                         <Button
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 text-sm sm:text-base"
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 text-sm sm:text-base w-full sm:w-auto"
                             onClick={() => window.open(trailerUrl, '_blank')}
                             disabled={!trailerUrl || isLoadingTrailer}
                         >
@@ -121,7 +120,7 @@ export default function MovieDetailPage() {
 
                         <Button
                             variant="outline"
-                            className="border-slate-400 dark:border-slate-600 text-slate-800 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 px-6 py-2 text-sm sm:text-base"
+                            className="border-slate-400 dark:border-slate-600 text-slate-800 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 px-6 py-2 text-sm sm:text-base w-full sm:w-auto"
                             onClick={handleAddToWatchlist}
                         >
                             <Plus className="w-4 h-4 mr-2" /> Add to Watchlist
@@ -129,7 +128,7 @@ export default function MovieDetailPage() {
 
                         <Button
                             variant="outline"
-                            className="border-slate-400 dark:border-slate-600 text-slate-800 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 px-6 py-2 text-sm sm:text-base"
+                            className="border-slate-400 dark:border-slate-600 text-slate-800 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 px-6 py-2 text-sm sm:text-base w-full sm:w-auto"
                         >
                             <Share className="w-4 h-4 mr-2" /> Share
                         </Button>
@@ -137,9 +136,9 @@ export default function MovieDetailPage() {
                 </div>
             </div>
 
-            <div className="p-8">
+            <div className="p-2 sm:p-4 md:p-8">
                 <Tabs defaultValue="overview">
-                    <TabsList className="grid grid-cols-3 md:grid-cols-5 bg-slate-800">
+                    <TabsList className="grid grid-cols-3 md:grid-cols-5 bg-slate-800 overflow-x-auto rounded-lg">
                         <TabsTrigger value="overview">Overview</TabsTrigger>
                         <TabsTrigger value="cast">Cast</TabsTrigger>
                         <TabsTrigger value="reviews">Reviews</TabsTrigger>
