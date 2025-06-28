@@ -97,12 +97,12 @@ function Home() {
                         {movie.title || movie.name}
                     </h3>
                     <div className="flex flex-wrap gap-1">
-                        {movie.genre_ids?.slice(0, 2).map((id) => (
+                        {genreNames.slice(0, 2).map((name, idx) => (
                             <span
-                                key={id}
+                                key={name + idx}
                                 className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full"
                             >
-                                {genreMap[id]}
+                                {name}
                             </span>
                         ))}
                     </div>
