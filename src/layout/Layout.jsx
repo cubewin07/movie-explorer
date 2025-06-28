@@ -23,8 +23,8 @@ function Layout() {
     return (
         <AuthenProvider>
             <FilmModalProvider>
-                <div className="min-h-screen w-full flex justify-center items-start bg-background py-8 px-2 animate-fade-in">
-                    <div className="w-full flex rounded-2xl shadow-xl bg-card overflow-hidden border border-border h-[calc(100vh-4rem)]">
+                <div className="min-h-screen w-full flex justify-center items-start bg-background py-4 sm:py-6 md:py-8 px-2 animate-fade-in">
+                    <div className="w-full flex rounded-2xl shadow-xl bg-card overflow-hidden border border-border h-[calc(100vh-2rem)] sm:h-[calc(100vh-3rem)] md:h-[calc(100vh-4rem)]">
                         <aside className="h-full">
                             <ShadSidebar open={open} setOpen={setOpen}>
                                 <SidebarBody>
@@ -36,16 +36,16 @@ function Layout() {
                                 </SidebarBody>
                             </ShadSidebar>
                         </aside>
-                        <main className="flex-grow h-full overflow-y-auto bg-background px-8 py-6 text-foreground">
+                        <main className="flex-grow h-full overflow-y-auto bg-background px-4 sm:px-6 md:px-8 py-4 sm:py-6 text-foreground">
                             <Outlet />
                         </main>
-                        <aside className="w-72 h-full bg-card">
+                        <aside className="w-64 sm:w-72 h-full bg-card">
                             <Sidebar right={true} />
                         </aside>
                     </div>
                 </div>
                 <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
-                    <DialogContent className="p-0 w-full max-w-sm bg-background border-border shadow-md rounded-xl">
+                    <DialogContent className="p-0 w-full max-w-xs sm:max-w-sm bg-background border-border shadow-md rounded-xl">
                         <Login
                             onSuccess={() => setLoginOpen(false)}
                             onShowRegister={() => {
@@ -56,7 +56,7 @@ function Layout() {
                     </DialogContent>
                 </Dialog>
                 <Dialog open={registerOpen} onOpenChange={setRegisterOpen}>
-                    <DialogContent className="p-0 w-full max-w-sm bg-background border-border shadow-md rounded-xl">
+                    <DialogContent className="p-0 w-full max-w-xs sm:max-w-sm bg-background border-border shadow-md rounded-xl">
                         <Register onSuccess={() => setRegisterOpen(false)} />
                     </DialogContent>
                 </Dialog>
