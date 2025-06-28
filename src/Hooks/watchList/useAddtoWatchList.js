@@ -15,7 +15,7 @@ export default function useAddToWatchlist(userId = null) {
         },
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['watchlist', userId] });
-            toast.success(`Added "${data.title}" to your watchlist`);
+            toast.success(`Added "${data.title || data.name}" to your watchlist`);
         },
         onError: (error) => {
             toast.error('Failed to add to watchlist. Please try again.');
