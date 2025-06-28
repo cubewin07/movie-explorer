@@ -4,10 +4,12 @@ import useWatchlist from '@/hooks/watchList/useWatchList';
 import { Button } from '@/components/ui/button';
 import { Loader } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import useRemoveFromWatchList from '@/hooks/watchList/useRemoveFromWatchList';
 
 function WatchlistPage() {
     const { user } = useAuthen();
     const navigate = useNavigate();
+    const { mutate: removeFromWatchList, isError: isRemoveFailed } = useRemoveFromWatchList();
 
     const { data: watchlist = [], isLoading, isError } = useWatchlist(user?.email || 'guest');
 
@@ -156,7 +158,10 @@ function WatchlistPage() {
                                                 size="sm"
                                                 variant="outline"
                                                 className="mt-auto text-xs hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-800 dark:hover:text-white transition-colors"
-                                                onClick={(e) => e.stopPropagation()}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    removeFromWatchList(item.id);
+                                                }}
                                             >
                                                 Remove
                                             </Button>
