@@ -144,13 +144,13 @@ export default function InfiniteList({ url, queryKey, type }) {
 
     return (
         <motion.div
-            className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 py-10 px-4"
+            className="min-h-screen bg-gradient-to-br from-blue-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 py-8 sm:py-10 px-2 sm:px-4 md:px-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
         >
             <motion.div
-                className="max-w-7xl mx-auto px-2 sm:px-4 md:px-6"
+                className="max-w-7xl mx-auto px-0 sm:px-2 md:px-4"
                 initial={{ y: -20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
             >
@@ -165,9 +165,9 @@ export default function InfiniteList({ url, queryKey, type }) {
                     </motion.button>
                 </div>
 
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-8 text-center sm:text-left">{`Popular ${type}`}</h1>
+                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-8 text-center sm:text-left">{`Popular ${type}`}</h1>
 
-                <div className="grid gap-6 grid-cols-[repeat(auto-fit,minmax(160px,1fr))]">
+                <div className="grid gap-4 sm:gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
                     {movies.map((movie, i) => (
                         <motion.div
                             key={`movie-${movie.id}`}
