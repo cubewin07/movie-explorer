@@ -60,9 +60,9 @@ export default function TVSeriesDetailPage() {
     if (isError || !series) return <div className="p-8 text-red-500">Failed to load series.</div>;
 
     return (
-        <div className="flex-1 bg-white dark:bg-slate-950 text-slate-900 dark:text-white overflow-y-auto">
+        <div className="flex-1 bg-white dark:bg-slate-950 text-slate-900 dark:text-white overflow-y-auto max-w-screen-xl mx-auto px-2 sm:px-4 md:px-8">
             {/* Backdrop */}
-            <div className="relative h-[500px] overflow-hidden">
+            <div className="relative h-64 sm:h-96 md:h-[500px] overflow-hidden">
                 <img
                     src={`https://image.tmdb.org/t/p/original${series.backdrop_path}`}
                     alt={series.name}
@@ -72,15 +72,15 @@ export default function TVSeriesDetailPage() {
             </div>
 
             {/* Poster + Info */}
-            <div className="p-6 sm:p-8 flex flex-col md:flex-row gap-8 -mt-48 relative z-10">
+            <div className="p-4 sm:p-8 flex flex-col md:flex-row gap-6 md:gap-8 -mt-32 sm:-mt-40 md:-mt-48 relative z-10">
                 <img
                     src={`https://image.tmdb.org/t/p/w342${series.poster_path}`}
                     alt={series.name}
-                    className="w-60 h-90 rounded-xl object-cover shadow-2xl border border-white dark:border-slate-700"
+                    className="w-32 sm:w-48 md:w-60 h-48 sm:h-72 md:h-90 rounded-xl object-cover shadow-2xl border border-white dark:border-slate-700 mx-auto md:mx-0"
                 />
 
                 <div className="flex-1 space-y-4">
-                    <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">{series.name}</h1>
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight">{series.name}</h1>
 
                     <div className="flex flex-wrap items-center gap-3 text-sm sm:text-base text-slate-600 dark:text-slate-300 font-medium">
                         <span>
@@ -112,9 +112,9 @@ export default function TVSeriesDetailPage() {
                         {series.overview}
                     </p>
 
-                    <div className="flex flex-wrap gap-3 pt-4">
+                    <div className="flex flex-col sm:flex-row flex-wrap gap-3 pt-4">
                         <Button
-                            className="bg-blue-600 hover:scale-105 transition-transform duration-200 ease-in-out hover:bg-blue-700 text-white px-6 py-2 text-sm sm:text-base"
+                            className="bg-blue-600 hover:scale-105 transition-transform duration-200 ease-in-out hover:bg-blue-700 text-white px-6 py-2 text-sm sm:text-base w-full sm:w-auto"
                             onClick={() => window.open(trailerUrl, '_blank')}
                             disabled={!trailerUrl || isLoadingTrailer}
                         >
@@ -123,7 +123,7 @@ export default function TVSeriesDetailPage() {
 
                         <Button
                             variant="outline"
-                            className="bg-white text-slate-800 border-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:bg-transparent dark:text-white dark:border-slate-600 dark:hover:bg-slate-800"
+                            className="bg-white text-slate-800 border-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:bg-transparent dark:text-white dark:border-slate-600 dark:hover:bg-slate-800 w-full sm:w-auto"
                             onClick={handleAddToWatchlist}
                             disabled={isPending}
                         >
@@ -132,7 +132,7 @@ export default function TVSeriesDetailPage() {
 
                         <Button
                             variant="outline"
-                            className="bg-white text-slate-800 border-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:bg-transparent dark:text-white dark:border-slate-600 dark:hover:bg-slate-800"
+                            className="bg-white text-slate-800 border-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:bg-transparent dark:text-white dark:border-slate-600 dark:hover:bg-slate-800 w-full sm:w-auto"
                         >
                             <Share className="w-4 h-4 mr-2" /> Share
                         </Button>
@@ -141,9 +141,9 @@ export default function TVSeriesDetailPage() {
             </div>
 
             {/* Tabs */}
-            <div className="p-6 sm:p-8">
+            <div className="p-2 sm:p-4 md:p-8">
                 <Tabs defaultValue="overview">
-                    <TabsList className="grid grid-cols-3 md:grid-cols-5 bg-slate-200 dark:bg-slate-800 rounded-lg mb-6">
+                    <TabsList className="grid grid-cols-3 md:grid-cols-5 bg-slate-200 dark:bg-slate-800 rounded-lg mb-6 overflow-x-auto">
                         <TabsTrigger value="overview">Overview</TabsTrigger>
                         <TabsTrigger value="episodes">Episodes</TabsTrigger>
                         <TabsTrigger value="cast">Cast</TabsTrigger>
