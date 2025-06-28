@@ -37,13 +37,17 @@ export function SearchModal({ isOpen, onClose }) {
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl max-h-[80vh] p-0 overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300">
+            <DialogContent className="w-full max-w-sm sm:max-w-md md:max-w-lg xl:max-w-2xl max-h-[80vh] p-0 overflow-hidden animate-in fade-in-0 zoom-in-95 duration-300">
                 <div className="flex flex-col h-full">
                     {/* Header */}
-                    <div className="flex items-center justify-between p-6 border-b">
+                    <div className="flex items-center justify-between p-4 sm:p-6 border-b">
                         <div>
-                            <h2 className="text-xl font-semibold text-gray-900">Search Movies & TV Series</h2>
-                            <p className="text-sm text-gray-600 mt-1">Discover your next favorite movie or TV series</p>
+                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+                                Search Movies & TV Series
+                            </h2>
+                            <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                                Discover your next favorite movie or TV series
+                            </p>
                         </div>
                         <Button variant="ghost" size="icon" onClick={onClose} className="h-8 w-8 rounded-full">
                             <X className="h-4 w-4" />
@@ -51,7 +55,7 @@ export function SearchModal({ isOpen, onClose }) {
                     </div>
 
                     {/* Search Input */}
-                    <div className="p-6 border-b">
+                    <div className="p-4 sm:p-6 border-b">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                             <Input
@@ -67,7 +71,7 @@ export function SearchModal({ isOpen, onClose }) {
                     {/* Content */}
                     <div className="flex-1 overflow-y-auto">
                         {/* Recent Searches */}
-                        <div className="p-6 border-b">
+                        <div className="p-4 sm:p-6 border-b">
                             <div className="flex items-center space-x-2 mb-4">
                                 <Clock className="h-4 w-4 text-gray-500" />
                                 <h3 className="font-medium text-gray-900">Recent Searches</h3>
@@ -88,16 +92,16 @@ export function SearchModal({ isOpen, onClose }) {
                         </div>
 
                         {/* Popular Results */}
-                        <div className="p-6">
+                        <div className="p-4 sm:p-6">
                             <div className="flex items-center justify-between mb-4">
                                 <h3 className="font-medium text-gray-900">Popular Results</h3>
-                                <span className="text-sm text-blue-600">4 results</span>
+                                <span className="text-xs sm:text-sm text-blue-600">4 results</span>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                 {popularResults.map((movie, index) => (
                                     <div
                                         key={index}
-                                        className={`flex space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-300 transform movie-card-hover ${
+                                        className={`flex space-x-3 p-2 sm:p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-all duration-300 transform movie-card-hover ${
                                             showResults
                                                 ? 'translate-y-0 opacity-100 animate-bounce-in'
                                                 : 'translate-y-4 opacity-0'
@@ -123,7 +127,7 @@ export function SearchModal({ isOpen, onClose }) {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <h4 className="font-medium text-gray-900 truncate">{movie.title}</h4>
-                                            <div className="flex items-center space-x-1 mt-1 text-sm text-gray-600">
+                                            <div className="flex items-center space-x-1 mt-1 text-xs sm:text-sm text-gray-600">
                                                 <Calendar className="w-3 h-3" />
                                                 <span>{movie.year}</span>
                                             </div>
