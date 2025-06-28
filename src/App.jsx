@@ -9,10 +9,10 @@ import MovieDetailPage from './components/pages/FilmDetails/MovieDetailPage';
 import TVSeriesDetailPage from './components/pages/FilmDetails/TvSeriesDetailPage';
 import Discovery from './components/pages/Discovery/Discovery';
 import WatchlistPage from './components/pages/Watchlist/WatchlistPage';
+import Settings from './components/pages/Settings/Settings';
 // import Community from './pages/Community'
 // import Discovery from './pages/Discovery'
 // import ComingSoon from './pages/ComingSoon'
-// import Profile from './pages/Profile'
 
 const queryClient = new QueryClient();
 
@@ -31,16 +31,20 @@ const router = createBrowserRouter(
                     element: <Discovery />, // this contains the tabs + carousels + <Outlet />
                 },
                 {
+                    path: '/tvseries',
+                    element: <Discovery />,
+                },
+                {
+                    path: '/settings',
+                    element: <Settings />,
+                },
+                {
                     path: '/movies/:type',
                     element: <PopularMoviesPage />,
                 },
                 {
                     path: '/movie/:id',
                     element: <MovieDetailPage />,
-                },
-                {
-                    path: '/tvseries',
-                    element: <Discovery />,
                 },
                 {
                     path: '/tv/:id',
