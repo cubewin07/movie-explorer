@@ -65,8 +65,8 @@ export function TrendingCarousel({ items }) {
     };
 
     return (
-        <section className="relative py-12 md:py-20 bg-gradient-to-r from-blue-100 to-blue-50 rounded-2xl shadow-lg overflow-hidden">
-            <div className="relative max-w-4xl mx-auto min-h-[360px] flex items-center">
+        <section className="relative py-8 sm:py-12 md:py-20 bg-gradient-to-r from-blue-100 to-blue-50 rounded-2xl shadow-lg overflow-hidden">
+            <div className="relative max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto min-h-[320px] sm:min-h-[360px] flex items-center px-2 sm:px-6">
                 <AnimatePresence initial={false} custom={direction}>
                     <motion.div
                         key={current}
@@ -82,14 +82,14 @@ export function TrendingCarousel({ items }) {
                         }}
                         className="absolute inset-0 w-full h-full flex items-center"
                     >
-                        <div className="flex flex-col md:flex-row items-center gap-8 w-full px-8">
+                        <div className="flex flex-col md:flex-row items-center gap-4 sm:gap-8 w-full">
                             <img
                                 src={items[current].image}
                                 alt={items[current].title}
-                                className="w-48 h-72 object-cover rounded-xl shadow-lg"
+                                className="w-32 sm:w-48 h-48 sm:h-72 object-cover rounded-xl shadow-lg mx-auto md:mx-0"
                             />
-                            <div className="flex-1">
-                                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+                            <div className="flex-1 min-w-0">
+                                <h2 className="text-xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">
                                     {items[current].title}
                                 </h2>
                                 {items[current].year && (
@@ -102,7 +102,9 @@ export function TrendingCarousel({ items }) {
                                         ★ {items[current].rating}
                                     </span>
                                 )}
-                                <p className="text-gray-700 mb-4">{items[current].description}</p>
+                                <p className="text-gray-700 mb-4 text-sm sm:text-base line-clamp-4 sm:line-clamp-5">
+                                    {items[current].description}
+                                </p>
 
                                 {items[current].extra && (
                                     <div className="flex flex-wrap gap-2 mb-4">
@@ -118,11 +120,11 @@ export function TrendingCarousel({ items }) {
                                 )}
 
                                 {/* Buttons */}
-                                <div className="flex gap-4 mt-4">
+                                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-4">
                                     {/* View Details – Gradient + Icon + Hover Glow */}
                                     <button
                                         onClick={() => navigate(`/movie/${items[current].id}`)}
-                                        className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold 
+                                        className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold w-full sm:w-auto
                    text-white bg-gradient-to-r from-blue-500 to-cyan-500 
                    shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300
                    dark:from-blue-600 dark:to-cyan-600"
@@ -148,7 +150,7 @@ export function TrendingCarousel({ items }) {
                                     <button
                                         onClick={handleAddToWatchlist}
                                         className="flex items-center gap-2 px-5 py-2 border border-blue-500 text-blue-600 
-                   text-sm font-medium rounded-lg bg-transparent 
+                   text-sm font-medium rounded-lg bg-transparent w-full sm:w-auto
                    hover:bg-blue-50 dark:hover:bg-blue-900/20 
                    hover:shadow transition-all duration-300"
                                         disabled={isPending}
@@ -173,7 +175,7 @@ export function TrendingCarousel({ items }) {
             </div>
 
             {/* Navigation */}
-            <div className="flex justify-center items-center gap-6 mt-8 relative z-10">
+            <div className="flex justify-center items-center gap-4 sm:gap-6 mt-8 relative z-10">
                 <button onClick={prev} className="p-2 rounded-full bg-white/80 hover:bg-blue-100 shadow transition">
                     <ArrowLeft className="w-5 h-5 text-blue-600" />
                 </button>
