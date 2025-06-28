@@ -1,7 +1,7 @@
 import { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Plus, ArrowRight } from 'lucide-react';
+import { Play, Plus, ArrowRight, Flame, CalendarDays, Star as StarIcon, Tv } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { TrendingCarousel } from '@/components/TrendingCarousel';
@@ -245,13 +245,31 @@ function Home() {
             )}
 
             {/* New Releases */}
-            {renderSection('New Releases', newReleases, isNewReleasesLoading, '📅', '/movies/popular')}
+            {renderSection(
+                'New Releases',
+                newReleases,
+                isNewReleasesLoading,
+                <CalendarDays className="w-6 h-6 text-blue-500 dark:text-blue-400" />,
+                '/movies/popular',
+            )}
 
             {/* Top Rated */}
-            {renderSection('Top Rated', topRatedMovies, isTopRatedLoading, '🧠', '/movies/top_rated')}
+            {renderSection(
+                'Top Rated',
+                topRatedMovies,
+                isTopRatedLoading,
+                <StarIcon className="w-6 h-6 text-yellow-500 dark:text-yellow-400" />,
+                '/movies/top_rated',
+            )}
 
             {/* Popular TV Shows */}
-            {renderSection('Popular TV Shows', popularTVShows, isPopularTVLoading, '📺', '/tvseries/popular')}
+            {renderSection(
+                'Popular TV Shows',
+                popularTVShows,
+                isPopularTVLoading,
+                <Tv className="w-6 h-6 text-purple-500 dark:text-purple-400" />,
+                '/tvseries/popular',
+            )}
 
             {showLoginModal && (
                 <LoginNotificationModal
