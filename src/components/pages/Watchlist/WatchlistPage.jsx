@@ -39,9 +39,9 @@ function WatchlistPage() {
     }
 
     return (
-        <section className="px-4 py-8 max-w-screen-xl mx-auto min-h-[80vh]">
+        <section className="px-2 sm:px-4 md:px-8 py-8 max-w-screen-xl mx-auto min-h-[80vh]">
             <motion.h1
-                className="text-3xl font-bold mb-6"
+                className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6"
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4 }}
@@ -51,15 +51,10 @@ function WatchlistPage() {
 
             {watchlist.length === 0 ? (
                 <motion.p className="text-muted-foreground" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-                    You haven’t added anything yet.
+                    You haven't added anything yet.
                 </motion.p>
             ) : (
-                <div
-                    className="grid gap-6"
-                    style={{
-                        gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-                    }}
-                >
+                <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                     <AnimatePresence>
                         <motion.div
                             initial="hidden"
