@@ -7,7 +7,9 @@ export default function useAddToWatchlist(userId = null) {
 
     return useMutation({
         mutationFn: async (movie) => {
-            const payload = userId ? { ...movie, userId } : movie;
+            const payload = userId
+                ? { ...movie, id: movie.id.toString(), userId }
+                : { ...movie, id: movie.id.toString() };
             const res = await instance.post('/watchlist', payload);
             return res.data;
         },
