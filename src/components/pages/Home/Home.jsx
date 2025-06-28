@@ -1,6 +1,6 @@
 import { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Plus, ArrowRight } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -69,14 +69,17 @@ function Home() {
         }
     };
 
-    const renderMovieCard = (movie, type = 'movie') => {
+    const renderMovieCard = (movie, type = 'movie', index = 0) => {
         const genreNames = movie.genre_ids?.map((id) => genreMap[id]).filter(Boolean) || [];
 
         return (
             <motion.div
                 key={movie.id}
                 className="relative bg-white dark:bg-slate-800 border border-border dark:border-slate-700 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-200 flex flex-col overflow-hidden group cursor-pointer"
-                whileHover={{ y: -4 }}
+                whileHover={{ y: -4, scale: 1.03 }}
+                initial={{ opacity: 0, y: 30, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.4, delay: 0.08 * index }}
                 onClick={() => {
                     setContext({ ...movie, genres: genreNames });
                     setIsOpen(true);
@@ -96,16 +99,29 @@ function Home() {
                     <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
                         {movie.title || movie.name}
                     </h3>
-                    <div className="flex flex-wrap gap-1">
+                    <motion.div
+                        className="flex flex-wrap gap-1"
+                        initial="hidden"
+                        animate="visible"
+                        variants={{
+                            hidden: {},
+                            visible: {
+                                transition: { staggerChildren: 0.08 },
+                            },
+                        }}
+                    >
                         {genreNames.slice(0, 2).map((name, idx) => (
-                            <span
+                            <motion.span
                                 key={name + idx}
                                 className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full"
+                                initial={{ opacity: 0, scale: 0.8 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.3, delay: 0.1 * idx }}
                             >
                                 {name}
-                            </span>
+                            </motion.span>
                         ))}
-                    </div>
+                    </motion.div>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
                         {movie.release_date?.slice(0, 4) || movie.first_air_date?.slice(0, 4)}
                     </span>
@@ -115,77 +131,77 @@ function Home() {
     };
 
     const renderSection = (title, items, isLoading, icon, viewAllPath) => {
-        if (isLoading) {
-            return (
-                <section className="mb-12">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                            {icon} {title}
-                        </h2>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                        {Array.from({ length: 6 }).map((_, i) => (
-                            <div key={i} className="h-80 bg-gray-200 dark:bg-slate-700 rounded-xl animate-pulse" />
-                        ))}
-                    </div>
-                </section>
-            );
-        }
-
         return (
             <section className="mb-12">
-                <div className="flex items-center justify-between mb-6">
+                <motion.div
+                    className="flex items-center justify-between mb-6"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5 }}
+                >
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                         {icon} {title}
                     </h2>
-                    <button
+                    <motion.button
                         onClick={() => navigate(viewAllPath)}
                         className="text-blue-600 dark:text-blue-400 font-semibold hover:underline transition-colors flex items-center gap-1"
+                        whileHover={{ scale: 1.08 }}
+                        whileTap={{ scale: 0.97 }}
                     >
                         View All <ArrowRight className="w-4 h-4" />
-                    </button>
-                </div>
+                    </motion.button>
+                </motion.div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                    {items?.map((item) => renderMovieCard(item))}
+                    {isLoading
+                        ? Array.from({ length: 6 }).map((_, i) => (
+                              <motion.div
+                                  key={i}
+                                  className="h-80 bg-gray-200 dark:bg-slate-700 rounded-xl animate-pulse"
+                              />
+                          ))
+                        : items?.map((item, idx) => renderMovieCard(item, 'movie', idx))}
                 </div>
             </section>
         );
     };
 
     return (
-        <div className="w-full max-w-screen-xl mx-auto flex flex-col gap-8 px-2 sm:px-4 md:px-8">
+        <div className="w-full max-w-screen-xl mx-auto flex flex-col gap-8 px-2 sm:px-4 md:px-8 bg-gradient-to-b from-white via-slate-100 to-slate-200 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 transition-colors duration-500">
             {/* Featured Hero Banner */}
             {featuredContent && !isFeaturedLoading && (
-                <section className="relative h-96 sm:h-[500px] rounded-2xl overflow-hidden mb-8">
+                <section className="relative h-96 sm:h-[500px] rounded-2xl overflow-hidden mb-8 shadow-xl">
                     <div className="absolute inset-0">
                         <img
                             src={`https://image.tmdb.org/t/p/original${featuredContent.backdrop_path}`}
                             alt={featuredContent.title}
                             className="w-full h-full object-cover"
                         />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent dark:from-slate-950/90 dark:via-slate-900/60 dark:to-transparent" />
                     </div>
-
-                    <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
+                    <motion.div
+                        className="absolute bottom-0 left-0 right-0 p-6 sm:p-8"
+                        initial={{ opacity: 0, y: 40 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.7 }}
+                    >
                         <div className="max-w-2xl">
                             <motion.h1
-                                className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4"
+                                className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg"
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.6 }}
                             >
                                 {featuredContent.title}
                             </motion.h1>
-
                             <motion.p
-                                className="text-white/90 text-sm sm:text-base mb-6 line-clamp-3"
+                                className="text-white/90 text-sm sm:text-base mb-6 line-clamp-3 drop-shadow"
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.6, delay: 0.2 }}
                             >
                                 {featuredContent.overview}
                             </motion.p>
-
                             <motion.div
                                 className="flex flex-col sm:flex-row gap-3"
                                 initial={{ opacity: 0, y: 20 }}
@@ -194,27 +210,31 @@ function Home() {
                             >
                                 <Button
                                     onClick={() => navigate(`/movie/${featuredContent.id}`)}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3"
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 shadow-lg"
+                                    whileHover={{ scale: 1.05 }}
                                 >
                                     <Play className="w-4 h-4 mr-2" /> Watch Now
                                 </Button>
                                 <Button
                                     variant="outline"
                                     onClick={() => handleAddToWatchlist(featuredContent)}
-                                    className="border-white text-white hover:bg-white hover:text-black"
+                                    className="border-white text-white hover:bg-white hover:text-black shadow-lg"
+                                    whileHover={{ scale: 1.05 }}
                                 >
                                     <Plus className="w-4 h-4 mr-2" /> Add to Watchlist
                                 </Button>
                             </motion.div>
                         </div>
-                    </div>
+                    </motion.div>
                 </section>
             )}
 
             {/* Trending Carousel */}
             {carouselItems.length > 0 && !isTrendingLoading && (
                 <section className="mb-8">
-                    <TrendingCarousel items={carouselItems} />
+                    <AnimatePresence>
+                        <TrendingCarousel items={carouselItems} />
+                    </AnimatePresence>
                 </section>
             )}
 
