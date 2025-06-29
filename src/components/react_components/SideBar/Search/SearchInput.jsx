@@ -49,11 +49,12 @@ function SearchInput() {
 
     const { data, isLoading } = useSearchOrFallbackContent(isModalOpen, debouncedSearch);
 
+    console.log(data?.top_rated?.slice(0, 5));
     const renderCards = (items) => (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {items.map((item, i) => {
-                if (!['movie', 'tv'].includes(item.media_type)) return null;
-                const type = item.media_type === 'tv' ? 'tvseries' : 'movie';
+                const mediaType = item.media_type || (item.title ? 'movie' : 'tv');
+                const type = mediaType === 'tv' ? 'tvseries' : 'movie';
 
                 return (
                     <div key={item.id} className="animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
