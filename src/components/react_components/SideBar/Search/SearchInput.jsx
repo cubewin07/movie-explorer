@@ -54,7 +54,7 @@ function SearchInput() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {items.map((item, i) => {
                 const mediaType = item.media_type || (item.title ? 'movie' : 'tv');
-                const type = mediaType === 'tv' ? 'tvseries' : 'movie';
+                const type = mediaType === 'tv' ? 'tv' : 'movie';
 
                 return (
                     <div key={item.id} className="animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
