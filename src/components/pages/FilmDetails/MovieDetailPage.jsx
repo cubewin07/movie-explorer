@@ -61,11 +61,13 @@ export default function MovieDetailPage() {
 
             {/* Poster + Info */}
             <div className="p-4 sm:p-8 flex flex-col md:flex-row gap-6 md:gap-8 -mt-32 sm:-mt-40 md:-mt-48 relative z-10">
-                <img
-                    src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
-                    alt={movie.title}
-                    className="w-32 sm:w-48 md:w-60 h-48 sm:h-72 md:h-90 rounded-xl object-cover shadow-2xl border border-white dark:border-slate-700 mx-auto md:mx-0"
-                />
+                <div className="flex items-center justify-center w-32 sm:w-48 md:w-60 h-48 sm:h-72 md:h-90 rounded-xl bg-gray-100 dark:bg-slate-800 shadow-2xl border border-white dark:border-slate-700 mx-auto md:mx-0">
+                    <img
+                        src={`https://image.tmdb.org/t/p/w342${movie.poster_path}`}
+                        alt={movie.title}
+                        className="object-cover w-full h-full rounded-xl my-auto"
+                    />
+                </div>
 
                 <div className="flex-1 space-y-4">
                     <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight">{movie.title}</h1>
