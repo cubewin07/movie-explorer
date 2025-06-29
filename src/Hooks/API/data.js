@@ -8,10 +8,11 @@ export const usePopularMovies = (page) => {
         isError,
     } = useQuery({
         queryKey: ['popularMovies', page],
-        queryFn: () =>
+        queryFn: ({ signal }) =>
             axiosInstance
                 .get('/movie/popular', {
                     params: { language: 'en-US', page },
+                    signal,
                 })
                 .then((res) => res.data),
         keepPreviousData: true,
@@ -30,13 +31,14 @@ export const usePopularTvSeries = (page) => {
         isError,
     } = useQuery({
         queryKey: ['popularTvSeries', page],
-        queryFn: () =>
+        queryFn: ({ signal }) =>
             axiosInstance
                 .get('/tv/popular', {
                     params: {
                         language: 'en-US',
                         page: page,
                     },
+                    signal,
                 })
                 .then((res) => res.data),
         refetchOnWindowFocus: false,
@@ -51,9 +53,10 @@ export const usePopularTvSeries = (page) => {
 export const usePaginatedFetch = (url, page) => {
     const { data, isLoading, isError } = useQuery({
         queryKey: [url, page],
-        queryFn: async () => {
+        queryFn: async ({ signal }) => {
             const res = await axiosInstance.get(`/${url}`, {
                 params: { language: 'en-US', page },
+                signal,
             });
             return res.data;
         },
@@ -74,10 +77,10 @@ export const useSearchOrFallbackContent = (
     const { data, isLoading } = useQuery({
         queryKey: ['search-multi', debouncedSearch],
         enabled: isModalOpen,
-        queryFn: async () => {
+        queryFn: async ({ signal }) => {
             if (!debouncedSearch) {
                 const fallbackResults = await Promise.all(
-                    fallbackEndpoints.map((endpoint) => axiosInstance.get(`/${endpoint}`)),
+                    fallbackEndpoints.map((endpoint) => axiosInstance.get(`/${endpoint}`, { signal })),
                 );
                 const fallbackData = {};
                 fallbackEndpoints.forEach((key, i) => {
@@ -87,7 +90,7 @@ export const useSearchOrFallbackContent = (
                 return { movies: [], tv: [], ...fallbackData };
             }
 
-            const { data: results } = await axiosInstance.get(`/search/multi?query=${debouncedSearch}`);
+            const { data: results } = await axiosInstance.get(`/search/multi?query=${debouncedSearch}`, { signal });
 
             const movies = results.results.filter((item) => item.media_type === 'movie');
             const tv = results.results.filter((item) => item.media_type === 'tv');
@@ -102,12 +105,13 @@ export const useSearchOrFallbackContent = (
 export const useInfinitePaginatedFetch = (url, key) => {
     return useInfiniteQuery({
         queryKey: [key],
-        queryFn: async ({ pageParam = 1 }) => {
+        queryFn: async ({ pageParam = 1, signal }) => {
             const res = await axiosInstance.get(`/${url}`, {
                 params: {
                     language: 'en-US',
                     page: pageParam,
                 },
+                signal,
             });
             return res.data;
         },
@@ -128,8 +132,8 @@ export const useMovieDetails = (id) => {
         isError,
     } = useQuery({
         queryKey: [id],
-        queryFn: async () => {
-            const res = await axiosInstance.get(`/movie/${id}`);
+        queryFn: async ({ signal }) => {
+            const res = await axiosInstance.get(`/movie/${id}`, { signal });
             return res.data;
         },
     });
@@ -145,9 +149,10 @@ export const useMovieTrailer = (id) => {
     } = useQuery({
         queryKey: ['movieTrailer', id],
         enabled: !!id,
-        queryFn: async () => {
+        queryFn: async ({ signal }) => {
             const { data } = await axiosInstance.get(`/movie/${id}/videos`, {
                 params: { language: 'en-US' },
+                signal,
             });
 
             const trailer = data.results.find((video) => video.type === 'Trailer' && video.site === 'YouTube');
@@ -169,9 +174,10 @@ export const useTVSeriesDetails = (id) => {
     } = useQuery({
         queryKey: ['tvSeriesDetails', id],
         enabled: !!id,
-        queryFn: async () => {
+        queryFn: async ({ signal }) => {
             const { data } = await axiosInstance.get(`/tv/${id}`, {
                 params: { append_to_response: 'credits,seasons,similar' },
+                signal,
             });
             return data;
         },
@@ -190,9 +196,10 @@ export const useTVSeriesTrailer = (id) => {
     } = useQuery({
         queryKey: ['tvSeriesTrailer', id],
         enabled: !!id,
-        queryFn: async () => {
+        queryFn: async ({ signal }) => {
             const { data } = await axiosInstance.get(`/tv/${id}/videos`, {
                 params: { language: 'en-US' },
+                signal,
             });
 
             const trailer = data.results.find((video) => video.type === 'Trailer' && video.site === 'YouTube');
@@ -209,8 +216,8 @@ export const useTVSeriesTrailer = (id) => {
 export const useSeasonDetails = (tvId, seasonNumber, enabled = true) => {
     const { data, isLoading } = useQuery({
         queryKey: ['seasonDetails', tvId, seasonNumber],
-        queryFn: async () => {
-            const { data } = await axiosInstance.get(`/tv/${tvId}/season/${seasonNumber}`);
+        queryFn: async ({ signal }) => {
+            const { data } = await axiosInstance.get(`/tv/${tvId}/season/${seasonNumber}`, { signal });
             return data.episodes || [];
         },
         enabled,
@@ -224,10 +231,11 @@ export const useSeasonDetails = (tvId, seasonNumber, enabled = true) => {
 export const useFeaturedContent = () => {
     const { data, isLoading, isError } = useQuery({
         queryKey: ['featuredContent'],
-        queryFn: async () => {
+        queryFn: async ({ signal }) => {
             // Get trending movies for the week to use as featured content
             const { data } = await axiosInstance.get('/trending/movie/week', {
                 params: { language: 'en-US' },
+                signal,
             });
             return data.results[0]; // Return the top trending movie as featured
         },
@@ -241,7 +249,7 @@ export const useFeaturedContent = () => {
 export const useNewReleases = () => {
     const { data, isLoading, isError } = useQuery({
         queryKey: ['newReleases'],
-        queryFn: async () => {
+        queryFn: async ({ signal }) => {
             // Get movies released in the current year, sorted by popularity
             const currentYear = new Date().getFullYear();
             const { data } = await axiosInstance.get('/discover/movie', {
@@ -251,6 +259,7 @@ export const useNewReleases = () => {
                     primary_release_year: currentYear,
                     page: 1,
                 },
+                signal,
             });
             return data.results.slice(0, 8); // Return top 8 new releases
         },
@@ -264,9 +273,10 @@ export const useNewReleases = () => {
 export const useTopRatedMovies = () => {
     const { data, isLoading, isError } = useQuery({
         queryKey: ['topRatedMovies'],
-        queryFn: async () => {
+        queryFn: async ({ signal }) => {
             const { data } = await axiosInstance.get('/movie/top_rated', {
                 params: { language: 'en-US', page: 1 },
+                signal,
             });
             return data.results.slice(0, 8); // Return top 8 rated movies
         },
@@ -280,9 +290,10 @@ export const useTopRatedMovies = () => {
 export const usePopularTVShows = () => {
     const { data, isLoading, isError } = useQuery({
         queryKey: ['popularTVShows'],
-        queryFn: async () => {
+        queryFn: async ({ signal }) => {
             const { data } = await axiosInstance.get('/tv/popular', {
                 params: { language: 'en-US', page: 1 },
+                signal,
             });
             return data.results.slice(0, 8); // Return top 8 popular TV shows
         },
