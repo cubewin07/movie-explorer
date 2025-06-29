@@ -58,7 +58,13 @@ export default function SeasonAccordion({ tvId, seasonNumber, season }) {
                                             `}
                                         >
                                             <div className="w-32 h-20 flex items-center justify-center bg-slate-200 dark:bg-slate-700 rounded">
-                                                {isImageMissing ? (
+                                                {isImageMissing && !isFutureEpisode ? (
+                                                    <img
+                                                        src="/no-image-available.png"
+                                                        alt="No image available"
+                                                        className="w-32 h-20 object-cover rounded"
+                                                    />
+                                                ) : isImageMissing && isFutureEpisode ? (
                                                     <span className="text-xs font-medium text-yellow-800">
                                                         Coming Soon
                                                     </span>
