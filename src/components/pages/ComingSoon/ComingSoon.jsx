@@ -35,57 +35,64 @@ export default function ComingSoon() {
     const upcomingMovies = (upcomingMoviesData?.results || []).filter((m) => new Date(m.release_date) > now);
     const upcomingTVShows = (upcomingTVData?.results || []).filter((tv) => new Date(tv.first_air_date) >= now);
 
-    const renderCard = (item, isMovie = true) => (
-        <motion.div
-            key={item.id}
-            className="bg-white dark:bg-slate-800 rounded-2xl shadow-md hover:shadow-xl overflow-hidden flex flex-col h-full cursor-pointer"
-            variants={itemVariants}
-            whileHover={{ y: -5, scale: 1.02 }}
-            onClick={() => {
-                setContext(item);
-                setIsOpen(true);
-            }}
-        >
-            <div className="relative h-64 w-full bg-gradient-to-br from-indigo-400 to-blue-600 flex items-center justify-center overflow-hidden">
-                <Badge className="absolute top-3 left-3 bg-indigo-600 text-white shadow text-xs font-semibold px-2 py-0.5">
-                    Coming Soon
-                </Badge>
-                <Badge className="absolute top-3 right-3 bg-yellow-500 text-black shadow text-xs font-semibold px-2 py-0.5">
-                    ★ {item.vote_average?.toFixed(1)}
-                </Badge>
-                {item.poster_path ? (
-                    <img
-                        src={`https://image.tmdb.org/t/p/w500${item.poster_path}`}
-                        alt={item.title || item.name}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                ) : (
-                    <div className="flex flex-col items-center justify-center w-full h-full text-white opacity-80">
-                        {isMovie ? <Film className="w-10 h-10 mb-2" /> : <Tv className="w-10 h-10 mb-2" />}
-                        <span className="text-sm">Poster Coming Soon</span>
-                    </div>
-                )}
-            </div>
-            <div className="p-4 flex flex-col gap-2 flex-1">
-                <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">{item.title || item.name}</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
-                    {item.overview || 'No description available.'}
-                </p>
-                <div className="flex items-center gap-2 mt-auto flex-wrap">
-                    <Badge variant="outline" className="text-xs">
-                        {(item.genre_ids || [])
-                            .map((id) => (isMovie ? movieGenreMap[id] : tvGenreMap[id]))
-                            .filter(Boolean)
-                            .join(', ') || 'Uncategorized'}
+    const renderCard = (item, isMovie = true) => {
+        const image = item.poster_path
+            ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+            : '/no-image-available.png';
+        const genres = (item.genre_ids || [])
+            .map((id) => (isMovie ? movieGenreMap[id] : tvGenreMap[id]))
+            .filter(Boolean);
+        return (
+            <motion.div
+                key={item.id}
+                className="bg-white dark:bg-slate-800 rounded-2xl shadow-md hover:shadow-xl overflow-hidden flex flex-col h-full cursor-pointer"
+                variants={itemVariants}
+                whileHover={{ y: -5, scale: 1.02 }}
+                onClick={() => {
+                    setContext({ ...item, image, genres });
+                    setIsOpen(true);
+                }}
+            >
+                <div className="relative h-64 w-full bg-gradient-to-br from-indigo-400 to-blue-600 flex items-center justify-center overflow-hidden">
+                    <Badge className="absolute top-3 left-3 bg-indigo-600 text-white shadow text-xs font-semibold px-2 py-0.5">
+                        Coming Soon
                     </Badge>
-                    <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                        <Calendar className="w-4 h-4" />
-                        <span>{item.release_date || item.first_air_date}</span>
+                    <Badge className="absolute top-3 right-3 bg-yellow-500 text-black shadow text-xs font-semibold px-2 py-0.5">
+                        ★ {item.vote_average?.toFixed(1)}
+                    </Badge>
+                    {item.poster_path ? (
+                        <img
+                            src={image}
+                            alt={item.title || item.name}
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                    ) : (
+                        <div className="flex flex-col items-center justify-center w-full h-full text-white opacity-80">
+                            {isMovie ? <Film className="w-10 h-10 mb-2" /> : <Tv className="w-10 h-10 mb-2" />}
+                            <span className="text-sm">Poster Coming Soon</span>
+                        </div>
+                    )}
+                </div>
+                <div className="p-4 flex flex-col gap-2 flex-1">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">
+                        {item.title || item.name}
+                    </h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
+                        {item.overview || 'No description available.'}
+                    </p>
+                    <div className="flex items-center gap-2 mt-auto flex-wrap">
+                        <Badge variant="outline" className="text-xs">
+                            {genres.join(', ') || 'Uncategorized'}
+                        </Badge>
+                        <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                            <Calendar className="w-4 h-4" />
+                            <span>{item.release_date || item.first_air_date}</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </motion.div>
-    );
+            </motion.div>
+        );
+    };
 
     const containerVariants = {
         hidden: { opacity: 0 },
