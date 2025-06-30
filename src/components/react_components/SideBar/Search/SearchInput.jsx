@@ -49,7 +49,6 @@ function SearchInput() {
 
     const { data, isLoading } = useSearchOrFallbackContent(isModalOpen, debouncedSearch);
 
-    console.log(data?.top_rated?.slice(0, 5));
     const renderCards = (items) => (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {items.map((item, i) => {
