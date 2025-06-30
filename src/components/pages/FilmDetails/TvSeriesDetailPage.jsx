@@ -1,13 +1,14 @@
 import { useParams } from 'react-router-dom';
-import { Play, Plus, Share, Star } from 'lucide-react';
+import { Play, Plus, Share, Star, Users, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { Loader } from '@/components/ui/loader';
 
-import { useTVSeriesDetails, useTVSeriesTrailer } from '@/hooks/API/data';
+import { useTVSeriesDetails, useTVSeriesTrailer, useTvSeriesCredits } from '@/hooks/API/data';
 import { useAuthen } from '@/context/AuthenProvider';
 import useAddToWatchlist from '@/hooks/watchList/useAddtoWatchList';
 import { LoginNotificationModal } from '@/components/react_components/Modal/LoginNotificationModal';
@@ -19,6 +20,11 @@ export default function TVSeriesDetailPage() {
     const [showLoginModal, setShowLoginModal] = useState(false);
     const { series, isLoading, isError } = useTVSeriesDetails(id);
     const { trailerUrl, isLoadingTrailer } = useTVSeriesTrailer(id);
+
+    // Fetch credits (cast & crew)
+    const { credits, isLoading: isLoadingCredits, isError: isErrorCredits } = useTvSeriesCredits(id);
+    const cast = credits?.cast?.slice(0, 10) || [];
+    const crew = credits?.crew?.slice(0, 5) || [];
 
     const genres = series?.genres?.map((g) => g.name) || [];
     const watchlistData = series && {
@@ -217,10 +223,11 @@ export default function TVSeriesDetailPage() {
             {/* Tabs */}
             <div className="p-2 sm:p-4 md:p-8">
                 <Tabs defaultValue="overview">
-                    <TabsList className="grid grid-cols-3 md:grid-cols-5 bg-slate-200 dark:bg-slate-800 rounded-lg mb-6 overflow-x-auto">
+                    <TabsList className="grid grid-cols-3 md:grid-cols-6 bg-slate-200 dark:bg-slate-800 rounded-lg mb-6 overflow-x-auto">
                         <TabsTrigger value="overview">Overview</TabsTrigger>
                         <TabsTrigger value="episodes">Episodes</TabsTrigger>
                         <TabsTrigger value="cast">Cast</TabsTrigger>
+                        <TabsTrigger value="crew">Crew</TabsTrigger>
                         <TabsTrigger value="details">Details</TabsTrigger>
                         <TabsTrigger value="similar">Similar</TabsTrigger>
                     </TabsList>
@@ -245,12 +252,96 @@ export default function TVSeriesDetailPage() {
                     </TabsContent>
 
                     <TabsContent value="cast">
-                        <p className="text-slate-600 dark:text-slate-300">
-                            {series.credits?.cast
-                                ?.slice(0, 10)
-                                .map((c) => c.name)
-                                .join(', ') || 'No cast info'}
-                        </p>
+                        {isLoadingCredits ? (
+                            <div className="py-6 flex justify-center">
+                                <Loader />
+                            </div>
+                        ) : isErrorCredits ? (
+                            <div className="py-6 text-red-500">Failed to load cast.</div>
+                        ) : cast.length === 0 ? (
+                            <div className="py-6 text-muted-foreground">No cast info.</div>
+                        ) : (
+                            <motion.ul
+                                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mt-4"
+                                initial={{ opacity: 0 }}
+                                whileInView={{ opacity: 1 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.5 }}
+                            >
+                                {cast.map((person) => (
+                                    <motion.li
+                                        key={person.id}
+                                        className="flex flex-col items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-3 shadow"
+                                        initial={{ opacity: 0, y: 20 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ duration: 0.4 }}
+                                    >
+                                        {person.profile_path ? (
+                                            <img
+                                                src={`https://image.tmdb.org/t/p/w185${person.profile_path}`}
+                                                alt={person.name}
+                                                className="w-14 h-14 rounded-full object-cover mb-2 border-2 border-blue-200 dark:border-blue-700 shadow"
+                                            />
+                                        ) : (
+                                            <User className="w-14 h-14 mb-2 text-blue-400 bg-blue-100 dark:bg-blue-900 rounded-full p-2" />
+                                        )}
+                                        <span className="font-semibold text-sm text-center truncate w-full">
+                                            {person.name}
+                                        </span>
+                                        <span className="text-xs text-muted-foreground text-center truncate w-full">
+                                            {person.character}
+                                        </span>
+                                    </motion.li>
+                                ))}
+                            </motion.ul>
+                        )}
+                    </TabsContent>
+                    <TabsContent value="crew">
+                        {isLoadingCredits ? (
+                            <div className="py-6 flex justify-center">
+                                <Loader />
+                            </div>
+                        ) : isErrorCredits ? (
+                            <div className="py-6 text-red-500">Failed to load crew.</div>
+                        ) : crew.length === 0 ? (
+                            <div className="py-6 text-muted-foreground">No crew info.</div>
+                        ) : (
+                            <motion.ul
+                                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mt-4"
+                                initial={{ opacity: 0 }}
+                                whileInView={{ opacity: 1 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.5 }}
+                            >
+                                {crew.map((person) => (
+                                    <motion.li
+                                        key={person.id}
+                                        className="flex flex-col items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-3 shadow"
+                                        initial={{ opacity: 0, y: 20 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ duration: 0.4 }}
+                                    >
+                                        {person.profile_path ? (
+                                            <img
+                                                src={`https://image.tmdb.org/t/p/w185${person.profile_path}`}
+                                                alt={person.name}
+                                                className="w-14 h-14 rounded-full object-cover mb-2 border-2 border-indigo-200 dark:border-indigo-700 shadow"
+                                            />
+                                        ) : (
+                                            <User className="w-14 h-14 mb-2 text-indigo-400 bg-indigo-100 dark:bg-indigo-900 rounded-full p-2" />
+                                        )}
+                                        <span className="font-semibold text-sm text-center truncate w-full">
+                                            {person.name}
+                                        </span>
+                                        <span className="text-xs text-muted-foreground text-center truncate w-full">
+                                            {person.job}
+                                        </span>
+                                    </motion.li>
+                                ))}
+                            </motion.ul>
+                        )}
                     </TabsContent>
 
                     <TabsContent value="details">

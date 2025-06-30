@@ -317,3 +317,17 @@ export const useMovieCredits = (id) => {
     });
     return { credits: data, isLoading, isError };
 };
+
+export const useTvSeriesCredits = (id) => {
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['tv-credits', id],
+        enabled: !!id,
+        queryFn: async ({ signal }) => {
+            const { data } = await axiosInstance.get(`/tv/${id}/credits`, { signal });
+            return data;
+        },
+        staleTime: 1000 * 60 * 10,
+        refetchOnWindowFocus: false,
+    });
+    return { credits: data, isLoading, isError };
+};
