@@ -40,18 +40,49 @@ function Popular({ movies = [], genres = [] }) {
         setShowAll(location.pathname === expectedPath);
     }, [location.pathname, firstItem]);
 
+    const containerVariants = {
+        hidden: { opacity: 0 },
+        visible: {
+            opacity: 1,
+            transition: { staggerChildren: 0.12 },
+        },
+    };
+    const cardVariants = {
+        hidden: { opacity: 0, y: 24, scale: 0.97 },
+        visible: {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            transition: { type: 'spring', stiffness: 180, damping: 18 },
+        },
+    };
+    const badgeVariants = {
+        hidden: { opacity: 0, y: 8 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.25 } },
+    };
+
     return (
-        <div className="rounded-2xl p-2 sm:p-3 bg-slate-50 dark:bg-slate-900 shadow-md space-y-2 sm:space-y-3">
-            {movies.map((item) => {
+        <motion.div
+            className="rounded-2xl p-2 sm:p-3 bg-slate-50 dark:bg-slate-900 shadow-md space-y-2 sm:space-y-3"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={containerVariants}
+        >
+            {movies.map((item, i) => {
                 const genreNames = getGenreNames(item.genre_ids);
                 const isTV = isTvSeries(item);
                 const displayTitle = isTV ? item.name : item.title;
                 const displayDate = isTV ? item.first_air_date : item.release_date;
 
                 return (
-                    <div
+                    <motion.div
                         key={item.id}
                         className="flex gap-2 sm:gap-3 p-2 min-h-[100px] sm:min-h-[110px] rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 hover:ring-1 hover:ring-blue-400 dark:hover:ring-blue-500 transition cursor-pointer shadow-sm"
+                        variants={cardVariants}
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true }}
                         onClick={() => handleClick({ ...item, genres: genreNames })}
                     >
                         <Card className="w-12 h-full sm:w-14 overflow-hidden rounded-md shadow-sm flex-shrink-0 bg-muted my-auto">
@@ -71,16 +102,29 @@ function Popular({ movies = [], genres = [] }) {
                                     {displayDate}
                                 </p>
 
-                                <div className="flex flex-wrap gap-[3px] sm:gap-[4px] mt-1">
+                                <motion.div
+                                    className="flex flex-wrap gap-[3px] sm:gap-[4px] mt-1"
+                                    initial="hidden"
+                                    whileInView="visible"
+                                    viewport={{ once: true }}
+                                    variants={{
+                                        hidden: {},
+                                        visible: { transition: { staggerChildren: 0.08 } },
+                                    }}
+                                >
                                     {genreNames.slice(0, 2).map((name) => (
-                                        <span
+                                        <motion.span
                                             key={name}
                                             className="bg-indigo-100 dark:bg-indigo-600 text-indigo-800 dark:text-white text-[9px] sm:text-[10px] font-medium px-1.5 sm:px-2 py-[2px] sm:py-[3px] rounded leading-none min-w-[40px] sm:min-w-[48px] text-center"
+                                            variants={badgeVariants}
+                                            initial="hidden"
+                                            whileInView="visible"
+                                            viewport={{ once: true }}
                                         >
                                             {name}
-                                        </span>
+                                        </motion.span>
                                     ))}
-                                </div>
+                                </motion.div>
                             </div>
 
                             <div className="flex items-center gap-[3px] sm:gap-[4px] mt-1">
@@ -92,7 +136,7 @@ function Popular({ movies = [], genres = [] }) {
                                 </span>
                             </div>
                         </div>
-                    </div>
+                    </motion.div>
                 );
             })}
 
@@ -115,7 +159,7 @@ function Popular({ movies = [], genres = [] }) {
                     </motion.button>
                 </AnimatePresence>
             )}
-        </div>
+        </motion.div>
     );
 }
 
