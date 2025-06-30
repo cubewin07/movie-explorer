@@ -10,6 +10,7 @@ import TVSeriesDetailPage from './components/pages/FilmDetails/TvSeriesDetailPag
 import Discovery from './components/pages/Discovery/Discovery';
 import WatchlistPage from './components/pages/Watchlist/WatchlistPage';
 import Settings from './components/pages/Settings/Settings';
+import ComingSoon from './components/pages/ComingSoon/ComingSoon';
 // import Community from './pages/Community'
 // import Discovery from './pages/Discovery'
 // import ComingSoon from './pages/ComingSoon'
@@ -37,6 +38,10 @@ const router = createBrowserRouter(
                 {
                     path: '/settings',
                     element: <Settings />,
+                },
+                {
+                    path: '/coming-soon',
+                    element: <ComingSoon />,
                 },
                 {
                     path: '/movies/:type',
