@@ -142,6 +142,35 @@ export default function ComingSoon() {
         visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
     };
 
+    const featureCardVariants = {
+        hidden: { opacity: 0, y: 40 },
+        visible: (i) => ({
+            opacity: 1,
+            y: 0,
+            transition: { delay: i * 0.15, duration: 0.6, type: 'spring', bounce: 0.3 },
+        }),
+        hover: {
+            scale: 1.04,
+            y: -8,
+            boxShadow: '0 8px 32px 0 rgba(59,130,246,0.15)',
+            backgroundColor: '#f0f7ff',
+            borderColor: '#3b82f6',
+            transition: { type: 'spring', stiffness: 300, damping: 18 },
+        },
+        'hover-dark': {
+            scale: 1.04,
+            y: -8,
+            boxShadow: '0 8px 32px 0 rgba(99,102,241,0.18)',
+            backgroundColor: '#1e293b',
+            borderColor: '#6366f1',
+            transition: { type: 'spring', stiffness: 300, damping: 18 },
+        },
+    };
+    const featureIconVariants = {
+        initial: { scale: 1, rotate: 0 },
+        hover: { scale: 1.15, rotate: 10, transition: { type: 'spring', stiffness: 300 } },
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
             <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -235,13 +264,18 @@ export default function ComingSoon() {
 
                 {/* Upcoming Features */}
                 <motion.section
-                    actions
                     className="mb-12 sm:mb-16"
                     variants={containerVariants}
                     initial="hidden"
                     animate="visible"
                 >
-                    <motion.div className="text-center mb-8" variants={itemVariants}>
+                    <motion.div
+                        className="text-center mb-8"
+                        variants={itemVariants}
+                        initial={{ opacity: 0, y: -30 }}
+                        animate={{ opacity: 1, y: 0, scale: 1.05 }}
+                        transition={{ type: 'spring', bounce: 0.4, duration: 0.8 }}
+                    >
                         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">
                             New Features Coming Soon
                         </h2>
@@ -253,13 +287,26 @@ export default function ComingSoon() {
                         {upcomingFeatures.map((feature, index) => (
                             <motion.div
                                 key={index}
-                                className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300"
-                                variants={itemVariants}
-                                whileHover={{ y: -5, scale: 1.02 }}
+                                className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg border border-transparent transition-all duration-300"
+                                custom={index}
+                                variants={featureCardVariants}
+                                initial="hidden"
+                                animate="visible"
+                                whileHover={
+                                    typeof window !== 'undefined' &&
+                                    window.matchMedia('(prefers-color-scheme: dark)').matches
+                                        ? 'hover-dark'
+                                        : 'hover'
+                                }
                             >
-                                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mb-4">
+                                <motion.div
+                                    className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mb-4 mx-auto"
+                                    variants={featureIconVariants}
+                                    initial="initial"
+                                    whileHover="hover"
+                                >
                                     <div className="text-blue-600 dark:text-blue-400">{feature.icon}</div>
-                                </div>
+                                </motion.div>
                                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                                     {feature.title}
                                 </h3>
