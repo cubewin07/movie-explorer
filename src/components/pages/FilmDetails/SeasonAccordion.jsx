@@ -51,10 +51,10 @@ export default function SeasonAccordion({ tvId, seasonNumber, season, open, onTo
                                                     isImageMissing
                                                         ? 'bg-yellow-100 dark:bg-yellow-200/10 text-yellow-900'
                                                         : isFutureEpisode
-                                                          ? 'bg-indigo-100 dark:bg-indigo-800/30 text-indigo-900 dark:text-indigo-100'
-                                                          : 'bg-slate-50 dark:bg-slate-800 hover:bg-blue-100 hover:shadow-lg hover:border-blue-400 dark:hover:bg-blue-900 dark:hover:shadow-lg dark:hover:border-blue-400 text-slate-900 dark:text-white'
+                                                          ? 'bg-indigo-50 text-indigo-900'
+                                                          : 'bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white hover:bg-indigo-50 hover:border-indigo-300 dark:hover:bg-slate-700 dark:hover:border-slate-500'
                                                 }
-                                            `}
+                                              `}
                                         >
                                             <div className="w-32 h-20 flex items-center justify-center bg-slate-200 dark:bg-slate-700 rounded">
                                                 {isImageMissing && !isFutureEpisode ? (
