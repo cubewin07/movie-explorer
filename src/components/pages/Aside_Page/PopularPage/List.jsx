@@ -154,7 +154,7 @@ export default function InfiniteList({ url, queryKey, type }) {
                 initial={{ y: -20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
             >
-                <div className="sticky top-6 z-30 flex justify-end">
+                <div className="sticky top-10 z-30 flex justify-end">
                     <motion.button
                         onClick={() => navigate(-1)}
                         className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-full text-xs font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-white/10 transition w-fit"
