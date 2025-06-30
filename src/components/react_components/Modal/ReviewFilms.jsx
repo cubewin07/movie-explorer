@@ -1,7 +1,7 @@
 import { useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Calendar, Globe, X, Eye, Clock } from 'lucide-react';
+import { Star, Calendar, Globe, X, Eye, Clock, Film, Tv } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -89,13 +89,22 @@ export default function MovieReviewModal({
 
                     <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
                         {/* Poster */}
-                        <motion.img
-                            whileHover={{ scale: 1.03 }}
-                            transition={{ type: 'spring', stiffness: 200 }}
-                            src={posterUrl}
-                            alt={`${title} poster`}
-                            className="w-32 h-48 sm:w-48 sm:h-72 mx-auto lg:mx-0 rounded-xl object-cover shadow-md"
-                        />
+                        {posterUrl &&
+                        !posterUrl.includes('placeholder.svg') &&
+                        posterUrl !== '/no-image-available.png' ? (
+                            <motion.img
+                                whileHover={{ scale: 1.03 }}
+                                transition={{ type: 'spring', stiffness: 200 }}
+                                src={posterUrl}
+                                alt={`${title || name} poster`}
+                                className="w-32 h-48 sm:w-48 sm:h-72 mx-auto lg:mx-0 rounded-xl object-cover shadow-md"
+                            />
+                        ) : (
+                            <div className="flex flex-col items-center justify-center w-32 h-48 sm:w-48 sm:h-72 mx-auto lg:mx-0 bg-gradient-to-br from-indigo-400 to-blue-600 rounded-xl text-white opacity-80">
+                                {title ? <Film className="w-10 h-10 mb-2" /> : <Tv className="w-10 h-10 mb-2" />}
+                                <span className="text-sm">Poster Coming Soon</span>
+                            </div>
+                        )}
 
                         {/* Info */}
                         <div className="flex-1 space-y-4">
