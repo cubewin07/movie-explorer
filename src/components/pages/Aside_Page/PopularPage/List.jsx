@@ -73,14 +73,14 @@ export default function InfiniteList({ url, queryKey, type }) {
 
     useEffect(() => {
         const currentMovieCount = movies.length;
-        const hasNewMovies = currentMovieCount > previousMovieCount.current;
+        const hasNewMovies = currentCount > previousMovieCount.current;
 
-        if ((hasNewMovies || (currentMovieCount > 0 && previousMovieCount.current === 0)) && !isPaginating) {
+        if ((hasNewMovies || (currentCount > 0 && previousMovieCount.current === 0)) && !isPaginating) {
             setIsRenderComplete(false);
             setShouldPreventScroll(true);
-            previousMovieCount.current = currentMovieCount;
+            previousMovieCount.current = currentCount;
 
-            const totalDelay = 800 + Math.min(currentMovieCount, 40) * 20;
+            const totalDelay = 800 + Math.min(currentCount, 40) * 20;
             const timeout = setTimeout(() => {
                 setIsRenderComplete(true);
                 setShouldPreventScroll(false);
@@ -152,9 +152,17 @@ export default function InfiniteList({ url, queryKey, type }) {
             <motion.div
                 className="max-w-7xl mx-auto px-0 sm:px-2 md:px-4"
                 initial={{ y: -20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
+                whileInView={{ y: 0, opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5 }}
             >
-                <div className="sticky top-10 z-30 flex justify-end">
+                <motion.div
+                    className="sticky top-10 z-30 flex justify-end"
+                    initial={{ opacity: 0, y: -10 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4 }}
+                >
                     <motion.button
                         onClick={() => navigate(-1)}
                         className="px-3 py-1.5 border border-gray-300 dark:border-gray-600 rounded-full text-xs font-semibold text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-800 hover:bg-gray-100 dark:hover:bg-white/10 transition w-fit"
@@ -163,18 +171,36 @@ export default function InfiniteList({ url, queryKey, type }) {
                     >
                         ← Back
                     </motion.button>
-                </div>
+                </motion.div>
 
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-8 text-center sm:text-left">{`Popular ${type}`}</h1>
+                <motion.h1
+                    className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-8 text-center sm:text-left"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: 0.1 }}
+                >
+                    {`Popular ${type}`}
+                </motion.h1>
 
-                <div className="grid gap-4 sm:gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                <motion.div
+                    className="grid gap-4 sm:gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true }}
+                    variants={{
+                        hidden: {},
+                        visible: { transition: { staggerChildren: 0.08 } },
+                    }}
+                >
                     {movies.map((movie, i) => (
                         <motion.div
                             key={`movie-${movie.id}`}
                             custom={i}
                             variants={cardVariants}
                             initial="hidden"
-                            animate="visible"
+                            whileInView="visible"
+                            viewport={{ once: true }}
                             whileHover={{ y: -4 }}
                             className="bg-white dark:bg-slate-800 border rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer group"
                             onClick={() => {
@@ -195,7 +221,8 @@ export default function InfiniteList({ url, queryKey, type }) {
                                     alt={movie.title}
                                     className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                     initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
+                                    whileInView={{ opacity: 1 }}
+                                    viewport={{ once: true }}
                                     transition={{ delay: Math.min(i * 0.015, 0.5) + 0.2, duration: 0.4 }}
                                     loading="lazy"
                                     onError={(e) => (e.target.src = '/placeholder-movie.jpg')}
@@ -211,7 +238,7 @@ export default function InfiniteList({ url, queryKey, type }) {
                             </div>
                         </motion.div>
                     ))}
-                </div>
+                </motion.div>
 
                 {hasNextPage && !isPaginating && isRenderComplete && !shouldPreventScroll && (
                     <div ref={sentinelRef} className="h-20 flex items-center justify-center mt-8">
@@ -256,7 +283,8 @@ export default function InfiniteList({ url, queryKey, type }) {
                     <motion.div
                         className="text-center mt-10 text-gray-600 dark:text-gray-400"
                         initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
+                        whileInView={{ opacity: 1 }}
+                        viewport={{ once: true }}
                     >
                         You've reached the end!
                     </motion.div>
