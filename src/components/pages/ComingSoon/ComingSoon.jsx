@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { usePaginatedFetch } from '@/hooks/API/data';
 import { useMovieGenres, useTvSeriesGenres } from '@/hooks/API/genres';
 import SkeletonCard from '@/components/ui/skeletonCard';
+import { Link } from 'react-router-dom';
 
 export default function ComingSoon() {
     const { data: upcomingMoviesData, isLoading: isLoadingMovies } = usePaginatedFetch('movie/upcoming', 1);
@@ -123,11 +124,18 @@ export default function ComingSoon() {
                     initial="hidden"
                     animate="visible"
                 >
-                    <motion.div className="flex items-center gap-3 mb-8" variants={itemVariants}>
-                        <Film className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-                            Upcoming Movies
-                        </h2>
+                    <motion.div className="flex items-center justify-between gap-3 mb-8" variants={itemVariants}>
+                        <div className="flex items-center gap-3">
+                            <Film className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                                Upcoming Movies
+                            </h2>
+                        </div>
+                        <Link to="/movies/upcoming">
+                            <Button variant="outline" className="flex items-center gap-1">
+                                See All <ArrowRight className="w-4 h-4" />
+                            </Button>
+                        </Link>
                     </motion.div>
                     {isLoadingMovies ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -149,11 +157,18 @@ export default function ComingSoon() {
                     initial="hidden"
                     animate="visible"
                 >
-                    <motion.div className="flex items-center gap-3 mb-8" variants={itemVariants}>
-                        <Tv className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-                        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-                            Upcoming TV Shows
-                        </h2>
+                    <motion.div className="flex items-center justify-between gap-3 mb-8" variants={itemVariants}>
+                        <div className="flex items-center gap-3">
+                            <Tv className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                                Upcoming TV Shows
+                            </h2>
+                        </div>
+                        <Link to="/tvseries/upcoming">
+                            <Button variant="outline" className="flex items-center gap-1">
+                                See All <ArrowRight className="w-4 h-4" />
+                            </Button>
+                        </Link>
                     </motion.div>
                     {isLoadingUpcomingTV ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
