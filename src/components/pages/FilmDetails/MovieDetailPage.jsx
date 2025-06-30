@@ -37,8 +37,6 @@ export default function MovieDetailPage() {
     const cast = credits?.cast?.slice(0, 10) || [];
     const crew = credits?.crew?.slice(0, 5) || [];
 
-    console.log(credits);
-
     const { mutate: addToWatchlist, isPending } = useAddToWatchlist();
 
     const handleAddToWatchlist = () => {
