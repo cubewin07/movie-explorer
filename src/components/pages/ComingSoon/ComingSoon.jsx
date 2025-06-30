@@ -8,7 +8,8 @@ import { useMovieGenres, useTvSeriesGenres } from '@/hooks/API/genres';
 export default function ComingSoon() {
     // Fetch upcoming movies and TV series
     const { data: upcomingMoviesData, isLoading: isLoadingMovies } = usePaginatedFetch('movie/upcoming', 1);
-    const { data: upcomingTVData, isLoading: isLoadingTV } = usePaginatedFetch('tv/on_the_air', 1);
+    const { data: onTheAirData, isLoading: isLoadingOnAir } = usePaginatedFetch('tv/on_the_air', 1);
+
     const { MovieGenres } = useMovieGenres();
     const { TvSeriesGenresRes } = useTvSeriesGenres();
 
@@ -30,10 +31,10 @@ export default function ComingSoon() {
         const date = m.release_date ? new Date(m.release_date) : null;
         return date && date > today;
     });
-    const upcomingTVShows = (upcomingTVData?.results || []).filter((tv) => {
-        const date = tv.first_air_date ? new Date(tv.first_air_date) : null;
-        return date && date > today;
-    });
+    // const upcomingTVShows = (upcomingTVData?.results || []).filter((tv) => {
+    //     const date = tv.first_air_date ? new Date(tv.first_air_date) : null;
+    //     return date && date > today;
+    // });
 
     const upcomingFeatures = [
         {
@@ -115,6 +116,7 @@ export default function ComingSoon() {
                             Upcoming Movies
                         </h2>
                     </motion.div>
+
                     {isLoadingMovies ? (
                         <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                             Loading upcoming movies...
@@ -128,43 +130,49 @@ export default function ComingSoon() {
                             {upcomingMovies.map((movie) => (
                                 <motion.div
                                     key={movie.id}
-                                    className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                                    className="bg-white dark:bg-slate-800 rounded-2xl shadow-md hover:shadow-xl overflow-hidden flex flex-col h-full"
                                     variants={itemVariants}
-                                    whileHover={{ y: -5 }}
+                                    whileHover={{ y: -5, scale: 1.02 }}
                                 >
-                                    <div className="relative h-48 sm:h-56 flex items-center justify-center bg-gradient-to-br from-blue-400 to-purple-600">
+                                    {/* Image */}
+                                    <div className="relative h-64 w-full bg-gradient-to-br from-blue-400 to-purple-600 overflow-hidden">
+                                        <Badge className="absolute top-3 left-3 bg-indigo-600 text-white shadow text-xs font-semibold px-2 py-0.5">
+                                            Coming Soon
+                                        </Badge>
+                                        <Badge className="absolute top-3 right-3 bg-yellow-500 text-black shadow text-xs font-semibold px-2 py-0.5">
+                                            ★ {movie.vote_average?.toFixed(1)}
+                                        </Badge>
                                         {movie.poster_path ? (
                                             <img
                                                 src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                                                 alt={movie.title}
-                                                className="w-full h-full object-cover"
+                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                             />
                                         ) : (
-                                            <div className="text-white text-center">
-                                                <Calendar className="w-12 h-12 mx-auto mb-2 opacity-80" />
-                                                <p className="text-sm opacity-90">Poster Coming Soon</p>
+                                            <div className="flex flex-col items-center justify-center w-full h-full text-white opacity-80">
+                                                <Film className="w-10 h-10 mb-2" />
+                                                <span className="text-sm">Poster Coming Soon</span>
                                             </div>
                                         )}
-                                        <Badge className="absolute top-3 right-3 bg-yellow-500 text-black">
-                                            ★ {movie.vote_average?.toFixed(1)}
-                                        </Badge>
                                     </div>
-                                    <div className="p-4 sm:p-6">
-                                        <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2">
+
+                                    {/* Content */}
+                                    <div className="p-4 flex flex-col gap-2 flex-1">
+                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">
                                             {movie.title}
                                         </h3>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
                                             {movie.overview}
                                         </p>
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 mt-auto flex-wrap">
                                             <Badge variant="outline" className="text-xs">
                                                 {(movie.genre_ids || [])
                                                     .map((id) => movieGenreMap[id])
                                                     .filter(Boolean)
                                                     .join(', ')}
                                             </Badge>
-                                            <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
-                                                <Clock className="w-4 h-4" />
+                                            <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                                                <Calendar className="w-4 h-4" />
                                                 <span>{movie.release_date}</span>
                                             </div>
                                         </div>
@@ -183,61 +191,61 @@ export default function ComingSoon() {
                     animate="visible"
                 >
                     <motion.div className="flex items-center gap-3 mb-8" variants={itemVariants}>
-                        <Tv className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+                        <Tv className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-                            Upcoming TV Shows
+                            Currently Airing TV Shows
                         </h2>
                     </motion.div>
-                    {isLoadingTV ? (
-                        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                            Loading upcoming TV shows...
-                        </div>
-                    ) : upcomingTVShows.length === 0 ? (
-                        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                            No upcoming TV shows found.
-                        </div>
+
+                    {isLoadingOnAir ? (
+                        <div className="text-center py-8 text-gray-500 dark:text-gray-400">Loading...</div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            {upcomingTVShows.map((show) => (
+                            {(onTheAirData?.results || []).map((show) => (
                                 <motion.div
                                     key={show.id}
-                                    className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                                    className="bg-white dark:bg-slate-800 rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col sm:flex-row group max-w-2xl mx-auto"
                                     variants={itemVariants}
-                                    whileHover={{ y: -5 }}
+                                    whileHover={{ y: -5, scale: 1.02 }}
                                 >
-                                    <div className="relative h-48 sm:h-56 flex items-center justify-center bg-gradient-to-br from-purple-400 to-pink-600">
+                                    {/* Image Section */}
+                                    <div className="relative w-full sm:w-40 md:w-48 h-64 sm:h-60 md:h-72 bg-gradient-to-br from-indigo-400 to-blue-600 flex-shrink-0 flex items-center justify-center rounded-2xl sm:rounded-r-none overflow-hidden">
+                                        <Badge className="absolute top-3 left-3 bg-indigo-600 text-white shadow text-xs font-semibold px-2 py-0.5">
+                                            Now Airing
+                                        </Badge>
+                                        <Badge className="absolute top-3 right-3 bg-yellow-500 text-black shadow text-xs font-semibold px-2 py-0.5">
+                                            ★ {show.vote_average?.toFixed(1)}
+                                        </Badge>
                                         {show.poster_path ? (
                                             <img
                                                 src={`https://image.tmdb.org/t/p/w500${show.poster_path}`}
                                                 alt={show.name}
-                                                className="w-full h-full object-cover"
+                                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                                             />
                                         ) : (
-                                            <div className="text-white text-center">
-                                                <Tv className="w-12 h-12 mx-auto mb-2 opacity-80" />
-                                                <p className="text-sm opacity-90">Poster Coming Soon</p>
+                                            <div className="flex flex-col items-center justify-center w-full h-full text-white opacity-80">
+                                                <Tv className="w-10 h-10 mb-2" />
+                                                <span className="text-sm">Poster Coming Soon</span>
                                             </div>
                                         )}
-                                        <Badge className="absolute top-3 right-3 bg-yellow-500 text-black">
-                                            ★ {show.vote_average?.toFixed(1)}
-                                        </Badge>
                                     </div>
-                                    <div className="p-4 sm:p-6">
-                                        <h3 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                                    {/* Content Section */}
+                                    <div className="flex-1 p-4 flex flex-col gap-2">
+                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">
                                             {show.name}
                                         </h3>
-                                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
                                             {show.overview}
                                         </p>
-                                        <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2 mt-auto flex-wrap">
                                             <Badge variant="outline" className="text-xs">
                                                 {(show.genre_ids || [])
                                                     .map((id) => tvGenreMap[id])
                                                     .filter(Boolean)
                                                     .join(', ')}
                                             </Badge>
-                                            <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
-                                                <Clock className="w-4 h-4" />
+                                            <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                                                <Calendar className="w-4 h-4" />
                                                 <span>{show.first_air_date}</span>
                                             </div>
                                         </div>
