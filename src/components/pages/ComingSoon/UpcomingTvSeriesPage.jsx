@@ -4,7 +4,7 @@ import { useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import Breadcrumb from '../Discovery/Breadcrumb';
 import SkeletonCard from '@/components/ui/skeletonCard';
-import { Tv, Calendar } from 'lucide-react';
+import { Tv, Calendar, Loader } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 export default function UpcomingTvSeriesPage() {
@@ -108,10 +108,8 @@ export default function UpcomingTvSeriesPage() {
                 </div>
             )}
             {isFetchingNextPage && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-4">
-                    {Array.from({ length: 3 }).map((_, i) => (
-                        <SkeletonCard key={i} delay={i * 0.08} />
-                    ))}
+                <div className="flex justify-center items-center py-8">
+                    <Loader className="w-8 h-8 text-blue-500 animate-spin" />
                 </div>
             )}
         </div>
