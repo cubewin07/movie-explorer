@@ -5,8 +5,7 @@ import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/comp
 import EpisodeModal from './EpisodeModal';
 import { useSeasonDetails } from '@/hooks/API/data';
 
-export default function SeasonAccordion({ tvId, seasonNumber, season }) {
-    const [open, setOpen] = useState(false);
+export default function SeasonAccordion({ tvId, seasonNumber, season, open, onToggle }) {
     const [selectedEpisode, setSelectedEpisode] = useState(null);
     const { episodes, isLoading } = useSeasonDetails(tvId, seasonNumber, open);
 
@@ -21,7 +20,7 @@ export default function SeasonAccordion({ tvId, seasonNumber, season }) {
         <TooltipProvider>
             <>
                 <div className="collapse collapse-arrow border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white rounded-xl shadow-sm">
-                    <input type="checkbox" onChange={() => setOpen(!open)} />
+                    <input type="checkbox" checked={open} onChange={onToggle} />
                     <div className="collapse-title font-semibold text-base sm:text-lg">
                         Season {season.season_number} ({season.air_date?.slice(0, 4)})
                     </div>
@@ -53,7 +52,7 @@ export default function SeasonAccordion({ tvId, seasonNumber, season }) {
                                                         ? 'bg-yellow-100 dark:bg-yellow-200/10 text-yellow-900'
                                                         : isFutureEpisode
                                                           ? 'bg-indigo-100 dark:bg-indigo-800/30 text-indigo-900 dark:text-indigo-100'
-                                                          : 'bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-900 dark:text-white'
+                                                          : 'bg-slate-50 dark:bg-slate-800 hover:bg-blue-100 hover:shadow-lg hover:border-blue-400 dark:hover:bg-slate-700 text-slate-900 dark:text-white'
                                                 }
                                             `}
                                         >

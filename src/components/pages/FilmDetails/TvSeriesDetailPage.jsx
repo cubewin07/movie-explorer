@@ -54,6 +54,8 @@ export default function TVSeriesDetailPage() {
         addToWatchlist(watchlistData);
     };
 
+    const [openSeason, setOpenSeason] = useState(null);
+
     if (isLoading) {
         return (
             <div className="p-8 space-y-4">
@@ -194,7 +196,7 @@ export default function TVSeriesDetailPage() {
                         transition={{ duration: 0.5, delay: 0.3 }}
                     >
                         <Button
-                            className="bg-blue-600 hover:scale-105 transition-transform duration-200 ease-in-out hover:bg-blue-700 text-white px-6 py-2 text-sm sm:text-base w-full sm:w-auto"
+                            className="bg-gradient-to-r from-blue-500 via-blue-600 to-indigo-600 hover:from-blue-600 hover:via-indigo-700 hover:to-indigo-800 shadow-lg hover:scale-105 transition-transform duration-200 ease-in-out text-white px-6 py-2 text-sm sm:text-base w-full sm:w-auto"
                             onClick={() => window.open(trailerUrl, '_blank')}
                             disabled={!trailerUrl || isLoadingTrailer}
                         >
@@ -246,6 +248,10 @@ export default function TVSeriesDetailPage() {
                                     tvId={series.id}
                                     seasonNumber={season.season_number}
                                     season={season}
+                                    open={openSeason === season.season_number}
+                                    onToggle={() =>
+                                        setOpenSeason(openSeason === season.season_number ? null : season.season_number)
+                                    }
                                 />
                             ))}
                         </div>
