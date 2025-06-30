@@ -67,7 +67,7 @@ export default function TVSeriesDetailPage() {
     if (isError || !series) return <div className="p-8 text-red-500">Failed to load series.</div>;
 
     return (
-        <div className="flex-1 bg-white dark:bg-slate-950 text-slate-900 dark:text-white overflow-y-auto max-w-screen-xl mx-auto px-2 sm:px-4 md:px-8">
+        <div className="flex-1 bg-white dark:bg-slate-950 text-slate-900 dark:text-white overflow-y-auto max-w-screen-xl mx-auto px-2 sm:px-4 md:px-8 rounded-lg">
             {/* Backdrop */}
             <motion.div
                 className="relative h-64 sm:h-96 md:h-[500px] overflow-hidden"
