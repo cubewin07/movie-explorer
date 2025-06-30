@@ -164,7 +164,7 @@ export default function ComingSoon() {
                                 Upcoming TV Shows
                             </h2>
                         </div>
-                        <Link to="/tvseries/upcoming">
+                        <Link to="/tv/upcoming">
                             <Button variant="outline" className="flex items-center gap-1">
                                 See All <ArrowRight className="w-4 h-4" />
                             </Button>

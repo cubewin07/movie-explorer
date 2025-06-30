@@ -6,6 +6,7 @@ import Breadcrumb from '../Discovery/Breadcrumb';
 import SkeletonCard from '@/components/ui/skeletonCard';
 import { Tv, Calendar, Loader } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useLocation } from 'react-router-dom';
 
 export default function UpcomingTvSeriesPage() {
     const today = new Date().toISOString().split('T')[0];
