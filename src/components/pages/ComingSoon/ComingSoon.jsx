@@ -14,19 +14,19 @@ const upcomingFeatures = [
         icon: <Users className="w-7 h-7" />,
         title: 'Social Watchlists',
         description: 'Share your watchlist with friends and discover what others are watching.',
-        eta: 'Coming Q3 2024',
+        eta: 'Coming July 2025',
     },
     {
         icon: <Play className="w-7 h-7" />,
         title: 'Integrated Trailers',
         description: 'Watch trailers directly on the site without leaving the page.',
-        eta: 'Coming Q2 2024',
+        eta: 'Coming August 2025',
     },
     {
         icon: <Bell className="w-7 h-7" />,
         title: 'Release Notifications',
         description: 'Get notified when your most anticipated movies and shows are released.',
-        eta: 'Coming Q3 2024',
+        eta: 'Coming July 2024',
     },
 ];
 
