@@ -37,6 +37,8 @@ export default function MovieDetailPage() {
     const cast = credits?.cast?.slice(0, 10) || [];
     const crew = credits?.crew?.slice(0, 5) || [];
 
+    console.log(credits);
+
     const { mutate: addToWatchlist, isPending } = useAddToWatchlist();
 
     const handleAddToWatchlist = () => {
@@ -251,7 +253,15 @@ export default function MovieDetailPage() {
                                         viewport={{ once: true }}
                                         transition={{ duration: 0.4 }}
                                     >
-                                        <User className="w-8 h-8 mb-2 text-blue-500" />
+                                        {person.profile_path ? (
+                                            <img
+                                                src={`https://image.tmdb.org/t/p/w185${person.profile_path}`}
+                                                alt={person.name}
+                                                className="w-14 h-14 rounded-full object-cover mb-2 border-2 border-blue-200 dark:border-blue-700 shadow"
+                                            />
+                                        ) : (
+                                            <User className="w-14 h-14 mb-2 text-blue-400 bg-blue-100 dark:bg-blue-900 rounded-full p-2" />
+                                        )}
                                         <span className="font-semibold text-sm text-center truncate w-full">
                                             {person.name}
                                         </span>
@@ -289,7 +299,15 @@ export default function MovieDetailPage() {
                                         viewport={{ once: true }}
                                         transition={{ duration: 0.4 }}
                                     >
-                                        <User className="w-8 h-8 mb-2 text-indigo-500" />
+                                        {person.profile_path ? (
+                                            <img
+                                                src={`https://image.tmdb.org/t/p/w185${person.profile_path}`}
+                                                alt={person.name}
+                                                className="w-14 h-14 rounded-full object-cover mb-2 border-2 border-indigo-200 dark:border-indigo-700 shadow"
+                                            />
+                                        ) : (
+                                            <User className="w-14 h-14 mb-2 text-indigo-400 bg-indigo-100 dark:bg-indigo-900 rounded-full p-2" />
+                                        )}
                                         <span className="font-semibold text-sm text-center truncate w-full">
                                             {person.name}
                                         </span>
