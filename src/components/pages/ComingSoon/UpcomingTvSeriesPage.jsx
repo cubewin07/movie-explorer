@@ -1,12 +1,13 @@
 import { useInfinitePaginatedFetch } from '@/hooks/API/data';
 import { useTvSeriesGenres } from '@/hooks/API/genres';
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useContext } from 'react';
 import { motion } from 'framer-motion';
 import Breadcrumb from '../Discovery/Breadcrumb';
 import SkeletonCard from '@/components/ui/skeletonCard';
 import { Tv, Calendar, Loader, ArrowLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { FilmModalContext } from '@/context/FilmModalProvider';
 
 export default function UpcomingTvSeriesPage() {
     const today = new Date().toISOString().split('T')[0];
@@ -39,13 +40,18 @@ export default function UpcomingTvSeriesPage() {
     const tvs = data?.pages.flatMap((page) => page.results) || [];
 
     const navigate = useNavigate();
+    const { setIsOpen, setContext } = useContext(FilmModalContext);
 
     const renderCard = (tv, ref) => (
         <motion.div
             key={tv.id}
             ref={ref}
-            className="bg-white dark:bg-slate-800 rounded-2xl shadow-md hover:shadow-xl overflow-hidden flex flex-col h-full"
+            className="bg-white dark:bg-slate-800 rounded-2xl shadow-md hover:shadow-xl overflow-hidden flex flex-col h-full cursor-pointer"
             whileHover={{ y: -5, scale: 1.02 }}
+            onClick={() => {
+                setContext(tv);
+                setIsOpen(true);
+            }}
         >
             <div className="relative h-64 w-full bg-gradient-to-br from-indigo-400 to-blue-600 flex items-center justify-center overflow-hidden">
                 <Badge className="absolute top-3 left-3 bg-indigo-600 text-white shadow text-xs font-semibold px-2 py-0.5">

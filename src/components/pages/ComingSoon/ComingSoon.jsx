@@ -1,3 +1,4 @@
+import { useContext } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, Tv, Film, Users, Bell, Play, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,7 @@ import { usePaginatedFetch } from '@/hooks/API/data';
 import { useMovieGenres, useTvSeriesGenres } from '@/hooks/API/genres';
 import SkeletonCard from '@/components/ui/skeletonCard';
 import { Link } from 'react-router-dom';
+import { FilmModalContext } from '@/context/FilmModalProvider';
 
 export default function ComingSoon() {
     const { data: upcomingMoviesData, isLoading: isLoadingMovies } = usePaginatedFetch('movie/upcoming', 1);
@@ -16,6 +18,7 @@ export default function ComingSoon() {
     );
     const { MovieGenres } = useMovieGenres();
     const { TvSeriesGenresRes } = useTvSeriesGenres();
+    const { setIsOpen, setContext } = useContext(FilmModalContext);
 
     const movieGenreMap =
         MovieGenres?.data?.genres?.reduce((acc, g) => {
@@ -35,9 +38,13 @@ export default function ComingSoon() {
     const renderCard = (item, isMovie = true) => (
         <motion.div
             key={item.id}
-            className="bg-white dark:bg-slate-800 rounded-2xl shadow-md hover:shadow-xl overflow-hidden flex flex-col h-full"
+            className="bg-white dark:bg-slate-800 rounded-2xl shadow-md hover:shadow-xl overflow-hidden flex flex-col h-full cursor-pointer"
             variants={itemVariants}
             whileHover={{ y: -5, scale: 1.02 }}
+            onClick={() => {
+                setContext(item);
+                setIsOpen(true);
+            }}
         >
             <div className="relative h-64 w-full bg-gradient-to-br from-indigo-400 to-blue-600 flex items-center justify-center overflow-hidden">
                 <Badge className="absolute top-3 left-3 bg-indigo-600 text-white shadow text-xs font-semibold px-2 py-0.5">
