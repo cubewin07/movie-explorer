@@ -1,9 +1,10 @@
 import { NavLink } from 'react-router-dom';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 function Breadcrumb({ items }) {
     return (
-        <div className="sticky top-0 z-40 px-4 py-2 bg-white/70 dark:bg-slate-900/10 backdrop-blur-md border-gray-200 dark:border-slate-700/20 shadow-sm rounded">
+        <div className="sticky top-1 z-40 mb-4 px-4 py-2 bg-white/70 dark:bg-slate-900/10 backdrop-blur-md border-gray-200 dark:border-slate-700/20 shadow-sm rounded">
             <nav className="text-sm text-gray-700 dark:text-gray-300" aria-label="Breadcrumb">
                 {items.map((crumb, idx) => (
                     <span key={idx}>
