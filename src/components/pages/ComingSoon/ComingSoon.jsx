@@ -9,6 +9,27 @@ import SkeletonCard from '@/components/ui/skeletonCard';
 import { Link } from 'react-router-dom';
 import { FilmModalContext } from '@/context/FilmModalProvider';
 
+const upcomingFeatures = [
+    {
+        icon: <Users className="w-7 h-7" />,
+        title: 'Social Watchlists',
+        description: 'Share your watchlist with friends and discover what others are watching.',
+        eta: 'Coming Q3 2024',
+    },
+    {
+        icon: <Play className="w-7 h-7" />,
+        title: 'Integrated Trailers',
+        description: 'Watch trailers directly on the site without leaving the page.',
+        eta: 'Coming Q2 2024',
+    },
+    {
+        icon: <Bell className="w-7 h-7" />,
+        title: 'Release Notifications',
+        description: 'Get notified when your most anticipated movies and shows are released.',
+        eta: 'Coming Q3 2024',
+    },
+];
+
 export default function ComingSoon() {
     const { data: upcomingMoviesData, isLoading: isLoadingMovies } = usePaginatedFetch('movie/upcoming', 1);
     const today = new Date().toISOString().split('T')[0];
@@ -211,6 +232,68 @@ export default function ComingSoon() {
                         </div>
                     )}
                 </motion.section>
+
+                {/* Upcoming Features */}
+                <motion.section
+                    actions
+                    className="mb-12 sm:mb-16"
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="visible"
+                >
+                    <motion.div className="text-center mb-8" variants={itemVariants}>
+                        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                            New Features Coming Soon
+                        </h2>
+                        <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
+                            We're constantly working to bring you the best movie watching experience.
+                        </p>
+                    </motion.div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {upcomingFeatures.map((feature, index) => (
+                            <motion.div
+                                key={index}
+                                className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300"
+                                variants={itemVariants}
+                                whileHover={{ y: -5, scale: 1.02 }}
+                            >
+                                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mb-4">
+                                    <div className="text-blue-600 dark:text-blue-400">{feature.icon}</div>
+                                </div>
+                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                                    {feature.title}
+                                </h3>
+                                <p className="text-gray-600 dark:text-gray-400 mb-4">{feature.description}</p>
+                                <Badge variant="secondary" className="text-xs">
+                                    {feature.eta}
+                                </Badge>
+                            </motion.div>
+                        ))}
+                    </div>
+                </motion.section>
+
+                {/* Call to Action */}
+                <motion.div
+                    className="text-center bg-white dark:bg-slate-800 rounded-2xl p-8 sm:p-12 shadow-lg"
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.8, delay: 0.5 }}
+                >
+                    <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">Stay Updated</h3>
+                    <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-md mx-auto">
+                        Be the first to know when new content and features are available.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                        <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3">
+                            <Bell className="w-4 h-4 mr-2" />
+                            Get Notifications
+                        </Button>
+                        <Button variant="outline" className="px-6 py-3">
+                            <ArrowRight className="w-4 h-4 mr-2" />
+                            Explore Current Content
+                        </Button>
+                    </div>
+                </motion.div>
             </div>
         </div>
     );
