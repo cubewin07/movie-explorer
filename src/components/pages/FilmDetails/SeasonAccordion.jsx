@@ -52,7 +52,7 @@ export default function SeasonAccordion({ tvId, seasonNumber, season, open, onTo
                                                         ? 'bg-yellow-100 dark:bg-yellow-200/10 text-yellow-900'
                                                         : isFutureEpisode
                                                           ? 'bg-indigo-100 dark:bg-indigo-800/30 text-indigo-900 dark:text-indigo-100'
-                                                          : 'bg-slate-50 dark:bg-slate-800 hover:bg-blue-100 hover:shadow-lg hover:border-blue-400 dark:hover:bg-slate-700 text-slate-900 dark:text-white'
+                                                          : 'bg-slate-50 dark:bg-slate-800 hover:bg-blue-100 hover:shadow-lg hover:border-blue-400 dark:hover:bg-blue-900 dark:hover:shadow-lg dark:hover:border-blue-400 text-slate-900 dark:text-white'
                                                 }
                                             `}
                                         >
