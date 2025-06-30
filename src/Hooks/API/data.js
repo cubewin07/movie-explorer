@@ -303,3 +303,17 @@ export const usePopularTVShows = () => {
 
     return { popularTVShows: data, isLoading, isError };
 };
+
+export const useMovieCredits = (id) => {
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ['movie-credits', id],
+        enabled: !!id,
+        queryFn: async ({ signal }) => {
+            const { data } = await axiosInstance.get(`/movie/${id}/credits`, { signal });
+            return data;
+        },
+        staleTime: 1000 * 60 * 10,
+        refetchOnWindowFocus: false,
+    });
+    return { credits: data, isLoading, isError };
+};

@@ -1,7 +1,7 @@
 // MovieDetailPage.jsx
 import { useParams } from 'react-router-dom';
-import { useMovieDetails, useMovieTrailer } from '@/hooks/API/data';
-import { Play, Plus, Share, Heart, Star, Clock, Calendar } from 'lucide-react';
+import { useMovieDetails, useMovieTrailer, useMovieCredits } from '@/hooks/API/data';
+import { Play, Plus, Share, Heart, Star, Clock, Calendar, Users, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -11,6 +11,8 @@ import { useAuthen } from '@/context/AuthenProvider';
 import { useState } from 'react';
 import { LoginNotificationModal } from '@/components/react_components/Modal/LoginNotificationModal';
 import { motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
+import axiosInstance from '@/lib/axiosInstance';
 
 export default function MovieDetailPage() {
     const { id } = useParams();
@@ -29,6 +31,11 @@ export default function MovieDetailPage() {
         year: movie.release_date?.slice(0, 4),
         extra: genres,
     };
+
+    // Fetch credits (cast & crew)
+    const { credits, isLoading: isLoadingCredits, isError: isErrorCredits } = useMovieCredits(id);
+    const cast = credits?.cast?.slice(0, 10) || [];
+    const crew = credits?.crew?.slice(0, 5) || [];
 
     const { mutate: addToWatchlist, isPending } = useAddToWatchlist();
 
@@ -207,9 +214,10 @@ export default function MovieDetailPage() {
 
             <div className="p-2 sm:p-4 md:p-8">
                 <Tabs defaultValue="overview">
-                    <TabsList className="grid grid-cols-3 md:grid-cols-5 bg-slate-800 overflow-x-auto rounded-lg">
+                    <TabsList className="grid grid-cols-3 md:grid-cols-6 bg-slate-800 overflow-x-auto rounded-lg">
                         <TabsTrigger value="overview">Overview</TabsTrigger>
                         <TabsTrigger value="cast">Cast</TabsTrigger>
+                        <TabsTrigger value="crew">Crew</TabsTrigger>
                         <TabsTrigger value="reviews">Reviews</TabsTrigger>
                         <TabsTrigger value="details">Details</TabsTrigger>
                         <TabsTrigger value="similar">Similar</TabsTrigger>
@@ -218,7 +226,80 @@ export default function MovieDetailPage() {
                         <p>{movie.overview}</p>
                     </TabsContent>
                     <TabsContent value="cast">
-                        <p>Cast info here (future feature).</p>
+                        {isLoadingCredits ? (
+                            <div className="py-6 flex justify-center">
+                                <Loader />
+                            </div>
+                        ) : isErrorCredits ? (
+                            <div className="py-6 text-red-500">Failed to load cast.</div>
+                        ) : cast.length === 0 ? (
+                            <div className="py-6 text-muted-foreground">No cast info.</div>
+                        ) : (
+                            <motion.ul
+                                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mt-4"
+                                initial={{ opacity: 0 }}
+                                whileInView={{ opacity: 1 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.5 }}
+                            >
+                                {cast.map((person) => (
+                                    <motion.li
+                                        key={person.id}
+                                        className="flex flex-col items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-3 shadow"
+                                        initial={{ opacity: 0, y: 20 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ duration: 0.4 }}
+                                    >
+                                        <User className="w-8 h-8 mb-2 text-blue-500" />
+                                        <span className="font-semibold text-sm text-center truncate w-full">
+                                            {person.name}
+                                        </span>
+                                        <span className="text-xs text-muted-foreground text-center truncate w-full">
+                                            {person.character}
+                                        </span>
+                                    </motion.li>
+                                ))}
+                            </motion.ul>
+                        )}
+                    </TabsContent>
+                    <TabsContent value="crew">
+                        {isLoadingCredits ? (
+                            <div className="py-6 flex justify-center">
+                                <Loader />
+                            </div>
+                        ) : isErrorCredits ? (
+                            <div className="py-6 text-red-500">Failed to load crew.</div>
+                        ) : crew.length === 0 ? (
+                            <div className="py-6 text-muted-foreground">No crew info.</div>
+                        ) : (
+                            <motion.ul
+                                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 mt-4"
+                                initial={{ opacity: 0 }}
+                                whileInView={{ opacity: 1 }}
+                                viewport={{ once: true }}
+                                transition={{ duration: 0.5 }}
+                            >
+                                {crew.map((person) => (
+                                    <motion.li
+                                        key={person.id}
+                                        className="flex flex-col items-center bg-slate-100 dark:bg-slate-800 rounded-lg p-3 shadow"
+                                        initial={{ opacity: 0, y: 20 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ duration: 0.4 }}
+                                    >
+                                        <User className="w-8 h-8 mb-2 text-indigo-500" />
+                                        <span className="font-semibold text-sm text-center truncate w-full">
+                                            {person.name}
+                                        </span>
+                                        <span className="text-xs text-muted-foreground text-center truncate w-full">
+                                            {person.job}
+                                        </span>
+                                    </motion.li>
+                                ))}
+                            </motion.ul>
+                        )}
                     </TabsContent>
                     <TabsContent value="reviews">
                         <p>Reviews placeholder.</p>
