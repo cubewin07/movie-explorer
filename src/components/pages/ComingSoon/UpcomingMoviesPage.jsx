@@ -86,9 +86,24 @@ export default function UpcomingMoviesPage() {
                         {movie.overview || 'No description available.'}
                     </p>
                     <div className="flex items-center gap-2 mt-auto flex-wrap">
-                        <Badge variant="outline" className="text-xs">
-                            {genres.join(', ') || 'Uncategorized'}
-                        </Badge>
+                        {genres.length > 0 ? (
+                            genres.map((genre, idx) => (
+                                <Badge
+                                    key={genre + idx}
+                                    variant="outline"
+                                    className="text-xs bg-gradient-to-r from-indigo-500 to-blue-500 text-white font-semibold shadow px-2 py-0.5 border-0 mr-1 mb-1"
+                                >
+                                    {genre}
+                                </Badge>
+                            ))
+                        ) : (
+                            <Badge
+                                variant="outline"
+                                className="text-xs bg-gradient-to-r from-indigo-500 to-blue-500 text-white font-semibold shadow px-2 py-0.5 border-0"
+                            >
+                                Uncategorized
+                            </Badge>
+                        )}
                         <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                             <Calendar className="w-4 h-4" />
                             <span>{movie.release_date}</span>
@@ -200,9 +215,24 @@ export default function UpcomingMoviesPage() {
                                         {movie.overview || 'No description available.'}
                                     </p>
                                     <div className="flex items-center gap-2 mt-auto flex-wrap">
-                                        <Badge variant="outline" className="text-xs">
-                                            {genres.join(', ') || 'Uncategorized'}
-                                        </Badge>
+                                        {genres.length > 0 ? (
+                                            genres.map((genre, idx) => (
+                                                <Badge
+                                                    key={genre + idx}
+                                                    variant="outline"
+                                                    className="text-xs bg-gradient-to-r from-indigo-500 to-blue-500 text-white font-semibold shadow px-2 py-0.5 border-0 mr-1 mb-1"
+                                                >
+                                                    {genre}
+                                                </Badge>
+                                            ))
+                                        ) : (
+                                            <Badge
+                                                variant="outline"
+                                                className="text-xs bg-gradient-to-r from-indigo-500 to-blue-500 text-white font-semibold shadow px-2 py-0.5 border-0"
+                                            >
+                                                Uncategorized
+                                            </Badge>
+                                        )}
                                         <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                                             <Calendar className="w-4 h-4" />
                                             <span>{movie.release_date}</span>
