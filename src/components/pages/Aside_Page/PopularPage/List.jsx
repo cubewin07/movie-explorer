@@ -72,15 +72,15 @@ export default function InfiniteList({ url, queryKey, type }) {
     }, [isRenderComplete, shouldPreventScroll]);
 
     useEffect(() => {
-        const currentMovieCount = movies.length;
-        const hasNewMovies = currentCount > previousMovieCount.current;
+        const currentMovieCount = movies?.length;
+        const hasNewMovies = currentMovieCount > previousMovieCount.current;
 
-        if ((hasNewMovies || (currentCount > 0 && previousMovieCount.current === 0)) && !isPaginating) {
+        if ((hasNewMovies || (currentMovieCount > 0 && previousMovieCount.current === 0)) && !isPaginating) {
             setIsRenderComplete(false);
             setShouldPreventScroll(true);
-            previousMovieCount.current = currentCount;
+            previousMovieCount.current = currentMovieCount;
 
-            const totalDelay = 800 + Math.min(currentCount, 40) * 20;
+            const totalDelay = 800 + Math.min(currentMovieCount, 40) * 20;
             const timeout = setTimeout(() => {
                 setIsRenderComplete(true);
                 setShouldPreventScroll(false);
