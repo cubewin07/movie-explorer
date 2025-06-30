@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { usePaginatedFetch } from '@/hooks/API/data';
 import { useMovieGenres, useTvSeriesGenres } from '@/hooks/API/genres';
+import SkeletonCard from '@/components/ui/skeletonCard';
 
 export default function ComingSoon() {
     const { data: upcomingMoviesData, isLoading: isLoadingMovies } = usePaginatedFetch('movie/upcoming', 1);
@@ -129,7 +130,11 @@ export default function ComingSoon() {
                         </h2>
                     </motion.div>
                     {isLoadingMovies ? (
-                        <div className="text-center py-8 text-gray-500 dark:text-gray-400">Loading...</div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {Array.from({ length: 6 }).map((_, i) => (
+                                <SkeletonCard key={i} delay={i * 0.08} />
+                            ))}
+                        </div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {upcomingMovies.map((movie) => renderCard(movie, true))}
@@ -151,7 +156,11 @@ export default function ComingSoon() {
                         </h2>
                     </motion.div>
                     {isLoadingUpcomingTV ? (
-                        <div className="text-center py-8 text-gray-500 dark:text-gray-400">Loading...</div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {Array.from({ length: 6 }).map((_, i) => (
+                                <SkeletonCard key={i} delay={i * 0.08} />
+                            ))}
+                        </div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {upcomingTVShows.map((show) => renderCard(show, false))}
