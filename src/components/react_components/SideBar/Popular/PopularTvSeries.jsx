@@ -3,6 +3,7 @@ import { useTvSeriesGenres } from '@/hooks/API/genres';
 
 import Popular from '@/components/react_components/SideBar/Popular/Popular.jsx';
 import LoadingSideBar from '@/components/react_components/SideBar/Popular/LoadingSideBar.jsx';
+import { motion } from 'framer-motion';
 
 function PopularTvSeries() {
     const { popularTvSeries, LoadingPopularTvSeries, isError } = usePopularTvSeries(1);
@@ -13,20 +14,38 @@ function PopularTvSeries() {
     const visiblePopularTvSeries = PopularTvSeries.slice(0, 3);
 
     return (
-        <div>
-            <h1 className="text-white text-opacity-50 text-base sm:text-lg font-bold mb-2 sm:mb-3">
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+        >
+            <motion.h1
+                className="text-white text-opacity-50 text-base sm:text-lg font-bold mb-2 sm:mb-3"
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4 }}
+            >
                 Popular TV Series
-            </h1>
+            </motion.h1>
             {isError ? (
-                <div className="text-red-500 font-semibold p-3 sm:p-4 text-sm sm:text-base">
+                <motion.div
+                    className="text-red-500 font-semibold p-3 sm:p-4 text-sm sm:text-base"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                >
                     Failed to load popular TV series. Please try again later.
-                </div>
+                </motion.div>
             ) : LoadingPopularTvSeries ? (
-                <LoadingSideBar />
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+                    <LoadingSideBar />
+                </motion.div>
             ) : (
                 !LoadingTvSeriesGenre && <Popular movies={visiblePopularTvSeries} genres={TvSeriesGenres} />
             )}
-        </div>
+        </motion.div>
     );
 }
 

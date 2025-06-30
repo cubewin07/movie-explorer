@@ -2,6 +2,7 @@ import { usePopularMovies } from '@/hooks/API/data';
 import { useMovieGenres } from '@/hooks/API/genres';
 import LoadingSideBar from '../Popular/LoadingSideBar';
 import Popular from '../Popular/Popular';
+import { motion } from 'framer-motion';
 
 function PopularMovies() {
     const { popularMovies, isPopularMoviesLoading, isError } = usePopularMovies(1);
@@ -11,19 +12,39 @@ function PopularMovies() {
     const genreList = MovieGenres?.data?.genres || [];
 
     return (
-        <div>
-            <h1 className="text-white text-opacity-50 text-base sm:text-lg font-bold mb-2 sm:mb-3">Popular Movies</h1>
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+        >
+            <motion.h1
+                className="text-white text-opacity-50 text-base sm:text-lg font-bold mb-2 sm:mb-3"
+                initial={{ opacity: 0, y: 10 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.4 }}
+            >
+                Popular Movies
+            </motion.h1>
 
             {isError ? (
-                <div className="text-red-500 font-semibold p-3 sm:p-4 text-sm sm:text-base">
+                <motion.div
+                    className="text-red-500 font-semibold p-3 sm:p-4 text-sm sm:text-base"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                >
                     Failed to load popular movies. Please try again later.
-                </div>
+                </motion.div>
             ) : isPopularMoviesLoading || isGenresLoading ? (
-                <LoadingSideBar />
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+                    <LoadingSideBar />
+                </motion.div>
             ) : (
                 <Popular movies={movies} genres={genreList} />
             )}
-        </div>
+        </motion.div>
     );
 }
 
