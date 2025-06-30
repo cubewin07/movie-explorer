@@ -6,9 +6,14 @@ import { usePaginatedFetch } from '@/hooks/API/data';
 import { useMovieGenres, useTvSeriesGenres } from '@/hooks/API/genres';
 
 export default function ComingSoon() {
-    // Fetch upcoming movies and TV series
+    // Fetch upcoming movies
     const { data: upcomingMoviesData, isLoading: isLoadingMovies } = usePaginatedFetch('movie/upcoming', 1);
-    const { data: onTheAirData, isLoading: isLoadingOnAir } = usePaginatedFetch('tv/on_the_air', 1);
+    // Fetch upcoming TV series using discover/tv with first_air_date.gte today
+    const today = new Date().toISOString().split('T')[0];
+    const { data: upcomingTVData, isLoading: isLoadingUpcomingTV } = usePaginatedFetch(
+        `discover/tv?first_air_date.gte=${today}&sort_by=first_air_date.asc`,
+        1,
+    );
 
     const { MovieGenres } = useMovieGenres();
     const { TvSeriesGenresRes } = useTvSeriesGenres();
@@ -26,15 +31,15 @@ export default function ComingSoon() {
         }, {}) || {};
 
     // Filter for future release dates
-    const today = new Date();
+    const moviesToday = new Date();
     const upcomingMovies = (upcomingMoviesData?.results || []).filter((m) => {
         const date = m.release_date ? new Date(m.release_date) : null;
-        return date && date > today;
+        return date && date > moviesToday;
     });
-    // const upcomingTVShows = (upcomingTVData?.results || []).filter((tv) => {
-    //     const date = tv.first_air_date ? new Date(tv.first_air_date) : null;
-    //     return date && date > today;
-    // });
+    const upcomingTVShows = (upcomingTVData?.results || []).filter((tv) => {
+        const date = tv.first_air_date ? new Date(tv.first_air_date) : null;
+        return date && date >= moviesToday;
+    });
 
     const upcomingFeatures = [
         {
@@ -193,15 +198,15 @@ export default function ComingSoon() {
                     <motion.div className="flex items-center gap-3 mb-8" variants={itemVariants}>
                         <Tv className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
                         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-                            Currently Airing TV Shows
+                            Upcoming TV Shows
                         </h2>
                     </motion.div>
 
-                    {isLoadingOnAir ? (
+                    {isLoadingUpcomingTV ? (
                         <div className="text-center py-8 text-gray-500 dark:text-gray-400">Loading...</div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            {(onTheAirData?.results || []).map((show) => (
+                            {upcomingTVShows.map((show) => (
                                 <motion.div
                                     key={show.id}
                                     className="bg-white dark:bg-slate-800 rounded-2xl shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col sm:flex-row group max-w-2xl mx-auto"
@@ -211,7 +216,7 @@ export default function ComingSoon() {
                                     {/* Image Section */}
                                     <div className="relative w-full sm:w-40 md:w-48 h-64 sm:h-60 md:h-72 bg-gradient-to-br from-indigo-400 to-blue-600 flex-shrink-0 flex items-center justify-center rounded-2xl sm:rounded-r-none overflow-hidden">
                                         <Badge className="absolute top-3 left-3 bg-indigo-600 text-white shadow text-xs font-semibold px-2 py-0.5">
-                                            Now Airing
+                                            Coming Soon
                                         </Badge>
                                         <Badge className="absolute top-3 right-3 bg-yellow-500 text-black shadow text-xs font-semibold px-2 py-0.5">
                                             ★ {show.vote_average?.toFixed(1)}
