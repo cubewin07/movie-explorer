@@ -11,6 +11,8 @@ import Discovery from './components/pages/Discovery/Discovery';
 import WatchlistPage from './components/pages/Watchlist/WatchlistPage';
 import Settings from './components/pages/Settings/Settings';
 import ComingSoon from './components/pages/ComingSoon/ComingSoon';
+import UpcomingMoviesPage from './components/pages/ComingSoon/UpcomingMoviesPage';
+import UpcomingTvSeriesPage from './components/pages/ComingSoon/UpcomingTvSeriesPage';
 // import Community from './pages/Community'
 // import Discovery from './pages/Discovery'
 // import ComingSoon from './pages/ComingSoon'
@@ -62,6 +64,14 @@ const router = createBrowserRouter(
                 {
                     path: '/watchlist',
                     element: <WatchlistPage />,
+                },
+                {
+                    path: '/movies/upcoming',
+                    element: <UpcomingMoviesPage />,
+                },
+                {
+                    path: '/tv/upcoming',
+                    element: <UpcomingTvSeriesPage />,
                 },
                 // Add other routes here
             ],
