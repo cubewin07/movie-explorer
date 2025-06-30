@@ -4,8 +4,9 @@ import { useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import Breadcrumb from '../Discovery/Breadcrumb';
 import SkeletonCard from '@/components/ui/skeletonCard';
-import { Film, Calendar, Loader } from 'lucide-react';
+import { Film, Calendar, Loader, ArrowLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useNavigate } from 'react-router-dom';
 
 export default function UpcomingMoviesPage() {
     const { MovieGenres } = useMovieGenres();
@@ -18,6 +19,7 @@ export default function UpcomingMoviesPage() {
         'movie/upcoming',
         'upcoming-movies',
     );
+    const navigate = useNavigate();
 
     const observer = useRef();
     const lastMovieRef = useCallback(
@@ -86,6 +88,13 @@ export default function UpcomingMoviesPage() {
 
     return (
         <div className="max-w-screen-xl mx-auto px-2 sm:px-4 md:px-8 py-8 min-h-screen">
+            <button
+                onClick={() => navigate(-1)}
+                className="sticky top-10 z-40 mb-4 flex items-center gap-2 px-4 py-2 rounded-lg bg-white/80 dark:bg-slate-800/80 border border-gray-200 dark:border-slate-700 shadow hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors"
+            >
+                <ArrowLeft className="w-5 h-5" />
+                <span className="font-medium">Back</span>
+            </button>
             <Breadcrumb
                 items={[
                     { name: 'Home', to: '/' },

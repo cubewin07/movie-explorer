@@ -4,9 +4,9 @@ import { useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import Breadcrumb from '../Discovery/Breadcrumb';
 import SkeletonCard from '@/components/ui/skeletonCard';
-import { Tv, Calendar, Loader } from 'lucide-react';
+import { Tv, Calendar, Loader, ArrowLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 export default function UpcomingTvSeriesPage() {
     const today = new Date().toISOString().split('T')[0];
@@ -37,6 +37,8 @@ export default function UpcomingTvSeriesPage() {
     );
 
     const tvs = data?.pages.flatMap((page) => page.results) || [];
+
+    const navigate = useNavigate();
 
     const renderCard = (tv, ref) => (
         <motion.div
@@ -88,6 +90,13 @@ export default function UpcomingTvSeriesPage() {
 
     return (
         <div className="max-w-screen-xl mx-auto px-2 sm:px-4 md:px-8 py-8 min-h-screen">
+            <button
+                onClick={() => navigate(-1)}
+                className="sticky top-4 z-40 mb-4 flex items-center gap-2 px-4 py-2 rounded-lg bg-white/80 dark:bg-slate-800/80 border border-gray-200 dark:border-slate-700 shadow hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors"
+            >
+                <ArrowLeft className="w-5 h-5" />
+                <span className="font-medium">Back</span>
+            </button>
             <Breadcrumb
                 items={[
                     { name: 'Home', to: '/' },
