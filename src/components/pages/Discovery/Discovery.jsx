@@ -1,30 +1,32 @@
-import { useEffect } from 'react';
-import { useLocation, NavLink } from 'react-router-dom';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-
 import Breadcrumb from './Breadcrumb';
-import Carousel from './Carousel';
+import InfiniteList from '../Aside_Page/PopularPage/List';
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
+
+const SORT_OPTIONS = [
+    { value: 'popularity.desc', label: 'Most Popular' },
+    { value: 'vote_average.desc', label: 'Highest Rated' },
+    { value: 'release_date.desc', label: 'Newest' },
+    { value: 'release_date.asc', label: 'Oldest' },
+    { value: 'original_title.asc', label: 'Title A-Z' },
+];
 
 export default function Discovery() {
-    const location = useLocation();
-    const isMovies = location.pathname.startsWith('/movies');
-    const categoryKey = isMovies ? 'movies' : 'tvseries';
-    const apiType = isMovies ? 'movie' : 'tv';
+    const [type, setType] = useState('movie');
+    const [sortBy, setSortBy] = useState('popularity.desc');
+
+    const categoryKey = type === 'movie' ? 'movies' : 'tvseries';
 
     const breadcrumbItems = [
         { name: 'Home', to: '/' },
-        { name: isMovies ? 'Movies' : 'TV Series', to: `/${categoryKey}` },
+        { name: type === 'movie' ? 'Movies' : 'TV Series', to: `/${categoryKey}` },
     ];
-
-    useEffect(() => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }, []);
 
     return (
         <AnimatePresence mode="wait">
             <motion.div
-                key={location.pathname}
                 className="w-full px-2 sm:px-4 md:px-8 py-6 mx-auto max-w-screen-2xl"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -35,40 +37,48 @@ export default function Discovery() {
 
                 {/* Tabs */}
                 <div className="flex flex-wrap gap-4 mb-6 border-b border-slate-300 dark:border-slate-700 overflow-x-auto">
-                    <NavLink
-                        to="/movies"
-                        className={({ isActive }) =>
-                            cn(
-                                'pb-2 text-base sm:text-lg font-medium transition-colors duration-200',
-                                isActive
-                                    ? 'text-blue-600 border-b-2 border-blue-500 font-semibold'
-                                    : 'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200',
-                            )
-                        }
+                    <button
+                        onClick={() => setType('movie')}
+                        className={cn(
+                            'pb-2 text-base sm:text-lg font-medium transition-colors duration-200',
+                            type === 'movie'
+                                ? 'text-blue-600 border-b-2 border-blue-500 font-semibold'
+                                : 'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200',
+                        )}
                     >
                         Movies
-                    </NavLink>
-                    <NavLink
-                        to="/tvseries"
-                        className={({ isActive }) =>
-                            cn(
-                                'pb-2 text-base sm:text-lg font-medium transition-colors duration-200',
-                                isActive
-                                    ? 'text-blue-600 border-b-2 border-blue-500 font-semibold'
-                                    : 'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200',
-                            )
-                        }
+                    </button>
+                    <button
+                        onClick={() => setType('tv')}
+                        className={cn(
+                            'pb-2 text-base sm:text-lg font-medium transition-colors duration-200',
+                            type === 'tv'
+                                ? 'text-blue-600 border-b-2 border-blue-500 font-semibold'
+                                : 'text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200',
+                        )}
                     >
                         TV Series
-                    </NavLink>
+                    </button>
                 </div>
 
-                {/* Carousels */}
-                <Carousel title="Trending" url={`trending/${apiType}/week`} type={apiType} />
-                <div className="my-6" />
-                <Carousel title="Popular" url={`${apiType}/popular`} type={apiType} />
-                <div className="my-6" />
-                <Carousel title="Top Rated" url={`${apiType}/top_rated`} type={apiType} />
+                {/* Sorting Dropdown */}
+                <div className="flex justify-end mb-4">
+                    <Select value={sortBy} onValueChange={setSortBy}>
+                        <SelectTrigger className="w-full max-w-xs">
+                            <SelectValue placeholder="Sort by..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {SORT_OPTIONS.map((opt) => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+
+                {/* Infinite List */}
+                <InfiniteList type={type} sortBy={sortBy} />
             </motion.div>
         </AnimatePresence>
     );

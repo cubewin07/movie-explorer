@@ -2,9 +2,9 @@ import { motion } from 'framer-motion';
 import { useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { useInfinitePaginatedFetch } from '@/hooks/API/data';
 import { useAllGenres } from '@/hooks/API/genres';
 import { FilmModalContext } from '@/context/FilmModalProvider';
+import { useInfiniteDiscoverList } from '@/hooks/API/data';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 
 const cardVariants = {
@@ -29,10 +29,10 @@ const SORT_OPTIONS = [
     { value: 'title', label: 'Title A-Z' },
 ];
 
-export default function InfiniteList({ url, queryKey, type }) {
-    const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfinitePaginatedFetch(
-        url,
-        queryKey,
+export default function InfiniteList({ type = 'movie', sortBy = 'popularity.desc' }) {
+    const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteDiscoverList(
+        type,
+        sortBy,
     );
 
     const { movieGenres, tvGenres, isLoading: isGenresLoading } = useAllGenres();
@@ -46,7 +46,6 @@ export default function InfiniteList({ url, queryKey, type }) {
     const [manualLoad, setManualLoad] = useState(false);
     const [isRenderComplete, setIsRenderComplete] = useState(false);
     const [shouldPreventScroll, setShouldPreventScroll] = useState(false);
-    const [sortBy, setSortBy] = useState('popularity');
 
     const navigate = useNavigate();
 
@@ -60,29 +59,6 @@ export default function InfiniteList({ url, queryKey, type }) {
     const isDataLoading = isLoading || isGenresLoading;
     const isPaginating = isFetchingNextPage || manualLoad;
     const hasMovies = movies.length > 0;
-
-    // Sorting logic
-    const sortedMovies = [...movies].sort((a, b) => {
-        switch (sortBy) {
-            case 'rating':
-                return (b.vote_average || 0) - (a.vote_average || 0);
-            case 'newest':
-                return (
-                    new Date(b.release_date || b.first_air_date || 0) -
-                    new Date(a.release_date || a.first_air_date || 0)
-                );
-            case 'oldest':
-                return (
-                    new Date(a.release_date || a.first_air_date || 0) -
-                    new Date(b.release_date || b.first_air_date || 0)
-                );
-            case 'title':
-                return (a.title || a.name || '').localeCompare(b.title || b.name || '');
-            case 'popularity':
-            default:
-                return (b.popularity || 0) - (a.popularity || 0);
-        }
-    });
 
     useEffect(() => {
         if (!isRenderComplete || shouldPreventScroll) {
@@ -213,24 +189,8 @@ export default function InfiniteList({ url, queryKey, type }) {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 0.1 }}
                 >
-                    {`Popular ${type}`}
+                    {type === 'movie' ? 'Movies' : 'TV Series'}
                 </motion.h1>
-
-                {/* Sorting Dropdown */}
-                <div className="flex justify-end mb-4">
-                    <Select value={sortBy} onValueChange={setSortBy}>
-                        <SelectTrigger className="w-full max-w-xs">
-                            <SelectValue placeholder="Sort by..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {SORT_OPTIONS.map((opt) => (
-                                <SelectItem key={opt.value} value={opt.value}>
-                                    {opt.label}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
 
                 <motion.div
                     className="grid gap-4 sm:gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
@@ -242,7 +202,7 @@ export default function InfiniteList({ url, queryKey, type }) {
                         visible: { transition: { staggerChildren: 0.08 } },
                     }}
                 >
-                    {sortedMovies.map((movie, i) => (
+                    {movies.map((movie, i) => (
                         <motion.div
                             key={`movie-${movie.id}`}
                             custom={i}

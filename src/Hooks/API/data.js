@@ -331,3 +331,28 @@ export const useTvSeriesCredits = (id) => {
     });
     return { credits: data, isLoading, isError };
 };
+
+// New: Infinite discover list with sort
+export const useInfiniteDiscoverList = (type = 'movie', sortBy = 'popularity.desc') => {
+    return useInfiniteQuery({
+        queryKey: ['discover', type, sortBy],
+        queryFn: async ({ pageParam = 1, signal }) => {
+            const res = await axiosInstance.get(`/discover/${type}`, {
+                params: {
+                    language: 'en-US',
+                    page: pageParam,
+                    sort_by: sortBy,
+                },
+                signal,
+            });
+            return res.data;
+        },
+        getNextPageParam: (lastPage) => {
+            const { page, total_pages } = lastPage;
+            if (page < total_pages && page < 500) return page + 1;
+            return undefined;
+        },
+        refetchOnWindowFocus: false,
+        staleTime: 1000 * 60 * 5,
+    });
+};
