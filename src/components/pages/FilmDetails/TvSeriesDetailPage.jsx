@@ -58,13 +58,7 @@ export default function TVSeriesDetailPage() {
     const [openSeason, setOpenSeason] = useState(null);
 
     if (isLoading) {
-        return (
-            <div className="p-8 space-y-4">
-                {Array.from({ length: 4 }).map((_, i) => (
-                    <Skeleton key={i} className="w-full h-32 rounded-lg" />
-                ))}
-            </div>
-        );
+        return <FancyLoader type="tv" />;
     }
 
     if (isError || !series) return <div className="p-8 text-red-500">Failed to load series.</div>;

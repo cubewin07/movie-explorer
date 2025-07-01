@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader } from '@/components/ui/Loader';
+import FancyLoader from '@/components/ui/FancyLoader';
 import useAddToWatchlist from '@/hooks/watchList/useAddtoWatchList';
 import { useAuthen } from '@/context/AuthenProvider';
 import { useState } from 'react';
@@ -52,7 +53,7 @@ export default function MovieDetailPage() {
         addToWatchlist(watchlistData);
     };
 
-    if (isLoading) return <Loader />;
+    if (isLoading) return <FancyLoader type="movie" />;
     if (isError || !movie) return <div className="p-8 text-red-400">Failed to load movie.</div>;
 
     return (
