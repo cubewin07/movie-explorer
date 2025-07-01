@@ -166,7 +166,7 @@ export default function InfiniteList({ type = 'movie', sortBy = 'popularity.desc
                 transition={{ duration: 0.5 }}
             >
                 <motion.div
-                    className="sticky top-10 z-30 flex justify-end"
+                    className="sticky top-12 z-30 flex justify-start"
                     initial={{ opacity: 0, y: -10 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
