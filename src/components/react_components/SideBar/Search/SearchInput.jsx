@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
-import { Search as SearchIcon, X } from 'lucide-react';
+import { Search, X, Flame, Star } from 'lucide-react';
 import { useSearchOrFallbackContent } from '@/hooks/API/data';
 import MovieCard from '@/components/ui/MovieCard';
 import TabbedResults from './TabbedResults';
@@ -82,7 +82,7 @@ function SearchInput() {
                 onClick={() => setIsModalOpen(true)}
                 className="input input-bordered input-accent w-full max-w-xs sm:max-w-md text-white bg-neutral dark:bg-neutral-content/10 dark:text-white border border-primary focus-within:ring focus-within:ring-blue-500 sticky top-4 z-10 cursor-pointer"
             >
-                <SearchIcon className="h-[1.2em] opacity-60" />
+                <Search className="h-[1.2em] opacity-60" />
                 <input
                     ref={inputRef}
                     type="text"
@@ -146,14 +146,20 @@ function SearchInput() {
                                 <>
                                     {data?.week?.length > 0 && (
                                         <div>
-                                            <h3 className="font-semibold text-base sm:text-lg mb-2">🔥 Trending</h3>
+                                            <h3 className="font-semibold text-base sm:text-lg mb-2">
+                                                <Flame className="inline w-5 h-5 mr-1 text-orange-500" />
+                                                Trending
+                                            </h3>
 
                                             {renderCards(data.week.slice(0, 5))}
                                         </div>
                                     )}
                                     {data?.top_rated?.length > 0 && (
                                         <div>
-                                            <h3 className="font-semibold text-base sm:text-lg mb-2">⭐ Top Rated</h3>
+                                            <h3 className="font-semibold text-base sm:text-lg mb-2">
+                                                <Star className="inline w-5 h-5 mr-1 text-yellow-400" />
+                                                Top Rated
+                                            </h3>
                                             {renderCards(data.top_rated.slice(0, 5))}
                                         </div>
                                     )}
