@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useInfinitePaginatedFetch } from '@/hooks/API/data';
 import { useAllGenres } from '@/hooks/API/genres';
 import { FilmModalContext } from '@/context/FilmModalProvider';
-import { Select } from '@/components/ui/input';
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 
 const cardVariants = {
     hidden: { opacity: 0, y: 20, scale: 0.95 },
@@ -106,14 +106,14 @@ export default function InfiniteList({ url, queryKey, type }) {
 
     useEffect(() => {
         const currentMovieCount = movies?.length;
-        const hasNewMovies = currentCount > previousMovieCount.current;
+        const hasNewMovies = currentMovieCount > previousMovieCount.current;
 
-        if ((hasNewMovies || (currentCount > 0 && previousMovieCount.current === 0)) && !isPaginating) {
+        if ((hasNewMovies || (currentMovieCount > 0 && previousMovieCount.current === 0)) && !isPaginating) {
             setIsRenderComplete(false);
             setShouldPreventScroll(true);
-            previousMovieCount.current = currentCount;
+            previousMovieCount.current = currentMovieCount;
 
-            const totalDelay = 800 + Math.min(currentCount, 40) * 20;
+            const totalDelay = 800 + Math.min(currentMovieCount, 40) * 20;
             const timeout = setTimeout(() => {
                 setIsRenderComplete(true);
                 setShouldPreventScroll(false);
@@ -218,17 +218,18 @@ export default function InfiniteList({ url, queryKey, type }) {
 
                 {/* Sorting Dropdown */}
                 <div className="flex justify-end mb-4">
-                    <select
-                        className="select select-bordered w-full max-w-xs"
-                        value={sortBy}
-                        onChange={(e) => setSortBy(e.target.value)}
-                    >
-                        {SORT_OPTIONS.map((opt) => (
-                            <option key={opt.value} value={opt.value}>
-                                {opt.label}
-                            </option>
-                        ))}
-                    </select>
+                    <Select value={sortBy} onValueChange={setSortBy}>
+                        <SelectTrigger className="w-full max-w-xs">
+                            <SelectValue placeholder="Sort by..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {SORT_OPTIONS.map((opt) => (
+                                <SelectItem key={opt.value} value={opt.value}>
+                                    {opt.label}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
 
                 <motion.div
