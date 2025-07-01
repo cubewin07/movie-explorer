@@ -219,12 +219,13 @@ function Home() {
                                     variant="outline"
                                     onClick={() => handleAddToWatchlist(featuredContent)}
                                     className="
-    border-black text-black bg-white hover:bg-black hover:text-white 
-    shadow-md 
-    dark:border-white dark:text-white dark:bg-transparent 
-    dark:hover:bg-white dark:hover:text-black 
-    transition-all duration-200
-  "
+                                        border-black text-black bg-white 
+                                        hover:from-blue-500 hover:to-cyan-500 hover:bg-gradient-to-r hover:text-white
+                                        shadow-md 
+                                        dark:border-white dark:text-white dark:bg-transparent 
+                                        dark:hover:bg-blue-900 dark:hover:text-white 
+                                        transition-all duration-200
+                                    "
                                     whileHover={{ scale: 1.05 }}
                                 >
                                     <Plus className="w-4 h-4 mr-2" /> Add to Watchlist
