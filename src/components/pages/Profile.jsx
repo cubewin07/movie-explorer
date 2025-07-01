@@ -152,89 +152,108 @@ export default function Profile() {
             {/* Edit Profile Modal */}
             <AnimatePresence>
                 {editOpen && (
-                    <Dialog isOpen={editOpen} onClose={() => setEditOpen(false)}>
+                    <>
+                        {/* Backdrop */}
                         <motion.div
-                            className="bg-white dark:bg-slate-900 rounded-2xl p-8 max-w-md w-full mx-auto shadow-xl"
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            exit={{ scale: 0.9, opacity: 0 }}
-                            transition={{ duration: 0.3 }}
+                            className="fixed inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-sm z-40"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            onClick={() => setEditOpen(false)}
+                        />
+                        {/* Modal Content */}
+                        <motion.div
+                            className="fixed inset-0 z-50 flex items-center justify-center"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
                         >
-                            <h2 className="text-xl font-bold mb-4 text-purple-700 dark:text-purple-300">
-                                Edit Profile
-                            </h2>
-                            <form
-                                onSubmit={(e) => {
-                                    e.preventDefault();
-                                    handleSave();
-                                }}
-                                className="space-y-4"
+                            <motion.div
+                                className="bg-white dark:bg-slate-900 rounded-2xl p-8 max-w-md w-full mx-auto shadow-xl"
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0.9, opacity: 0 }}
+                                transition={{ duration: 0.3 }}
+                                onClick={(e) => e.stopPropagation()}
                             >
-                                <div className="flex flex-col items-center gap-2">
-                                    <Label htmlFor="avatar-upload" className="cursor-pointer">
-                                        {avatarPreview || editData.avatar ? (
-                                            <img
-                                                src={avatarPreview || editData.avatar}
-                                                alt="avatar preview"
-                                                className="w-20 h-20 rounded-full object-cover border-2 border-purple-400 shadow"
-                                            />
-                                        ) : (
-                                            <div className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-200 to-blue-200 flex items-center justify-center border-2 border-purple-400 shadow">
-                                                <User className="w-10 h-10 text-purple-400" />
-                                            </div>
-                                        )}
-                                    </Label>
-                                    <input
-                                        id="avatar-upload"
-                                        type="file"
-                                        accept="image/*"
-                                        className="hidden"
-                                        onChange={handleAvatarChange}
-                                    />
-                                    <span className="text-xs text-gray-400">Click avatar to change</span>
-                                </div>
-                                <div>
-                                    <Label htmlFor="username">Username</Label>
-                                    <Input
-                                        id="username"
-                                        value={editData.username}
-                                        onChange={(e) => setEditData({ ...editData, username: e.target.value })}
-                                        className="mt-1"
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor="email">Email</Label>
-                                    <Input
-                                        id="email"
-                                        type="email"
-                                        value={editData.email}
-                                        onChange={(e) => setEditData({ ...editData, email: e.target.value })}
-                                        className="mt-1"
-                                    />
-                                </div>
-                                <div>
-                                    <Label htmlFor="bio">Bio</Label>
-                                    <Input
-                                        id="bio"
-                                        value={editData.bio}
-                                        onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
-                                        className="mt-1"
-                                    />
-                                </div>
-                                <div className="flex gap-3 justify-end pt-4">
-                                    <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>
-                                        Cancel
-                                    </Button>
-                                    <Button
-                                        type="submit"
-                                        className="bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold"
-                                    >
-                                        Save
-                                    </Button>
-                                </div>
-                            </form>
+                                <h2 className="text-xl font-bold mb-4 text-purple-700 dark:text-purple-300">
+                                    Edit Profile
+                                </h2>
+                                <form
+                                    onSubmit={(e) => {
+                                        e.preventDefault();
+                                        handleSave();
+                                    }}
+                                    className="space-y-4"
+                                >
+                                    <div className="flex flex-col items-center gap-2">
+                                        <Label htmlFor="avatar-upload" className="cursor-pointer">
+                                            {avatarPreview || editData.avatar ? (
+                                                <img
+                                                    src={avatarPreview || editData.avatar}
+                                                    alt="avatar preview"
+                                                    className="w-20 h-20 rounded-full object-cover border-2 border-purple-400 shadow"
+                                                />
+                                            ) : (
+                                                <div className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-200 to-blue-200 flex items-center justify-center border-2 border-purple-400 shadow">
+                                                    <User className="w-10 h-10 text-purple-400" />
+                                                </div>
+                                            )}
+                                        </Label>
+                                        <input
+                                            id="avatar-upload"
+                                            type="file"
+                                            accept="image/*"
+                                            className="hidden"
+                                            onChange={handleAvatarChange}
+                                        />
+                                        <span className="text-xs text-gray-400">Click avatar to change</span>
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="username">Username</Label>
+                                        <Input
+                                            id="username"
+                                            value={editData.username}
+                                            onChange={(e) => setEditData({ ...editData, username: e.target.value })}
+                                            className="mt-1"
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="email">Email</Label>
+                                        <Input
+                                            id="email"
+                                            type="email"
+                                            value={editData.email}
+                                            onChange={(e) => setEditData({ ...editData, email: e.target.value })}
+                                            className="mt-1"
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label htmlFor="bio">Bio</Label>
+                                        <Input
+                                            id="bio"
+                                            value={editData.bio}
+                                            onChange={(e) => setEditData({ ...editData, bio: e.target.value })}
+                                            className="mt-1"
+                                        />
+                                    </div>
+                                    <div className="flex gap-3 justify-end pt-4">
+                                        <Button type="button" variant="outline" onClick={() => setEditOpen(false)}>
+                                            Cancel
+                                        </Button>
+                                        <Button
+                                            type="submit"
+                                            className="bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold"
+                                        >
+                                            Save
+                                        </Button>
+                                    </div>
+                                </form>
+                            </motion.div>
                         </motion.div>
-                    </Dialog>
+                    </>
                 )}
             </AnimatePresence>
         </motion.div>
