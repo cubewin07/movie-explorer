@@ -210,7 +210,7 @@ function Home() {
                             >
                                 <Button
                                     onClick={() => navigate(`/movie/${featuredContent.id}`)}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 shadow-lg"
+                                    className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-6 py-3 shadow-lg"
                                     whileHover={{ scale: 1.05 }}
                                 >
                                     <Play className="w-4 h-4 mr-2" /> Watch Now

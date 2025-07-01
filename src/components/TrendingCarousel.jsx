@@ -124,10 +124,7 @@ export function TrendingCarousel({ items }) {
                                     {/* View Details – Gradient + Icon + Hover Glow */}
                                     <button
                                         onClick={() => navigate(`/movie/${items[current].id}`)}
-                                        className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold w-full sm:w-auto
-                   text-white bg-gradient-to-r from-blue-500 to-cyan-500 
-                   shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300
-                   dark:from-blue-600 dark:to-cyan-600"
+                                        className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold w-full sm:w-auto text-white bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 dark:from-blue-600 dark:to-cyan-600"
                                     >
                                         <svg
                                             xmlns="http://www.w3.org/2000/svg"
