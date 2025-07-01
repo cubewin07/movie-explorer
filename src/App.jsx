@@ -14,7 +14,7 @@ import ComingSoon from './components/pages/ComingSoon/ComingSoon';
 import UpcomingMoviesPage from './components/pages/ComingSoon/UpcomingMoviesPage';
 import UpcomingTvSeriesPage from './components/pages/ComingSoon/UpcomingTvSeriesPage';
 import HelpSupport from './components/pages/HelpSupport/HelpSupport';
-import NotFound from './components/pages/NotFound';
+import NotFound from './components/pages/NotFound/NotFound';
 // import Community from './pages/Community'
 // import Discovery from './pages/Discovery'
 // import ComingSoon from './pages/ComingSoon'
