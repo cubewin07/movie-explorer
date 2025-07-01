@@ -81,15 +81,15 @@ export default function InfiniteList({ type = 'movie', sortBy = 'popularity.desc
     }, [isRenderComplete, shouldPreventScroll]);
 
     useEffect(() => {
-        const currentMovieCount = movies?.length;
-        const hasNewMovies = currentMovieCount > previousMovieCount.current;
+        const currentCount = movies?.length;
+        const hasNewMovies = currentCount > previousMovieCount.current;
 
-        if ((hasNewMovies || (currentMovieCount > 0 && previousMovieCount.current === 0)) && !isPaginating) {
+        if ((hasNewMovies || (currentCount > 0 && previousMovieCount.current === 0)) && !isPaginating) {
             setIsRenderComplete(false);
             setShouldPreventScroll(true);
-            previousMovieCount.current = currentMovieCount;
+            previousMovieCount.current = currentCount;
 
-            const totalDelay = 800 + Math.min(currentMovieCount, 40) * 20;
+            const totalDelay = 800 + Math.min(currentCount, 40) * 20;
             const timeout = setTimeout(() => {
                 setIsRenderComplete(true);
                 setShouldPreventScroll(false);
@@ -225,17 +225,37 @@ export default function InfiniteList({ type = 'movie', sortBy = 'popularity.desc
                                 <div className="absolute top-2 right-2 z-10 bg-yellow-400 text-black text-xs font-semibold px-2 py-1 rounded shadow-sm">
                                     ⭐ {movie.vote_average?.toFixed(1)}
                                 </div>
-                                <motion.img
-                                    src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                                    alt={movie.title}
-                                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                    initial={{ opacity: 0 }}
-                                    whileInView={{ opacity: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ delay: Math.min(i * 0.015, 0.5) + 0.2, duration: 0.4 }}
-                                    loading="lazy"
-                                    onError={(e) => (e.target.src = '/placeholder-movie.jpg')}
-                                />
+                                {movie.poster_path ? (
+                                    <motion.img
+                                        src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                                        alt={movie.title}
+                                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                        initial={{ opacity: 0 }}
+                                        whileInView={{ opacity: 1 }}
+                                        viewport={{ once: true }}
+                                        transition={{ delay: Math.min(i * 0.015, 0.5) + 0.2, duration: 0.4 }}
+                                        loading="lazy"
+                                        onError={(e) => (e.target.src = '/placeholder-movie.jpg')}
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex flex-col items-center justify-center bg-slate-200 dark:bg-slate-700 text-slate-400 dark:text-slate-500">
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="w-10 h-10 mb-2"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                            stroke="currentColor"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={2}
+                                                d="M3 7v10a4 4 0 004 4h10a4 4 0 004-4V7M3 7a4 4 0 014-4h10a4 4 0 014 4M3 7h18"
+                                            />
+                                        </svg>
+                                        <span className="text-xs">No Image</span>
+                                    </div>
+                                )}
                             </div>
                             <div className="p-3">
                                 <h3 className="text-sm font-semibold text-gray-900 dark:text-white line-clamp-2">
