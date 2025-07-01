@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Film, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 
 function AnimatedAnimeCharacter() {
@@ -329,15 +330,10 @@ function AnimatedAnimeCharacter() {
 }
 
 export default function NotFound() {
-    const [isClicked, setIsClicked] = useState(false);
+    const navigate = useNavigate();
 
     const handleGoHome = () => {
-        setIsClicked(true);
-        // In a real app, you would use navigate('/') here
-        setTimeout(() => {
-            alert('Redirecting to home page...');
-            setIsClicked(false);
-        }, 500);
+        navigate('/');
     };
 
     return (
