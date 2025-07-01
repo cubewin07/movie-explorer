@@ -20,82 +20,121 @@ import {
     Globe,
     Shield,
     Zap,
+    ArrowRight,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import Breadcrumb from '../Discovery/Breadcrumb';
 
-const faqCategories = [
+const faqData = [
     {
-        title: 'Getting Started',
+        category: 'Getting Started',
         icon: <Zap className="w-5 h-5" />,
-        questions: [
+        items: [
             {
                 question: 'How do I create an account?',
-                answer: "Click the 'Sign Up' button in the top right corner. You can register using your email address or connect with your Google account for a faster setup.",
+                answer: "Click the 'Sign Up' button in the top right corner. You can register using your email address or connect with your Google account for a faster setup. Once registered, you'll have access to personalized features like watchlists and recommendations.",
             },
             {
                 question: 'How do I add movies to my watchlist?',
-                answer: "Browse movies and TV shows, then click the 'Add to Watchlist' button on any title's detail page. You must be logged in to use this feature.",
+                answer: "Browse movies and TV shows, then click the 'Add to Watchlist' button on any title's detail page. You must be logged in to use this feature. Your watchlist will be saved and accessible from your profile page.",
             },
             {
                 question: 'Can I use the app without creating an account?',
-                answer: 'Yes! You can browse and search for movies and TV shows without an account. However, features like watchlists, ratings, and personalized recommendations require an account.',
+                answer: 'Yes! You can browse and search for movies and TV shows without an account. However, features like watchlists, ratings, and personalized recommendations require an account to save your preferences.',
+            },
+            {
+                question: 'How do I navigate the website?',
+                answer: 'Use the navigation bar at the top to access different sections: Home for trending content, Movies for film browsing, TV Shows for series, Coming Soon for upcoming releases, and your Watchlist for saved content.',
             },
         ],
     },
     {
-        title: 'Browsing & Discovery',
+        category: 'Browsing & Discovery',
         icon: <Search className="w-5 h-5" />,
-        questions: [
+        items: [
             {
                 question: 'How do I search for specific movies or shows?',
-                answer: 'Use the search bar in the top navigation. You can search by title, actor, director, or genre. The search is real-time and will show results as you type.',
+                answer: 'Use the search bar in the top navigation. You can search by title, actor, director, or genre. The search is real-time and will show results as you type. Click on any result to view detailed information.',
             },
             {
                 question: 'How do I filter movies by genre?',
-                answer: "On the main page, you'll see genre filters. Click on any genre to see all movies and shows in that category. You can also combine multiple genres.",
+                answer: "On the main page, you'll see genre filters. Click on any genre to see all movies and shows in that category. You can also combine multiple genres for more specific results.",
             },
             {
                 question: "What's the difference between 'Popular' and 'Trending'?",
-                answer: "'Popular' shows the most watched content overall, while 'Trending' shows what's currently gaining popularity and being discussed online.",
+                answer: "'Popular' shows the most watched content overall based on viewership data, while 'Trending' shows what's currently gaining popularity and being discussed online in real-time.",
+            },
+            {
+                question: 'How do I find similar movies?',
+                answer: "On any movie or TV show detail page, scroll down to find the 'Similar' section. This shows recommendations based on the content you're currently viewing.",
             },
         ],
     },
     {
-        title: 'Account & Settings',
+        category: 'Account & Settings',
         icon: <Settings className="w-5 h-5" />,
-        questions: [
+        items: [
             {
                 question: 'How do I change my password?',
-                answer: "Go to your profile settings by clicking on your avatar in the top right corner, then select 'Change Password' from the account settings menu.",
+                answer: "Go to your profile settings by clicking on your avatar in the top right corner, then select 'Change Password' from the account settings menu. You'll need to enter your current password for security.",
             },
             {
                 question: 'Can I delete my account?',
-                answer: 'Yes, you can delete your account from the profile settings. Please note that this action is permanent and will remove all your data including watchlists and ratings.',
+                answer: 'Yes, you can delete your account from the profile settings. Please note that this action is permanent and will remove all your data including watchlists, ratings, and preferences.',
             },
             {
                 question: 'How do I update my profile information?',
-                answer: "Navigate to your profile settings and click on 'Edit Profile'. You can update your display name, email, and profile picture there.",
+                answer: "Navigate to your profile settings and click on 'Edit Profile'. You can update your display name, email, profile picture, and other personal information there.",
+            },
+            {
+                question: 'How do I manage my watchlist?',
+                answer: 'Access your watchlist from the navigation menu. You can remove items by clicking the remove button, reorder them by dragging, or filter them by type (movies vs TV shows).',
             },
         ],
     },
     {
-        title: 'Technical Issues',
+        category: 'Technical Issues',
         icon: <Shield className="w-5 h-5" />,
-        questions: [
+        items: [
             {
                 question: 'The app is loading slowly. What can I do?',
-                answer: 'Try refreshing the page, clearing your browser cache, or checking your internet connection. If the problem persists, try using a different browser.',
+                answer: 'Try refreshing the page, clearing your browser cache, or checking your internet connection. If the problem persists, try using a different browser or updating your current browser to the latest version.',
             },
             {
                 question: "I'm seeing error messages. What should I do?",
-                answer: 'Take a screenshot of the error message and contact our support team. Include details about what you were doing when the error occurred.',
+                answer: 'Take a screenshot of the error message and contact our support team. Include details about what you were doing when the error occurred, your browser type, and any steps that led to the error.',
             },
             {
                 question: "The app doesn't work on my mobile device.",
-                answer: "Our app is designed to work on all modern browsers. Make sure you're using the latest version of your browser and have a stable internet connection.",
+                answer: "Our app is designed to work on all modern browsers. Make sure you're using the latest version of your browser and have a stable internet connection. Try clearing your browser cache and cookies.",
+            },
+            {
+                question: 'Images are not loading properly.',
+                answer: 'This could be due to a slow internet connection or temporary server issues. Try refreshing the page or waiting a few minutes. If the problem continues, contact our support team.',
+            },
+        ],
+    },
+    {
+        category: 'Content & Features',
+        icon: <Film className="w-5 h-5" />,
+        items: [
+            {
+                question: 'Where does the movie data come from?',
+                answer: 'We use The Movie Database (TMDB) API to provide comprehensive movie and TV show information including ratings, cast, crew, trailers, and release dates.',
+            },
+            {
+                question: 'How often is the content updated?',
+                answer: "Our content is updated in real-time from TMDB. New movies and TV shows are added as soon as they're available in the database, and ratings are updated continuously.",
+            },
+            {
+                question: 'Can I watch movies directly on the site?',
+                answer: "Currently, we provide information about movies and TV shows, but we don't stream content directly. We focus on helping you discover and track content you want to watch.",
+            },
+            {
+                question: 'How do I get notified about new releases?',
+                answer: "We're working on notification features! Soon you'll be able to set alerts for specific movies, TV shows, or actors to get notified when new content is available.",
             },
         ],
     },
@@ -157,26 +196,17 @@ const quickActions = [
 
 export default function HelpSupport() {
     const [searchQuery, setSearchQuery] = useState('');
-    const [expandedQuestions, setExpandedQuestions] = useState({});
 
-    const toggleQuestion = (categoryIndex, questionIndex) => {
-        const key = `${categoryIndex}-${questionIndex}`;
-        setExpandedQuestions((prev) => ({
-            ...prev,
-            [key]: !prev[key],
-        }));
-    };
-
-    const filteredFAQs = faqCategories
+    const filteredFAQs = faqData
         .map((category) => ({
             ...category,
-            questions: category.questions.filter(
-                (q) =>
-                    q.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    q.answer.toLowerCase().includes(searchQuery.toLowerCase()),
+            items: category.items.filter(
+                (item) =>
+                    item.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    item.answer.toLowerCase().includes(searchQuery.toLowerCase()),
             ),
         }))
-        .filter((category) => category.questions.length > 0);
+        .filter((category) => category.items.length > 0);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
@@ -287,7 +317,7 @@ export default function HelpSupport() {
                     </div>
                 </motion.section>
 
-                {/* FAQ Section */}
+                {/* FAQ Section with DaisyUI Accordion */}
                 <motion.section
                     className="mb-16"
                     initial={{ opacity: 0, y: 30 }}
@@ -301,7 +331,7 @@ export default function HelpSupport() {
                     {searchQuery && (
                         <div className="mb-6 text-center">
                             <Badge variant="secondary" className="text-sm">
-                                {filteredFAQs.reduce((total, category) => total + category.questions.length, 0)} results
+                                {filteredFAQs.reduce((total, category) => total + category.items.length, 0)} results
                                 found
                             </Badge>
                         </div>
@@ -319,55 +349,33 @@ export default function HelpSupport() {
                                 <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
                                     <div className="flex items-center gap-3">
                                         <div className="text-white">{category.icon}</div>
-                                        <h3 className="text-lg font-semibold text-white">{category.title}</h3>
+                                        <h3 className="text-lg font-semibold text-white">{category.category}</h3>
                                     </div>
                                 </div>
 
-                                <div className="divide-y divide-gray-200 dark:divide-slate-700">
-                                    {category.questions.map((faq, questionIndex) => {
-                                        const key = `${categoryIndex}-${questionIndex}`;
-                                        const isExpanded = expandedQuestions[key];
-
-                                        return (
-                                            <motion.div
-                                                key={questionIndex}
-                                                className="px-6 py-4"
-                                                initial={{ opacity: 0 }}
-                                                animate={{ opacity: 1 }}
-                                                transition={{ duration: 0.3 }}
-                                            >
-                                                <button
-                                                    onClick={() => toggleQuestion(categoryIndex, questionIndex)}
-                                                    className="flex items-center justify-between w-full text-left hover:bg-gray-50 dark:hover:bg-slate-700 rounded-lg p-2 -m-2 transition-colors"
-                                                >
-                                                    <h4 className="font-medium text-gray-900 dark:text-white pr-4">
-                                                        {faq.question}
-                                                    </h4>
-                                                    <div className="text-gray-400 dark:text-gray-500">
-                                                        {isExpanded ? (
-                                                            <ChevronUp className="w-5 h-5" />
-                                                        ) : (
-                                                            <ChevronDown className="w-5 h-5" />
-                                                        )}
-                                                    </div>
-                                                </button>
-
-                                                {isExpanded && (
-                                                    <motion.div
-                                                        className="mt-3 pl-2"
-                                                        initial={{ opacity: 0, height: 0 }}
-                                                        animate={{ opacity: 1, height: 'auto' }}
-                                                        exit={{ opacity: 0, height: 0 }}
-                                                        transition={{ duration: 0.3 }}
-                                                    >
-                                                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
-                                                            {faq.answer}
-                                                        </p>
-                                                    </motion.div>
-                                                )}
-                                            </motion.div>
-                                        );
-                                    })}
+                                <div className="join join-vertical w-full">
+                                    {category.items.map((faq, questionIndex) => (
+                                        <div
+                                            key={questionIndex}
+                                            className="collapse collapse-arrow join-item border-b border-gray-200 dark:border-slate-700 last:border-b-0"
+                                        >
+                                            <input
+                                                type="radio"
+                                                name={`accordion-${categoryIndex}`}
+                                                defaultChecked={questionIndex === 0}
+                                            />
+                                            <div className="collapse-title text-base font-medium text-gray-900 dark:text-white py-4">
+                                                {faq.question}
+                                            </div>
+                                            <div className="collapse-content bg-gray-50 dark:bg-slate-700/50">
+                                                <div className="pt-2 pb-4 px-2">
+                                                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
+                                                        {faq.answer}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </motion.div>
                         ))}
