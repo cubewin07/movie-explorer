@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Loader } from '@/components/ui/loader';
+import FancyLoader from '@/components/ui/FancyLoader';
 
 import { useTVSeriesDetails, useTVSeriesTrailer, useTvSeriesCredits } from '@/hooks/API/data';
 import { useAuthen } from '@/context/AuthenProvider';
