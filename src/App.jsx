@@ -13,6 +13,7 @@ import Settings from './components/pages/Settings/Settings';
 import ComingSoon from './components/pages/ComingSoon/ComingSoon';
 import UpcomingMoviesPage from './components/pages/ComingSoon/UpcomingMoviesPage';
 import UpcomingTvSeriesPage from './components/pages/ComingSoon/UpcomingTvSeriesPage';
+import HelpSupport from './components/pages/HelpSupport/HelpSupport';
 // import Community from './pages/Community'
 // import Discovery from './pages/Discovery'
 // import ComingSoon from './pages/ComingSoon'
@@ -72,6 +73,10 @@ const router = createBrowserRouter(
                 {
                     path: '/tv/upcoming',
                     element: <UpcomingTvSeriesPage />,
+                },
+                {
+                    path: '/help',
+                    element: <HelpSupport />,
                 },
                 // Add other routes here
             ],
