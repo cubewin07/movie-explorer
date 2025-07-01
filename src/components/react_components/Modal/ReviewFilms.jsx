@@ -60,20 +60,21 @@ export default function MovieReviewModal(props) {
     }, [setIsOpen]);
 
     return (
-        <AnimatePresence mode="wait">
-            <motion.div
-                className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.25, ease: 'easeOut' }}
-                onClick={() => setIsOpen(false)}
-            >
+        <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, ease: 'easeOut' }}
+            onClick={() => setIsOpen(false)}
+        >
+            <AnimatePresence mode="wait">
                 <motion.div
+                    key={id || title || name || 'modal'}
                     onClick={(e) => e.stopPropagation()}
-                    initial={{ opacity: 0, y: 50, scale: 0.95 }}
+                    initial={{ opacity: 0, y: -40, scale: 0.98 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 50, scale: 0.95 }}
+                    exit={{ opacity: 0, y: 80, scale: 0.98 }}
                     transition={{ type: 'spring', stiffness: 300, damping: 24 }}
                     className="w-full max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl max-h-[90vh] overflow-hidden bg-background border border-border text-foreground shadow-xl rounded-xl"
                 >
@@ -235,7 +236,7 @@ export default function MovieReviewModal(props) {
                         </motion.div>
                     </CardContent>
                 </motion.div>
-            </motion.div>
-        </AnimatePresence>
+            </AnimatePresence>
+        </motion.div>
     );
 }
