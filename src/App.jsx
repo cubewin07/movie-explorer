@@ -15,6 +15,7 @@ import UpcomingMoviesPage from './components/pages/ComingSoon/UpcomingMoviesPage
 import UpcomingTvSeriesPage from './components/pages/ComingSoon/UpcomingTvSeriesPage';
 import HelpSupport from './components/pages/HelpSupport/HelpSupport';
 import NotFound from './components/pages/NotFound/NotFound';
+import Profile from './components/pages/Profile';
 // import Community from './pages/Community'
 // import Discovery from './pages/Discovery'
 // import ComingSoon from './pages/ComingSoon'
@@ -46,6 +47,10 @@ const router = createBrowserRouter(
                 {
                     path: '/coming-soon',
                     element: <ComingSoon />,
+                },
+                {
+                    path: '/profile',
+                    element: <Profile />,
                 },
                 {
                     path: '/movies/:type',
