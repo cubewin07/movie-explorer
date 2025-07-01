@@ -122,26 +122,36 @@ export function TrendingCarousel({ items }) {
                                 {/* Buttons */}
                                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-4">
                                     {/* View Details – Gradient + Icon + Hover Glow */}
-                                    <button
+                                    <motion.button
                                         onClick={() => navigate(`/movie/${items[current].id}`)}
-                                        className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold w-full sm:w-auto text-white bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 shadow-md hover:shadow-lg hover:scale-105 transition-all duration-300 dark:from-blue-600 dark:to-cyan-600"
+                                        className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold w-full sm:w-auto text-white bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 shadow-md transition-all duration-300 dark:from-blue-600 dark:to-cyan-600"
+                                        whileHover={{
+                                            scale: 1.08,
+                                            y: -2,
+                                            boxShadow: '0 0 16px 4px rgba(34,211,238,0.25)',
+                                            textShadow: '0 0 8px #22d3ee, 0 0 2px #fff',
+                                        }}
+                                        whileTap={{ scale: 0.96, y: 1 }}
+                                        transition={{ type: 'spring', stiffness: 300, damping: 18 }}
                                     >
-                                        <svg
+                                        <motion.svg
                                             xmlns="http://www.w3.org/2000/svg"
                                             className="h-4 w-4"
                                             fill="none"
                                             viewBox="0 0 24 24"
                                             stroke="currentColor"
                                             strokeWidth={2}
+                                            whileHover={{ rotate: [0, 10, -10, 0], scale: [1, 1.15, 1] }}
+                                            transition={{ duration: 0.5, repeat: 0 }}
                                         >
                                             <path
                                                 strokeLinecap="round"
                                                 strokeLinejoin="round"
                                                 d="M15 17h5l-1.405-1.405M21 21l-6-6m0 0a7 7 0 10-9.9 0 7 7 0 009.9 0z"
                                             />
-                                        </svg>
+                                        </motion.svg>
                                         View Details
-                                    </button>
+                                    </motion.button>
 
                                     {/* Add to List – Outline + Icon + Improved Hover */}
                                     <button
