@@ -349,7 +349,9 @@ export default function HelpSupport() {
                                 <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
                                     <div className="flex items-center gap-3">
                                         <div className="text-white">{category.icon}</div>
-                                        <h3 className="text-lg font-semibold text-white">{category.category}</h3>
+                                        <h3 className="text-xl font-bold text-yellow-300 dark:text-yellow-400">
+                                            {category.category}
+                                        </h3>
                                     </div>
                                 </div>
 
@@ -364,7 +366,7 @@ export default function HelpSupport() {
                                                 name={`accordion-${categoryIndex}`}
                                                 defaultChecked={questionIndex === 0}
                                             />
-                                            <div className="collapse-title text-base font-medium text-gray-900 dark:text-white py-4">
+                                            <div className="collapse-title text-base font-semibold text-blue-700 dark:text-blue-300 py-4">
                                                 {faq.question}
                                             </div>
                                             <div className="collapse-content bg-gray-50 dark:bg-slate-700/50">
