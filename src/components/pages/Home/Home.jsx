@@ -84,7 +84,7 @@ function Home() {
         return (
             <motion.div
                 key={movie.id}
-                className="relative bg-white dark:bg-slate-800 border border-border dark:border-slate-700 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-200 flex flex-col overflow-hidden group cursor-pointer"
+                className="min-w-[180px] md:min-w-[220px] flex-shrink-0 relative bg-white dark:bg-slate-800 border border-border dark:border-slate-700 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-200 flex flex-col overflow-hidden group cursor-pointer"
                 whileHover={{ y: -4, scale: 1.03 }}
                 initial={{ opacity: 0, y: 30, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -163,12 +163,12 @@ function Home() {
                         View All <ArrowRight className="w-4 h-4" />
                     </motion.button>
                 </motion.div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                <div className="flex flex-nowrap overflow-x-auto gap-x-4 py-2">
                     {isLoading
                         ? Array.from({ length: 6 }).map((_, i) => (
                               <motion.div
                                   key={i}
-                                  className="h-80 bg-gray-200 dark:bg-slate-700 rounded-xl animate-pulse"
+                                  className="min-w-[180px] md:min-w-[220px] h-80 bg-gray-200 dark:bg-slate-700 rounded-xl animate-pulse flex-shrink-0"
                               />
                           ))
                         : items?.map((item, idx) => renderMovieCard(item, 'movie', idx))}
