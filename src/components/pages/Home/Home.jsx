@@ -84,7 +84,7 @@ function Home() {
         return (
             <motion.div
                 key={movie.id}
-                className="min-w-[180px] md:min-w-[220px] flex-shrink-0 relative bg-white dark:bg-slate-800 border border-border dark:border-slate-700 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-200 flex flex-col overflow-hidden group cursor-pointer"
+                className="w-[180px] md:w-[220px] flex-shrink-0 relative bg-white dark:bg-slate-800 border border-border dark:border-slate-700 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-200 flex flex-col overflow-hidden group cursor-pointer"
                 whileHover={{ y: -4, scale: 1.03 }}
                 initial={{ opacity: 0, y: 30, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -168,7 +168,7 @@ function Home() {
                         ? Array.from({ length: 6 }).map((_, i) => (
                               <motion.div
                                   key={i}
-                                  className="min-w-[180px] md:min-w-[220px] h-80 bg-gray-200 dark:bg-slate-700 rounded-xl animate-pulse flex-shrink-0"
+                                  className="w-[180px] md:w-[220px] h-80 bg-gray-200 dark:bg-slate-700 rounded-xl animate-pulse flex-shrink-0"
                               />
                           ))
                         : items?.map((item, idx) => renderMovieCard(item, 'movie', idx))}
