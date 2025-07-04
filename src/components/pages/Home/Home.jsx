@@ -16,6 +16,7 @@ import {
 import { FilmModalContext } from '@/context/FilmModalProvider';
 import { useAuthen } from '@/context/AuthenProvider';
 import { LoginNotificationModal } from '@/components/react_components/Modal/LoginNotificationModal';
+import useAddToWatchlist from '@/hooks/watchList/useAddtoWatchList';
 
 function Home() {
     const navigate = useNavigate();
@@ -31,6 +32,7 @@ function Home() {
     const { popularTVShows, isLoading: isPopularTVLoading } = usePopularTVShows();
     const { data: trendingData, isLoading: isTrendingLoading } = usePaginatedFetch('trending/movie/week', 1);
     const { MovieGenres, isGenresLoading } = useMovieGenres();
+    const { mutate: addToWatchlist, isPending } = useAddToWatchlist(user?.email, 'movie');
 
     const genreMap =
         MovieGenres?.data?.genres?.reduce((acc, g) => {
@@ -59,12 +61,12 @@ function Home() {
             setShowLoginModal(true);
             return;
         }
-        // Add to watchlist logic here
+        addToWatchlist(item.id);
     };
 
     const handleLoginSuccess = () => {
         if (selectedItem) {
-            // Add selected item to watchlist
+            addToWatchlist(selectedItem.id);
             setSelectedItem(null);
         }
     };
@@ -125,6 +127,18 @@ function Home() {
                     <span className="text-xs text-gray-500 dark:text-gray-400">
                         {movie.release_date?.slice(0, 4) || movie.first_air_date?.slice(0, 4)}
                     </span>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            handleAddToWatchlist(movie);
+                        }}
+                        disabled={isPending}
+                    >
+                        <Plus className="w-4 h-4 mr-1" /> {isPending ? 'Adding...' : 'Add to Watchlist'}
+                    </Button>
                 </div>
             </motion.div>
         );
@@ -227,8 +241,9 @@ function Home() {
                                         transition-all duration-200
                                     "
                                     whileHover={{ scale: 1.05 }}
+                                    disabled={isPending}
                                 >
-                                    <Plus className="w-4 h-4 mr-2" /> Add to Watchlist
+                                    <Plus className="w-4 h-4 mr-2" /> {isPending ? 'Adding...' : 'Add to Watchlist'}
                                 </Button>
                             </motion.div>
                         </div>
