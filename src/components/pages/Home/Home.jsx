@@ -104,48 +104,38 @@ function Home() {
                         ★ {movie.vote_average?.toFixed(1)}
                     </div>
                 </div>
-                <div className="p-4 flex flex-col gap-2 flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
-                        {movie.title || movie.name}
-                    </h3>
-                    <motion.div
-                        className="flex flex-wrap gap-1"
-                        initial="hidden"
-                        animate="visible"
-                        variants={{
-                            hidden: {},
-                            visible: {
-                                transition: { staggerChildren: 0.08 },
-                            },
-                        }}
-                    >
-                        {genreNames.slice(0, 2).map((name, idx) => (
-                            <motion.span
-                                key={name + idx}
-                                className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full"
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ duration: 0.3, delay: 0.1 * idx }}
-                            >
-                                {name}
-                            </motion.span>
-                        ))}
-                    </motion.div>
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                <div className="p-4 flex flex-col flex-1">
+                    <div className="flex flex-col flex-grow min-h-0">
+                        <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+                            {movie.title || movie.name}
+                        </h3>
+                        <motion.div
+                            className="flex flex-wrap gap-1"
+                            initial="hidden"
+                            animate="visible"
+                            variants={{
+                                hidden: {},
+                                visible: {
+                                    transition: { staggerChildren: 0.08 },
+                                },
+                            }}
+                        >
+                            {genreNames.slice(0, 2).map((name, idx) => (
+                                <motion.span
+                                    key={name + idx}
+                                    className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full"
+                                    initial={{ opacity: 0, scale: 0.8 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    transition={{ duration: 0.3, delay: 0.1 * idx }}
+                                >
+                                    {name}
+                                </motion.span>
+                            ))}
+                        </motion.div>
+                    </div>
+                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                         {movie.release_date?.slice(0, 4) || movie.first_air_date?.slice(0, 4)}
                     </span>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        className="mt-2"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleAddToWatchlist(movie);
-                        }}
-                        disabled={addingId === movie.id}
-                    >
-                        <Plus className="w-4 h-4 mr-1" /> {addingId === movie.id ? 'Adding...' : 'Add to Watchlist'}
-                    </Button>
                 </div>
             </motion.div>
         );
