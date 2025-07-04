@@ -38,19 +38,18 @@ export default function MovieDetailPage() {
     const cast = credits?.cast?.slice(0, 10) || [];
     const crew = credits?.crew?.slice(0, 5) || [];
 
-    const { mutate: addToWatchlist, isPending } = useAddToWatchlist();
+    const { mutate: addToWatchlist, isPending } = useAddToWatchlist(user?.email, 'movie');
 
     const handleAddToWatchlist = () => {
         if (!user) {
             setShowLoginModal(true);
             return;
         }
-        addToWatchlist(watchlistData);
+        addToWatchlist(movie.id);
     };
 
     const handleLoginSuccess = () => {
-        // After successful login, add the item to watchlist
-        addToWatchlist(watchlistData);
+        addToWatchlist(movie.id);
     };
 
     if (isLoading) return <FancyLoader type="movie" />;

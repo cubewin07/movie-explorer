@@ -12,7 +12,7 @@ export function TrendingCarousel({ items }) {
     const [showLoginModal, setShowLoginModal] = useState(false);
 
     const { user } = useAuthen();
-    const { mutate: addToWatchlist, isPending } = useAddToWatchlist();
+    const { mutate: addToWatchlist, isPending } = useAddToWatchlist(user?.email, 'movie');
 
     const navigate = useNavigate();
 
@@ -56,12 +56,11 @@ export function TrendingCarousel({ items }) {
             setShowLoginModal(true);
             return;
         }
-        addToWatchlist(items[current]);
+        addToWatchlist(items[current].id);
     };
 
     const handleLoginSuccess = () => {
-        // After successful login, add the current item to watchlist
-        addToWatchlist(items[current]);
+        addToWatchlist(items[current].id);
     };
 
     return (
