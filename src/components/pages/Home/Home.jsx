@@ -1,4 +1,4 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Plus, ArrowRight, Flame, CalendarDays, Star as StarIcon, Tv } from 'lucide-react';
@@ -84,7 +84,7 @@ function Home() {
         return (
             <motion.div
                 key={movie.id}
-                className="w-[180px] md:w-[220px] flex-shrink-0 relative bg-white dark:bg-slate-800 border border-border dark:border-slate-700 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-200 flex flex-col overflow-hidden group cursor-pointer"
+                className="w-[180px] md:w-[200px] flex-shrink-0 relative bg-white dark:bg-slate-800 border border-border dark:border-slate-700 rounded-xl shadow-md hover:shadow-xl transition-shadow duration-200 flex flex-col overflow-hidden group cursor-pointer"
                 whileHover={{ y: -4, scale: 1.03 }}
                 initial={{ opacity: 0, y: 30, scale: 0.98 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -142,6 +142,31 @@ function Home() {
     };
 
     const renderSection = (title, items, isLoading, icon, viewAllPath) => {
+        const scrollRef = useRef(null);
+        const [isHovered, setIsHovered] = useState(false);
+        const [canScrollLeft, setCanScrollLeft] = useState(false);
+        const [canScrollRight, setCanScrollRight] = useState(true);
+
+        // Check scroll position
+        const checkScroll = () => {
+            const el = scrollRef.current;
+            if (!el) return;
+            setCanScrollLeft(el.scrollLeft > 0);
+            setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+        };
+
+        // Scroll by one card width
+        const scrollBy = (dir) => {
+            const el = scrollRef.current;
+            if (!el) return;
+            const card = el.querySelector('div[class*="w-[180px]"]') || el.querySelector('div[class*="w-[200px]"]');
+            const cardWidth = card ? card.offsetWidth + 16 : 200; // 16px gap-x-4
+            el.scrollBy({ left: dir * cardWidth, behavior: 'smooth' });
+        };
+
+        // Listen for scroll events
+        const handleScroll = () => checkScroll();
+
         return (
             <section className="mb-12">
                 <motion.div
@@ -163,15 +188,58 @@ function Home() {
                         View All <ArrowRight className="w-4 h-4" />
                     </motion.button>
                 </motion.div>
-                <div className="flex flex-nowrap overflow-x-auto gap-x-4 py-2">
-                    {isLoading
-                        ? Array.from({ length: 6 }).map((_, i) => (
-                              <motion.div
-                                  key={i}
-                                  className="w-[180px] md:w-[220px] h-80 bg-gray-200 dark:bg-slate-700 rounded-xl animate-pulse flex-shrink-0"
-                              />
-                          ))
-                        : items?.map((item, idx) => renderMovieCard(item, 'movie', idx))}
+                <div
+                    className="relative group"
+                    onMouseEnter={() => setIsHovered(true)}
+                    onMouseLeave={() => setIsHovered(false)}
+                >
+                    {/* Scrollable Row */}
+                    <div
+                        ref={scrollRef}
+                        className="flex flex-nowrap overflow-x-auto gap-x-4 py-2 scrollbar-hide scroll-smooth"
+                        onScroll={handleScroll}
+                    >
+                        {isLoading
+                            ? Array.from({ length: 6 }).map((_, i) => (
+                                  <motion.div
+                                      key={i}
+                                      className="w-[180px] md:w-[200px] h-80 bg-gray-200 dark:bg-slate-700 rounded-xl animate-pulse flex-shrink-0"
+                                  />
+                              ))
+                            : items?.map((item, idx) => renderMovieCard(item, 'movie', idx))}
+                    </div>
+                    {/* Left Button */}
+                    <button
+                        type="button"
+                        onClick={() => scrollBy(-1)}
+                        className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 rounded-full p-2 shadow transition-all duration-200
+                            ${isHovered ? (canScrollLeft ? 'opacity-100' : 'opacity-50 grayscale cursor-not-allowed') : 'opacity-0 pointer-events-none'}
+                            ${isHovered && canScrollLeft ? 'hover:-translate-x-1' : ''}
+                        `}
+                        style={{ transition: 'opacity 0.2s, transform 0.2s' }}
+                        disabled={!canScrollLeft}
+                        tabIndex={-1}
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    {/* Right Button */}
+                    <button
+                        type="button"
+                        onClick={() => scrollBy(1)}
+                        className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-700 rounded-full p-2 shadow transition-all duration-200
+                            ${isHovered ? (canScrollRight ? 'opacity-100' : 'opacity-50 grayscale cursor-not-allowed') : 'opacity-0 pointer-events-none'}
+                            ${isHovered && canScrollRight ? 'hover:translate-x-1' : ''}
+                        `}
+                        style={{ transition: 'opacity 0.2s, transform 0.2s' }}
+                        disabled={!canScrollRight}
+                        tabIndex={-1}
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
                 </div>
             </section>
         );
