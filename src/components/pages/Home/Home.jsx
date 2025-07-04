@@ -24,6 +24,7 @@ function Home() {
     const { user } = useAuthen();
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
+    const [addingId, setAddingId] = useState(null);
 
     // Fetch data using new hooks
     const { featuredContent, isLoading: isFeaturedLoading } = useFeaturedContent();
@@ -32,7 +33,7 @@ function Home() {
     const { popularTVShows, isLoading: isPopularTVLoading } = usePopularTVShows();
     const { data: trendingData, isLoading: isTrendingLoading } = usePaginatedFetch('trending/movie/week', 1);
     const { MovieGenres, isGenresLoading } = useMovieGenres();
-    const { mutate: addToWatchlist, isPending } = useAddToWatchlist(user?.email, 'movie');
+    const { mutate: addToWatchlist } = useAddToWatchlist(user?.email, 'movie');
 
     const genreMap =
         MovieGenres?.data?.genres?.reduce((acc, g) => {
@@ -61,12 +62,18 @@ function Home() {
             setShowLoginModal(true);
             return;
         }
-        addToWatchlist(item.id);
+        setAddingId(item.id);
+        addToWatchlist(item.id, {
+            onSettled: () => setAddingId(null),
+        });
     };
 
     const handleLoginSuccess = () => {
         if (selectedItem) {
-            addToWatchlist(selectedItem.id);
+            setAddingId(selectedItem.id);
+            addToWatchlist(selectedItem.id, {
+                onSettled: () => setAddingId(null),
+            });
             setSelectedItem(null);
         }
     };
@@ -135,9 +142,9 @@ function Home() {
                             e.stopPropagation();
                             handleAddToWatchlist(movie);
                         }}
-                        disabled={isPending}
+                        disabled={addingId === movie.id}
                     >
-                        <Plus className="w-4 h-4 mr-1" /> {isPending ? 'Adding...' : 'Add to Watchlist'}
+                        <Plus className="w-4 h-4 mr-1" /> {addingId === movie.id ? 'Adding...' : 'Add to Watchlist'}
                     </Button>
                 </div>
             </motion.div>
@@ -241,9 +248,10 @@ function Home() {
                                         transition-all duration-200
                                     "
                                     whileHover={{ scale: 1.05 }}
-                                    disabled={isPending}
+                                    disabled={addingId === featuredContent.id}
                                 >
-                                    <Plus className="w-4 h-4 mr-2" /> {isPending ? 'Adding...' : 'Add to Watchlist'}
+                                    <Plus className="w-4 h-4 mr-2" />{' '}
+                                    {addingId === featuredContent.id ? 'Adding...' : 'Add to Watchlist'}
                                 </Button>
                             </motion.div>
                         </div>
