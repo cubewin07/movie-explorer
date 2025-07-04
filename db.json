@@ -1,3 +1,28 @@
 {
-  "watchlist": []
+  "watchlist": [
+    {
+      "id": "541671",
+      "title": "Ballerina",
+      "image": "https://image.tmdb.org/t/p/w500/mKp4euM5Cv3m2U1Vmby3OGwcD5y.jpg",
+      "description": "Taking place during the events of John Wick: Chapter 3 – Parabellum, Eve Macarro begins her training in the assassin traditions of the Ruska Roma.",
+      "rating": "7.2",
+      "year": "2025",
+      "extra": [
+        "Action",
+        "Thriller",
+        "Crime"
+      ]
+    },
+    {
+      "id": "846422",
+      "title": "The Old Guard 2",
+      "image": "https://image.tmdb.org/t/p/w500/qjVMsjV7UmSpi1aHA9Wtl1v8cxr.jpg",
+      "rating": "5.9",
+      "year": "2025",
+      "extra": [
+        "Action",
+        "Fantasy"
+      ]
+    }
+  ]
 }
