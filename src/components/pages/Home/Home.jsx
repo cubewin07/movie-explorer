@@ -141,7 +141,7 @@ function Home() {
         );
     };
 
-    const renderSection = (title, items, isLoading, icon, viewAllPath) => {
+    const renderSection = (title, items, isLoading, icon, viewAllType, viewAllSort) => {
         const scrollRef = useRef(null);
         const [isHovered, setIsHovered] = useState(false);
         const [canScrollLeft, setCanScrollLeft] = useState(false);
@@ -180,7 +180,11 @@ function Home() {
                         {icon} {title}
                     </h2>
                     <motion.button
-                        onClick={() => navigate(viewAllPath)}
+                        onClick={() =>
+                            navigate(viewAllType === 'tv' ? '/tvseries' : '/movies', {
+                                state: { type: viewAllType, sortBy: viewAllSort },
+                            })
+                        }
                         className="text-blue-600 dark:text-blue-400 font-semibold hover:underline transition-colors flex items-center gap-1"
                         whileHover={{ scale: 1.08 }}
                         whileTap={{ scale: 0.97 }}
@@ -206,7 +210,7 @@ function Home() {
                                       className="w-[180px] md:w-[200px] h-80 bg-gray-200 dark:bg-slate-700 rounded-xl animate-pulse flex-shrink-0"
                                   />
                               ))
-                            : items?.map((item, idx) => renderMovieCard(item, 'movie', idx))}
+                            : items?.map((item, idx) => renderMovieCard(item, viewAllType, idx))}
                     </div>
                     {/* Left Button */}
                     <button
@@ -332,7 +336,8 @@ function Home() {
                 newReleases,
                 isNewReleasesLoading,
                 <CalendarDays className="w-6 h-6 text-blue-500 dark:text-blue-400" />,
-                '/movies/popular',
+                'movie',
+                'popularity.desc',
             )}
 
             {/* Top Rated */}
@@ -341,7 +346,8 @@ function Home() {
                 topRatedMovies,
                 isTopRatedLoading,
                 <StarIcon className="w-6 h-6 text-yellow-500 dark:text-yellow-400" />,
-                '/movies/top_rated',
+                'movie',
+                'vote_average.desc',
             )}
 
             {/* Popular TV Shows */}
@@ -350,7 +356,8 @@ function Home() {
                 popularTVShows,
                 isPopularTVLoading,
                 <Tv className="w-6 h-6 text-purple-500 dark:text-purple-400" />,
-                '/tvseries/popular',
+                'tv',
+                'popularity.desc',
             )}
 
             {showLoginModal && (

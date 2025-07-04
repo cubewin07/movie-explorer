@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Breadcrumb from './Breadcrumb';
 import InfiniteList from '../Aside_Page/PopularPage/List';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
+import { useLocation } from 'react-router-dom';
 
 const SORT_OPTIONS = [
     { value: 'popularity.desc', label: 'Most Popular' },
@@ -14,8 +15,11 @@ const SORT_OPTIONS = [
 ];
 
 export default function Discovery() {
-    const [type, setType] = useState('movie');
-    const [sortBy, setSortBy] = useState('popularity.desc');
+    const location = useLocation();
+    const initialType = location.state?.type || 'movie';
+    const initialSort = location.state?.sortBy || 'popularity.desc';
+    const [type, setType] = useState(initialType);
+    const [sortBy, setSortBy] = useState(initialSort);
 
     const categoryKey = type === 'movie' ? 'movies' : 'tvseries';
 
