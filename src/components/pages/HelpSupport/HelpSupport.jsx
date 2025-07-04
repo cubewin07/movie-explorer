@@ -408,10 +408,15 @@ export default function HelpSupport() {
                         Can't find what you're looking for? Our support team is here to help you 24/7.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3">
-                            <MessageCircle className="w-4 h-4 mr-2" />
-                            Start Live Chat
-                        </Button>
+                        <motion.button
+                            className="px-6 py-3 rounded-lg text-white font-semibold bg-gradient-to-r from-pink-500 via-red-500 to-yellow-400 shadow-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:ring-offset-2"
+                            whileHover={{ scale: 1.07, boxShadow: '0 4px 24px 0 rgba(255, 99, 132, 0.25)' }}
+                            whileTap={{ scale: 0.97 }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 18 }}
+                        >
+                            <MessageCircle className="w-4 h-4 mr-2 inline-block align-middle" />
+                            <span className="align-middle">Start Live Chat</span>
+                        </motion.button>
                         <Button variant="outline" className="px-6 py-3">
                             <Mail className="w-4 h-4 mr-2" />
                             Send Email
