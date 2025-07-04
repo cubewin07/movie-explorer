@@ -53,20 +53,12 @@ const router = createBrowserRouter(
                     element: <Profile />,
                 },
                 {
-                    path: '/movies/:type',
-                    element: <PopularMoviesPage />,
-                },
-                {
                     path: '/movie/:id',
                     element: <MovieDetailPage />,
                 },
                 {
                     path: '/tv/:id',
                     element: <TVSeriesDetailPage />,
-                },
-                {
-                    path: '/tvseries/:type',
-                    element: <PopularTvSeriesPage />,
                 },
                 {
                     path: '/watchlist',
