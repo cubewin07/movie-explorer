@@ -184,7 +184,7 @@ const quickActions = [
         icon: <Globe className="w-5 h-5" />,
         title: 'API Documentation',
         description: 'For developers',
-        link: 'https://developers.themoviedb.org/3/getting-started/introduction',
+        link: '#',
     },
     {
         icon: <Star className="w-5 h-5" />,
