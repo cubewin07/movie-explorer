@@ -80,19 +80,39 @@ function SearchInput() {
             {/* Floating Search Input */}
             <label
                 onClick={() => setIsModalOpen(true)}
-                className="input input-bordered input-accent w-full max-w-xs sm:max-w-md text-white bg-neutral dark:bg-neutral-content/10 dark:text-white border border-primary focus-within:ring focus-within:ring-blue-500 sticky top-4 z-10 cursor-pointer"
+                className="input input-bordered w-full max-w-xs sm:max-w-md 
+             bg-white text-gray-800 
+             dark:bg-neutral-content/10 dark:text-white 
+             border border-gray-300 dark:border-primary 
+             focus-within:ring focus-within:ring-blue-500 
+             shadow-sm dark:shadow-none 
+             sticky top-4 z-10 cursor-pointer transition"
             >
-                <Search className="h-[1.2em] opacity-60" />
+                <Search className="h-[1.2em] opacity-60 text-gray-500 dark:text-white" />
                 <input
                     ref={inputRef}
                     type="text"
                     placeholder="Search movies or shows..."
-                    className="grow bg-transparent placeholder:text-gray-400 dark:placeholder:text-gray-500 text-white"
+                    className="grow bg-transparent text-gray-800 
+               placeholder:text-gray-500 
+               dark:text-white dark:placeholder:text-gray-500"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
-                <kbd className="kbd kbd-sm hidden sm:inline-flex">⌘</kbd>
-                <kbd className="kbd kbd-sm hidden sm:inline-flex">K</kbd>
+                <kbd
+                    className="kbd kbd-sm hidden sm:inline-flex 
+               text-gray-700 bg-gray-100 border border-gray-300 
+               dark:text-white dark:bg-gray-700 dark:border-none shadow-sm"
+                >
+                    ⌘
+                </kbd>
+                <kbd
+                    className="kbd kbd-sm hidden sm:inline-flex 
+               text-gray-700 bg-gray-100 border border-gray-300 
+               dark:text-white dark:bg-gray-700 dark:border-none shadow-sm"
+                >
+                    K
+                </kbd>
             </label>
 
             {/* Modal Dialog */}
