@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useLayoutEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import Breadcrumb from './Breadcrumb';
@@ -20,6 +20,10 @@ export default function Discovery() {
     const initialSort = location.state?.sortBy || 'popularity.desc';
     const [type, setType] = useState(initialType);
     const [sortBy, setSortBy] = useState(initialSort);
+
+    useLayoutEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, [sortBy]);
 
     const categoryKey = type === 'movie' ? 'movies' : 'tvseries';
 
