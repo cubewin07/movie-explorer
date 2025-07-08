@@ -21,7 +21,9 @@ function PopularTvSeries() {
             transition={{ duration: 0.5 }}
         >
             <motion.h1
-                className="text-white text-opacity-50 text-base sm:text-lg font-bold mb-2 sm:mb-3"
+                className="text-base sm:text-lg font-bold mb-2 sm:mb-3
+             text-white text-opacity-50 dark:text-white dark:text-opacity-50
+             text-gray-700/80"
                 initial={{ opacity: 0, y: 10 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
