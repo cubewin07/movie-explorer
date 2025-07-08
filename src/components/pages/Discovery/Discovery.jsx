@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import Breadcrumb from './Breadcrumb';
-import InfiniteList from '../Aside_Page/PopularPage/List';
+import InfiniteList from '@/components/react_components/List/InfiniteList';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { useLocation } from 'react-router-dom';
 
