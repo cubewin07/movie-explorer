@@ -227,7 +227,10 @@ export default function MovieReviewModal(props) {
                                         setIsOpen(false);
                                     }}
                                 >
-                                    <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white">
+                                    <Button
+                                        size="lg"
+                                        className="bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:ring-purple-300 text-white shadow-md border-0 transition-all duration-200 hover:shadow-xl hover:-translate-y-1"
+                                    >
                                         <Eye className="h-4 w-4 mr-2" />
                                         View Details
                                     </Button>
