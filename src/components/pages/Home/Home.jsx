@@ -185,11 +185,31 @@ function Home() {
                                 state: { type: viewAllType, sortBy: viewAllSort },
                             })
                         }
-                        className="text-blue-600 dark:text-blue-400 font-semibold hover:underline transition-colors flex items-center gap-1"
-                        whileHover={{ scale: 1.08 }}
+                        className="text-blue-600 dark:text-blue-400 font-semibold flex items-center gap-1"
+                        whileHover="hovered"
                         whileTap={{ scale: 0.97 }}
+                        initial="rest"
+                        animate="rest"
+                        variants={{}}
                     >
-                        View All <ArrowRight className="w-4 h-4" />
+                        <motion.span
+                            variants={{
+                                rest: { x: 0 },
+                                hovered: { x: -6 },
+                            }}
+                            transition={{ type: 'tween', duration: 0.2 }}
+                        >
+                            View All
+                        </motion.span>
+                        <motion.span
+                            variants={{
+                                rest: { x: 0 },
+                                hovered: { x: 6 },
+                            }}
+                            transition={{ type: 'tween', duration: 0.2 }}
+                        >
+                            <ArrowRight className="w-4 h-4" />
+                        </motion.span>
                     </motion.button>
                 </motion.div>
                 <div
