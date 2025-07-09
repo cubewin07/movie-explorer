@@ -36,7 +36,7 @@ function Layout() {
                                 </SidebarBody>
                             </ShadSidebar>
                         </aside>
-                        <main className="flex-grow h-full overflow-y-auto bg-background sm:py-6 text-foreground">
+                        <main className="flex-grow h-full overflow-y-auto bg-background text-foreground">
                             <Outlet />
                         </main>
                         <aside className="hidden md:block w-64 sm:w-72 h-full bg-card">
