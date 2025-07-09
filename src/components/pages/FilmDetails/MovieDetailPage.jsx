@@ -187,7 +187,7 @@ export default function MovieDetailPage() {
                         transition={{ duration: 0.5, delay: 0.3 }}
                     >
                         <Button
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 text-sm sm:text-base w-full sm:w-auto"
+                            className="bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 hover:from-green-600 hover:via-emerald-700 hover:to-emerald-800 shadow-lg hover:scale-105 transition-transform duration-200 ease-in-out text-white px-6 py-2 text-sm sm:text-base w-full sm:w-auto"
                             onClick={() => window.open(trailerUrl, '_blank')}
                             disabled={!trailerUrl || isLoadingTrailer}
                         >
