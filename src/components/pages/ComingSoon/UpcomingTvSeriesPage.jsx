@@ -99,7 +99,7 @@ export default function UpcomingTvSeriesPage() {
                             <motion.div
                                 key={tv.id}
                                 ref={ref}
-                                className="bg-white dark:bg-slate-800 rounded-2xl shadow-md hover:shadow-xl overflow-hidden flex flex-col h-full cursor-pointer"
+                                className="group bg-white dark:bg-slate-800 rounded-2xl shadow-md hover:shadow-2xl hover:shadow-blue-300/40 dark:hover:shadow-blue-800/40 overflow-hidden flex flex-col h-full cursor-pointer transition-shadow duration-300"
                                 initial={{ opacity: 0, y: 30, scale: 0.98 }}
                                 whileInView={{ opacity: 1, y: 0, scale: 1 }}
                                 viewport={{ once: true }}
