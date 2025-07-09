@@ -1,10 +1,10 @@
-import { useState, useLayoutEffect } from 'react';
+import { useState, useLayoutEffect, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import Breadcrumb from './Breadcrumb';
 import InfiniteList from '@/components/react_components/List/InfiniteList';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 const SORT_OPTIONS = [
     { value: 'popularity.desc', label: 'Most Popular' },
@@ -16,7 +16,13 @@ const SORT_OPTIONS = [
 
 export default function Discovery() {
     const location = useLocation();
-    const initialType = location.state?.type || 'movie';
+    const navigate = useNavigate();
+    const getTypeFromPath = (pathname) => {
+        if (pathname.startsWith('/tvseries')) return 'tv';
+        if (pathname.startsWith('/movies')) return 'movie';
+        return 'movie';
+    };
+    const initialType = location.state?.type || getTypeFromPath(location.pathname);
     const initialSort = location.state?.sortBy || 'popularity.desc';
     const [type, setType] = useState(initialType);
     const [sortBy, setSortBy] = useState(initialSort);
@@ -24,6 +30,12 @@ export default function Discovery() {
     useLayoutEffect(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }, [sortBy]);
+
+    // Sync type with path and state
+    useEffect(() => {
+        const newType = location.state?.type || getTypeFromPath(location.pathname);
+        setType(newType);
+    }, [location.pathname, location.state?.type]);
 
     const categoryKey = type === 'movie' ? 'movies' : 'tvseries';
 
@@ -46,7 +58,10 @@ export default function Discovery() {
                 {/* Tabs */}
                 <div className="flex flex-wrap gap-4 mb-6 border-b border-slate-300 dark:border-slate-700 overflow-x-auto">
                     <button
-                        onClick={() => setType('movie')}
+                        onClick={() => {
+                            setType('movie');
+                            navigate('/movies', { state: { type: 'movie', sortBy } });
+                        }}
                         className={cn(
                             'pb-2 text-base sm:text-lg font-medium transition-colors duration-200',
                             type === 'movie'
@@ -57,7 +72,10 @@ export default function Discovery() {
                         Movies
                     </button>
                     <button
-                        onClick={() => setType('tv')}
+                        onClick={() => {
+                            setType('tv');
+                            navigate('/tvseries', { state: { type: 'tv', sortBy } });
+                        }}
                         className={cn(
                             'pb-2 text-base sm:text-lg font-medium transition-colors duration-200',
                             type === 'tv'
