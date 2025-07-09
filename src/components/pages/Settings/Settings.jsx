@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Sun, Moon, Monitor, User, Mail, LogOut, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,6 +18,14 @@ export default function Settings() {
     });
     const [showLogoutModal, setShowLogoutModal] = useState(false);
     const logoutTimeoutRef = useRef(null);
+
+    // Sync profile state with user context
+    useEffect(() => {
+        setProfile({
+            username: user?.username || '',
+            email: user?.email || '',
+        });
+    }, [user]);
 
     const handleThemeChange = (val) => {
         setTheme(val);
