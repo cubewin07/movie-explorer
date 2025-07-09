@@ -26,7 +26,9 @@ function Popular({ movies = [], genres = [] }) {
         if (!firstItem) return;
         const isTV = isTvSeries(firstItem);
         if (!showAll) {
-            navigate(isTV ? '/tvseries/popular' : '/movies/popular');
+            navigate(isTV ? '/tvseries' : '/movies', {
+                state: { type: isTV ? 'tv' : 'movie', sortBy: 'popularity.desc' },
+            });
         } else {
             navigate(-1, { replace: true });
             setShowAll(false);
@@ -36,7 +38,7 @@ function Popular({ movies = [], genres = [] }) {
     useEffect(() => {
         if (!firstItem) return;
         const isTV = isTvSeries(firstItem);
-        const expectedPath = isTV ? '/tvseries/popular' : '/movies/popular';
+        const expectedPath = isTV ? '/tvseries' : '/movies';
         setShowAll(location.pathname === expectedPath);
     }, [location.pathname, firstItem]);
 
