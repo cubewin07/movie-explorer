@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Search, X, Flame, Star } from 'lucide-react';
@@ -6,6 +6,8 @@ import { useSearchOrFallbackContent } from '@/hooks/API/data';
 import MovieCard from '@/components/ui/MovieCard';
 import TabbedResults from './TabbedResults';
 import SkeletonCard from '@/components/ui/skeletonCard';
+import { FilmModalContext } from '@/context/FilmModalProvider';
+
 function SearchInput() {
     const inputRef = useRef(null);
     const modalInputRef = useRef(null);
@@ -13,6 +15,7 @@ function SearchInput() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const navigate = useNavigate();
+    const { setIsOpen, setContext } = useContext(FilmModalContext);
 
     const handleNavigate = (movie) => {
         const isTV = !!movie.name && !movie.title; // Typical way to detect TV
@@ -55,16 +58,40 @@ function SearchInput() {
                 const mediaType = item.media_type || (item.title ? 'movie' : 'tv');
                 const type = mediaType === 'tv' ? 'tv' : 'movie';
 
+                // Prepare genres as array of names if available
+                const genres =
+                    item.genre_ids && Array.isArray(item.genre_ids) && item.genres
+                        ? item.genres.map((g) => g.name)
+                        : item.genre_names || [];
+
                 return (
                     <div key={item.id} className="animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
                         <MovieCard
                             title={item.title || item.name}
                             year={(item.release_date || item.first_air_date)?.split('-')[0]}
                             rating={item.vote_average?.toFixed(1)}
-                            genres={[]}
+                            genres={genres}
                             image={`https://image.tmdb.org/t/p/w154${item.poster_path}`}
                             onClick={() => {
-                                navigate(`/${type}/${item.id}`);
+                                setContext({
+                                    id: item.id,
+                                    title: item.title,
+                                    name: item.name,
+                                    original_title: item.original_title,
+                                    original_name: item.original_name,
+                                    first_air_date: item.first_air_date,
+                                    genres: genres.length ? genres : item.genre_names || [],
+                                    poster_path: item.poster_path,
+                                    vote_average: item.vote_average,
+                                    vote_count: item.vote_count,
+                                    overview: item.overview,
+                                    original_language: item.original_language,
+                                    runtime: item.runtime,
+                                    image: item.poster_path
+                                        ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+                                        : undefined,
+                                });
+                                setIsOpen(true);
                                 setIsModalOpen(false);
                             }}
                             type={type}
