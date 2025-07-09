@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Sun, Moon, Monitor, User, Mail, LogOut, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthen } from '@/context/AuthenProvider';
 import { useThemeToggle } from '@/hooks/useThemeToggle';
+import { Toaster, toast } from 'sonner';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 export default function Settings() {
     const { user, logout } = useAuthen();
@@ -14,6 +16,8 @@ export default function Settings() {
         username: user?.username || '',
         email: user?.email || '',
     });
+    const [showLogoutModal, setShowLogoutModal] = useState(false);
+    const logoutTimeoutRef = useRef(null);
 
     const handleThemeChange = (val) => {
         setTheme(val);
@@ -27,6 +31,30 @@ export default function Settings() {
     const handleSave = () => {
         setSaving(true);
         setTimeout(() => setSaving(false), 1200); // Simulate save
+    };
+
+    const handleLogout = () => {
+        setShowLogoutModal(true);
+    };
+
+    const confirmLogout = () => {
+        setShowLogoutModal(false);
+        // Show toast with undo
+        const id = toast('You have been logged out', {
+            action: {
+                label: 'Undo',
+                onClick: () => {
+                    clearTimeout(logoutTimeoutRef.current);
+                    toast.success('Logout cancelled');
+                },
+            },
+            duration: 5000,
+        });
+        // Actually logout after delay if not undone
+        logoutTimeoutRef.current = setTimeout(() => {
+            toast.dismiss(id);
+            logout();
+        }, 5000);
     };
 
     return (
@@ -115,7 +143,7 @@ export default function Settings() {
                     <Mail className="w-6 h-6 text-green-500 dark:text-green-400" /> Account
                 </motion.h2>
                 <div className="flex gap-4 flex-wrap">
-                    <Button variant="outline" className="flex items-center gap-2" onClick={logout}>
+                    <Button variant="outline" className="flex items-center gap-2" onClick={handleLogout}>
                         <LogOut className="w-5 h-5" /> Logout
                     </Button>
                     <Button variant="destructive" className="flex items-center gap-2">
@@ -138,6 +166,22 @@ export default function Settings() {
                     {saving ? 'Saving...' : 'Save'}
                 </Button>
             </motion.div>
+
+            {/* Logout Confirmation Modal */}
+            <Dialog open={showLogoutModal} onOpenChange={setShowLogoutModal}>
+                <DialogContent>
+                    <DialogTitle>Confirm Logout</DialogTitle>
+                    <DialogDescription>Are you sure you want to log out?</DialogDescription>
+                    <div className="flex gap-4 justify-end mt-6">
+                        <Button variant="outline" onClick={() => setShowLogoutModal(false)}>
+                            Cancel
+                        </Button>
+                        <Button variant="destructive" onClick={confirmLogout}>
+                            Logout
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
