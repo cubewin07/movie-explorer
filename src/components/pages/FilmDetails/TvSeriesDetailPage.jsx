@@ -199,7 +199,7 @@ export default function TVSeriesDetailPage() {
 
                         <Button
                             variant="outline"
-                            className="bg-white text-slate-800 border-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:bg-transparent dark:text-white dark:border-slate-600 dark:hover:bg-slate-800 w-full sm:w-auto"
+                            className="border-slate-400 dark:border-slate-600 text-slate-800 dark:text-white hover:bg-blue-100 hover:text-blue-800 dark:hover:bg-slate-800 dark:hover:text-white disabled:bg-blue-100 disabled:text-blue-800 px-6 py-2 text-sm sm:text-base w-full sm:w-auto"
                             onClick={handleAddToWatchlist}
                             disabled={isPending}
                         >
@@ -208,7 +208,7 @@ export default function TVSeriesDetailPage() {
 
                         <Button
                             variant="outline"
-                            className="bg-white text-slate-800 border-slate-300 hover:bg-slate-100 hover:text-slate-900 dark:bg-transparent dark:text-white dark:border-slate-600 dark:hover:bg-slate-800 w-full sm:w-auto"
+                            className="border-slate-400 dark:border-slate-600 text-slate-800 dark:text-white hover:bg-blue-100 hover:text-blue-800 dark:hover:bg-slate-800 dark:hover:text-white px-6 py-2 text-sm sm:text-base w-full sm:w-auto"
                         >
                             <Share className="w-4 h-4 mr-2" /> Share
                         </Button>
