@@ -59,6 +59,12 @@ export default function MovieReviewModal(props) {
         return () => window.removeEventListener('keydown', handleEsc);
     }, [setIsOpen]);
 
+    // Dispatch event when modal closes
+    const handleClose = () => {
+        setIsOpen(false);
+        window.dispatchEvent(new Event('film-modal-close'));
+    };
+
     return (
         <motion.div
             className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm"
@@ -66,7 +72,7 @@ export default function MovieReviewModal(props) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25, ease: 'easeOut' }}
-            onClick={() => setIsOpen(false)}
+            onClick={handleClose}
         >
             <AnimatePresence mode="wait">
                 <motion.div
@@ -90,10 +96,11 @@ export default function MovieReviewModal(props) {
                             <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => setIsOpen(false)}
+                                onClick={handleClose}
                                 className="text-muted-foreground hover:text-foreground hover:bg-muted/70 dark:hover:bg-muted/30 rounded-full border border-border"
                             >
                                 <X className="h-4 w-4" />
+                                <span className="sr-only">Close</span>
                             </Button>
                         </motion.div>
 

@@ -16,6 +16,7 @@ function SearchInput() {
     const [debouncedSearch, setDebouncedSearch] = useState('');
     const navigate = useNavigate();
     const { setIsOpen, setContext } = useContext(FilmModalContext);
+    const openedFromSearchRef = useRef(false);
 
     const handleNavigate = (movie) => {
         const isTV = !!movie.name && !movie.title; // Typical way to detect TV
@@ -93,6 +94,7 @@ function SearchInput() {
                                 });
                                 setIsOpen(true);
                                 setIsModalOpen(false);
+                                openedFromSearchRef.current = true;
                             }}
                             type={type}
                         />
@@ -101,6 +103,20 @@ function SearchInput() {
             })}
         </div>
     );
+
+    // Listen for film modal close and re-open search modal if needed
+    useEffect(() => {
+        if (!isModalOpen && openedFromSearchRef.current) {
+            // Listen for when film modal closes
+            const handleFilmModalClose = () => {
+                setIsModalOpen(true);
+                openedFromSearchRef.current = false;
+            };
+            // Attach a one-time event listener to window for modal close
+            window.addEventListener('film-modal-close', handleFilmModalClose, { once: true });
+            return () => window.removeEventListener('film-modal-close', handleFilmModalClose);
+        }
+    }, [isModalOpen]);
 
     return (
         <>
