@@ -216,12 +216,42 @@ export default function MovieDetailPage() {
             <div className="p-2 sm:p-4 md:p-8">
                 <Tabs defaultValue="overview">
                     <TabsList className="grid grid-cols-3 md:grid-cols-6 bg-slate-200 dark:bg-slate-800  mb-6 overflow-x-auto rounded-lg">
-                        <TabsTrigger value="overview">Overview</TabsTrigger>
-                        <TabsTrigger value="cast">Cast</TabsTrigger>
-                        <TabsTrigger value="crew">Crew</TabsTrigger>
-                        <TabsTrigger value="reviews">Reviews</TabsTrigger>
-                        <TabsTrigger value="details">Details</TabsTrigger>
-                        <TabsTrigger value="similar">Similar</TabsTrigger>
+                        <TabsTrigger
+                            value="overview"
+                            className="hover:bg-blue-100 hover:text-blue-800 dark:hover:bg-slate-700 dark:hover:text-white transition-colors"
+                        >
+                            Overview
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="cast"
+                            className="hover:bg-blue-100 hover:text-blue-800 dark:hover:bg-slate-700 dark:hover:text-white transition-colors"
+                        >
+                            Cast
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="crew"
+                            className="hover:bg-blue-100 hover:text-blue-800 dark:hover:bg-slate-700 dark:hover:text-white transition-colors"
+                        >
+                            Crew
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="reviews"
+                            className="hover:bg-blue-100 hover:text-blue-800 dark:hover:bg-slate-700 dark:hover:text-white transition-colors"
+                        >
+                            Reviews
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="details"
+                            className="hover:bg-blue-100 hover:text-blue-800 dark:hover:bg-slate-700 dark:hover:text-white transition-colors"
+                        >
+                            Details
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="similar"
+                            className="hover:bg-blue-100 hover:text-blue-800 dark:hover:bg-slate-700 dark:hover:text-white transition-colors"
+                        >
+                            Similar
+                        </TabsTrigger>
                     </TabsList>
                     <TabsContent value="overview">
                         <p>{movie.overview}</p>
