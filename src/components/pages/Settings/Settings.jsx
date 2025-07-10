@@ -117,14 +117,18 @@ export default function Settings() {
                 <div className="flex gap-4">
                     <Button
                         variant={theme === 'light' ? 'default' : 'outline'}
-                        className="flex items-center gap-2"
+                        className={`flex items-center gap-2 settings-theme-light ${
+                            theme === 'light' ? '!bg-purple-600 !text-white !hover:bg-purple-700' : ''
+                        }`}
                         onClick={() => handleThemeChange('light')}
                     >
                         <Sun className="w-5 h-5" /> Light
                     </Button>
                     <Button
                         variant={theme === 'dark' ? 'default' : 'outline'}
-                        className="flex items-center gap-2"
+                        className={`flex items-center gap-2 settings-theme-dark ${
+                            theme === 'dark' ? '!bg-purple-600 !text-white !hover:bg-purple-700' : ''
+                        }`}
                         onClick={() => handleThemeChange('dark')}
                     >
                         <Moon className="w-5 h-5" /> Dark

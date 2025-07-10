@@ -100,4 +100,10 @@
     .menu-border li:not(.menu-title).menu-item-active {
         @apply text-blue-600 border-r-4 border-blue-500 rounded-r-md bg-blue-50;
     }
+    .settings-theme-light:hover {
+        @apply bg-purple-100 text-purple-700 dark:bg-purple-200 dark:text-purple-900;
+    }
+    .settings-theme-dark:hover {
+        @apply bg-purple-700 text-purple-200 dark:bg-purple-800 dark:text-purple-200;
+    }
 }
