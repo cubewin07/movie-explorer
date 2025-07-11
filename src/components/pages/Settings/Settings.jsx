@@ -176,7 +176,7 @@ export default function Settings() {
                 </Button>
                 <Button
                     onClick={handleSave}
-                    className="px-6 bg-gradient-to-r from-purple-500 to-fuchsia-600 text-white font-semibold shadow-md hover:from-purple-600 hover:to-fuchsia-700 transition disabled:opacity-60 disabled:cursor-not-allowed transform hover:translate-y-[-2px] transition-transform"
+                    className="px-6 bg-gradient-to-r from-purple-500 to-fuchsia-600 text-white font-semibold shadow-md hover:from-purple-600 hover:to-fuchsia-700 transition disabled:opacity-60 disabled:cursor-not-allowed transform hover:translate-y-[-2px]"
                     disabled={saving}
                 >
                     {saving ? 'Saving...' : 'Save'}
