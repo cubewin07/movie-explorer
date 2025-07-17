@@ -6,17 +6,18 @@ import { Loader } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useRemoveFromWatchList from '@/hooks/watchList/useRemoveFromWatchList';
 import { useState } from 'react';
+import useWatchlistFilmData from '@/hooks/watchList/useWatchListFilmData';
 
 function WatchlistPage() {
     const { user } = useAuthen();
     const navigate = useNavigate();
-    const { mutate: removeFromWatchList, isError: isRemoveFailed } = useRemoveFromWatchList();
+    const { mutate: removeFromWatchList } = useRemoveFromWatchList();
     const [page, setPage] = useState(1);
 
-    // Expect paginated data: { results, page, total_pages, ... }
-    const { data, isLoading, isError } = useWatchlist();
-    const watchlist = data?.results || [];
-    const totalPages = data?.total_pages || 1;
+    const { data: watchlistData, isLoading: isWatchlistLoading } = useWatchlist();
+    const { films, isLoading: isFilmsLoading, isError } = useWatchlistFilmData(watchlistData?.watchlist || []);
+
+    const isLoading = isWatchlistLoading || isFilmsLoading;
 
     if (!user) {
         return (
@@ -54,7 +55,7 @@ function WatchlistPage() {
                 Your Watchlist
             </motion.h1>
 
-            {watchlist.length === 0 ? (
+            {films.length === 0 ? (
                 <motion.p className="text-muted-foreground" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                     You haven't added anything yet.
                 </motion.p>
@@ -75,7 +76,7 @@ function WatchlistPage() {
                                 }}
                                 className="contents"
                             >
-                                {watchlist.map((item) => {
+                                {films.map((item) => {
                                     const isTVSeries = !!item.name;
                                     const displayTitle = item.title || item.name;
                                     const redirectPath = isTVSeries ? `/tv/${item.id}` : `/movie/${item.id}`;
@@ -173,30 +174,6 @@ function WatchlistPage() {
                             </motion.div>
                         </AnimatePresence>
                     </div>
-                    {/* Pagination Controls */}
-                    {totalPages > 1 && (
-                        <div className="flex justify-center items-center gap-2 mt-8">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={page === 1}
-                                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                            >
-                                Previous
-                            </Button>
-                            <span className="text-sm text-muted-foreground">
-                                Page {page} of {totalPages}
-                            </span>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={page === totalPages}
-                                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                            >
-                                Next
-                            </Button>
-                        </div>
-                    )}
                 </>
             )}
         </section>
