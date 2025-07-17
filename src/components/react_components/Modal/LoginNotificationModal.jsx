@@ -5,25 +5,39 @@ import { motion } from 'framer-motion';
 import { Lock } from 'lucide-react';
 import Login from '@/components/pages/Authentication/Login';
 import Register from '@/components/pages/Authentication/Register';
+import { toast } from 'sonner';
 
 export function LoginNotificationModal({ isOpen, onClose, onLoginSuccess }) {
     const [isLoginMode, setIsLoginMode] = useState(true);
+    const [formError, setFormError] = useState('');
     const navigate = useNavigate();
 
     const handleLoginSuccess = () => {
+        toast.success('Logged in successfully!');
+        setFormError('');
         onLoginSuccess?.();
-        onClose();
+        handleClose();
+    };
+
+    const handleRegisterSuccess = () => {
+        toast.success('Account created and logged in!');
+        setFormError('');
+        onLoginSuccess?.();
+        handleClose();
     };
 
     const handleShowRegister = () => {
+        setFormError('');
         setIsLoginMode(false);
     };
 
     const handleShowLogin = () => {
+        setFormError('');
         setIsLoginMode(true);
     };
 
     const handleClose = () => {
+        setFormError('');
         setIsLoginMode(true);
         onClose();
     };
@@ -76,7 +90,11 @@ export function LoginNotificationModal({ isOpen, onClose, onLoginSuccess }) {
                             exit={{ opacity: 0, x: -20 }}
                             transition={{ duration: 0.3 }}
                         >
-                            <Register onSuccess={handleLoginSuccess} onShowLogin={handleShowLogin} hideHeader={true} />
+                            <Register
+                                onSuccess={handleRegisterSuccess}
+                                onShowLogin={handleShowLogin}
+                                hideHeader={true}
+                            />
                         </motion.div>
                     )}
                 </motion.div>
