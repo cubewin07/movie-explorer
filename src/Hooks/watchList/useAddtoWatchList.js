@@ -9,8 +9,9 @@ export default function useAddToWatchlist() {
     return useMutation({
         // Only accept id (and type)
         mutationFn: async (id) => {
-            const payload = {mediaId: id};
-            const res = await instance.post('/watchlist/add', payload);
+            console.log(id);
+            const payload = {mediaId: String(id)};
+            const res = await instance.post('watchlist/add', payload);
             return res.data;
         },
         onSuccess: (data) => {

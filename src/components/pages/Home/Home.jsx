@@ -33,7 +33,7 @@ function Home() {
     const { popularTVShows, isLoading: isPopularTVLoading } = usePopularTVShows();
     const { data: trendingData, isLoading: isTrendingLoading } = usePaginatedFetch('trending/movie/week', 1);
     const { MovieGenres, isGenresLoading } = useMovieGenres();
-    const { mutate: addToWatchlist } = useAddToWatchlist(user?.email, 'movie');
+    const { mutate: addToWatchlist } = useAddToWatchlist();
 
     const genreMap =
         MovieGenres?.data?.genres?.reduce((acc, g) => {
