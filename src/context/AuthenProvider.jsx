@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
-import { useLogin, useRegister, useLogout } from '../hooks/API/features';
+import { useLogin, useRegister, useLogout, useGetUserInfo } from '../hooks/API/features';
 
 const AuthenContext = createContext();
 
@@ -18,15 +18,15 @@ export function AuthenProvider({ children }) {
     useEffect(() => {
         const token = Cookies.get('token');
         if (token && !user) {
-            // Optionally, fetch user info with token here if needed
-            // For now, just ensure token is available in cookies
+            const userInfo = userInfoQuery.data;
+            setUser(userInfo);
         }
     }, [user]);
 
     const loginMutation = useLogin();
     const registerMutation = useRegister();
     const logoutMutation = useLogout(Cookies.get('token'));
-
+    const userInfoQuery = useGetUserInfo(Cookies.get('token'));
     const login = async ({ email, password }) => {
         try {
             const res = await loginMutation.mutateAsync({ email, password });
