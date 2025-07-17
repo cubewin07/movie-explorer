@@ -33,13 +33,15 @@ export function useRegister() {
 
 // Logout hook
 export function useLogout(token) {
-    return useMutation(async () => {
-        const res = await axios.post(
-            `${API_BASE_URL}/auth/logout`,
-            {},
-            { headers: { Authorization: `Bearer ${token}` } },
-        );
-        return res.data;
+    return useMutation({
+        mutationFn: async () => {
+            const res = await axios.post(
+                `${API_BASE_URL}/auth/logout`,
+                {},
+                { headers: { Authorization: `Bearer ${token}` } },
+            );
+            return res.data;
+        },
     });
 }
 
