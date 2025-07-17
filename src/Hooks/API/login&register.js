@@ -34,10 +34,11 @@ export function useRegister() {
 // Logout hook
 export function useLogout(token) {
     return useMutation({
-        mutationFn: async () => {
+        mutationFn: async (email, password) => {
+            console.log(email, password);
             const res = await axios.post(
                 `${API_BASE_URL}/auth/logout`,
-                {},
+                {email, password},
                 { headers: { Authorization: `Bearer ${token}` } },
             );
             return res.data;

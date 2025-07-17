@@ -64,7 +64,7 @@ export function AuthenProvider({ children }) {
     const logout = async () => {
         try {
             if (token) {
-                await logoutMutation.mutateAsync();
+                await logoutMutation.mutateAsync({email: user?.email, password: user?.password});
                 Cookies.remove('token');
                 setUser(null);
                 localStorage.removeItem('user');
