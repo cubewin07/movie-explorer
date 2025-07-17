@@ -15,6 +15,7 @@ export function AuthenProvider({ children }) {
     const logoutMutation = useLogout(token || '');
     const userInfoQuery = useGetUserInfo(token);
 
+    console.log(token);
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         if (storedUser) setUser(JSON.parse(storedUser));
@@ -75,7 +76,9 @@ export function AuthenProvider({ children }) {
     };
 
     return (
-        <AuthenContext.Provider value={{ user, loading, login, register, logout }}>{children}</AuthenContext.Provider>
+        <AuthenContext.Provider value={{ user, loading, login, register, logout, token }}>
+            {children}
+        </AuthenContext.Provider>
     );
 }
 
