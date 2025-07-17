@@ -27,7 +27,7 @@ export function useRegister() {
     });
 }
 
-// Logout hook (assuming POST, adjust if GET)
+// Logout hook
 export function useLogout(token) {
     return useMutation(async () => {
         const res = await axios.post(
