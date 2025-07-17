@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
-import { useLogin, useRegister, useLogout, useGetUserInfo } from '../hooks/API/login/register';
+import { useLogin, useRegister, useLogout, useGetUserInfo } from '../hooks/API/login&register';
 
 const AuthenContext = createContext();
 
