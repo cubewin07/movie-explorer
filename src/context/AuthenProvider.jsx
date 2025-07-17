@@ -26,7 +26,7 @@ export function AuthenProvider({ children }) {
         if (token && !user && userInfoQuery.data) {
             setUser(userInfoQuery.data);
         }
-    }, [user, token, userInfoQuery.data]);
+    }, []);
 
     const login = async ({ email, password }) => {
         try {

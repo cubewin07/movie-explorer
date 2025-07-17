@@ -5,13 +5,15 @@ const API_BASE_URL = 'https://moviehub.congminh.site/api';
 
 // Login hook
 export function useLogin() {
-    return useMutation(async ({ email, password }) => {
-        const res = await axios.post(
-            `${API_BASE_URL}/auth/login`,
-            { email, password },
-            { headers: { 'Content-Type': 'application/json' } },
-        );
-        return res.data;
+    return useMutation({
+        mutationFn: async ({ email, password }) => {
+            const res = await axios.post(
+                `${API_BASE_URL}/auth/login`,
+                { email, password },
+                { headers: { 'Content-Type': 'application/json' } },
+            );
+            return res.data;
+        },
     });
 }
 
