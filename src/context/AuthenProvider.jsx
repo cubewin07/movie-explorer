@@ -15,7 +15,6 @@ export function AuthenProvider({ children }) {
     const logoutMutation = useLogout(token || '');
     const userInfoQuery = token ? useGetUserInfo(token) : { data: null };
 
-    console.log(registerMutateAsync);
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         if (storedUser) setUser(JSON.parse(storedUser));
@@ -38,8 +37,9 @@ export function AuthenProvider({ children }) {
                 localStorage.setItem('user', JSON.stringify(res.data.user));
                 return { success: true };
             }
-            return { success: false };
+            return { success: true };
         } catch (err) {
+            console.log(err);
             return { success: false, message: err?.response?.data?.message || 'Login failed' };
         }
     };
@@ -53,7 +53,7 @@ export function AuthenProvider({ children }) {
                 localStorage.setItem('user', JSON.stringify(res.user));
                 return { success: true };
             }
-            return { success: false };
+            return { success: true };
         } catch (err) {
             console.log(err);
             return { success: false, message: err?.response?.data?.message || 'Register failed' };

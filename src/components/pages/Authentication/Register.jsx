@@ -27,6 +27,7 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
     const { register: registerUser } = useAuthen();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [fieldErrors, setFieldErrors] = useState({});
     const [formError, setFormError] = useState('');
 
     const {
@@ -40,22 +41,59 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
 
     const onSubmit = async (data) => {
         setFormError('');
+        setFieldErrors({});
         try {
-            const res = await registerUser(data);
+            const { username, email, password } = data;
+            const res = await registerUser({ username, email, password });
+            let errorMsg = res.message || 'Registration failed. Try again.';
+            let errorsObj = {};
+            console.log(res);
+            // If errorMsg is an array of objects (field errors)
+            if (Array.isArray(errorMsg) && errorMsg.length > 0 && typeof errorMsg[0] === 'object') {
+                errorsObj = errorMsg.reduce((acc, obj) => ({ ...acc, ...obj }), {});
+                errorMsg = Object.entries(errorsObj)
+                    .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+                    .join('\n');
+            } else if (typeof errorMsg === 'object' && errorMsg !== null) {
+                errorsObj = errorMsg;
+                errorMsg = Object.entries(errorMsg)
+                    .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+                    .join('\n');
+            }
             if (res.success) {
                 toast.success('Account created successfully!');
                 reset();
                 onSuccess?.();
             } else {
-                setFormError(res.message || 'Registration failed. Try again.');
-                toast.error(res.message || 'Registration failed. Try again.');
+                setFieldErrors(errorsObj);
+                setFormError(errorMsg);
+                toast.error(errorMsg);
             }
         } catch (err) {
-            setFormError(err?.message || 'Registration failed. Try again.');
-            toast.error(err?.message || 'Registration failed. Try again.');
+            console.log(err);
+            let errorMsg = err?.message || 'Registration failed. Try again.';
+            let errorsObj = {};
+            // If err.message is an object
+            if (typeof errorMsg === 'object' && errorMsg !== null) {
+                errorsObj = errorMsg;
+                errorMsg = Object.entries(errorMsg)
+                    .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+                    .join('\n');
+            }
+            // If err.response.data is an object
+            if (err?.response?.data && typeof err.response.data === 'object') {
+                errorsObj = err.response.data;
+                errorMsg = Object.entries(err.response.data)
+                    .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(', ') : messages}`)
+                    .join('\n');
+            }
+            setFieldErrors(errorsObj);
+            setFormError(errorMsg);
+            toast.error(errorMsg);
         }
     };
 
+    console.log(formError);
     return (
         <motion.div
             className={clsx('w-full', {
@@ -99,6 +137,13 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
                         />
                     </div>
                     {errors.username && <p className="text-sm text-red-500">{errors.username.message}</p>}
+                    {fieldErrors.username && (
+                        <p className="text-sm text-red-500">
+                            {Array.isArray(fieldErrors.username)
+                                ? fieldErrors.username.join(', ')
+                                : fieldErrors.username}
+                        </p>
+                    )}
                 </div>
 
                 <div className="space-y-2">
@@ -115,6 +160,11 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
                         />
                     </div>
                     {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+                    {fieldErrors.email && (
+                        <p className="text-sm text-red-500">
+                            {Array.isArray(fieldErrors.email) ? fieldErrors.email.join(', ') : fieldErrors.email}
+                        </p>
+                    )}
                 </div>
 
                 <div className="space-y-2">
@@ -138,6 +188,13 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
                         />
                     </div>
                     {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
+                    {fieldErrors.password && (
+                        <p className="text-sm text-red-500">
+                            {Array.isArray(fieldErrors.password)
+                                ? fieldErrors.password.join(', ')
+                                : fieldErrors.password}
+                        </p>
+                    )}
                 </div>
 
                 <div className="space-y-2">
@@ -161,9 +218,18 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
                         />
                     </div>
                     {errors.confirmPassword && <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>}
+                    {fieldErrors.confirmPassword && (
+                        <p className="text-sm text-red-500">
+                            {Array.isArray(fieldErrors.confirmPassword)
+                                ? fieldErrors.confirmPassword.join(', ')
+                                : fieldErrors.confirmPassword}
+                        </p>
+                    )}
                 </div>
 
-                {formError && <p className="text-sm text-red-500 text-center">{formError}</p>}
+                {!Object.keys(fieldErrors).length && formError && (
+                    <p className="text-sm text-red-500 text-center">{formError}</p>
+                )}
 
                 <Button
                     type="submit"
