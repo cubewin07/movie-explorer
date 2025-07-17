@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
-import { useLogin, useRegister, useLogout } from '@/hooks/API/features';
+import { useLogin, useRegister, useLogout } from '../hooks/API/features';
 
 const AuthenContext = createContext();
 
@@ -16,6 +16,7 @@ export function AuthenProvider({ children }) {
 
     const loginMutation = useLogin();
     const registerMutation = useRegister();
+    const logoutMutation = useLogout(Cookies.get('token'));
 
     const login = async ({ email, password }) => {
         try {
@@ -47,7 +48,12 @@ export function AuthenProvider({ children }) {
         }
     };
 
-    const logout = () => {
+    const logout = async () => {
+        try {
+            await logoutMutation.mutateAsync();
+        } catch (err) {
+            // Optionally handle error
+        }
         Cookies.remove('token');
         setUser(null);
         localStorage.removeItem('user');
