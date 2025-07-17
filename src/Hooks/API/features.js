@@ -1,4 +1,4 @@
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
 const API_BASE_URL = 'https://moviehub.congminh.site/api';
@@ -36,6 +36,19 @@ export function useLogout(token) {
             { headers: { Authorization: `Bearer ${token}` } },
         );
         return res.data;
+    });
+}
+
+// Get user info hook
+export function useGetUserInfo(token) {
+    return useQuery({
+        queryKey: ['userInfo'],
+        queryFn: async () => {
+            const res = await axios.get(`${API_BASE_URL}/auth/me`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            return res.data;
+        },
     });
 }
 
