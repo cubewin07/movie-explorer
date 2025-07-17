@@ -1,4 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import Cookies from 'js-cookie';
+import { useLogin, useRegister, useLogout } from '@/hooks/API/features';
 
 const AuthenContext = createContext();
 
@@ -12,28 +14,41 @@ export function AuthenProvider({ children }) {
         setLoading(false);
     }, []);
 
+    const loginMutation = useLogin();
+    const registerMutation = useRegister();
+
     const login = async ({ email, password }) => {
-        const storedUser = localStorage.getItem('user');
-        let username = '';
-        if (storedUser) {
-            try {
-                username = JSON.parse(storedUser).username || '';
-            } catch {}
+        try {
+            const res = await loginMutation.mutateAsync({ email, password });
+            if (res?.data?.token && res?.data?.user) {
+                Cookies.set('token', res.data.token, { expires: 7 });
+                setUser(res.data.user);
+                localStorage.setItem('user', JSON.stringify(res.data.user));
+                return { success: true };
+            }
+            return { success: false };
+        } catch (err) {
+            return { success: false, message: err?.response?.data?.message || 'Login failed' };
         }
-        const fakeUser = { email, username };
-        setUser(fakeUser);
-        localStorage.setItem('user', JSON.stringify(fakeUser));
-        return { success: true };
     };
 
     const register = async ({ email, password, username }) => {
-        const fakeUser = { email, username };
-        setUser(fakeUser);
-        localStorage.setItem('user', JSON.stringify(fakeUser));
-        return { success: true };
+        try {
+            const res = await registerMutation.mutateAsync({ email, password, username });
+            if (res?.data?.token && res?.data?.user) {
+                Cookies.set('token', res.data.token, { expires: 7 });
+                setUser(res.data.user);
+                localStorage.setItem('user', JSON.stringify(res.data.user));
+                return { success: true };
+            }
+            return { success: false };
+        } catch (err) {
+            return { success: false, message: err?.response?.data?.message || 'Register failed' };
+        }
     };
 
     const logout = () => {
+        Cookies.remove('token');
         setUser(null);
         localStorage.removeItem('user');
     };
