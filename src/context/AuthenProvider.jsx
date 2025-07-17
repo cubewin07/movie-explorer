@@ -13,7 +13,7 @@ export function AuthenProvider({ children }) {
     const { mutateAsync: registerMutateAsync } = useRegister();
     const token = Cookies.get('token');
     const logoutMutation = useLogout(token || '');
-    const userInfoQuery = token ? useGetUserInfo(token) : { data: null };
+    const userInfoQuery = useGetUserInfo(token);
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -64,13 +64,14 @@ export function AuthenProvider({ children }) {
         try {
             if (token) {
                 await logoutMutation.mutateAsync();
+                Cookies.remove('token');
+                setUser(null);
+                localStorage.removeItem('user');
             }
         } catch (err) {
+            console.log(err);
             // Optionally handle error
         }
-        Cookies.remove('token');
-        setUser(null);
-        localStorage.removeItem('user');
     };
 
     return (
