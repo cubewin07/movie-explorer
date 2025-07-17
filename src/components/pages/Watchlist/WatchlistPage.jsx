@@ -14,7 +14,7 @@ function WatchlistPage() {
     const [page, setPage] = useState(1);
 
     // Expect paginated data: { results, page, total_pages, ... }
-    const { data, isLoading, isError } = useWatchlist(user?.email || 'guest', page);
+    const { data, isLoading, isError } = useWatchlist();
     const watchlist = data?.results || [];
     const totalPages = data?.total_pages || 1;
 

@@ -1,16 +1,14 @@
 import instance from '@/lib/instance';
 import { useQuery } from '@tanstack/react-query';
 
-export const watchlistQueryKey = ( page = 1) => ['watchlist', page];
+export const watchlistQueryKey = () => ['watchlist'];
 
-export default function useWatchlist( page = 1) {
+export default function useWatchlist() {
     return useQuery({
-        queryKey: watchlistQueryKey( page),
+        queryKey: watchlistQueryKey(),
         queryFn: async () => {
             // Assume backend expects userId and page as query params
-            const res = await instance.get('/watchlist', {
-                params: { page },
-            });
+            const res = await instance.get('/watchlist');
             return res.data; // Should be paginated: { results, page, total_pages, ... }
         },
         keepPreviousData: true,
