@@ -14,6 +14,15 @@ export function AuthenProvider({ children }) {
         setLoading(false);
     }, []);
 
+    // On mount, check for token in cookies and set if needed
+    useEffect(() => {
+        const token = Cookies.get('token');
+        if (token && !user) {
+            // Optionally, fetch user info with token here if needed
+            // For now, just ensure token is available in cookies
+        }
+    }, [user]);
+
     const loginMutation = useLogin();
     const registerMutation = useRegister();
     const logoutMutation = useLogout(Cookies.get('token'));
