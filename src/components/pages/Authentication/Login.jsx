@@ -19,28 +19,33 @@ const schema = z.object({
 export default function Login({ onSuccess, onShowRegister, hideHeader }) {
     const { login } = useAuthen();
     const [showPassword, setShowPassword] = useState(false);
+    const [formError, setFormError] = useState('');
 
     const {
         register,
         handleSubmit,
+        reset,
         formState: { errors, isSubmitting },
     } = useForm({
         resolver: zodResolver(schema),
     });
 
-    const onSubmit = (data) => {
-        toast.promise(login(data), {
-            loading: 'Logging in...',
-            success: (res) => {
-                if (res.success) {
-                    onSuccess?.();
-                    return 'Logged in successfully!';
-                } else {
-                    throw new Error('Invalid credentials');
-                }
-            },
-            error: (err) => err.message || 'Login failed',
-        });
+    const onSubmit = async (data) => {
+        setFormError('');
+        try {
+            const res = await login(data);
+            if (res.success) {
+                toast.success('Logged in successfully!');
+                reset();
+                onSuccess?.();
+            } else {
+                setFormError(res.message || 'Invalid credentials');
+                toast.error(res.message || 'Invalid credentials');
+            }
+        } catch (err) {
+            setFormError(err?.message || 'Login failed');
+            toast.error(err?.message || 'Login failed');
+        }
     };
 
     return (
@@ -110,6 +115,8 @@ export default function Login({ onSuccess, onShowRegister, hideHeader }) {
                     </div>
                     {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
                 </div>
+
+                {formError && <p className="text-sm text-red-500 text-center">{formError}</p>}
 
                 <Button
                     type="submit"
