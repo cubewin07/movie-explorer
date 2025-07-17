@@ -42,7 +42,7 @@ export function useLogout(token) {
 // Add to watchlist hook
 export function useAddToWatchlist(token) {
     return useMutation(async (item) => {
-        const res = await axios.post(`${API_BASE_URL}/watchlist`, item, {
+        const res = await axios.post(`${API_BASE_URL}/watchlist/add`, item, {
             headers: { Authorization: `Bearer ${token}` },
         });
         return res.data;
