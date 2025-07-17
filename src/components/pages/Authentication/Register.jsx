@@ -27,24 +27,33 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
     const { register: registerUser } = useAuthen();
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [formError, setFormError] = useState('');
 
     const {
         register,
         handleSubmit,
+        reset,
         formState: { errors, isSubmitting },
     } = useForm({
         resolver: zodResolver(schema),
     });
 
-    const onSubmit = (data) => {
-        toast.promise(registerUser(data), {
-            loading: 'Creating your account...',
-            success: () => {
+    const onSubmit = async (data) => {
+        setFormError('');
+        try {
+            const res = await registerUser(data);
+            if (res.success) {
+                toast.success('Account created successfully!');
+                reset();
                 onSuccess?.();
-                return 'Account created successfully!';
-            },
-            error: () => 'Registration failed. Try again.',
-        });
+            } else {
+                setFormError(res.message || 'Registration failed. Try again.');
+                toast.error(res.message || 'Registration failed. Try again.');
+            }
+        } catch (err) {
+            setFormError(err?.message || 'Registration failed. Try again.');
+            toast.error(err?.message || 'Registration failed. Try again.');
+        }
     };
 
     return (
@@ -153,6 +162,8 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
                     </div>
                     {errors.confirmPassword && <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>}
                 </div>
+
+                {formError && <p className="text-sm text-red-500 text-center">{formError}</p>}
 
                 <Button
                     type="submit"
