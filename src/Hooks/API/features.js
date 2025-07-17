@@ -48,13 +48,14 @@ export function useLogout(token) {
 // Get user info hook
 export function useGetUserInfo(token) {
     return useQuery({
-        queryKey: ['userInfo'],
+        queryKey: ['userInfo', token],
         queryFn: async () => {
             const res = await axios.get(`${API_BASE_URL}/auth/me`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             return res.data;
         },
+        enabled: !!token, // Only run if token exists
     });
 }
 
