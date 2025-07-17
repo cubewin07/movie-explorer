@@ -15,15 +15,17 @@ export function useLogin() {
     });
 }
 
-// Register hook
+// Register hook for user registration
 export function useRegister() {
-    return useMutation(async ({ email, password, ...rest }) => {
-        const res = await axios.post(
-            `${API_BASE_URL}/auth/register`,
-            { email, password, ...rest },
-            { headers: { 'Content-Type': 'application/json' } },
-        );
-        return res.data;
+    return useMutation({
+        mutationFn: async ({ email, password, username }) => {
+            const res = await axios.post(
+                `${API_BASE_URL}/auth/register`,
+                { email, password, username },
+                { headers: { 'Content-Type': 'application/json' } },
+            );
+            return res.data;
+        },
     });
 }
 
