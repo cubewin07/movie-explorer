@@ -7,28 +7,31 @@ import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Dialog } from '../ui/dialog';
 import { User, Star, Heart, Eye, Edit2, Camera } from 'lucide-react';
+import { useAuthen } from '../../context/AuthenProvider';
 
-const mockUser = {
-    avatar: '',
-    username: 'MovieBuff123',
-    email: 'moviebuff@example.com',
-    bio: 'Cinephile. TV show binger. Reviewer. Always looking for the next great story.',
+const defaultUserData = {
+    bio: 'Tell us about yourself...',
     stats: {
-        watchlist: 34,
-        reviews: 12,
-        favorites: 8,
+        watchlist: 0,
+        reviews: 0,
+        favorites: 0,
     },
-    recent: [
-        { type: 'watched', title: 'Inception', date: '2024-06-01' },
-        { type: 'reviewed', title: 'Dune: Part Two', date: '2024-05-28' },
-        { type: 'favorited', title: 'The Matrix', date: '2024-05-20' },
-    ],
+    recent: []
 };
 
 export default function Profile() {
-    const [user, setUser] = useState(mockUser);
+    const { user: authUser } = useAuthen();
+    const [user, setUser] = useState({
+        ...defaultUserData,
+        avatar: authUser?.avatar || '',
+        username: authUser?.username || 'Guest',
+        email: authUser?.email || '',
+        bio: authUser?.bio || defaultUserData.bio,
+        stats: authUser?.stats || defaultUserData.stats,
+        recent: authUser?.recent || defaultUserData.recent
+    });
     const [editOpen, setEditOpen] = useState(false);
-    const [editData, setEditData] = useState({ ...mockUser });
+    const [editData, setEditData] = useState({ ...defaultUserData });
     const [avatarPreview, setAvatarPreview] = useState('');
 
     const handleEdit = () => {
@@ -38,7 +41,11 @@ export default function Profile() {
     };
 
     const handleSave = () => {
-        setUser({ ...editData, avatar: avatarPreview || editData.avatar });
+        // Only update the bio as other fields will be managed separately
+        setUser(prev => ({
+            ...prev,
+            bio: editData.bio
+        }));
         setEditOpen(false);
     };
 
