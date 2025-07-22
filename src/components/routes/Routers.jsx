@@ -132,3 +132,5 @@ const router = createBrowserRouter(
         basename: import.meta.env.DEV ? '/' : '/movie-explorer',
     },
 );
+
+export { router };
