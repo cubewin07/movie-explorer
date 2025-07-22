@@ -13,7 +13,7 @@ import clsx from 'clsx';
 
 const schema = z.object({
     email: z.string().email({ message: 'Invalid email format' }),
-    password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
+    password: z.string().min(8, { message: 'Password must be at least 8 characters' }),
 });
 
 export default function Login({ onSuccess, onShowRegister, hideHeader }) {
