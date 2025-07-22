@@ -23,6 +23,7 @@ const MovieCard = ({ movie, type = 'movie', index = 0, genreMap, setContext, set
     const genreNames = movie.genre_ids?.map((id) => genreMap[id]).filter(Boolean) || [];
     const [isImageHovered, setIsImageHovered] = useState(false);
     const [isCardHovered, setIsCardHovered] = useState(false);
+    console.log(isCardHovered);
 
     return (
         <motion.div
@@ -208,7 +209,12 @@ const MovieCard = ({ movie, type = 'movie', index = 0, genreMap, setContext, set
                 </motion.span>
 
                 {/* Bottom accent line */}
-                <div className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 w-0 group-hover:w-full transition-all duration-700 ease-out" />
+                <div
+                    className="absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-700 ease-out"
+                    style={{
+                        width: isCardHovered ? '100%' : '0%',
+                    }}
+                />
             </motion.div>
         </motion.div>
     );
