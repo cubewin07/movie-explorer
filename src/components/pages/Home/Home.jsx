@@ -23,7 +23,6 @@ const MovieCard = ({ movie, type = 'movie', index = 0, genreMap, setContext, set
     const genreNames = movie.genre_ids?.map((id) => genreMap[id]).filter(Boolean) || [];
     const [isImageHovered, setIsImageHovered] = useState(false);
     const [isCardHovered, setIsCardHovered] = useState(false);
-    console.log(isCardHovered);
 
     return (
         <motion.div
