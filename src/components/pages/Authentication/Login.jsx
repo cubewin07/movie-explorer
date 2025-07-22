@@ -35,16 +35,27 @@ export default function Login({ onSuccess, onShowRegister, hideHeader }) {
         try {
             const res = await login(data);
             if (res.success) {
-                toast.success('Logged in successfully!');
+                toast.success('Logged in successfully!', {
+                    duration: 3000,
+                    position: 'top-right',
+                });
                 reset();
                 onSuccess?.();
             } else {
-                setFormError(res.message || 'Invalid credentials');
-                toast.error(res.message || 'Invalid credentials');
+                const errorMessage = res.message || 'Invalid credentials';
+                setFormError(errorMessage);
+                toast.error(errorMessage, {
+                    duration: 4000,
+                    position: 'top-right',
+                });
             }
         } catch (err) {
-            setFormError(err?.message || 'Login failed');
-            toast.error(err?.message || 'Login failed');
+            const errorMessage = err?.message || 'Login failed';
+            setFormError(errorMessage);
+            toast.error(errorMessage, {
+                duration: 4000,
+                position: 'top-right',
+            });
         }
     };
 

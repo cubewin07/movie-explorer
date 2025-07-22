@@ -51,11 +51,27 @@ export function useGetUserInfo(token) {
     return useQuery({
         queryKey: ['userInfo', token],
         queryFn: async () => {
-            const res = await axios.get(`${API_BASE_URL}/auth/me`, {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            return res.data;
+            try {
+                const res = await axios.get(`${API_BASE_URL}/auth/me`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+                return res.data;
+            } catch (error) {
+                // Re-throw the error so it can be handled by the AuthenProvider
+                throw error;
+            }
         },
         enabled: !!token, // Only run if token exists
+        retry: (failureCount, error) => {
+            // Don't retry on authentication errors (401, 403)
+            const status = error?.response?.status;
+            if (status === 401 || status === 403) {
+                return false;
+            }
+            // Retry up to 2 times for other errors
+            return failureCount < 2;
+        },
+        refetchOnWindowFocus: false,
+        staleTime: 1000 * 60 * 5, // 5 minutes
     });
 }

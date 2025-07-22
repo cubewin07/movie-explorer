@@ -13,14 +13,20 @@ export function LoginNotificationModal({ isOpen, onClose, onLoginSuccess }) {
     const navigate = useNavigate();
 
     const handleLoginSuccess = () => {
-        toast.success('Logged in successfully!');
+        toast.success('Logged in successfully!', {
+            duration: 3000,
+            position: 'top-right',
+        });
         setFormError('');
         onLoginSuccess?.();
         handleClose();
     };
 
     const handleRegisterSuccess = () => {
-        toast.success('Account created and logged in!');
+        toast.success('Account created and logged in!', {
+            duration: 3000,
+            position: 'top-right',
+        });
         setFormError('');
         onLoginSuccess?.();
         handleClose();
