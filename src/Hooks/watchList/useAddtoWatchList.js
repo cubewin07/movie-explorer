@@ -7,9 +7,9 @@ export default function useAddToWatchlist() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        // Only accept id (and type)
-        mutationFn: async (id, type) => {
-            console.log(id);
+        // Accept object with id and type properties
+        mutationFn: async ({ id, type }) => {
+            console.log('Adding to watchlist:', { id, type });
             const payload = { mediaId: String(id), mediaType: type };
             const res = await instance.post('watchlist/add', payload);
             return res.data;

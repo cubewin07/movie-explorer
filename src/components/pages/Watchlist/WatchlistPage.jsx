@@ -15,7 +15,7 @@ function WatchlistPage() {
     const [page, setPage] = useState(1);
 
     const { data: watchlistData, isLoading: isWatchlistLoading } = useWatchlist();
-    const { films, isLoading: isFilmsLoading, isError } = useWatchlistFilmData(watchlistData?.watchlist || []);
+    const { films, isLoading: isFilmsLoading, isError } = useWatchlistFilmData(watchlistData);
 
     const isLoading = isWatchlistLoading || isFilmsLoading;
 
