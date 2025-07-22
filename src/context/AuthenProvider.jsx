@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
+import { toast } from 'sonner';
 import { useLogin, useRegister, useLogout, useGetUserInfo } from '../hooks/API/login&register';
 
 const AuthenContext = createContext();
@@ -15,19 +16,39 @@ export function AuthenProvider({ children }) {
     const logoutMutation = useLogout(token || '');
     const userInfoQuery = useGetUserInfo(token);
 
-    console.log(token);
-    useEffect(() => {
-        const storedUser = localStorage.getItem('user');
-        if (storedUser) setUser(JSON.parse(storedUser));
-        setLoading(false);
-    }, []);
+    // Handle token expiration and automatic logout
+    const handleTokenExpiration = () => {
+        Cookies.remove('token');
+        setUser(null);
+        toast.error('Your session has expired. Please log in again.', {
+            duration: 5000,
+            position: 'top-center',
+        });
+    };
 
-    // On mount, check for token in cookies and set user if needed
+    // Initialize user on mount - fetch user info if token exists
     useEffect(() => {
-        if (token && !user && userInfoQuery.data) {
+        if (token && userInfoQuery.data) {
             setUser(userInfoQuery.data);
+        } else if (token && userInfoQuery.error) {
+            // Check if error is due to token expiration (401 or 403)
+            const errorStatus = userInfoQuery.error?.response?.status;
+            if (errorStatus === 401 || errorStatus === 403) {
+                handleTokenExpiration();
+            }
         }
-    }, []);
+        setLoading(false);
+    }, [token, userInfoQuery.data, userInfoQuery.error]);
+
+    // Monitor userInfoQuery for token expiration errors
+    useEffect(() => {
+        if (userInfoQuery.error && token) {
+            const errorStatus = userInfoQuery.error?.response?.status;
+            if (errorStatus === 401 || errorStatus === 403) {
+                handleTokenExpiration();
+            }
+        }
+    }, [userInfoQuery.error, token]);
 
     const login = async ({ email, password }) => {
         try {
@@ -35,7 +56,6 @@ export function AuthenProvider({ children }) {
             if (res?.data?.token && res?.data?.user) {
                 Cookies.set('token', res.data.token, { expires: 7 });
                 setUser(res.data.user);
-                localStorage.setItem('user', JSON.stringify(res.data.user));
                 return { success: true };
             }
             return { success: true };
@@ -51,7 +71,6 @@ export function AuthenProvider({ children }) {
             if (res?.token && res?.user) {
                 Cookies.set('token', res.token, { expires: 7 });
                 setUser(res.user);
-                localStorage.setItem('user', JSON.stringify(res.user));
                 return { success: true };
             }
             return { success: true };
@@ -61,17 +80,21 @@ export function AuthenProvider({ children }) {
         }
     };
 
-    const logout = async () => {
+    const logout = async (showNotification = true) => {
         try {
             if (token) {
                 await logoutMutation.mutateAsync({email: user?.email, password: user?.password});
-                Cookies.remove('token');
-                setUser(null);
-                localStorage.removeItem('user');
             }
         } catch (err) {
             console.log(err);
-            // Optionally handle error
+            // Continue with logout even if API call fails
+        } finally {
+            // Always clear local state regardless of API call success
+            Cookies.remove('token');
+            setUser(null);
+            if (showNotification) {
+                toast.success('Logged out successfully');
+            }
         }
     };
 
