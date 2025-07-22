@@ -13,6 +13,8 @@ import UpcomingTvSeriesPage from './components/pages/ComingSoon/UpcomingTvSeries
 import HelpSupport from './components/pages/HelpSupport/HelpSupport';
 import NotFound from './components/pages/NotFound/NotFound';
 import Profile from './components/pages/Profile';
+import ProtectedRoute from './components/routes/ProtectedRoute';
+import PublicRoute from './components/routes/PublicRoute';
 
 const queryClient = new QueryClient();
 
@@ -22,53 +24,104 @@ const router = createBrowserRouter(
             path: '/',
             element: <Layout />,
             children: [
+                // Public Routes - Accessible to everyone
                 {
                     path: '/',
-                    element: <Home />,
+                    element: (
+                        <PublicRoute>
+                            <Home />
+                        </PublicRoute>
+                    ),
                 },
                 {
                     path: '/movies',
-                    element: <Discovery />, // this contains the tabs + carousels + <Outlet />
+                    element: (
+                        <PublicRoute>
+                            <Discovery />
+                        </PublicRoute>
+                    ),
                 },
                 {
                     path: '/tvseries',
-                    element: <Discovery />,
-                },
-                {
-                    path: '/settings',
-                    element: <Settings />,
-                },
-                {
-                    path: '/coming-soon',
-                    element: <ComingSoon />,
-                },
-                {
-                    path: '/profile',
-                    element: <Profile />,
+                    element: (
+                        <PublicRoute>
+                            <Discovery />
+                        </PublicRoute>
+                    ),
                 },
                 {
                     path: '/movie/:id',
-                    element: <MovieDetailPage />,
+                    element: (
+                        <PublicRoute>
+                            <MovieDetailPage />
+                        </PublicRoute>
+                    ),
                 },
                 {
                     path: '/tv/:id',
-                    element: <TVSeriesDetailPage />,
+                    element: (
+                        <PublicRoute>
+                            <TVSeriesDetailPage />
+                        </PublicRoute>
+                    ),
                 },
                 {
-                    path: '/watchlist',
-                    element: <WatchlistPage />,
+                    path: '/coming-soon',
+                    element: (
+                        <PublicRoute>
+                            <ComingSoon />
+                        </PublicRoute>
+                    ),
                 },
                 {
                     path: '/movies/upcoming',
-                    element: <UpcomingMoviesPage />,
+                    element: (
+                        <PublicRoute>
+                            <UpcomingMoviesPage />
+                        </PublicRoute>
+                    ),
                 },
                 {
                     path: '/tv/upcoming',
-                    element: <UpcomingTvSeriesPage />,
+                    element: (
+                        <PublicRoute>
+                            <UpcomingTvSeriesPage />
+                        </PublicRoute>
+                    ),
                 },
                 {
                     path: '/help',
-                    element: <HelpSupport />,
+                    element: (
+                        <PublicRoute>
+                            <HelpSupport />
+                        </PublicRoute>
+                    ),
+                },
+                
+                // Protected Routes - Require authentication
+                {
+                    path: '/profile',
+                    element: (
+                        <ProtectedRoute>
+                            <Profile />
+                        </ProtectedRoute>
+                    ),
+                },
+                {
+                    path: '/watchlist',
+                    element: (
+                        <ProtectedRoute>
+                            <WatchlistPage />
+                        </ProtectedRoute>
+                    ),
+                },
+                {
+                    path: '/settings',
+                    element: (
+                        <ProtectedRoute>
+                            <Settings />
+                        </ProtectedRoute>
+                    ),
                 },
                 // Add other routes here
             ],
