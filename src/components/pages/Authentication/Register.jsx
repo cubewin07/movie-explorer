@@ -15,8 +15,8 @@ const schema = z
     .object({
         username: z.string().min(2, 'Username is required'),
         email: z.string().email({ message: 'Invalid email format' }),
-        password: z.string().min(6, { message: 'Password must be at least 6 characters' }),
-        confirmPassword: z.string().min(6),
+        password: z.string().min(8, { message: 'Password must be at least 8 characters' }),
+        confirmPassword: z.string().min(8),
     })
     .refine((data) => data.password === data.confirmPassword, {
         message: "Passwords don't match",
