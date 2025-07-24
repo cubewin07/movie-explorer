@@ -2,12 +2,15 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
 import { toast } from 'sonner';
 import { useLogin, useRegister, useLogout, useGetUserInfo } from '../hooks/API/login&register';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
+import Login from '../components/pages/Authentication/Login';
 
 const AuthenContext = createContext();
 
 export function AuthenProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [showLoginModal, setShowLoginModal] = useState(false);
 
     // Always call hooks at the top level
     const loginMutation = useLogin();
@@ -23,6 +26,12 @@ export function AuthenProvider({ children }) {
         toast.error('Your session has expired. Please log in again.', {
             duration: 5000,
             position: 'top-center',
+            action: {
+                label: 'Login',
+                onClick: () => {
+                    setShowLoginModal(true);
+                }
+            }
         });
     };
 
@@ -98,9 +107,29 @@ export function AuthenProvider({ children }) {
         }
     };
 
+    const handleLoginModalClose = () => {
+        setShowLoginModal(false);
+    };
+
+    const handleLoginModalSuccess = () => {
+        setShowLoginModal(false);
+        // User state will be updated by the login function
+    };
+
     return (
-        <AuthenContext.Provider value={{ user, loading, login, register, logout, token }}>
+        <AuthenContext.Provider value={{ user, loading, login, register, logout, token, showLoginModal, setShowLoginModal }}>
             {children}
+            <Dialog open={showLoginModal} onOpenChange={handleLoginModalClose}>
+                <DialogContent className="w-full max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Session Expired</DialogTitle>
+                    </DialogHeader>
+                    <Login 
+                        onSuccess={handleLoginModalSuccess}
+                        hideHeader={true}
+                    />
+                </DialogContent>
+            </Dialog>
         </AuthenContext.Provider>
     );
 }
