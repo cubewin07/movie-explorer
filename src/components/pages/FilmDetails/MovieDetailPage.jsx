@@ -547,7 +547,7 @@ export default function MovieDetailPage() {
                             </div>
 
                             {/* Additional Stats */}
-                            {(movie.budget && movie.revenue) && (
+                            {(movie.budget > 0 && movie.revenue > 0) && (
                                 <motion.div 
                                     className="bg-gradient-to-br from-amber-50 to-orange-100 dark:from-amber-900/20 dark:to-orange-900/20 rounded-xl p-6 border border-amber-200 dark:border-amber-700 shadow-lg"
                                     initial={{ opacity: 0, scale: 0.95 }}
