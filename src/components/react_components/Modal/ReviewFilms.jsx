@@ -52,12 +52,11 @@ export default function MovieReviewModal(props) {
     vote_count = 0,
     overview = 'No overview available.',
     original_language,
-    runtime,
     image,
   } = props;
 
   const releaseDate = release_date || first_air_date;
-  console.log(releaseDate);
+  console.log(props);
   const { setIsOpen } = useContext(FilmModalContext);
   const [imageLoaded, setImageLoaded] = useState(false);
   const posterUrl = image
@@ -232,16 +231,6 @@ export default function MovieReviewModal(props) {
                         >
                           <Globe className="w-3.5 h-3.5" />
                           {original_language.toUpperCase()}
-                        </motion.div>
-                      )}
-                      {runtime && (
-                        <motion.div 
-                          className="flex items-center gap-1.5 px-2.5 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg font-medium text-xs" 
-                          whileHover={{ scale: 1.05 }}
-                          transition={{ duration: 0.15 }}
-                        >
-                          <Clock className="w-3.5 h-3.5" />
-                          {Math.floor(runtime / 60)}h {runtime % 60}m
                         </motion.div>
                       )}
                       {releaseDate && (
