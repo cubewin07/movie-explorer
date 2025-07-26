@@ -103,9 +103,9 @@ export default function MovieReviewModal(props) {
             damping: 25,
             duration: 0.4,
           }}
-          className="w-full max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl max-h-[90vh] overflow-hidden bg-gradient-to-br from-background via-background to-background/95 border border-border/50 text-foreground shadow-2xl shadow-black/20 rounded-2xl backdrop-blur-xl ring-1 ring-white/10"
+          className="w-full max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl max-h-[90vh] overflow-hidden bg-gradient-to-br from-background via-background to-background/95 border border-border/50 text-foreground shadow-2xl shadow-black/20 rounded-2xl backdrop-blur-xl ring-1 ring-white/10 flex flex-col"
         >
-          <CardContent className="p-0 relative overflow-hidden">
+          <CardContent className="p-0 relative overflow-hidden flex flex-col flex-1">
             {/* Close Button */}
             <motion.div
               className="absolute top-4 right-4 z-20"
@@ -182,10 +182,10 @@ export default function MovieReviewModal(props) {
 
             {/* Content Section */}
             <motion.div
-              className="p-6 space-y-6"
+              className="p-6 space-y-6 overflow-y-auto flex-1"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
+              transition={{ delay: 0.2, duration: 0.3 }}
             >
               <div className="flex flex-col sm:flex-row gap-6">
                 <motion.div
@@ -193,7 +193,7 @@ export default function MovieReviewModal(props) {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.3, duration: 0.5 }}
-                  whileHover={{ scale: 1.05, rotateY: 5 }}
+                  whileHover={{ scale: 1.03, rotateY: 3, transition: { duration: 0.2 } }}
                   style={{ perspective: '1000px' }}
                 >
                   <div className="relative group">
@@ -218,24 +218,36 @@ export default function MovieReviewModal(props) {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5, duration: 0.4 }}
-                    whileHover={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.01, transition: { duration: 0.15 } }}
                   >
                     <div className="flex flex-wrap items-center gap-4 text-sm">
                       {original_language && (
-                        <motion.div className="flex items-center gap-2 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg font-medium" whileHover={{ scale: 1.05 }}>
-                          <Globe className="w-4 h-4" />
+                        <motion.div 
+                          className="flex items-center gap-1.5 px-2.5 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg font-medium text-xs" 
+                          whileHover={{ scale: 1.05 }}
+                          transition={{ duration: 0.15 }}
+                        >
+                          <Globe className="w-3.5 h-3.5" />
                           {original_language.toUpperCase()}
                         </motion.div>
                       )}
                       {runtime && (
-                        <motion.div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg font-medium" whileHover={{ scale: 1.05 }}>
-                          <Clock className="w-4 h-4" />
+                        <motion.div 
+                          className="flex items-center gap-1.5 px-2.5 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg font-medium text-xs" 
+                          whileHover={{ scale: 1.05 }}
+                          transition={{ duration: 0.15 }}
+                        >
+                          <Clock className="w-3.5 h-3.5" />
                           {Math.floor(runtime / 60)}h {runtime % 60}m
                         </motion.div>
                       )}
                       {first_air_date && (
-                        <motion.div className="flex items-center gap-2 px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg font-medium" whileHover={{ scale: 1.05 }}>
-                          <Calendar className="w-4 h-4" />
+                        <motion.div 
+                          className="flex items-center gap-1.5 px-2.5 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg font-medium text-xs" 
+                          whileHover={{ scale: 1.05 }}
+                          transition={{ duration: 0.15 }}
+                        >
+                          <Calendar className="w-3.5 h-3.5" />
                           {new Date(first_air_date).toLocaleDateString()}
                         </motion.div>
                       )}
@@ -276,9 +288,9 @@ export default function MovieReviewModal(props) {
                             visible: { opacity: 1, y: 0, scale: 1 },
                           }}
                           whileHover={{
-                            scale: 1.1,
-                            y: -2,
-                            transition: { type: 'spring', stiffness: 400 },
+                            scale: 1.05,
+                            y: -1,
+                            transition: { duration: 0.15 },
                           }}
                         >
                           {genre}
@@ -295,7 +307,7 @@ export default function MovieReviewModal(props) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7, duration: 0.5 }}
-                whileHover={{ scale: 1.01 }}
+                whileHover={{ scale: 1.005, transition: { duration: 0.15 } }}
               >
                 <div className="flex items-center gap-2 mb-4">
                   <Film className="w-5 h-5 text-indigo-500" />
@@ -316,8 +328,9 @@ export default function MovieReviewModal(props) {
                 transition={{ delay: 0.8, duration: 0.5 }}
               >
                 <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ duration: 0.15 }}
                   onClick={() => {
                     if (id) {
                       navigate(title ? `/movie/${id}` : `/tv/${id}`);
