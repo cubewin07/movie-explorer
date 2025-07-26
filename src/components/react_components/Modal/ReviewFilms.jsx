@@ -298,6 +298,32 @@ export default function MovieReviewModal(props) {
                       ))}
                     </motion.div>
                   </motion.div>
+
+                  {/* CTA Button */}
+                  <motion.div
+                    className="flex justify-start pt-2"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.7, duration: 0.5 }}
+                  >
+                    <motion.div
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      transition={{ duration: 0.15 }}
+                      onClick={() => {
+                        if (id) {
+                          navigate(title ? `/movie/${id}` : `/tv/${id}`);
+                          setIsOpen(false);
+                        }
+                      }}
+                    >
+                      <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-xl shadow-purple-500/25 border-0 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 px-6 py-2.5 rounded-xl font-semibold">
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Details
+                        <Play className="h-3 w-3 ml-2" />
+                      </Button>
+                    </motion.div>
+                  </motion.div>
                 </motion.div>
               </div>
 
@@ -320,31 +346,7 @@ export default function MovieReviewModal(props) {
                 </p>
               </motion.div>
 
-              {/* CTA Button */}
-              <motion.div
-                className="flex justify-center pt-2"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8, duration: 0.5 }}
-              >
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ duration: 0.15 }}
-                  onClick={() => {
-                    if (id) {
-                      navigate(title ? `/movie/${id}` : `/tv/${id}`);
-                      setIsOpen(false);
-                    }
-                  }}
-                >
-                  <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-xl shadow-purple-500/25 border-0 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 px-8 py-3 rounded-xl font-semibold">
-                    <Eye className="h-5 w-5 mr-2" />
-                    View Details
-                    <Play className="h-4 w-4 ml-2" />
-                  </Button>
-                </motion.div>
-              </motion.div>
+
             </motion.div>
           </CardContent>
         </motion.div>
