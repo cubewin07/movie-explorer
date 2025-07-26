@@ -268,23 +268,74 @@ export default function HelpSupport() {
                     className="mb-16"
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.3 }}
+                    transition={{ duration: 0.6, delay: 0.2 }}
                 >
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">Quick Actions</h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="text-center mb-12">
+                        <motion.div
+                            className="inline-flex items-center gap-3 mb-4"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.3, duration: 0.5 }}
+                        >
+                            <div className="p-3 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl shadow-lg">
+                                <Zap className="w-6 h-6 text-white" />
+                            </div>
+                            <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                                Quick Actions
+                            </h2>
+                        </motion.div>
+                        <motion.p
+                            className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.4, duration: 0.5 }}
+                        >
+                            Access helpful resources and tools to get the most out of your experience
+                        </motion.p>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         {quickActions.map((action, index) => (
-                            <motion.div
+                            <motion.a
                                 key={index}
-                                className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer border border-transparent hover:border-blue-200 dark:hover:border-blue-700"
-                                whileHover={{ y: -5, scale: 1.02 }}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.5, delay: 0.1 * index }}
+                                href={action.link}
+                                className="group bg-gradient-to-br from-white via-white to-gray-50/50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900/50 p-8 rounded-2xl shadow-xl border border-gray-200/50 dark:border-slate-700/50 text-center hover:shadow-2xl transition-all duration-300 block backdrop-blur-sm"
+                                initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                transition={{ 
+                                    duration: 0.6, 
+                                    delay: 0.1 * index + 0.5,
+                                    type: 'spring',
+                                    stiffness: 100
+                                }}
+                                whileHover={{ 
+                                    y: -8, 
+                                    scale: 1.05,
+                                    transition: { duration: 0.2 }
+                                }}
                             >
-                                <div className="text-blue-600 dark:text-blue-400 mb-3">{action.icon}</div>
-                                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{action.title}</h3>
-                                <p className="text-sm text-gray-600 dark:text-gray-400">{action.description}</p>
-                            </motion.div>
+                                <motion.div 
+                                    className="text-blue-600 dark:text-blue-400 mb-6 mx-auto w-fit p-4 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow duration-300"
+                                    whileHover={{ scale: 1.15, rotate: 10 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    {action.icon}
+                                </motion.div>
+                                <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                                    {action.title}
+                                </h3>
+                                <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
+                                    {action.description}
+                                </p>
+                                <motion.div
+                                    className="flex items-center justify-center gap-2 text-blue-600 dark:text-blue-400 font-medium"
+                                    initial={{ x: 0 }}
+                                    whileHover={{ x: 5 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    <span className="text-sm">Learn More</span>
+                                    <ArrowRight className="w-4 h-4" />
+                                </motion.div>
+                            </motion.a>
                         ))}
                     </div>
                 </motion.section>
@@ -294,39 +345,106 @@ export default function HelpSupport() {
                     className="mb-16"
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.4 }}
+                    transition={{ duration: 0.6, delay: 0.3 }}
                 >
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 text-center">Get in Touch</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="text-center mb-12">
+                        <motion.div
+                            className="inline-flex items-center gap-3 mb-4"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.4, duration: 0.5 }}
+                        >
+                            <div className="p-3 bg-gradient-to-r from-green-500 to-blue-600 rounded-xl shadow-lg">
+                                <MessageCircle className="w-6 h-6 text-white" />
+                            </div>
+                            <h2 className="text-3xl font-bold bg-gradient-to-r from-green-600 to-blue-600 bg-clip-text text-transparent">
+                                Get in Touch
+                            </h2>
+                        </motion.div>
+                        <motion.p
+                            className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5, duration: 0.5 }}
+                        >
+                            Choose your preferred way to reach out to our support team
+                        </motion.p>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {contactMethods.map((method, index) => (
                             <motion.div
                                 key={index}
-                                className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg text-center"
-                                whileHover={{ y: -5, scale: 1.02 }}
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.5, delay: 0.1 * index }}
+                                className="group bg-gradient-to-br from-white via-white to-gray-50/50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900/50 p-8 rounded-2xl shadow-xl border border-gray-200/50 dark:border-slate-700/50 text-center hover:shadow-2xl transition-all duration-300 backdrop-blur-sm"
+                                initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                transition={{ 
+                                    duration: 0.6, 
+                                    delay: 0.1 * index + 0.6,
+                                    type: 'spring',
+                                    stiffness: 100
+                                }}
+                                whileHover={{ 
+                                    y: -8, 
+                                    scale: 1.05,
+                                    transition: { duration: 0.2 }
+                                }}
                             >
-                                <div className={`${method.color} mb-3`}>{method.icon}</div>
-                                <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{method.title}</h3>
-                                <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{method.description}</p>
-                                <p className="font-medium text-gray-900 dark:text-white mb-1">{method.contact}</p>
-                                <p className="text-xs text-gray-500 dark:text-gray-500">{method.response}</p>
+                                <motion.div 
+                                    className={`${method.color} mb-6 mx-auto w-fit p-4 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow duration-300`}
+                                    whileHover={{ scale: 1.1, rotate: 5 }}
+                                    transition={{ duration: 0.2 }}
+                                >
+                                    {method.icon}
+                                </motion.div>
+                                <h3 className="font-bold text-xl text-gray-900 dark:text-white mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                                    {method.title}
+                                </h3>
+                                <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
+                                    {method.description}
+                                </p>
+                                <div className="space-y-2">
+                                    <p className="font-semibold text-gray-900 dark:text-white bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                        {method.contact}
+                                    </p>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                        {method.response}
+                                    </p>
+                                </div>
                             </motion.div>
                         ))}
                     </div>
                 </motion.section>
 
-                {/* FAQ Section with DaisyUI Accordion */}
+                {/* FAQ Section with Enhanced UI */}
                 <motion.section
                     className="mb-16"
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.5 }}
                 >
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-8 text-center">
-                        Frequently Asked Questions
-                    </h2>
+                    <div className="text-center mb-12">
+                        <motion.div
+                            className="inline-flex items-center gap-3 mb-4"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.6, duration: 0.5 }}
+                        >
+                            <div className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-lg">
+                                <HelpCircle className="w-6 h-6 text-white" />
+                            </div>
+                            <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                Frequently Asked Questions
+                            </h2>
+                        </motion.div>
+                        <motion.p
+                            className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.7, duration: 0.5 }}
+                        >
+                            Find answers to common questions about using our movie explorer platform
+                        </motion.p>
+                    </div>
 
                     {searchQuery && (
                         <div className="mb-6 text-center">
@@ -337,46 +455,95 @@ export default function HelpSupport() {
                         </div>
                     )}
 
-                    <div className="space-y-6">
+                    <div className="space-y-8">
                         {filteredFAQs.map((category, categoryIndex) => (
                             <motion.div
                                 key={categoryIndex}
-                                className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden"
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.5, delay: 0.1 * categoryIndex }}
+                                className="bg-gradient-to-br from-white via-white to-gray-50/50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900/50 rounded-2xl shadow-xl border border-gray-200/50 dark:border-slate-700/50 overflow-hidden backdrop-blur-sm"
+                                initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                transition={{ 
+                                    duration: 0.6, 
+                                    delay: categoryIndex * 0.15,
+                                    type: 'spring',
+                                    stiffness: 100
+                                }}
+                                whileHover={{ 
+                                    scale: 1.02,
+                                    boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
+                                    transition: { duration: 0.2 }
+                                }}
                             >
-                                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="text-white">{category.icon}</div>
-                                        <h3 className="text-xl font-bold text-yellow-300 dark:text-yellow-400">
-                                            {category.category}
-                                        </h3>
+                                <div className="bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 dark:from-blue-500/20 dark:via-purple-500/20 dark:to-pink-500/20 px-8 py-6 border-b border-gray-200/50 dark:border-slate-600/50">
+                                    <div className="flex items-center gap-4">
+                                        <motion.div 
+                                            className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-lg"
+                                            whileHover={{ scale: 1.1, rotate: 5 }}
+                                            transition={{ duration: 0.2 }}
+                                        >
+                                            <div className="text-white">{category.icon}</div>
+                                        </motion.div>
+                                        <div className="flex-1">
+                                            <h3 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">
+                                                {category.category}
+                                            </h3>
+                                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                                {category.items.length} helpful answers
+                                            </p>
+                                        </div>
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.8 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            transition={{ delay: categoryIndex * 0.15 + 0.3 }}
+                                        >
+                                            <Badge 
+                                                variant="secondary" 
+                                                className="bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 text-blue-700 dark:text-blue-300 border-0 shadow-sm"
+                                            >
+                                                {category.items.length} Q&A
+                                            </Badge>
+                                        </motion.div>
                                     </div>
                                 </div>
 
-                                <div className="join join-vertical w-full">
+                                <div className="p-2">
                                     {category.items.map((faq, questionIndex) => (
-                                        <div
+                                        <motion.div
                                             key={questionIndex}
-                                            className="collapse collapse-arrow join-item border-b border-gray-200 dark:border-slate-700 last:border-b-0"
+                                            className="mb-3 last:mb-0"
+                                            initial={{ opacity: 0, x: -20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ 
+                                                delay: categoryIndex * 0.15 + questionIndex * 0.1 + 0.4,
+                                                duration: 0.4
+                                            }}
                                         >
-                                            <input
-                                                type="radio"
-                                                name={`accordion-${categoryIndex}`}
-                                                defaultChecked={questionIndex === 0}
-                                            />
-                                            <div className="collapse-title text-base font-semibold text-blue-700 dark:text-blue-300 py-4">
-                                                {faq.question}
-                                            </div>
-                                            <div className="collapse-content bg-gray-50 dark:bg-slate-700/50">
-                                                <div className="pt-2 pb-4 px-2">
-                                                    <p className="text-gray-600 dark:text-gray-300 leading-relaxed">
-                                                        {faq.answer}
-                                                    </p>
+                                            <div className="collapse collapse-arrow bg-gradient-to-r from-gray-50 to-gray-100/50 dark:from-slate-700/50 dark:to-slate-800/50 rounded-xl border border-gray-200/50 dark:border-slate-600/50 shadow-sm hover:shadow-md transition-all duration-200">
+                                                <input
+                                                    type="radio"
+                                                    name={`accordion-${categoryIndex}`}
+                                                    defaultChecked={questionIndex === 0}
+                                                />
+                                                <div className="collapse-title text-base font-semibold text-gray-800 dark:text-gray-200 py-5 px-6 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
+                                                        {faq.question}
+                                                    </div>
+                                                </div>
+                                                <div className="collapse-content bg-gradient-to-r from-blue-50/30 to-purple-50/30 dark:from-slate-800/30 dark:to-slate-900/30 border-t border-gray-200/50 dark:border-slate-600/50">
+                                                    <div className="pt-4 pb-6 px-6">
+                                                        <motion.p 
+                                                            className="text-gray-700 dark:text-gray-300 leading-relaxed"
+                                                            initial={{ opacity: 0, y: 10 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            transition={{ duration: 0.3 }}
+                                                        >
+                                                            {faq.answer}
+                                                        </motion.p>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </motion.div>
                                     ))}
                                 </div>
                             </motion.div>
@@ -396,31 +563,83 @@ export default function HelpSupport() {
 
                 {/* Call to Action */}
                 <motion.div
-                    className="text-center bg-white dark:bg-slate-800 rounded-2xl p-8 sm:p-12 shadow-lg"
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.6 }}
+                    className="relative text-center bg-gradient-to-br from-white via-blue-50/50 to-purple-50/50 dark:from-slate-800 dark:via-slate-800/80 dark:to-slate-900/50 rounded-3xl p-12 sm:p-16 shadow-2xl border border-gray-200/50 dark:border-slate-700/50 overflow-hidden backdrop-blur-sm"
+                    initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.8, delay: 0.6, type: 'spring', stiffness: 100 }}
                 >
-                    <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">
-                        Still Need Help?
-                    </h3>
-                    <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-md mx-auto">
-                        Can't find what you're looking for? Our support team is here to help you 24/7.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <motion.button
-                            className="px-6 py-3 rounded-lg text-white font-semibold bg-gradient-to-r from-pink-500 via-red-500 to-yellow-400 shadow-lg focus:outline-none focus:ring-2 focus:ring-pink-400 focus:ring-offset-2"
-                            whileHover={{ scale: 1.07, boxShadow: '0 4px 24px 0 rgba(255, 99, 132, 0.25)' }}
-                            whileTap={{ scale: 0.97 }}
-                            transition={{ type: 'spring', stiffness: 300, damping: 18 }}
+                    {/* Background decoration */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5 dark:from-blue-500/10 dark:via-purple-500/10 dark:to-pink-500/10"></div>
+                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-32 bg-gradient-to-r from-blue-400 to-purple-600 rounded-full blur-3xl opacity-20"></div>
+                    
+                    <div className="relative z-10">
+                        <motion.div
+                            className="inline-flex items-center gap-3 mb-6"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.7, duration: 0.5 }}
                         >
-                            <MessageCircle className="w-4 h-4 mr-2 inline-block align-middle" />
-                            <span className="align-middle">Start Live Chat</span>
-                        </motion.button>
-                        <Button variant="outline" className="px-6 py-3">
-                            <Mail className="w-4 h-4 mr-2" />
-                            Send Email
-                        </Button>
+                            <div className="p-4 bg-gradient-to-r from-blue-500 to-purple-600 rounded-2xl shadow-xl">
+                                <HelpCircle className="w-8 h-8 text-white" />
+                            </div>
+                        </motion.div>
+                        
+                        <motion.h3 
+                            className="text-3xl sm:text-4xl font-bold mb-6 bg-gradient-to-r from-gray-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.8, duration: 0.5 }}
+                        >
+                            Still Need Help?
+                        </motion.h3>
+                        
+                        <motion.p 
+                            className="text-lg text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto leading-relaxed"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.9, duration: 0.5 }}
+                        >
+                            Can't find what you're looking for? Our dedicated support team is here to help you 24/7 with personalized assistance.
+                        </motion.p>
+                        
+                        <motion.div 
+                            className="flex flex-col sm:flex-row gap-6 justify-center items-center"
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 1.0, duration: 0.5 }}
+                        >
+                            <motion.button
+                                className="group px-8 py-4 rounded-2xl text-white font-bold bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300/50 dark:focus:ring-blue-800/50 relative overflow-hidden"
+                                whileHover={{ 
+                                    scale: 1.05, 
+                                    boxShadow: '0 20px 40px rgba(59, 130, 246, 0.3)',
+                                    transition: { duration: 0.2 }
+                                }}
+                                whileTap={{ scale: 0.98 }}
+                                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+                            >
+                                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-700 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                <div className="relative flex items-center gap-3">
+                                    <MessageCircle className="w-5 h-5" />
+                                    <span>Start Live Chat</span>
+                                </div>
+                            </motion.button>
+                            
+                            <motion.button
+                                className="group px-8 py-4 rounded-2xl font-bold text-gray-700 dark:text-gray-200 bg-white/80 dark:bg-slate-700/80 border-2 border-gray-200 dark:border-slate-600 shadow-lg hover:shadow-xl backdrop-blur-sm transition-all duration-300"
+                                whileHover={{ 
+                                    scale: 1.05,
+                                    borderColor: 'rgb(59 130 246)',
+                                    transition: { duration: 0.2 }
+                                }}
+                                whileTap={{ scale: 0.98 }}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <Mail className="w-5 h-5" />
+                                    <span>Send Email</span>
+                                </div>
+                            </motion.button>
+                        </motion.div>
                     </div>
                 </motion.div>
             </div>
