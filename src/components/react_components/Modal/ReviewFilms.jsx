@@ -1,252 +1,341 @@
-import { useContext, useEffect } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Star, Calendar, Globe, X, Eye, Clock, Film, Tv } from 'lucide-react';
+import {
+  Star,
+  Calendar,
+  Globe,
+  X,
+  Eye,
+  Clock,
+  Film,
+  Play,
+  Sparkles,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { CardContent } from '@/components/ui/card';
 import { FilmModalContext } from '@/context/FilmModalProvider';
 
 const genreColorMap = {
-    Action: 'bg-sky-200 text-sky-900 dark:bg-sky-800 dark:text-sky-100',
-    Adventure: 'bg-green-200 text-green-900 dark:bg-green-800 dark:text-green-100',
-    Animation: 'bg-orange-200 text-orange-800 dark:bg-orange-900 dark:text-orange-100',
-    Comedy: 'bg-yellow-200 text-yellow-900 dark:bg-yellow-900 dark:text-yellow-100',
-    Crime: 'bg-red-200 text-red-900 dark:bg-red-900 dark:text-red-100',
-    Documentary: 'bg-teal-200 text-teal-900 dark:bg-teal-800 dark:text-teal-100',
-    Drama: 'bg-rose-100 text-rose-800 dark:bg-rose-900 dark:text-rose-100',
-    Family: 'bg-amber-200 text-amber-900 dark:bg-amber-800 dark:text-amber-100',
-    Fantasy: 'bg-indigo-200 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100',
-    History: 'bg-stone-200 text-stone-800 dark:bg-stone-700 dark:text-stone-100',
-    Horror: 'bg-red-300 text-red-900 dark:bg-red-900 dark:text-red-100',
-    Music: 'bg-purple-200 text-purple-900 dark:bg-purple-800 dark:text-purple-100',
-    Mystery: 'bg-gray-200 text-gray-800 dark:bg-gray-800 dark:text-gray-100',
-    Romance: 'bg-pink-100 text-pink-700 dark:bg-pink-800 dark:text-pink-100',
-    'Science Fiction': 'bg-cyan-200 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-100',
-    Thriller: 'bg-pink-200 text-pink-800 dark:bg-pink-800 dark:text-pink-100',
-    War: 'bg-zinc-200 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100',
-    Western: 'bg-yellow-300 text-yellow-900 dark:bg-yellow-800 dark:text-yellow-100',
+  Action: 'bg-gradient-to-r from-sky-400 to-sky-600 text-white shadow-lg shadow-sky-500/25',
+  Adventure: 'bg-gradient-to-r from-green-400 to-green-600 text-white shadow-lg shadow-green-500/25',
+  Animation: 'bg-gradient-to-r from-orange-400 to-orange-600 text-white shadow-lg shadow-orange-500/25',
+  Comedy: 'bg-gradient-to-r from-yellow-400 to-yellow-600 text-white shadow-lg shadow-yellow-500/25',
+  Crime: 'bg-gradient-to-r from-red-400 to-red-600 text-white shadow-lg shadow-red-500/25',
+  Documentary: 'bg-gradient-to-r from-teal-400 to-teal-600 text-white shadow-lg shadow-teal-500/25',
+  Drama: 'bg-gradient-to-r from-rose-400 to-rose-600 text-white shadow-lg shadow-rose-500/25',
+  Family: 'bg-gradient-to-r from-amber-400 to-amber-600 text-white shadow-lg shadow-amber-500/25',
+  Fantasy: 'bg-gradient-to-r from-indigo-400 to-purple-600 text-white shadow-lg shadow-indigo-500/25',
+  History: 'bg-gradient-to-r from-stone-400 to-stone-600 text-white shadow-lg shadow-stone-500/25',
+  Horror: 'bg-gradient-to-r from-red-500 to-red-700 text-white shadow-lg shadow-red-500/25',
+  Music: 'bg-gradient-to-r from-purple-400 to-purple-600 text-white shadow-lg shadow-purple-500/25',
+  Mystery: 'bg-gradient-to-r from-gray-400 to-gray-600 text-white shadow-lg shadow-gray-500/25',
+  Romance: 'bg-gradient-to-r from-pink-400 to-pink-600 text-white shadow-lg shadow-pink-500/25',
+  'Science Fiction': 'bg-gradient-to-r from-cyan-400 to-blue-600 text-white shadow-lg shadow-cyan-500/25',
+  Thriller: 'bg-gradient-to-r from-pink-500 to-red-600 text-white shadow-lg shadow-pink-500/25',
+  War: 'bg-gradient-to-r from-zinc-400 to-zinc-600 text-white shadow-lg shadow-zinc-500/25',
+  Western: 'bg-gradient-to-r from-yellow-500 to-orange-600 text-white shadow-lg shadow-yellow-500/25',
 };
 
 export default function MovieReviewModal(props) {
-    const {
-        title,
-        id,
-        name,
-        original_title,
-        original_name,
-        first_air_date,
-        genres = [],
-        poster_path,
-        vote_average = 0,
-        vote_count = 0,
-        overview = 'No overview available.',
-        original_language,
-        runtime,
-        image,
-    } = props;
-    const { setIsOpen } = useContext(FilmModalContext);
-    const posterUrl = image
-        ? image
-        : poster_path
-          ? `https://image.tmdb.org/t/p/w500${poster_path}`
-          : '/no-image-available.png';
-    const navigate = useNavigate();
-    useEffect(() => {
-        const handleEsc = (e) => {
-            if (e.key === 'Escape') setIsOpen(false);
-        };
-        window.addEventListener('keydown', handleEsc);
-        return () => window.removeEventListener('keydown', handleEsc);
-    }, [setIsOpen]);
+  const {
+    title,
+    id,
+    name,
+    original_title,
+    original_name,
+    first_air_date,
+    genres = [],
+    poster_path,
+    vote_average = 0,
+    vote_count = 0,
+    overview = 'No overview available.',
+    original_language,
+    runtime,
+    image,
+  } = props;
 
-    // Dispatch event when modal closes
-    const handleClose = () => {
-        setIsOpen(false);
-        window.dispatchEvent(new Event('film-modal-close'));
+  const { setIsOpen } = useContext(FilmModalContext);
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const posterUrl = image
+    ? image
+    : poster_path
+      ? `https://image.tmdb.org/t/p/w500${poster_path}`
+      : '/no-image-available.png';
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleEsc = (e) => {
+      if (e.key === 'Escape') setIsOpen(false);
     };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [setIsOpen]);
 
-    return (
+  const handleClose = () => {
+    setIsOpen(false);
+    window.dispatchEvent(new Event('film-modal-close'));
+  };
+
+  return (
+    <motion.div
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-md"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Movie details modal"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      onClick={handleClose}
+    >
+      <AnimatePresence mode="wait">
         <motion.div
-            className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/50 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25, ease: 'easeOut' }}
-            onClick={handleClose}
+          key={id || title || name || 'modal'}
+          onClick={(e) => e.stopPropagation()}
+          initial={{ opacity: 0, y: -50, scale: 0.95, rotateX: -15 }}
+          animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
+          exit={{ opacity: 0, y: 50, scale: 0.95, rotateX: 15 }}
+          transition={{
+            type: 'spring',
+            stiffness: 300,
+            damping: 25,
+            duration: 0.4,
+          }}
+          className="w-full max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl max-h-[90vh] overflow-hidden bg-gradient-to-br from-background via-background to-background/95 border border-border/50 text-foreground shadow-2xl shadow-black/20 rounded-2xl backdrop-blur-xl ring-1 ring-white/10"
         >
-            <AnimatePresence mode="wait">
-                <motion.div
-                    key={id || title || name || 'modal'}
-                    onClick={(e) => e.stopPropagation()}
-                    initial={{ opacity: 0, y: -40, scale: 0.98 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 80, scale: 0.98 }}
-                    transition={{ type: 'spring', stiffness: 300, damping: 24 }}
-                    className="w-full max-w-xs sm:max-w-md md:max-w-2xl lg:max-w-4xl max-h-[90vh] overflow-hidden bg-background border border-border text-foreground shadow-xl rounded-xl"
+          <CardContent className="p-0 relative overflow-hidden">
+            {/* Close Button */}
+            <motion.div
+              className="absolute top-4 right-4 z-20"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 rounded-full bg-black/30 hover:bg-black/50 text-white border-0 shadow-lg backdrop-blur-sm transition-all duration-200 hover:scale-110"
+                onClick={handleClose}
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </motion.div>
+
+            {/* Banner */}
+            <div className="relative h-48 sm:h-64 overflow-hidden">
+              <motion.div
+                className="absolute inset-0"
+                initial={{ scale: 1.1, opacity: 0 }}
+                animate={{ scale: 1, opacity: imageLoaded ? 1 : 0 }}
+                transition={{ duration: 0.6, ease: 'easeOut' }}
+              >
+                <img
+                  src={posterUrl}
+                  alt={title || name || 'Movie poster'}
+                  className="w-full h-full object-cover"
+                  onLoad={() => setImageLoaded(true)}
+                  onError={(e) => (e.currentTarget.src = '/no-image-available.png')}
+                  loading="lazy"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-transparent to-blue-500/20" />
+              </motion.div>
+
+              {!imageLoaded && (
+                <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 animate-pulse flex items-center justify-center">
+                  <Film className="w-12 h-12 text-gray-600" />
+                </div>
+              )}
+
+              <motion.div
+                className="absolute bottom-0 left-0 right-0 p-6"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+              >
+                <motion.h2
+                  className="text-2xl sm:text-3xl font-bold text-white mb-2 bg-gradient-to-r from-white via-white to-gray-300 bg-clip-text text-transparent"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4, duration: 0.5 }}
                 >
-                    <CardContent className="p-4 sm:p-6 relative">
-                        {/* Close Button */}
-                        <motion.div
-                            className="absolute top-4 right-4"
-                            initial={{ opacity: 0, scale: 0.8 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.8 }}
-                            transition={{ duration: 0.2 }}
-                        >
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={handleClose}
-                                className="text-muted-foreground hover:text-foreground hover:bg-muted/70 dark:hover:bg-muted/30 rounded-full border border-border"
-                            >
-                                <X className="h-4 w-4" />
-                                <span className="sr-only">Close</span>
-                            </Button>
-                        </motion.div>
+                  {title || name || original_title || original_name}
+                </motion.h2>
 
-                        <motion.div
-                            className="flex flex-col lg:flex-row gap-4 sm:gap-6"
-                            initial="hidden"
-                            animate="visible"
-                            variants={{
-                                hidden: {},
-                                visible: {
-                                    transition: { staggerChildren: 0.15 },
-                                },
-                            }}
-                        >
-                            {/* Poster */}
-                            <motion.div
-                                initial={{ opacity: 0, x: -30, scale: 0.98 }}
-                                animate={{ opacity: 1, x: 0, scale: 1 }}
-                                exit={{ opacity: 0, x: -30, scale: 0.98 }}
-                                transition={{ type: 'spring', stiffness: 200, damping: 20 }}
-                            >
-                                {posterUrl && posterUrl !== '/no-image-available.png' ? (
-                                    <motion.img
-                                        whileHover={{ scale: 1.03 }}
-                                        transition={{ type: 'spring', stiffness: 200 }}
-                                        src={posterUrl}
-                                        alt={`${title || name} poster`}
-                                        className="w-32 h-48 sm:w-48 sm:h-72 mx-auto lg:mx-0 rounded-xl object-cover shadow-md"
-                                    />
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center w-32 h-48 sm:w-48 sm:h-72 mx-auto lg:mx-0 bg-gradient-to-br from-indigo-400 to-blue-600 rounded-xl text-white opacity-80">
-                                        {title ? (
-                                            <Film className="w-10 h-10 mb-2" />
-                                        ) : (
-                                            <Tv className="w-10 h-10 mb-2" />
-                                        )}
-                                        <span className="text-sm">Poster Coming Soon</span>
-                                    </div>
-                                )}
-                            </motion.div>
+                {vote_average > 0 && (
+                  <motion.div
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-full text-sm font-semibold shadow-lg"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.5, type: 'spring', stiffness: 300 }}
+                    whileHover={{ scale: 1.05 }}
+                  >
+                    <Star className="w-4 h-4 fill-current" />
+                    <span>{vote_average.toFixed(1)}</span>
+                    <span className="text-xs opacity-80">({vote_count})</span>
+                  </motion.div>
+                )}
+              </motion.div>
+            </div>
 
-                            {/* Info */}
-                            <motion.div
-                                className="flex-1 space-y-4"
-                                initial={{ opacity: 0, x: 30, scale: 0.98 }}
-                                animate={{ opacity: 1, x: 0, scale: 1 }}
-                                exit={{ opacity: 0, x: 30, scale: 0.98 }}
-                                transition={{ type: 'spring', stiffness: 200, damping: 20, delay: 0.1 }}
-                            >
-                                <div>
-                                    <h1 className="text-3xl font-bold">{title || name}</h1>
-                                    {original_title && original_title !== title && original_title !== name && (
-                                        <p className="text-base text-muted-foreground italic">{original_title}</p>
-                                    )}
-                                    {original_name && original_name !== name && original_name !== title && (
-                                        <p className="text-base text-muted-foreground italic">{original_name}</p>
-                                    )}
-                                </div>
-
-                                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-                                    {original_language && (
-                                        <div className="flex items-center gap-1">
-                                            <Globe className="w-4 h-4" />
-                                            {original_language.toUpperCase()}
-                                        </div>
-                                    )}
-                                    {vote_average > 0 && (
-                                        <div className="flex items-center gap-1">
-                                            <Star className="w-4 h-4 text-yellow-500 fill-yellow-400" />
-                                            {vote_average.toFixed(1)}/10
-                                            <span className="text-xs ml-1">({vote_count} votes)</span>
-                                        </div>
-                                    )}
-                                    {runtime && (
-                                        <div className="flex items-center gap-1">
-                                            <Clock className="w-4 h-4" />
-                                            {Math.floor(runtime / 60)}h {runtime % 60}m
-                                        </div>
-                                    )}
-                                    {first_air_date && (
-                                        <div className="flex items-center gap-1">
-                                            <Calendar className="w-4 h-4" />
-                                            {new Date(first_air_date).toLocaleDateString()}
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Genre Tags */}
-                                <motion.div
-                                    className="flex flex-wrap gap-2"
-                                    initial="hidden"
-                                    animate="visible"
-                                    variants={{
-                                        hidden: {},
-                                        visible: {
-                                            transition: {
-                                                staggerChildren: 0.06,
-                                            },
-                                        },
-                                    }}
-                                >
-                                    {genres.map((genre) => (
-                                        <motion.span
-                                            key={genre}
-                                            className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                                                genreColorMap[genre] ||
-                                                'bg-gray-300 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
-                                            }`}
-                                            variants={{
-                                                hidden: { opacity: 0, y: 10 },
-                                                visible: { opacity: 1, y: 0 },
-                                            }}
-                                        >
-                                            {genre}
-                                        </motion.span>
-                                    ))}
-                                </motion.div>
-
-                                {/* Overview */}
-                                <div>
-                                    <h3 className="text-lg font-semibold mb-2">Overview</h3>
-                                    <p className="text-sm text-muted-foreground leading-relaxed">{overview}</p>
-                                </div>
-
-                                {/* CTA */}
-                                <motion.div
-                                    whileTap={{ scale: 0.95 }}
-                                    className="pt-4"
-                                    onClick={() => {
-                                        navigate(title ? `/movie/${id}` : `/tv/${id}`);
-                                        setIsOpen(false);
-                                    }}
-                                >
-                                    <Button
-                                        size="lg"
-                                        className="bg-purple-600 hover:bg-purple-700 focus:ring-4 focus:ring-purple-300 text-white shadow-md border-0 transition-all duration-200 hover:shadow-xl hover:-translate-y-1"
-                                    >
-                                        <Eye className="h-4 w-4 mr-2" />
-                                        View Details
-                                    </Button>
-                                </motion.div>
-                            </motion.div>
-                        </motion.div>
-                    </CardContent>
+            {/* Content Section */}
+            <motion.div
+              className="p-6 space-y-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+            >
+              <div className="flex flex-col sm:flex-row gap-6">
+                <motion.div
+                  className="flex-shrink-0 mx-auto sm:mx-0"
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                  whileHover={{ scale: 1.05, rotateY: 5 }}
+                  style={{ perspective: '1000px' }}
+                >
+                  <div className="relative group">
+                    <img
+                      src={posterUrl}
+                      alt={title || name || 'Movie poster'}
+                      className="w-32 h-48 sm:w-40 sm:h-60 object-cover rounded-xl shadow-2xl border border-white/10 transition-all duration-300 group-hover:shadow-3xl"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  </div>
                 </motion.div>
-            </AnimatePresence>
+
+                <motion.div
+                  className="flex-1 space-y-6"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.4, duration: 0.5 }}
+                >
+                  <motion.div
+                    className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-900/50 rounded-xl p-4 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5, duration: 0.4 }}
+                    whileHover={{ scale: 1.02 }}
+                  >
+                    <div className="flex flex-wrap items-center gap-4 text-sm">
+                      {original_language && (
+                        <motion.div className="flex items-center gap-2 px-3 py-1.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg font-medium" whileHover={{ scale: 1.05 }}>
+                          <Globe className="w-4 h-4" />
+                          {original_language.toUpperCase()}
+                        </motion.div>
+                      )}
+                      {runtime && (
+                        <motion.div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-lg font-medium" whileHover={{ scale: 1.05 }}>
+                          <Clock className="w-4 h-4" />
+                          {Math.floor(runtime / 60)}h {runtime % 60}m
+                        </motion.div>
+                      )}
+                      {first_air_date && (
+                        <motion.div className="flex items-center gap-2 px-3 py-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg font-medium" whileHover={{ scale: 1.05 }}>
+                          <Calendar className="w-4 h-4" />
+                          {new Date(first_air_date).toLocaleDateString()}
+                        </motion.div>
+                      )}
+                    </div>
+                  </motion.div>
+
+                  {/* Genres */}
+                  <motion.div
+                    className="space-y-3"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6, duration: 0.5 }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-purple-500" />
+                      <h3 className="text-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                        Genres
+                      </h3>
+                    </div>
+                    <motion.div
+                      className="flex flex-wrap gap-2"
+                      initial="hidden"
+                      animate="visible"
+                      variants={{
+                        hidden: {},
+                        visible: { transition: { staggerChildren: 0.08 } },
+                      }}
+                    >
+                      {genres.map((genre, index) => (
+                        <motion.span
+                          key={`${genre}-${index}`}
+                          className={`px-3 py-1.5 text-sm font-medium rounded-full transition-all duration-200 hover:scale-105 cursor-default ${
+                            genreColorMap[genre] ||
+                            'bg-gradient-to-r from-gray-400 to-gray-600 text-white shadow-lg shadow-gray-500/25'
+                          }`}
+                          variants={{
+                            hidden: { opacity: 0, y: 15, scale: 0.8 },
+                            visible: { opacity: 1, y: 0, scale: 1 },
+                          }}
+                          whileHover={{
+                            scale: 1.1,
+                            y: -2,
+                            transition: { type: 'spring', stiffness: 400 },
+                          }}
+                        >
+                          {genre}
+                        </motion.span>
+                      ))}
+                    </motion.div>
+                  </motion.div>
+                </motion.div>
+              </div>
+
+              {/* Overview */}
+              <motion.div
+                className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/30 dark:to-gray-900/30 rounded-xl p-6 backdrop-blur-sm border border-gray-200/50 dark:border-gray-700/50"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7, duration: 0.5 }}
+                whileHover={{ scale: 1.01 }}
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <Film className="w-5 h-5 text-indigo-500" />
+                  <h3 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                    Overview
+                  </h3>
+                </div>
+                <p className="text-base text-muted-foreground leading-relaxed">
+                  {overview}
+                </p>
+              </motion.div>
+
+              {/* CTA Button */}
+              <motion.div
+                className="flex justify-center pt-2"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8, duration: 0.5 }}
+              >
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    if (id) {
+                      navigate(title ? `/movie/${id}` : `/tv/${id}`);
+                      setIsOpen(false);
+                    }
+                  }}
+                >
+                  <Button className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-xl shadow-purple-500/25 border-0 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 px-8 py-3 rounded-xl font-semibold">
+                    <Eye className="h-5 w-5 mr-2" />
+                    View Details
+                    <Play className="h-4 w-4 ml-2" />
+                  </Button>
+                </motion.div>
+              </motion.div>
+            </motion.div>
+          </CardContent>
         </motion.div>
-    );
+      </AnimatePresence>
+    </motion.div>
+  );
 }
