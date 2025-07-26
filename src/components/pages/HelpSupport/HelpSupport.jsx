@@ -298,7 +298,7 @@ export default function HelpSupport() {
                             <motion.a
                                 key={index}
                                 href={action.link}
-                                className="group bg-gradient-to-br from-white via-white to-gray-50/50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900/50 p-8 rounded-2xl shadow-xl border border-gray-200/50 dark:border-slate-700/50 text-center hover:shadow-2xl transition-all duration-300 block backdrop-blur-sm"
+                                className="group bg-gradient-to-br from-white via-white to-gray-50/50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900/50 p-8 rounded-2xl shadow-xl border border-gray-200/50 dark:border-slate-700/50 text-center hover:shadow-2xl transition-all duration-200 block"
                                 initial={{ opacity: 0, y: 30, scale: 0.9 }}
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 transition={{ 
@@ -308,19 +308,19 @@ export default function HelpSupport() {
                                     stiffness: 100
                                 }}
                                 whileHover={{ 
-                                    y: -8, 
-                                    scale: 1.05,
-                                    transition: { duration: 0.2 }
+                                    y: -4, 
+                                    scale: 1.02,
+                                    transition: { duration: 0.15 }
                                 }}
                             >
                                 <motion.div 
                                     className="text-blue-600 dark:text-blue-400 mb-6 mx-auto w-fit p-4 bg-gradient-to-r from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow duration-300"
-                                    whileHover={{ scale: 1.15, rotate: 10 }}
-                                    transition={{ duration: 0.2 }}
+                                    whileHover={{ scale: 1.08, rotate: 5 }}
+                                    transition={{ duration: 0.15 }}
                                 >
                                     {action.icon}
                                 </motion.div>
-                                <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                                <h3 className="font-bold text-lg text-gray-900 dark:text-white mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
                                     {action.title}
                                 </h3>
                                 <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
@@ -329,8 +329,8 @@ export default function HelpSupport() {
                                 <motion.div
                                     className="flex items-center justify-center gap-2 text-blue-600 dark:text-blue-400 font-medium"
                                     initial={{ x: 0 }}
-                                    whileHover={{ x: 5 }}
-                                    transition={{ duration: 0.2 }}
+                                    whileHover={{ x: 3 }}
+                                    transition={{ duration: 0.15 }}
                                 >
                                     <span className="text-sm">Learn More</span>
                                     <ArrowRight className="w-4 h-4" />
@@ -374,7 +374,7 @@ export default function HelpSupport() {
                         {contactMethods.map((method, index) => (
                             <motion.div
                                 key={index}
-                                className="group bg-gradient-to-br from-white via-white to-gray-50/50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900/50 p-8 rounded-2xl shadow-xl border border-gray-200/50 dark:border-slate-700/50 text-center hover:shadow-2xl transition-all duration-300 backdrop-blur-sm"
+                                className="group bg-gradient-to-br from-white via-white to-gray-50/50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900/50 p-8 rounded-2xl shadow-xl border border-gray-200/50 dark:border-slate-700/50 text-center hover:shadow-2xl transition-all duration-200"
                                 initial={{ opacity: 0, y: 30, scale: 0.9 }}
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 transition={{ 
@@ -384,19 +384,19 @@ export default function HelpSupport() {
                                     stiffness: 100
                                 }}
                                 whileHover={{ 
-                                    y: -8, 
-                                    scale: 1.05,
-                                    transition: { duration: 0.2 }
+                                    y: -4, 
+                                    scale: 1.02,
+                                    transition: { duration: 0.15 }
                                 }}
                             >
                                 <motion.div 
-                                    className={`${method.color} mb-6 mx-auto w-fit p-4 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow duration-300`}
-                                    whileHover={{ scale: 1.1, rotate: 5 }}
-                                    transition={{ duration: 0.2 }}
+                                    className={`${method.color} mb-6 mx-auto w-fit p-4 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 rounded-2xl shadow-lg group-hover:shadow-xl transition-shadow duration-200`}
+                                    whileHover={{ scale: 1.05, rotate: 3 }}
+                                    transition={{ duration: 0.15 }}
                                 >
                                     {method.icon}
                                 </motion.div>
-                                <h3 className="font-bold text-xl text-gray-900 dark:text-white mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-300">
+                                <h3 className="font-bold text-xl text-gray-900 dark:text-white mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200">
                                     {method.title}
                                 </h3>
                                 <p className="text-gray-600 dark:text-gray-400 mb-4 leading-relaxed">
@@ -459,7 +459,7 @@ export default function HelpSupport() {
                         {filteredFAQs.map((category, categoryIndex) => (
                             <motion.div
                                 key={categoryIndex}
-                                className="bg-gradient-to-br from-white via-white to-gray-50/50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900/50 rounded-2xl shadow-xl border border-gray-200/50 dark:border-slate-700/50 overflow-hidden backdrop-blur-sm"
+                                className="bg-gradient-to-br from-white via-white to-gray-50/50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900/50 rounded-2xl shadow-xl border border-gray-200/50 dark:border-slate-700/50 overflow-hidden"
                                 initial={{ opacity: 0, y: 30, scale: 0.95 }}
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 transition={{ 
@@ -469,17 +469,17 @@ export default function HelpSupport() {
                                     stiffness: 100
                                 }}
                                 whileHover={{ 
-                                    scale: 1.02,
-                                    boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-                                    transition: { duration: 0.2 }
+                                    scale: 1.01,
+                                    boxShadow: '0 10px 25px rgba(0,0,0,0.08)',
+                                    transition: { duration: 0.15 }
                                 }}
                             >
                                 <div className="bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 dark:from-blue-500/20 dark:via-purple-500/20 dark:to-pink-500/20 px-8 py-6 border-b border-gray-200/50 dark:border-slate-600/50">
                                     <div className="flex items-center gap-4">
                                         <motion.div 
                                             className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-lg"
-                                            whileHover={{ scale: 1.1, rotate: 5 }}
-                                            transition={{ duration: 0.2 }}
+                                            whileHover={{ scale: 1.05, rotate: 3 }}
+                                            transition={{ duration: 0.15 }}
                                         >
                                             <div className="text-white">{category.icon}</div>
                                         </motion.div>
@@ -518,13 +518,13 @@ export default function HelpSupport() {
                                                 duration: 0.4
                                             }}
                                         >
-                                            <div className="collapse collapse-arrow bg-gradient-to-r from-gray-50 to-gray-100/50 dark:from-slate-700/50 dark:to-slate-800/50 rounded-xl border border-gray-200/50 dark:border-slate-600/50 shadow-sm hover:shadow-md transition-all duration-200">
+                                            <div className="collapse collapse-arrow bg-gradient-to-r from-gray-50 to-gray-100/50 dark:from-slate-700/50 dark:to-slate-800/50 rounded-xl border border-gray-200/50 dark:border-slate-600/50 shadow-sm hover:shadow-md transition-all duration-150">
                                                 <input
                                                     type="radio"
                                                     name={`accordion-${categoryIndex}`}
                                                     defaultChecked={questionIndex === 0}
                                                 />
-                                                <div className="collapse-title text-base font-semibold text-gray-800 dark:text-gray-200 py-5 px-6 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-200">
+                                                <div className="collapse-title text-base font-semibold text-gray-800 dark:text-gray-200 py-5 px-6 hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-150">
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-2 h-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full"></div>
                                                         {faq.question}
@@ -536,7 +536,7 @@ export default function HelpSupport() {
                                                             className="text-gray-700 dark:text-gray-300 leading-relaxed"
                                                             initial={{ opacity: 0, y: 10 }}
                                                             animate={{ opacity: 1, y: 0 }}
-                                                            transition={{ duration: 0.3 }}
+                                                            transition={{ duration: 0.2 }}
                                                         >
                                                             {faq.answer}
                                                         </motion.p>
@@ -563,14 +563,14 @@ export default function HelpSupport() {
 
                 {/* Call to Action */}
                 <motion.div
-                    className="relative text-center bg-gradient-to-br from-white via-blue-50/50 to-purple-50/50 dark:from-slate-800 dark:via-slate-800/80 dark:to-slate-900/50 rounded-3xl p-12 sm:p-16 shadow-2xl border border-gray-200/50 dark:border-slate-700/50 overflow-hidden backdrop-blur-sm"
+                    className="relative text-center bg-gradient-to-br from-white via-blue-50/50 to-purple-50/50 dark:from-slate-800 dark:via-slate-800/80 dark:to-slate-900/50 rounded-3xl p-12 sm:p-16 shadow-2xl border border-gray-200/50 dark:border-slate-700/50 overflow-hidden"
                     initial={{ opacity: 0, y: 40, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{ duration: 0.8, delay: 0.6, type: 'spring', stiffness: 100 }}
                 >
                     {/* Background decoration */}
                     <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5 dark:from-blue-500/10 dark:via-purple-500/10 dark:to-pink-500/10"></div>
-                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-32 bg-gradient-to-r from-blue-400 to-purple-600 rounded-full blur-3xl opacity-20"></div>
+                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-32 bg-gradient-to-r from-blue-400 to-purple-600 rounded-full blur-xl opacity-15"></div>
                     
                     <div className="relative z-10">
                         <motion.div
@@ -611,14 +611,14 @@ export default function HelpSupport() {
                             <motion.button
                                 className="group px-8 py-4 rounded-2xl text-white font-bold bg-gradient-to-r from-blue-500 via-purple-600 to-pink-500 shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300/50 dark:focus:ring-blue-800/50 relative overflow-hidden"
                                 whileHover={{ 
-                                    scale: 1.05, 
-                                    boxShadow: '0 20px 40px rgba(59, 130, 246, 0.3)',
-                                    transition: { duration: 0.2 }
+                                    scale: 1.03, 
+                                    boxShadow: '0 10px 25px rgba(59, 130, 246, 0.2)',
+                                    transition: { duration: 0.15 }
                                 }}
                                 whileTap={{ scale: 0.98 }}
                                 transition={{ type: 'spring', stiffness: 300, damping: 20 }}
                             >
-                                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-700 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                <div className="absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-700 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
                                 <div className="relative flex items-center gap-3">
                                     <MessageCircle className="w-5 h-5" />
                                     <span>Start Live Chat</span>
@@ -626,11 +626,11 @@ export default function HelpSupport() {
                             </motion.button>
                             
                             <motion.button
-                                className="group px-8 py-4 rounded-2xl font-bold text-gray-700 dark:text-gray-200 bg-white/80 dark:bg-slate-700/80 border-2 border-gray-200 dark:border-slate-600 shadow-lg hover:shadow-xl backdrop-blur-sm transition-all duration-300"
+                                className="group px-8 py-4 rounded-2xl font-bold text-gray-700 dark:text-gray-200 bg-white/90 dark:bg-slate-700/90 border-2 border-gray-200 dark:border-slate-600 shadow-lg hover:shadow-xl transition-all duration-200"
                                 whileHover={{ 
-                                    scale: 1.05,
+                                    scale: 1.02,
                                     borderColor: 'rgb(59 130 246)',
-                                    transition: { duration: 0.2 }
+                                    transition: { duration: 0.15 }
                                 }}
                                 whileTap={{ scale: 0.98 }}
                             >
