@@ -45,6 +45,7 @@ export default function MovieReviewModal(props) {
     original_title,
     original_name,
     first_air_date,
+    release_date,
     genres = [],
     poster_path,
     vote_average = 0,
@@ -55,6 +56,8 @@ export default function MovieReviewModal(props) {
     image,
   } = props;
 
+  const releaseDate = release_date || first_air_date;
+  console.log(releaseDate);
   const { setIsOpen } = useContext(FilmModalContext);
   const [imageLoaded, setImageLoaded] = useState(false);
   const posterUrl = image
@@ -241,14 +244,14 @@ export default function MovieReviewModal(props) {
                           {Math.floor(runtime / 60)}h {runtime % 60}m
                         </motion.div>
                       )}
-                      {first_air_date && (
+                      {releaseDate && (
                         <motion.div 
                           className="flex items-center gap-1.5 px-2.5 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-lg font-medium text-xs" 
                           whileHover={{ scale: 1.05 }}
                           transition={{ duration: 0.15 }}
                         >
                           <Calendar className="w-3.5 h-3.5" />
-                          {new Date(first_air_date).toLocaleDateString()}
+                          {new Date(releaseDate).toLocaleDateString()}
                         </motion.div>
                       )}
                     </div>
