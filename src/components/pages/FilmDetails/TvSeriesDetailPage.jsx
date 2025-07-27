@@ -8,6 +8,8 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Loader } from '@/components/ui/loader';
 import FancyLoader from '@/components/ui/FancyLoader';
+import ErrorState from '@/components/ui/ErrorState';
+import LoadingState from '@/components/ui/LoadingState';
 
 import { useTVSeriesDetails, useTVSeriesTrailer, useTvSeriesCredits } from '@/hooks/API/data';
 import { useAuthen } from '@/context/AuthenProvider';
@@ -60,7 +62,13 @@ export default function TVSeriesDetailPage() {
         return <FancyLoader type="tv" />;
     }
 
-    if (isError || !series) return <div className="p-8 text-red-500">Failed to load series.</div>;
+    if (isError || !series) return (
+        <ErrorState 
+            title="TV Series Not Found"
+            message="Failed to load TV series details"
+            subtitle="The TV series you're looking for might not exist or there was a connection issue"
+        />
+    );
 
     return (
         <div className="flex-1 bg-white dark:bg-slate-950 text-slate-900 dark:text-white overflow-y-auto mx-auto px-2 sm:px-4 md:px-8 rounded-lg">
@@ -456,11 +464,22 @@ export default function TVSeriesDetailPage() {
 
                     <TabsContent value="cast">
                         {isLoadingCredits ? (
-                            <div className="py-6 flex justify-center">
-                                <Loader />
-                            </div>
+                            <LoadingState 
+                                title="Loading Cast"
+                                subtitle="Getting cast information..."
+                                fullScreen={false}
+                                className="py-8"
+                            />
                         ) : isErrorCredits ? (
-                            <div className="py-6 text-red-500">Failed to load cast.</div>
+                            <ErrorState 
+                                title="Cast Not Available"
+                                message="Failed to load cast information"
+                                subtitle="There was an issue loading the cast details"
+                                fullScreen={false}
+                                showHomeButton={false}
+                                retryText="Retry"
+                                className="py-8"
+                            />
                         ) : cast.length === 0 ? (
                             <div className="py-6 text-muted-foreground">No cast info.</div>
                         ) : (
@@ -502,11 +521,22 @@ export default function TVSeriesDetailPage() {
                     </TabsContent>
                     <TabsContent value="crew">
                         {isLoadingCredits ? (
-                            <div className="py-6 flex justify-center">
-                                <Loader />
-                            </div>
+                            <LoadingState 
+                                title="Loading Crew"
+                                subtitle="Getting crew information..."
+                                fullScreen={false}
+                                className="py-8"
+                            />
                         ) : isErrorCredits ? (
-                            <div className="py-6 text-red-500">Failed to load crew.</div>
+                            <ErrorState 
+                                title="Crew Not Available"
+                                message="Failed to load crew information"
+                                subtitle="There was an issue loading the crew details"
+                                fullScreen={false}
+                                showHomeButton={false}
+                                retryText="Retry"
+                                className="py-8"
+                            />
                         ) : crew.length === 0 ? (
                             <div className="py-6 text-muted-foreground">No crew info.</div>
                         ) : (
