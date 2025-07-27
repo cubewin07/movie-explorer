@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader } from '@/components/ui/Loader';
 import FancyLoader from '@/components/ui/FancyLoader';
 import ErrorState from '@/components/ui/ErrorState';
+import LoadingState from '@/components/ui/LoadingState';
 import useAddToWatchlist from '@/hooks/watchList/useAddtoWatchList';
 import { useAuthen } from '@/context/AuthenProvider';
 import { useState } from 'react';
@@ -367,11 +368,22 @@ export default function MovieDetailPage() {
                     </TabsContent>
                     <TabsContent value="cast">
                         {isLoadingCredits ? (
-                            <div className="py-6 flex justify-center">
-                                <Loader />
-                            </div>
+                            <LoadingState 
+                                title="Loading Cast"
+                                subtitle="Getting cast information..."
+                                fullScreen={false}
+                                className="py-8"
+                            />
                         ) : isErrorCredits ? (
-                            <div className="py-6 text-red-500">Failed to load cast.</div>
+                            <ErrorState 
+                                title="Cast Not Available"
+                                message="Failed to load cast information"
+                                subtitle="There was an issue loading the cast details"
+                                fullScreen={false}
+                                showHomeButton={false}
+                                retryText="Retry"
+                                className="py-8"
+                            />
                         ) : cast.length === 0 ? (
                             <div className="py-6 text-muted-foreground">No cast info.</div>
                         ) : (
@@ -413,11 +425,22 @@ export default function MovieDetailPage() {
                     </TabsContent>
                     <TabsContent value="crew">
                         {isLoadingCredits ? (
-                            <div className="py-6 flex justify-center">
-                                <Loader />
-                            </div>
+                            <LoadingState 
+                                title="Loading Crew"
+                                subtitle="Getting crew information..."
+                                fullScreen={false}
+                                className="py-8"
+                            />
                         ) : isErrorCredits ? (
-                            <div className="py-6 text-red-500">Failed to load crew.</div>
+                            <ErrorState 
+                                title="Crew Not Available"
+                                message="Failed to load crew information"
+                                subtitle="There was an issue loading the crew details"
+                                fullScreen={false}
+                                showHomeButton={false}
+                                retryText="Retry"
+                                className="py-8"
+                            />
                         ) : crew.length === 0 ? (
                             <div className="py-6 text-muted-foreground">No crew info.</div>
                         ) : (
