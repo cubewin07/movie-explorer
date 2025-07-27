@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Loader } from '@/components/ui/Loader';
 import FancyLoader from '@/components/ui/FancyLoader';
+import ErrorState from '@/components/ui/ErrorState';
 import useAddToWatchlist from '@/hooks/watchList/useAddtoWatchList';
 import { useAuthen } from '@/context/AuthenProvider';
 import { useState } from 'react';
@@ -53,7 +54,13 @@ export default function MovieDetailPage() {
     };
 
     if (isLoading) return <FancyLoader type="movie" />;
-    if (isError || !movie) return <div className="p-8 text-red-400">Failed to load movie.</div>;
+    if (isError || !movie) return (
+        <ErrorState 
+            title="Movie Not Found"
+            message="Failed to load movie details"
+            subtitle="The movie you're looking for might not exist or there was a connection issue"
+        />
+    );
 
     return (
         <div className="flex-1 bg-white dark:bg-slate-950 text-slate-900 dark:text-white overflow-y-auto mx-auto px-2 sm:px-4 md:px-8 rounded-lg">
