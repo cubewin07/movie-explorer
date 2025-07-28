@@ -17,6 +17,7 @@ import { FilmModalContext } from '@/context/FilmModalProvider';
 import { useAuthen } from '@/context/AuthenProvider';
 import { LoginNotificationModal } from '@/components/react_components/Modal/LoginNotificationModal';
 import useAddToWatchlist from '@/hooks/watchList/useAddtoWatchList';
+import SkeletonCard from '@/components/ui/skeletonCard';
 
 // MovieCard component - moved outside to prevent recreation on every render
 const MovieCard = ({ movie, type = 'movie', index = 0, genreMap, setContext, setIsOpen }) => {
@@ -363,9 +364,12 @@ function Home() {
                     >
                         {isLoading
                             ? Array.from({ length: 6 }).map((_, i) => (
-                                  <motion.div
+                                  <SkeletonCard
                                       key={i}
-                                      className="w-[180px] md:w-[200px] h-80 bg-gray-200 dark:bg-slate-700 rounded-xl animate-pulse flex-shrink-0"
+                                      delay={i}
+                                      variant="movie"
+                                      animation="shimmer"
+                                      className="w-[180px] md:w-[200px] h-80 flex-shrink-0"
                                   />
                               ))
                             : items?.map((item, idx) => (
