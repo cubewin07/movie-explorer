@@ -5,6 +5,7 @@ import Breadcrumb from './Breadcrumb';
 import InfiniteList from '@/components/react_components/List/InfiniteList';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { set } from 'react-hook-form';
 
 const SORT_OPTIONS = [
     { value: 'popularity.desc', label: 'Most Popular' },
@@ -60,6 +61,7 @@ export default function Discovery() {
                     <button
                         onClick={() => {
                             setType('movie');
+                            setSortBy('popularity.desc'); // Reset sort when switching types
                             navigate('/movies', { state: { type: 'movie', sortBy } });
                         }}
                         className={cn(
@@ -74,6 +76,7 @@ export default function Discovery() {
                     <button
                         onClick={() => {
                             setType('tv');
+                            setSortBy('popularity.desc'); // Reset sort when switching types
                             navigate('/tvseries', { state: { type: 'tv', sortBy } });
                         }}
                         className={cn(
