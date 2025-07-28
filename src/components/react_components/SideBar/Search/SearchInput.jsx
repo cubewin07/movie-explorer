@@ -29,7 +29,6 @@ function SearchInput() {
             }, {}) || {},
         [genreArr],
     );
-    console.log(genreMap);
     const handleNavigate = (movie) => {
         const isTV = !!movie.name && !movie.title; // Typical way to detect TV
         const path = isTV ? `/tv/${movie.id}` : `/movies/${movie.id}`;
@@ -64,18 +63,17 @@ function SearchInput() {
     }, [isModalOpen]);
 
     const { data, isLoading } = useSearchOrFallbackContent(isModalOpen, debouncedSearch);
-    console.log(data);
     const renderCards = (items, type) => (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {items.map((item, i) => {
                 const mediaType = item.media_type || (item.title ? 'movie' : 'tv');
                 const type = mediaType === 'tv' ? 'tv' : 'movie';
-
                 // Prepare genres as array of names if available
                 const genres =
-                    item.genre_ids && Array.isArray(item.genre_ids) && item.genres
-                        ? item.genres.map((g) => g.name)
-                        : item.genre_names || [];
+                    item.genre_ids && Array.isArray(item.genre_ids)
+                        ? item.genre_ids.map((g) => genreMap[g])
+                        : [];
+                // const genreNames = genres.map((id) => genreMap[id]).join(', ');
 
                 return (
                     <div key={item.id} className="animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
@@ -93,7 +91,7 @@ function SearchInput() {
                                     original_title: item.original_title,
                                     original_name: item.original_name,
                                     first_air_date: item.first_air_date,
-                                    genres: genres.length ? genres : item.genre_names || [],
+                                    genres: genres,
                                     poster_path: item.poster_path,
                                     vote_average: item.vote_average,
                                     vote_count: item.vote_count,
