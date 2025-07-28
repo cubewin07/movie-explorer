@@ -1,4 +1,4 @@
-import { Clapperboard, Tv } from 'lucide-react';
+import { Clapperboard, Tv, SearchX } from 'lucide-react';
 import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -50,7 +50,36 @@ function TabbedResults({ data, renderCards }) {
                             {data?.movies?.length > 0 ? (
                                 renderCards(data.movies, 'movie')
                             ) : (
-                                <p className="text-warning text-center">No movies found.</p>
+                                <motion.div
+                                    className="flex flex-col items-center justify-center py-8 text-warning"
+                                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    transition={{ duration: 0.4, type: "spring", bounce: 0.3 }}
+                                >
+                                    <motion.div
+                                        initial={{ rotate: -10, scale: 0.8 }}
+                                        animate={{ rotate: 0, scale: 1 }}
+                                        transition={{ duration: 0.5, type: "spring" }}
+                                    >
+                                        <SearchX className="w-10 h-10 mb-2 opacity-70" />
+                                    </motion.div>
+                                    <motion.p
+                                        className="text-lg font-semibold"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.2, duration: 0.3 }}
+                                    >
+                                        No movies found.
+                                    </motion.p>
+                                    <motion.span
+                                        className="text-sm text-base-content/60 mt-1"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.35, duration: 0.3 }}
+                                    >
+                                        Try a different search term.
+                                    </motion.span>
+                                </motion.div>
                             )}
                         </motion.div>
                     ) : (
@@ -64,7 +93,36 @@ function TabbedResults({ data, renderCards }) {
                             {data?.tv?.length > 0 ? (
                                 renderCards(data.tv, 'tv')
                             ) : (
-                                <p className="text-warning text-center">No TV series found.</p>
+                                <motion.div
+                                    className="flex flex-col items-center justify-center py-8 text-warning"
+                                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    transition={{ duration: 0.4, type: "spring", bounce: 0.3 }}
+                                >
+                                    <motion.div
+                                        initial={{ rotate: -10, scale: 0.8 }}
+                                        animate={{ rotate: 0, scale: 1 }}
+                                        transition={{ duration: 0.5, type: "spring" }}
+                                    >
+                                        <SearchX className="w-10 h-10 mb-2 opacity-70" />
+                                    </motion.div>
+                                    <motion.p
+                                        className="text-lg font-semibold"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.2, duration: 0.3 }}
+                                    >
+                                        No TV series found.
+                                    </motion.p>
+                                    <motion.span
+                                        className="text-sm text-base-content/60 mt-1"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.35, duration: 0.3 }}
+                                    >
+                                        Try a different search term.
+                                    </motion.span>
+                                </motion.div>
                             )}
                         </motion.div>
                     )}
