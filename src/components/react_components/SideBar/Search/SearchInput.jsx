@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useContext } from 'react';
+import { useState, useRef, useEffect, useContext, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Search, X, Flame, Star } from 'lucide-react';
@@ -7,6 +7,7 @@ import MovieCard from '@/components/ui/MovieCard';
 import TabbedResults from './TabbedResults';
 import SkeletonCard from '@/components/ui/skeletonCard';
 import { FilmModalContext } from '@/context/FilmModalProvider';
+import { useAllGenres } from '@/hooks/API/genres';
 
 function SearchInput() {
     const inputRef = useRef(null);
@@ -18,6 +19,17 @@ function SearchInput() {
     const { setIsOpen, setContext } = useContext(FilmModalContext);
     const openedFromSearchRef = useRef(false);
 
+    const {movieGenres, tvGenres, isLoading: isLoadingGenres} = useAllGenres();
+    const genreArr = useMemo(() => [...movieGenres, ...tvGenres], [movieGenres, tvGenres]);
+    const genreMap = useMemo(
+        () =>
+            genreArr?.reduce((acc, g) => {
+                acc[g.id] = g.name;
+                return acc;
+            }, {}) || {},
+        [genreArr],
+    );
+    console.log(genreMap);
     const handleNavigate = (movie) => {
         const isTV = !!movie.name && !movie.title; // Typical way to detect TV
         const path = isTV ? `/tv/${movie.id}` : `/movies/${movie.id}`;
