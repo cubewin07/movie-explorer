@@ -56,7 +56,6 @@ export default function MovieReviewModal(props) {
   } = props;
 
   const releaseDate = release_date || first_air_date;
-  console.log(props);
   const { setIsOpen } = useContext(FilmModalContext);
   const [imageLoaded, setImageLoaded] = useState(false);
   const posterUrl = image
