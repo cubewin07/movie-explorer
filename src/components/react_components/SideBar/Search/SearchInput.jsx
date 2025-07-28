@@ -52,8 +52,8 @@ function SearchInput() {
     }, [isModalOpen]);
 
     const { data, isLoading } = useSearchOrFallbackContent(isModalOpen, debouncedSearch);
-
-    const renderCards = (items) => (
+    console.log(data);
+    const renderCards = (items, type) => (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {items.map((item, i) => {
                 const mediaType = item.media_type || (item.title ? 'movie' : 'tv');
@@ -87,7 +87,6 @@ function SearchInput() {
                                     vote_count: item.vote_count,
                                     overview: item.overview,
                                     original_language: item.original_language,
-                                    runtime: item.runtime,
                                     image: item.poster_path
                                         ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
                                         : undefined,
