@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, useContext, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+import { SearchX, Clapperboard, Tv } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Search, X, Flame, Star } from 'lucide-react';
 import { useSearchOrFallbackContent } from '@/hooks/API/data';
@@ -206,7 +208,36 @@ function SearchInput() {
                             )}
 
                             {debouncedSearch && !isLoading && data?.movies?.length === 0 && data?.tv?.length === 0 && (
-                                <p className="text-center text-warning">No results found.</p>
+                                <motion.div
+                                    className="flex flex-col items-center justify-center py-8 text-warning"
+                                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    transition={{ duration: 0.4, type: "spring", bounce: 0.3 }}
+                                >
+                                    <motion.div
+                                        initial={{ rotate: -10, scale: 0.8 }}
+                                        animate={{ rotate: 0, scale: 1 }}
+                                        transition={{ duration: 0.5, type: "spring" }}
+                                    >
+                                        <SearchX className="w-10 h-10 mb-2 opacity-70" />
+                                    </motion.div>
+                                    <motion.p
+                                        className="text-lg font-semibold"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.2, duration: 0.3 }}
+                                    >
+                                        No results found.
+                                    </motion.p>
+                                    <motion.span
+                                        className="text-sm text-base-content/60 mt-1"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.35, duration: 0.3 }}
+                                    >
+                                        Try a different search term.
+                                    </motion.span>
+                                </motion.div>
                             )}
 
                             {/* Tabs for Search Results */}
