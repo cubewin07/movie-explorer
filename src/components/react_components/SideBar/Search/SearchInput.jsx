@@ -73,8 +73,6 @@ function SearchInput() {
                     item.genre_ids && Array.isArray(item.genre_ids)
                         ? item.genre_ids.map((g) => genreMap[g])
                         : [];
-                // const genreNames = genres.map((id) => genreMap[id]).join(', ');
-
                 return (
                     <div key={item.id} className="animate-fade-in" style={{ animationDelay: `${i * 0.05}s` }}>
                         <MovieCard
@@ -90,6 +88,7 @@ function SearchInput() {
                                     name: item.name,
                                     original_title: item.original_title,
                                     original_name: item.original_name,
+                                    release_date: item.release_date,
                                     first_air_date: item.first_air_date,
                                     genres: genres,
                                     poster_path: item.poster_path,
