@@ -151,33 +151,6 @@ function MovieCard({ title, year, rating, genres = [], image, onClick, type }) {
                                     </motion.div>
                                 )}
                             </div>
-                            
-                            {/* Full genre list on hover - Clean grid layout */}
-                            {genres.length > 1 && (
-                                <motion.div
-                                    initial={{ opacity: 0, height: 0 }}
-                                    animate={{ 
-                                        opacity: 1, 
-                                        height: 'auto',
-                                        transition: { duration: 0.3, ease: 'easeOut' }
-                                    }}
-                                    className="overflow-hidden group-hover:block hidden"
-                                >
-                                    <div className="grid grid-cols-2 gap-1.5 pt-2 border-t border-slate-200 dark:border-slate-700">
-                                        {genres.slice(1).map((genre, i) => (
-                                            <motion.div
-                                                key={i + 1}
-                                                initial={{ opacity: 0, y: 5 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                transition={{ delay: i * 0.05 }}
-                                                className="px-2 py-1 rounded-md text-xs font-medium bg-gradient-to-r from-slate-50 to-slate-100 text-slate-600 dark:from-slate-800 dark:to-slate-700 dark:text-slate-300 text-center hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-900/20 dark:hover:to-purple-900/20 transition-all duration-200"
-                                            >
-                                                {genre}
-                                            </motion.div>
-                                        ))}
-                                    </div>
-                                </motion.div>
-                            )}
                         </div>
                     )}
                 </div>
