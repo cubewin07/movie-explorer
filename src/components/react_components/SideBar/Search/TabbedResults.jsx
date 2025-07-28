@@ -9,13 +9,11 @@ function TabbedResults({ data, renderCards }) {
         return 'movie';
     });
 
-    const tabClass = (tab, isDisabled) =>
+    const tabClass = (tab) =>
         `flex items-center gap-2 px-3 sm:px-4 py-2 rounded-t-lg font-medium cursor-pointer border-b-2 transition-all duration-200 ${
             activeTab === tab
                 ? 'text-primary border-primary bg-base-100'
-                : isDisabled
-                  ? 'opacity-50 cursor-not-allowed text-base-content/50'
-                  : 'text-base-content/70 border-transparent hover:text-primary hover:border-base-300 hover:bg-base-200'
+                : 'text-base-content/70 border-transparent hover:text-primary hover:border-base-300 hover:bg-base-200'
         }`;
 
     return (
@@ -23,17 +21,15 @@ function TabbedResults({ data, renderCards }) {
             {/* Tabs */}
             <div className="flex gap-2 sm:gap-4 border-b border-base-300 px-3 sm:px-4 md:px-6">
                 <button
-                    onClick={() => data?.movies?.length > 0 && setActiveTab('movie')}
-                    className={tabClass('movie', !data?.movies?.length)}
-                    disabled={!data?.movies?.length}
+                    onClick={() => setActiveTab('movie')}
+                    className={tabClass('movie')}
                 >
                     <Clapperboard className="w-4 h-4" />
                     <span className="text-sm sm:text-base">Movies</span>
                 </button>
                 <button
-                    onClick={() => data?.tv?.length > 0 && setActiveTab('tv')}
-                    className={tabClass('tv', !data?.tv?.length)}
-                    disabled={!data?.tv?.length}
+                    onClick={() => setActiveTab('tv')}
+                    className={tabClass('tv')}
                 >
                     <Tv className="w-4 h-4" />
                     <span className="text-sm sm:text-base">TV Series</span>
