@@ -8,6 +8,7 @@ import { useMovieGenres, useTvSeriesGenres } from '@/hooks/API/genres';
 import SkeletonCard from '@/components/ui/skeletonCard';
 import { Link } from 'react-router-dom';
 import { FilmModalContext } from '@/context/FilmModalProvider';
+import ErrorState from '@/components/ui/ErrorState';
 
 const upcomingFeatures = [
     {
@@ -222,10 +223,20 @@ export default function ComingSoon() {
                                 <SkeletonCard key={i} delay={i * 0.08} />
                             ))}
                         </div>
-                    ) : (
+                    ) : upcomingMovies.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             {upcomingMovies.map((movie) => renderCard(movie, true))}
                         </div>
+                    ) : (
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="col-span-1 sm:col-span-2 lg:col-span-3">
+                            <ErrorState
+                                title="No Upcoming Movies"
+                                message="Check back soon for new movie announcements!"
+                                fullScreen={false}
+                                showHomeButton={false}
+                                onRetry={null}
+                            />
+                        </motion.div>
                     )}
                 </motion.section>
 
@@ -255,10 +266,20 @@ export default function ComingSoon() {
                                 <SkeletonCard key={i} delay={i * 0.08} />
                             ))}
                         </div>
-                    ) : (
+                    ) : upcomingTVShows.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {upcomingTVShows.map((show) => renderCard(show, false))}
+                            {upcomingTVShows.map((tv) => renderCard(tv, false))}
                         </div>
+                    ) : (
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="col-span-1 sm:col-span-2 lg:col-span-3">
+                            <ErrorState
+                                title="No Upcoming TV Shows"
+                                message="Stay tuned for new TV show announcements!"
+                                fullScreen={false}
+                                showHomeButton={false}
+                                onRetry={null}
+                            />
+                        </motion.div>
                     )}
                 </motion.section>
 
