@@ -23,7 +23,8 @@ export default function ErrorState({
     onRetry = null,
     showHomeButton = true,
     retryText = "Try Again",
-    homeText = "Go Home"
+    homeText = "Go Home",
+    transparentBg = false
 }) {
     const navigate = useNavigate();
 
@@ -39,8 +40,12 @@ export default function ErrorState({
         navigate('/');
     };
 
+    const bgClass = transparentBg 
+        ? '' 
+        : 'bg-gradient-to-br from-red-50 to-orange-50 dark:from-slate-900 dark:to-red-900/20';
+
     return (
-        <div className={`${fullScreen ? 'min-h-screen' : 'h-96'} bg-gradient-to-br from-red-50 to-orange-50 dark:from-slate-900 dark:to-red-900/20 flex flex-col justify-center items-center px-4 ${className}`}>
+        <div className={`${fullScreen ? 'min-h-screen' : 'h-96'} ${bgClass} flex flex-col justify-center items-center px-4 ${className}`}>
             <motion.div
                 className="text-center max-w-md mx-auto"
                 initial={{ opacity: 0, y: 30, scale: 0.9 }}

@@ -235,6 +235,7 @@ export default function ComingSoon() {
                                 fullScreen={false}
                                 showHomeButton={false}
                                 onRetry={null}
+                                transparentBg={true}
                             />
                         </motion.div>
                     )}
@@ -278,6 +279,7 @@ export default function ComingSoon() {
                                 fullScreen={false}
                                 showHomeButton={false}
                                 onRetry={null}
+                                transparentBg={true}
                             />
                         </motion.div>
                     )}
