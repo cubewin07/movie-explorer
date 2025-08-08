@@ -211,11 +211,16 @@ export default function ComingSoon() {
                                 Upcoming Movies
                             </h2>
                         </div>
-                        <Link to="/movies/upcoming">
-                            <Button variant="outline" className="flex items-center gap-1">
-                                See All <ArrowRight className="w-4 h-4" />
-                            </Button>
-                        </Link>
+                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                            <Link to="/discover/movie">
+                                <Button variant="outline" className="flex items-center gap-1 group">
+                                    See All 
+                                    <motion.span className="inline-block transition-transform duration-300 group-hover:translate-x-1">
+                                        <ArrowRight className="w-4 h-4" />
+                                    </motion.span>
+                                </Button>
+                            </Link>
+                        </motion.div>
                     </motion.div>
                     {isLoadingMovies ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -255,11 +260,16 @@ export default function ComingSoon() {
                                 Upcoming TV Shows
                             </h2>
                         </div>
-                        <Link to="/tv/upcoming">
-                            <Button variant="outline" className="flex items-center gap-1">
-                                See All <ArrowRight className="w-4 h-4" />
-                            </Button>
-                        </Link>
+                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                            <Link to="/discover/tv">
+                                <Button variant="outline" className="flex items-center gap-1 group">
+                                    See All 
+                                    <motion.span className="inline-block transition-transform duration-300 group-hover:translate-x-1">
+                                        <ArrowRight className="w-4 h-4" />
+                                    </motion.span>
+                                </Button>
+                            </Link>
+                        </motion.div>
                     </motion.div>
                     {isLoadingUpcomingTV ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
