@@ -9,39 +9,88 @@ function TabbedResults({ data, renderCards }) {
         return 'movie';
     });
 
-    const tabClass = (tab) =>
-        `flex items-center gap-2 px-3 sm:px-4 py-2 rounded-t-lg font-medium cursor-pointer border-b-2 transition-all duration-200 ${
-            activeTab === tab
-                ? 'text-primary border-primary bg-base-100'
-                : 'text-base-content/70 border-transparent hover:text-primary hover:border-base-300 hover:bg-base-200'
-        }`;
+    // Tabs config with counts
+    const tabs = [
+        {
+            key: 'movie',
+            label: 'Movies',
+            icon: Clapperboard,
+            count: data?.movies?.length || 0,
+        },
+        {
+            key: 'tv',
+            label: 'TV Series',
+            icon: Tv,
+            count: data?.tv?.length || 0,
+        },
+    ];
 
     return (
         <div className="w-full">
             {/* Tabs */}
-            <div className="flex gap-2 sm:gap-4 border-b border-base-300 px-3 sm:px-4 md:px-6">
-                <button
-                    onClick={() => setActiveTab('movie')}
-                    className={tabClass('movie')}
+            <div className="px-3 sm:px-4 md:px-6">
+                <div
+                    role="tablist"
+                    aria-label="Search result types"
+                    className="relative isolate flex w-full items-center gap-2 sm:gap-3 rounded-xl border border-base-300/60 bg-base-200/60 p-1 backdrop-blur supports-[backdrop-filter]:bg-base-200/40"
                 >
-                    <Clapperboard className="w-4 h-4" />
-                    <span className="text-sm sm:text-base">Movies</span>
-                </button>
-                <button
-                    onClick={() => setActiveTab('tv')}
-                    className={tabClass('tv')}
-                >
-                    <Tv className="w-4 h-4" />
-                    <span className="text-sm sm:text-base">TV Series</span>
-                </button>
+                    {tabs.map(({ key, label, icon: Icon, count }) => {
+                        const isActive = activeTab === key;
+                        return (
+                            <button
+                                key={key}
+                                role="tab"
+                                aria-selected={isActive}
+                                aria-controls={`panel-${key}`}
+                                onClick={() => setActiveTab(key)}
+                                type="button"
+                                className="relative group flex items-center gap-2 rounded-lg px-3 sm:px-4 py-2 text-sm sm:text-base font-medium outline-none transition-colors focus-visible:ring-2 focus-visible:ring-primary/50 focus-visible:ring-offset-2 focus-visible:ring-offset-base-100"
+                            >
+                                {isActive && (
+                                    <motion.span
+                                        layoutId="tab-pill"
+                                        className="absolute inset-0 -z-10 rounded-lg border border-primary/30 bg-gradient-to-r from-primary/20 via-primary/10 to-transparent shadow-inner"
+                                        transition={{ type: 'spring', stiffness: 500, damping: 40 }}
+                                    />
+                                )}
+                                <Icon
+                                    className={`w-4 h-4 transition-transform duration-200 ${
+                                        isActive
+                                            ? 'text-primary drop-shadow-sm'
+                                            : 'text-base-content/70 group-hover:text-primary'
+                                    } ${isActive ? 'scale-105' : 'group-hover:scale-105'}`}
+                                />
+                                <span
+                                    className={`${
+                                        isActive
+                                            ? 'text-primary'
+                                            : 'text-base-content/80 group-hover:text-primary'
+                                    }`}
+                                >
+                                    {label}
+                                </span>
+                                <span
+                                    className={`ml-1 inline-flex items-center justify-center rounded-md border px-1.5 py-0.5 text-[10px] font-semibold leading-none transition-colors ${
+                                        isActive
+                                            ? 'border-primary/40 bg-primary/15 text-primary'
+                                            : 'border-base-300 bg-base-100/60 text-base-content/60 group-hover:text-primary group-hover:border-primary/30'
+                                    }`}
+                                >
+                                    {count}
+                                </span>
+                            </button>
+                        );
+                    })}
+                </div>
             </div>
 
             {/* Content */}
-            <div className="p-3 sm:p-4 md:p-6 bg-base-100 min-h-[100px]">
+            <div className="p-3 sm:p-4 md:p-6 bg-base-100/90 border-t border-base-300/60 rounded-b-xl min-h-[100px]">
                 <AnimatePresence mode="wait">
                     {activeTab === 'movie' ? (
                         <motion.div
                             key="movie"
+                            id="panel-movie"
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
@@ -85,6 +134,7 @@ function TabbedResults({ data, renderCards }) {
                     ) : (
                         <motion.div
                             key="tv"
+                            id="panel-tv"
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -10 }}
