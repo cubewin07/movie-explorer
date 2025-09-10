@@ -43,11 +43,12 @@ export default function AnimatedAnimeCharacter() {
             {/* Main character floating animation */}
             <motion.div
                 animate={{
-                    y: [0, -15, 0],
-                    rotate: [0, 2, 0, -2, 0],
+                    y: [0, -20, 5, -15, 0],
+                    x: [0, 10, -10, 5, 0],
+                    rotate: [0, 5, -5, 3, 0],
                 }}
                 transition={{
-                    duration: 4,
+                    duration: 10,
                     repeat: Infinity,
                     ease: 'easeInOut',
                 }}
@@ -56,61 +57,66 @@ export default function AnimatedAnimeCharacter() {
                     {/* Character shadow */}
                     <ellipse cx="100" cy="220" rx="40" ry="8" fill="rgba(0,0,0,0.1)" />
 
-                    {/* Hair back layer */}
-                    <motion.path
-                        d="M60 45 C50 25, 70 15, 100 20 C130 15, 150 25, 140 45 C145 55, 140 65, 130 70 L70 70 C60 65, 55 55, 60 45 Z"
-                        fill="#8B4513"
-                        animate={{
-                            d: [
-                                'M60 45 C50 25, 70 15, 100 20 C130 15, 150 25, 140 45 C145 55, 140 65, 130 70 L70 70 C60 65, 55 55, 60 45 Z',
-                                'M58 43 C48 23, 72 17, 100 22 C128 17, 152 23, 142 43 C147 53, 142 63, 132 68 L68 68 C58 63, 53 53, 58 43 Z',
-                                'M60 45 C50 25, 70 15, 100 20 C130 15, 150 25, 140 45 C145 55, 140 65, 130 70 L70 70 C60 65, 55 55, 60 45 Z',
-                            ],
-                        }}
-                        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                    />
+                    {/* Hair Style Group */}
+                    <g>
+                        {/* Back Hair Layer */}
+                        <motion.path
+                            d="M60 50 C 40 30, 160 30, 140 50 C 150 70, 130 80, 100 75 C 70 80, 50 70, 60 50 Z"
+                            fill="#8B4513"
+                            animate={{ y: [0, 2, 0] }}
+                            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                        />
 
-                    {/* Head */}
-                    <motion.circle
-                        cx="100"
-                        cy="55"
-                        r="35"
-                        fill="#FDB5A6"
-                        animate={{
-                            r: [35, 36, 35],
-                            cy: [55, 54, 55],
-                        }}
-                        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                    />
+                        {/* Head */}
+                        <motion.circle
+                            cx="100"
+                            cy="55"
+                            r="35"
+                            fill="#FDB5A6"
+                            animate={{
+                                r: [35, 36, 35],
+                                cy: [55, 54, 55],
+                            }}
+                            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                        />
 
-                    {/* Hair front layer with movement */}
-                    <motion.path
-                        d="M65 35 C70 25, 85 30, 100 28 C115 30, 130 25, 135 35 C140 40, 135 45, 130 50 L70 50 C65 45, 60 40, 65 35 Z"
-                        fill="#A0522D"
-                        animate={{
-                            d: [
-                                'M65 35 C70 25, 85 30, 100 28 C115 30, 130 25, 135 35 C140 40, 135 45, 130 50 L70 50 C65 45, 60 40, 65 35 Z',
-                                'M63 33 C68 23, 87 32, 100 30 C113 32, 132 23, 137 33 C138 38, 137 43, 132 48 L68 48 C63 43, 58 38, 63 33 Z',
-                                'M65 35 C70 25, 85 30, 100 28 C115 30, 130 25, 135 35 C140 40, 135 45, 130 50 L70 50 C65 45, 60 40, 65 35 Z',
-                            ],
-                        }}
-                        transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
-                    />
+                        {/* Front Hair Layers */}
+                        <motion.path
+                            d="M65 35 C 60 25, 80 20, 90 28"
+                            stroke="#A0522D" strokeWidth="12" fill="none" strokeLinecap="round"
+                            animate={{ rotate: [0, 2, 0] }}
+                            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
+                            style={{ transformOrigin: '70px 40px' }}
+                        />
+                        <motion.path
+                            d="M135 35 C 140 25, 120 20, 110 28"
+                            stroke="#A0522D" strokeWidth="12" fill="none" strokeLinecap="round"
+                            animate={{ rotate: [0, -2, 0] }}
+                            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
+                            style={{ transformOrigin: '130px 40px' }}
+                        />
+                        <motion.path
+                            d="M85 25 C 90 18, 110 18, 115 25"
+                            stroke="#A0522D" strokeWidth="10" fill="none" strokeLinecap="round"
+                            animate={{ y: [0, -2, 0] }}
+                            transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                        />
 
-                    {/* Ahoge (hair strand) with bouncy animation */}
-                    <motion.path
-                        d="M100 25 Q102 15 105 10 Q107 8 105 12 Q103 20 100 25"
-                        fill="#A0522D"
-                        animate={{
-                            d: [
-                                'M100 25 Q102 15 105 10 Q107 8 105 12 Q103 20 100 25',
-                                'M100 25 Q108 12 112 8 Q115 6 112 10 Q105 18 100 25',
-                                'M100 25 Q95 12 92 8 Q90 6 92 10 Q97 18 100 25',
-                                'M100 25 Q102 15 105 10 Q107 8 105 12 Q103 20 100 25',
-                            ],
-                        }}
-                        transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-                    />
+                        {/* Top bouncy strand (Ahoge) */}
+                        <motion.path
+                            d="M100 20 Q105 10 110 15"
+                            stroke="#A0522D" strokeWidth="3" fill="none" strokeLinecap="round"
+                            animate={{
+                                d: [
+                                    'M100 20 Q105 10 110 15',
+                                    'M100 20 Q100 5 105 10',
+                                    'M100 20 Q95 10 90 15',
+                                    'M100 20 Q105 10 110 15',
+                                ],
+                            }}
+                            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                        />
+                    </g>
 
                     {/* Eyes with enhanced blinking */}
                     <motion.g>
