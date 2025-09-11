@@ -1,29 +1,131 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.5.5'
-	id 'io.spring.dependency-management' version '1.1.7'
+    id 'java'
+    id 'org.springframework.boot' version '3.3.0'
+    id 'io.spring.dependency-management' version '1.1.4'
+    id 'org.flywaydb.flyway' version '10.15.0'
 }
 
-group = 'com.backend'
-version = '0.0.1-SNAPSHOT'
-description = 'Demo project for Spring Boot'
+group = 'org.example'
+version = '1.0-SNAPSHOT'
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
+}
+
+ext {
+    bytebuddyVersion = '1.14.13'
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    // Spring Boot starters
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+    // OAuth 2
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
+    // logback encoder
+    implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
+
+    // PostgreSQL
+    runtimeOnly 'org.postgresql:postgresql:42.7.3'
+
+    // Validation
+    implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
+    implementation 'org.hibernate.validator:hibernate-validator:8.0.1.Final'
+
+    // JWT
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok:1.18.38'
+    annotationProcessor 'org.projectlombok:lombok:1.18.38'
+
+    // JUnit-jupiter
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+//    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.10.2'
+
+    // Swagger
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
+
+    // Byte Buddy
+    implementation "net.bytebuddy:byte-buddy:${bytebuddyVersion}"
+
+    // Bucket4j
+    implementation 'com.bucket4j:bucket4j_jdk17-core:8.14.0'
+
+    // Test dependencies
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.mockito:mockito-core:5.11.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.11.0'
+    testImplementation 'com.h2database:h2'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'com.jayway.jsonpath:json-path'
+
+    // Test H2 db
+    testImplementation 'com.h2database:h2'
+
+    // FLyway
+//    flyway database will pull this transitively so no need implementing it
+//    implementation 'org.flywaydb:flyway-core:10.15.0'
+    implementation 'org.flywaydb:flyway-database-postgresql:10.15.0'
+
+    //Redis
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    // Caffeine
+    implementation("com.github.ben-manes.caffeine:caffeine")
+
+    // kryo
+    implementation("com.esotericsoftware:kryo:5.5.0")
+    implementation("org.springframework:spring-context-support")
+
+    //  Prometheus
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+
+    // S3 api
+    implementation 'software.amazon.awssdk:s3:2.25.8'
+
+//    // Firebase admin
+//    implementation 'com.google.firebase:firebase-admin:9.2.0'
+    // WebSocket
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+
+    //  Env
+    implementation 'io.github.cdimascio:dotenv-java:3.0.0'
+
+    // Cloudinary
+    implementation "com.cloudinary:cloudinary-http44:1.39.0"
+
+    // Markdown
+    implementation 'org.commonmark:commonmark:0.21.0'
 }
 
-tasks.named('test') {
-	useJUnitPlatform()
+flyway {
+    url = 'jdbc:postgresql://localhost:5432/Learning'
+    user = 'postgres'
+    password = ''
+    schemas = ['public']
+    locations = ['classpath:db/migration']
+    cleanDisabled = false
+}
+
+test {
+    useJUnitPlatform()
+    jvmArgs += "-Dnet.bytebuddy.experimental=true"
+}
+
+springBoot {
+    mainClass = 'org.backend.BackendsApplication' // ⬅️ Replace with your actual @SpringBootApplication class
 }
