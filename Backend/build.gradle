@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.3.0'
     id 'io.spring.dependency-management' version '1.1.4'
-    id 'org.flywaydb.flyway' version '9.22.3'
+    id 'org.flywaydb.flyway' version '10.15.0'
 }
 
 group = 'org.example'
@@ -97,8 +97,8 @@ dependencies {
     // S3 api
     implementation 'software.amazon.awssdk:s3:2.25.8'
 
-    // Firebase admin
-    implementation 'com.google.firebase:firebase-admin:9.2.0'
+//    // Firebase admin
+//    implementation 'com.google.firebase:firebase-admin:9.2.0'
     // WebSocket
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
@@ -127,5 +127,5 @@ test {
 }
 
 springBoot {
-    mainClass = 'org.example.LearningJavaApplication' // ⬅️ Replace with your actual @SpringBootApplication class
+    mainClass = 'org.backend.BackendsApplication' // ⬅️ Replace with your actual @SpringBootApplication class
 }
