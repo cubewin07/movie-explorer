@@ -19,8 +19,8 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 public class User implements UserDetails {
-    @SequenceGenerator(name = "user_sequence", sequenceName = "user_sequence", allocationSize = 1)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_sequence")
+
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @NotNull(message = "Username cannot be null")
     private String username;
