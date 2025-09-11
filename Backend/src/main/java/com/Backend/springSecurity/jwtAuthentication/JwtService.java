@@ -10,6 +10,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Map;
 import io.jsonwebtoken.Claims;
 import java.util.function.Function;
+import org.springframework.stereotype.Service;
+
+@Service
 public class JwtService {
     public static final String SECRET = "ABD9D446AA4D55EC39CBDC5711C45ABD9D446AA4D55EC";
     public static final long EXPIRATION_TIME = 864_000_000;
