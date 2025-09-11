@@ -9,6 +9,9 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.web.filter.OncePerRequestFilter;
 import lombok.RequiredArgsConstructor;
 import lombok.NonNull;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 @RequiredArgsConstructor
 public class JwtFilterChain extends OncePerRequestFilter{
@@ -28,9 +31,14 @@ public class JwtFilterChain extends OncePerRequestFilter{
             return;
         }
         String jwt = authHeader.substring(7);
-        if (jwtService.isTokenValid(jwt, userDetailsService.loadUserByUsername(jwtService.extractUsername(jwt)))) {
-            filterChain.doFilter(request, response);
-            return;
+        String username = jwtService.extractUsername(jwt);
+        if(username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            if(jwtService.isTokenValid(jwt, userDetails)) {
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                SecurityContextHolder.getContext().setAuthentication(authToken);
+            }
         }
+        filterChain.doFilter(request, response);
     }
 }
