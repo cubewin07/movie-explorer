@@ -7,9 +7,11 @@ import com.Backend.user_service.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/users")
@@ -27,4 +29,9 @@ public class UserController {
         return ResponseEntity.ok(userService.registerUser(register));
     }
 
+    @DeleteMapping()
+    public ResponseEntity<Map<String, String>> deleteUserById(@AuthenticationPrincipal User user) {
+        userService.deleteUserById(user.getId());
+       return ResponseEntity.ok(Map.of("message", "User with id " + user.getId() + " deleted successfully"));
+    }
 }
