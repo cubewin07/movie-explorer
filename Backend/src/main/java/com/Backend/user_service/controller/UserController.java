@@ -36,6 +36,11 @@ public class UserController {
         return ResponseEntity.ok(userService.authenticateUser(authenticate));
     }
 
+    @GetMapping("/me")
+    public ResponseEntity<User> getUserById(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(user);
+    }
+
     @DeleteMapping()
     public ResponseEntity<Map<String, String>> deleteUserById(@AuthenticationPrincipal User user) {
         userService.deleteUserById(user.getId());
