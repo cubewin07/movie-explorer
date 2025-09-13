@@ -1,11 +1,15 @@
 package com.Backend.user_service.service;
 
 import com.Backend.springSecurity.jwtAuthentication.JwtService;
+import com.Backend.user_service.model.AuthenticateDTO;
 import com.Backend.user_service.model.JwtToken;
 import com.Backend.user_service.model.RegisterDTO;
 import com.Backend.user_service.model.User;
 import com.Backend.user_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +21,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -37,6 +42,17 @@ public class UserService {
         userRepository.save(user);
         String token = jwtService.generateToken(user.getUsername());
         return new JwtToken(token);
+    }
+
+    @Transactional
+    public JwtToken authenticateUser(AuthenticateDTO authenticate) {
+        Authentication auth = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        authenticate.email(),
+                        authenticate.password()
+                )
+        );
+
     }
 
     public void deleteUserById(Long id) {
