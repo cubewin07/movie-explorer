@@ -1,9 +1,6 @@
 package com.Backend.user_service.controller;
 
-import com.Backend.user_service.model.AuthenticateDTO;
-import com.Backend.user_service.model.JwtToken;
-import com.Backend.user_service.model.RegisterDTO;
-import com.Backend.user_service.model.User;
+import com.Backend.user_service.model.*;
 import com.Backend.user_service.service.UserService;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +36,11 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<User> getUserById(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(user);
+    }
+
+    @PutMapping()
+    public ResponseEntity<User> updateUser(@RequestBody UpdateUserDTO update, @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(userService.updateUser(update, user));
     }
 
     @DeleteMapping()
