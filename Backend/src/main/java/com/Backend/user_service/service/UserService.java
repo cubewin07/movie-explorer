@@ -1,10 +1,7 @@
 package com.Backend.user_service.service;
 
 import com.Backend.springSecurity.jwtAuthentication.JwtService;
-import com.Backend.user_service.model.AuthenticateDTO;
-import com.Backend.user_service.model.JwtToken;
-import com.Backend.user_service.model.RegisterDTO;
-import com.Backend.user_service.model.User;
+import com.Backend.user_service.model.*;
 import com.Backend.user_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -55,6 +52,14 @@ public class UserService {
         String token = jwtService.generateToken(auth.getName());
         return new JwtToken(token);
 
+    }
+
+    @Transactional
+    public User updateUser(UpdateUserDTO update, User userFromContext) {
+        User managedUser = userRepository.findByEmail(userFromContext.getEmail()).orElseThrow();
+        managedUser.setUsername(update.username());
+        managedUser.setEmail(update.email());
+        return managedUser;
     }
 
     public void deleteUserById(Long id) {
