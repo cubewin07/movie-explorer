@@ -127,5 +127,5 @@ test {
 }
 
 springBoot {
-    mainClass = 'org.backend.BackendsApplication' // ⬅️ Replace with your actual @SpringBootApplication class
+    mainClass = 'com.Backend.BackendsApplication' // ⬅️ Replace with your actual @SpringBootApplication class
 }
