@@ -1,5 +1,6 @@
 package com.Backend.services.user_service.model;
 
+import com.Backend.services.watchlist_service.model.Watchlist;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -31,6 +32,9 @@ public class User implements UserDetails {
     private String email;
     @Size(min = 8, message = "Password must be at least 8 characters long")
     private String password;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private Watchlist watchlist;
 
     @Enumerated(EnumType.STRING)
     private ROLE role;
