@@ -13,7 +13,7 @@ import java.util.List;
 public class Watchlist {
 
     @Id
-    private Long id;
+    private Long userId;
 
     @OneToOne
     @MapsId
