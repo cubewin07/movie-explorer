@@ -4,7 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import com.Backend.user_service.repository.UserRepository;
+import com.Backend.services.user_service.repository.UserRepository;
 
 @Configuration
 public class ApplicationConfig {

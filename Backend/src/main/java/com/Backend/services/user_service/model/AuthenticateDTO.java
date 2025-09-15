@@ -1,4 +1,4 @@
-package com.Backend.user_service.model;
+package com.Backend.services.user_service.model;
 
 public record AuthenticateDTO(
     String email,

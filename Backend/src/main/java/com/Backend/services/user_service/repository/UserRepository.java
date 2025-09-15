@@ -1,6 +1,6 @@
-package com.Backend.user_service.repository;
+package com.Backend.services.user_service.repository;
 
-import com.Backend.user_service.model.User;
+import com.Backend.services.user_service.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 

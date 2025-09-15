@@ -1,8 +1,9 @@
-package com.Backend.user_service.service;
+package com.Backend.services.user_service.service;
 
+import com.Backend.services.user_service.model.*;
 import com.Backend.springSecurity.jwtAuthentication.JwtService;
 import com.Backend.user_service.model.*;
-import com.Backend.user_service.repository.UserRepository;
+import com.Backend.services.user_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
