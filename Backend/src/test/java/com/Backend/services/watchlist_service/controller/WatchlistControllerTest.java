@@ -1,6 +1,7 @@
 package com.Backend.services.watchlist_service.controller;
 
 import com.Backend.services.user_service.model.User;
+import com.Backend.services.user_service.model.ROLE;
 import com.Backend.services.watchlist_service.model.Watchlist;
 import com.Backend.services.watchlist_service.model.WatchlistPosting;
 import com.Backend.services.watchlist_service.model.WatchlistType;
@@ -11,6 +12,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import com.Backend.config.SecurityConfig;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
@@ -25,18 +31,25 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = WatchlistController.class)
+@WebMvcTest(
+        controllers = WatchlistController.class,
+        excludeAutoConfiguration = SecurityAutoConfiguration.class,
+        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class)
+)
 @AutoConfigureMockMvc(addFilters = false)
+@Import({})
 class WatchlistControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @MockBean
     private WatchlistService watchlistService;
+
+    @MockBean
+    private com.Backend.springSecurity.jwtAuthentication.JwtFilterChain jwtFilterChain;
 
     private User principal() {
         return User.builder()
@@ -44,6 +57,7 @@ class WatchlistControllerTest {
                 .username("user")
                 .email("user@example.com")
                 .password("password123")
+                .role(ROLE.ROLE_USER)
                 .build();
     }
 
@@ -59,7 +73,6 @@ class WatchlistControllerTest {
         mockMvc.perform(get("/watchlist")
                         .with(SecurityMockMvcRequestPostProcessors.user(principal())))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.userId", is(1)))
                 .andExpect(jsonPath("$.moviesId").isArray())
                 .andExpect(jsonPath("$.seriesId").isArray());

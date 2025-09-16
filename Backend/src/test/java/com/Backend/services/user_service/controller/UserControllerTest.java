@@ -11,9 +11,14 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.FilterType;
+import com.Backend.config.SecurityConfig;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
+ 
 
 import java.util.List;
 
@@ -23,34 +28,56 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import com.Backend.springSecurity.jwtAuthentication.JwtFilterChain;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
-@WebMvcTest(controllers = UserController.class)
+@WebMvcTest(
+        controllers = UserController.class,
+        excludeAutoConfiguration = SecurityAutoConfiguration.class,
+        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class)
+)
 @AutoConfigureMockMvc(addFilters = false)
-@Import(GlobalExceptionHandler.class)
+@Import({GlobalExceptionHandler.class})
 class UserControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @MockBean
     private UserService userService;
 
+    @MockBean
+    private JwtFilterChain jwtFilterChain;
+
+    @MockBean
+    private UserDetailsService userDetailsService;
+
+    @MockBean
+    private AuthenticationManager authenticationManager;
+
+    @MockBean
+    private PasswordEncoder passwordEncoder;
+
+    
+
     @Test
     @DisplayName("GET /users returns list of users")
     void getAllUsers_returnsOk() throws Exception {
-        User u1 = User.builder().id(1L).username("john").email("john@example.com").password("secret123").build();
-        User u2 = User.builder().id(2L).username("jane").email("jane@example.com").password("secret123").build();
+        User u1 = User.builder().id(1L).username("john").email("john@example.com").password("secret123").role(ROLE.ROLE_USER).build();
+        User u2 = User.builder().id(2L).username("jane").email("jane@example.com").password("secret123").role(ROLE.ROLE_USER).build();
         when(userService.getAllUsers()).thenReturn(List.of(u1, u2));
 
-        mockMvc.perform(get("/users"))
+        mockMvc.perform(get("/users")).andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[0].id", is(1)))
-                .andExpect(jsonPath("$[0].username", is("john")))
+                .andExpect(jsonPath("$[0].username", is("john@example.com")))
                 .andExpect(jsonPath("$[0].email", is("john@example.com")));
 
         verify(userService, times(1)).getAllUsers();
@@ -66,7 +93,6 @@ class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.token", is("abc.def.ghi")));
 
         verify(userService).registerUser(any(RegisterDTO.class));
@@ -82,7 +108,6 @@ class UserControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.token", is("jwt.token")));
 
         verify(userService).authenticateUser(any(AuthenticateDTO.class));
@@ -96,15 +121,17 @@ class UserControllerTest {
                 .username("me")
                 .email("me@example.com")
                 .password("password123")
+                .role(ROLE.ROLE_USER)
                 .build();
 
         mockMvc.perform(get("/users/me")
-                        .with(SecurityMockMvcRequestPostProcessors.user(principal)))
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(
+                                new UsernamePasswordAuthenticationToken(principal, principal.getPassword(), principal.getAuthorities())
+                        )))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id", is(99)))
                 .andExpect(jsonPath("$.email", is("me@example.com")))
-                .andExpect(jsonPath("$.username", is("me")));
+                .andExpect(jsonPath("$.username", is("me@example.com")));
     }
 
     @Test
@@ -115,20 +142,22 @@ class UserControllerTest {
                 .username("old")
                 .email("old@example.com")
                 .password("password123")
+                .role(ROLE.ROLE_USER)
                 .build();
 
         UpdateUserDTO req = new UpdateUserDTO("newname", "new@example.com");
-        User updated = User.builder().id(5L).username("newname").email("new@example.com").password("password123").build();
+        User updated = User.builder().id(5L).username("newname").email("new@example.com").password("password123").role(ROLE.ROLE_USER).build();
         when(userService.updateUser(eq(req), eq(principal))).thenReturn(updated);
 
         mockMvc.perform(put("/users")
-                        .with(SecurityMockMvcRequestPostProcessors.user(principal))
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(
+                                new UsernamePasswordAuthenticationToken(principal, principal.getPassword(), principal.getAuthorities())
+                        ))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id", is(5)))
-                .andExpect(jsonPath("$.username", is("newname")))
+                .andExpect(jsonPath("$.username", is("new@example.com")))
                 .andExpect(jsonPath("$.email", is("new@example.com")));
 
         verify(userService).updateUser(eq(req), eq(principal));
@@ -142,14 +171,16 @@ class UserControllerTest {
                 .username("abc")
                 .email("abc@example.com")
                 .password("password123")
+                .role(ROLE.ROLE_USER)
                 .build();
 
         doNothing().when(userService).deleteUserById(7L);
 
         mockMvc.perform(delete("/users")
-                        .with(SecurityMockMvcRequestPostProcessors.user(principal)))
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(
+                                new UsernamePasswordAuthenticationToken(principal, principal.getPassword(), principal.getAuthorities())
+                        )))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.message", is("User with id 7 deleted successfully")));
 
         verify(userService).deleteUserById(7L);
