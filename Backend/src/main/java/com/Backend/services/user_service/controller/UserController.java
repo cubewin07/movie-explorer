@@ -1,8 +1,8 @@
 package com.Backend.services.user_service.controller;
 
 import com.Backend.services.user_service.model.*;
-import com.Backend.user_service.model.*;
 import com.Backend.services.user_service.service.UserService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
