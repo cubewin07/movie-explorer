@@ -3,6 +3,7 @@ package com.Backend.services.watchlist_service.controller;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.watchlist_service.model.Watchlist;
 import com.Backend.services.watchlist_service.model.WatchlistPosting;
+import com.Backend.services.watchlist_service.model.WatchlistType;
 import com.Backend.services.watchlist_service.service.WatchlistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -22,9 +23,9 @@ public class WatchlistController {
 
     @PostMapping
     public ResponseEntity<String> addToWatchlist(@RequestBody WatchlistPosting posting, @AuthenticationPrincipal User user) {
-        if(posting.type().equals("movie"))
+        if(posting.type().equals(WatchlistType.MOVIE))
             watchlistService.addMovieToWatchlist(posting.id(), user);
-        else if(posting.type().equals("series"))
+        else if(posting.type().equals(WatchlistType.SERIES))
             watchlistService.addSeriesToWatchlist(posting.id(), user);
         else
             return ResponseEntity.badRequest().body("Invalid posting type");
@@ -32,9 +33,9 @@ public class WatchlistController {
     }
     @DeleteMapping
     public ResponseEntity<String> deleteMovieFromWatchlist(@RequestBody WatchlistPosting posting, @AuthenticationPrincipal User user) {
-        if(posting.type().equals("movie"))
+        if(posting.type().equals(WatchlistType.MOVIE))
             watchlistService.removeMovieFromWatchlist(posting.id(), user);
-        else if(posting.type().equals("series"))
+        else if(posting.type().equals(WatchlistType.SERIES))
             watchlistService.removeSeriesFromWatchlist(posting.id(), user);
         else
             return ResponseEntity.badRequest().body("Invalid posting type");
