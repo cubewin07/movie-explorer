@@ -2,6 +2,7 @@ package com.Backend.services.watchlist_service.controller;
 
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.watchlist_service.model.Watchlist;
+import com.Backend.services.watchlist_service.model.WatchlistPosting;
 import com.Backend.services.watchlist_service.service.WatchlistService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,9 +19,16 @@ public class WatchlistController {
     public ResponseEntity<Watchlist> getWatchlist(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(watchlistService.getWatchlist(user));
     }
+
     @PostMapping
-    public String addToWatchlist() {
-        return "Movie added to watchlist";
+    public ResponseEntity<String> addToWatchlist(@RequestBody WatchlistPosting posting, @AuthenticationPrincipal User user) {
+        if(posting.type().equals("movie"))
+            watchlistService.addMovieToWatchlist(posting.id(), user);
+        else if(posting.type().equals("series"))
+            watchlistService.addSeriesToWatchlist(posting.id(), user);
+        else
+            return ResponseEntity.badRequest().body("Invalid posting type");
+        return ResponseEntity.ok().build();
     }
     @DeleteMapping
     public String deleteMovieFromWatchlist() {
