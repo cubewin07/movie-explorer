@@ -26,15 +26,19 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @NotNull(message = "Username cannot be null")
     private String username;
+
     @NotNull(message = "Email cannot be null")
     private String email;
+
     @Size(min = 8, message = "Password must be at least 8 characters long")
     private String password;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Watchlist watchlist;
+
     @Enumerated(EnumType.STRING)
     private ROLE role;
 
