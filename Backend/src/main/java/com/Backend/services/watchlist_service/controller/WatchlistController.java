@@ -19,7 +19,7 @@ public class WatchlistController {
         return ResponseEntity.ok(watchlistService.getWatchlist(user));
     }
     @PostMapping
-    public String addMovieToWatchlist() {
+    public String addToWatchlist() {
         return "Movie added to watchlist";
     }
     @DeleteMapping
