@@ -31,7 +31,13 @@ public class WatchlistController {
         return ResponseEntity.ok().build();
     }
     @DeleteMapping
-    public String deleteMovieFromWatchlist() {
-        return "Movie deleted from watchlist";
+    public ResponseEntity<String> deleteMovieFromWatchlist(@RequestBody WatchlistPosting posting, @AuthenticationPrincipal User user) {
+        if(posting.type().equals("movie"))
+            watchlistService.removeMovieFromWatchlist(posting.id(), user);
+        else if(posting.type().equals("series"))
+            watchlistService.removeSeriesFromWatchlist(posting.id(), user);
+        else
+            return ResponseEntity.badRequest().body("Invalid posting type");
+        return ResponseEntity.ok().build();
     }
 }
