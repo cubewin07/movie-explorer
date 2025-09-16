@@ -28,4 +28,14 @@ public class WatchlistService {
         watchlistRepository.save(watchlist);
     }
 
+    public void removeMovieFromWatchlist(Long movieId, User user) {
+        Watchlist watchlist = getWatchlist(user);
+        watchlist.getMoviesId().remove(movieId);
+    }
+
+    public void removeSeriesFromWatchlist(Long seriesId, User user) {
+        Watchlist watchlist = getWatchlist(user);
+        watchlist.getSeriesId().remove(seriesId);
+    }
+
 }
