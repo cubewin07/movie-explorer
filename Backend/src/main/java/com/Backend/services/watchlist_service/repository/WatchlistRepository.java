@@ -15,8 +15,8 @@ public interface WatchlistRepository extends JpaRepository<Watchlist, Long> {
     Optional<Watchlist> findByUserId(Long userId);
 
     @Query("SELECT w FROM Watchlist w JOIN w.moviesId m WHERE m = :movieId")
-    Optional<List<Watchlist>> findByMoviesId(@Param("movieId")Long movieId);
+    List<Watchlist> findByMoviesId(@Param("movieId")Long movieId);
 
     @Query("SELECT w FROM Watchlist w JOIN w.seriesId s WHERE s = :seriesId")
-    Optional<List<Watchlist>> findBySeriesId(@Param("seriesId")Long seriesId);
+    List<Watchlist> findBySeriesId(@Param("seriesId")Long seriesId);
 }
