@@ -35,7 +35,6 @@ public class User implements UserDetails {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     private Watchlist watchlist;
-
     @Enumerated(EnumType.STRING)
     private ROLE role;
 
