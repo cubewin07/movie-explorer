@@ -58,7 +58,7 @@ public class Multilevel_Cache implements Cache {
     public <T> T get(Object key, Callable<T> valueLoader) {
         try {
             // Try local cache first
-            T localValue = local.get(key, valueLoader.getClass());
+            T localValue = (T) local.get(key, valueLoader.getClass());
             if (localValue != null) {
                 return localValue;
             }
