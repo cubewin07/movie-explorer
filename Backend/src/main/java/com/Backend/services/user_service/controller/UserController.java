@@ -22,7 +22,7 @@ public class UserController {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    @PostMapping()
+    @PostMapping("/register")
     public ResponseEntity<JwtToken> registerUser(@RequestBody RegisterDTO register) {
         return ResponseEntity.ok(userService.registerUser(register));
     }
