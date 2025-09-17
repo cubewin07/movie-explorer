@@ -9,16 +9,15 @@ import com.Backend.services.watchlist_service.service.WatchlistService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
-import com.Backend.config.SecurityConfig;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -31,13 +30,10 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(
-        controllers = WatchlistController.class,
-        excludeAutoConfiguration = SecurityAutoConfiguration.class,
-        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SecurityConfig.class)
-)
-@AutoConfigureMockMvc(addFilters = false)
-@Import({})
+@SpringBootTest
+@AutoConfigureMockMvc
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@ActiveProfiles("test")
 class WatchlistControllerTest {
 
     @Autowired
@@ -47,9 +43,6 @@ class WatchlistControllerTest {
 
     @MockBean
     private WatchlistService watchlistService;
-
-    @MockBean
-    private com.Backend.springSecurity.jwtAuthentication.JwtFilterChain jwtFilterChain;
 
     private User principal() {
         return User.builder()
@@ -62,6 +55,7 @@ class WatchlistControllerTest {
     }
 
     @Test
+    @Order(1)
     @DisplayName("GET /watchlist returns user's watchlist")
     void getWatchlist_returnsOk() throws Exception {
         Watchlist wl = new Watchlist();
@@ -81,6 +75,7 @@ class WatchlistControllerTest {
     }
 
     @Test
+    @Order(2)
     @DisplayName("POST /watchlist with MOVIE adds movie and returns 200")
     void addMovie_returnsOk() throws Exception {
         WatchlistPosting posting = new WatchlistPosting(WatchlistType.MOVIE, 10L);
@@ -96,6 +91,7 @@ class WatchlistControllerTest {
     }
 
     @Test
+    @Order(3)
     @DisplayName("POST /watchlist with SERIES adds series and returns 200")
     void addSeries_returnsOk() throws Exception {
         WatchlistPosting posting = new WatchlistPosting(WatchlistType.SERIES, 33L);
@@ -111,6 +107,7 @@ class WatchlistControllerTest {
     }
 
     @Test
+    @Order(4)
     @DisplayName("POST /watchlist with invalid type returns 400")
     void addInvalid_returnsBadRequest() throws Exception {
         // Simulate invalid payload by sending unknown enum as raw JSON
@@ -126,6 +123,7 @@ class WatchlistControllerTest {
     }
 
     @Test
+    @Order(5)
     @DisplayName("DELETE /watchlist with MOVIE removes movie and returns 200")
     void deleteMovie_returnsOk() throws Exception {
         WatchlistPosting posting = new WatchlistPosting(WatchlistType.MOVIE, 44L);
@@ -141,6 +139,7 @@ class WatchlistControllerTest {
     }
 
     @Test
+    @Order(6)
     @DisplayName("DELETE /watchlist with SERIES removes series and returns 200")
     void deleteSeries_returnsOk() throws Exception {
         WatchlistPosting posting = new WatchlistPosting(WatchlistType.SERIES, 77L);
