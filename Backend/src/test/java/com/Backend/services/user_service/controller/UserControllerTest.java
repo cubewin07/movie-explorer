@@ -85,7 +85,7 @@ class UserControllerTest {
         RegisterDTO req = new RegisterDTO("john", "john@example.com", "password123");
         when(userService.registerUser(any(RegisterDTO.class))).thenReturn(new JwtToken("abc.def.ghi"));
 
-        mockMvc.perform(post("/users")
+        mockMvc.perform(post("/users/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
