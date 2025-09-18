@@ -15,3 +15,5 @@ spring:
   jpa:
     hibernate:
       ddl-auto: create-drop
+  profiles:
+    default: dev
