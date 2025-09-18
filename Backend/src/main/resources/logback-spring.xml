@@ -1,0 +1,8 @@
+<configuration>
+    <springProfile name="dev">
+        <include resource="logback-spring-dev.xml"/>
+    </springProfile>
+    <springProfile name="prod">
+        <include resource="logback-spring-prod.xml"/>
+    </springProfile>
+</configuration>
