@@ -2,6 +2,7 @@ package com.Backend.cache;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.Cache;
+import org.springframework.lang.NonNull;
 
 import java.util.concurrent.Callable;
 
@@ -11,17 +12,17 @@ public class Multilevel_Cache implements Cache {
     private final Cache local;
 
     @Override
-    public String getName() {
+    public @NonNull String getName() {
         return remote.getName();
     }
 
     @Override
-    public Object getNativeCache() {
+    public @NonNull Object getNativeCache() {
         return local.getNativeCache();
     }
 
     @Override
-    public ValueWrapper get(Object key) {
+    public ValueWrapper get(@NonNull Object key) {
         // Try to get from local cache first
         ValueWrapper localValue = local.get(key);
         if (localValue != null) {
@@ -38,7 +39,7 @@ public class Multilevel_Cache implements Cache {
     }
 
     @Override
-    public <T> T get(Object key, Class<T> type) {
+    public <T> T get(@NonNull Object key, Class<T> type) {
         // Try local cache first
         T localValue = local.get(key, type);
         if (localValue != null) {
@@ -55,7 +56,7 @@ public class Multilevel_Cache implements Cache {
     }
 
     @Override
-    public <T> T get(Object key, Callable<T> valueLoader) {
+    public <T> T get(@NonNull Object key, @NonNull Callable<T> valueLoader) {
         try {
             // Try local cache first
             T localValue = (T) local.get(key, valueLoader.getClass());
@@ -81,14 +82,14 @@ public class Multilevel_Cache implements Cache {
     }
 
     @Override
-    public void put(Object key, Object value) {
+    public void put(@NonNull Object key, @NonNull Object value) {
         // Update both caches
         remote.put(key, value);
         local.put(key, value);
     }
 
     @Override
-    public void evict(Object key) {
+    public void evict(@NonNull Object key) {
         // Remove from both caches
         remote.evict(key);
         local.evict(key);
