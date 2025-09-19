@@ -18,11 +18,12 @@ spring:
   profiles:
     default: dev
 management:
-  endpoint:
+  endpoints:
     web:
       exposure:
         include: health, info, metrics, prometheus
         exclude: env,beans
+  endpoint:
     health:
       show-details: always
     
