@@ -17,3 +17,12 @@ spring:
       ddl-auto: create-drop
   profiles:
     default: dev
+management:
+  endpoint:
+    web:
+      exposure:
+        include: health, info, metrics, prometheus
+        exclude: env,beans
+    health:
+      show-details: always
+    
