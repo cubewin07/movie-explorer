@@ -40,6 +40,7 @@ public class SecurityConfig {
                     auth
                             .requestMatchers("/users/register").permitAll()
                             .requestMatchers("/users/authenticate").permitAll()
+                            .requestMatchers("/actuator/**").permitAll()
                 .anyRequest().authenticated()
             )
             .cors(Customizer.withDefaults())
