@@ -15,15 +15,10 @@ public class WatchlistService {
     private final WatchlistRepository watchlistRepository;
 
     public Watchlist getWatchlist(User user) {
-        log.info("Retrieving watchlist for user id: {}", user.getId());
-        Watchlist watchlist = watchlistRepository.findByUserId(user.getId()).orElseThrow();
-        log.info("Successfully retrieved watchlist for user: {} with {} movies and {} series", 
-                user.getUsername(), watchlist.getMoviesId().size(), watchlist.getSeriesId().size());
-        return watchlist;
+        return watchlistRepository.findByUserId(user.getId()).orElseThrow();
     }
 
     public void addMovieToWatchlist(Long movieId, User user) {
-        log.info("Adding movie id: {} to watchlist for user: {}", movieId, user.getUsername());
         Watchlist watchlist = getWatchlist(user);
         watchlist.getMoviesId().add(movieId);
         watchlistRepository.save(watchlist);
@@ -31,7 +26,6 @@ public class WatchlistService {
     }
 
     public void addSeriesToWatchlist(Long seriesId, User user) {
-        log.info("Adding series id: {} to watchlist for user: {}", seriesId, user.getUsername());
         Watchlist watchlist = getWatchlist(user);
         watchlist.getSeriesId().add(seriesId);
         watchlistRepository.save(watchlist);
@@ -39,7 +33,6 @@ public class WatchlistService {
     }
 
     public void removeMovieFromWatchlist(Long movieId, User user) {
-        log.info("Removing movie id: {} from watchlist for user: {}", movieId, user.getUsername());
         Watchlist watchlist = getWatchlist(user);
         boolean removed = watchlist.getMoviesId().remove(movieId);
         if (removed) {
@@ -51,7 +44,6 @@ public class WatchlistService {
     }
 
     public void removeSeriesFromWatchlist(Long seriesId, User user) {
-        log.info("Removing series id: {} from watchlist for user: {}", seriesId, user.getUsername());
         Watchlist watchlist = getWatchlist(user);
         boolean removed = watchlist.getSeriesId().remove(seriesId);
         if (removed) {
