@@ -5,16 +5,16 @@
         </encoder>
     </appender>
 
-    <logger name="com.example" level="DEBUG"/>
-    <logger name="org.example" level="DEBUG" />
-    <logger name="org.hibernate.SQL" level="DEBUG" />
-    <logger name="org.example.config" level="DEBUG" />
-    <logger name="org.springframework.boot.context.config" />
-    <logger name="com.zaxxer.hikari" level="DEBUG" />
-    <logger name="org.springframework.jdbc.datasource" level="DEBUG" />
-    <logger name="org.hibernate.engine.jdbc.connections" level="DEBUG" />
+    <!-- Application package logging: keep it focused and readable in dev -->
+    <logger name="com.Backend" level="INFO" />
 
-    <root level="WARN">
+    <!-- Reduce framework noise; enable these temporarily only when debugging DB -->
+    <!-- <logger name="org.hibernate.SQL" level="DEBUG" /> -->
+    <!-- <logger name="com.zaxxer.hikari" level="DEBUG" /> -->
+    <!-- <logger name="org.springframework.jdbc.datasource" level="DEBUG" /> -->
+    <!-- <logger name="org.hibernate.engine.jdbc.connections" level="DEBUG" /> -->
+
+    <root level="INFO">
         <appender-ref ref="CONSOLE"/>
     </root>
 </included>
