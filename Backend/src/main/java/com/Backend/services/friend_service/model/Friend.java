@@ -24,9 +24,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder    
 @Data
-public class friend {
+public class Friend {
     @EmbeddedId
-    private friendIdEb id;
+    private FriendIdEb id;
 
     @MapsId("user1")
     @ManyToOne(fetch = FetchType.LAZY)
