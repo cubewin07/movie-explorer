@@ -37,7 +37,8 @@ public class User implements UserDetails {
     private String password;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private Watchlist watchlist;
+    @Builder.Default
+    private Watchlist watchlist = new Watchlist();
 
     @Enumerated(EnumType.STRING)
     private ROLE role;
@@ -55,5 +56,12 @@ public class User implements UserDetails {
     @Override
     public String getUsername() {
         return this.email;
+    }
+
+    public void setWatchlist(Watchlist watchlist) {
+        this.watchlist = watchlist;
+        if(watchlist.getUser() != this) {
+            watchlist.setUser(this);
+        }
     }
 }
