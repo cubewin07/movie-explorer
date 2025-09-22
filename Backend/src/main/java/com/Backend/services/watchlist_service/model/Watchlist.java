@@ -5,7 +5,8 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Data
@@ -23,10 +24,25 @@ public class Watchlist {
     @ElementCollection
     @CollectionTable(name = "watchlist_series", joinColumns = @JoinColumn(name = "watchlist_id"))
     @Column(name = "series_id")
-    private List<Long> seriesId;
+    private Set<Long> seriesId = new HashSet<>();
 
     @ElementCollection
     @CollectionTable(name = "watchlist_movies", joinColumns = @JoinColumn(name = "watchlist_id"))
     @Column(name = "movie_id")
-    private List<Long> moviesId;
+    private Set<Long> moviesId = new HashSet<>();
+
+    public void setUser(User user) {
+        this.user = user;
+        if(user.getWatchlist() != this) {
+            user.setWatchlist(this);
+        }
+    }
+
+    public void addSeriesId(Long seriesId) {
+        this.seriesId.add(seriesId);
+    }
+
+    public void addMoviesId(Long moviesId) {
+        this.moviesId.add(moviesId);
+    }
 }
