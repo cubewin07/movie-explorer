@@ -2,6 +2,7 @@ package com.Backend.services.user_service.service;
 
 import com.Backend.services.user_service.model.*;
 import com.Backend.services.user_service.repository.UserRepository;
+import com.Backend.services.watchlist_service.model.Watchlist;
 import com.Backend.springSecurity.jwtAuthentication.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,8 +40,14 @@ public class UserService {
                 .username(registerDTO.username())
                 .email(registerDTO.email())
                 .password(encryptedPassword)
+                .role(ROLE.ROLE_USER)    
                 .build();
+
+        user.setWatchlist(new Watchlist());
+        user.getWatchlist().setUser(user);      
+
         userRepository.save(user);
+
         log.info("User registered: id={}", user.getId());
         String token = jwtService.generateToken(user.getUsername());
         return new JwtToken(token);
