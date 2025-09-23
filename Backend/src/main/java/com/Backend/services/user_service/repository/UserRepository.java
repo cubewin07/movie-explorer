@@ -35,8 +35,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
         Select distinct u
         from User u
         left join fetch u.requests r
-        where u.id = :id        
-    """)
+        where u.id = :id
+        """)
     Optional<User> findByIdwithRequestList(Long id);
 
     Optional<User> findByUsername(String username);
