@@ -1,5 +1,6 @@
 package com.Backend.services.user_service.model;
 
+import com.Backend.services.friend_service.model.Friend;
 import com.Backend.services.watchlist_service.model.Watchlist;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -14,6 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data
@@ -39,6 +41,12 @@ public class User implements UserDetails {
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     @Builder.Default
     private Watchlist watchlist = new Watchlist();
+
+    @OneToMany(mappedBy = "user1")
+    private Set<Friend> friends;
+
+    @OneToMany(mappedBy = "user2")
+    private Set<Friend> requests;
 
     @Enumerated(EnumType.STRING)
     private ROLE role;
