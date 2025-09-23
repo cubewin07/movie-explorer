@@ -13,7 +13,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @EntityGraph(attributePaths = "watchlist")
     Optional<User> findByEmail(String email);
 
-    @Query("Select User u left join fetch u.friends f where f.user1 = u.id ")
+    @Query("""
+        Select distinct u 
+        from User u
+        left join fetch u.friends f 
+        left join fetch u.requests r
+        where u.id = :id
+     
+     """)
      Optional<User> findByIdwithFriendlist(Long id);
 
     Optional<User> findByUsername(String username);
