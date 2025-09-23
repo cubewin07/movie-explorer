@@ -29,11 +29,15 @@ public class FriendService {
     }
 
     @Transactional
-    public void requestFriend(Long id, Long friendId) {
-        User user1 = userRepository.findById(id).orElseThrow();
-        User user2 = userRepository.findById(friendId).orElseThrow();
+    public void requestFriend(User user1, String friendEmail) {
+        User user2 = userRepository.findByEmail(friendEmail).orElseThrow();
         Friend friendReq = Friend.builder().user1(user1).user2(user2).build();
         friendRepo.save(friendReq);
+    }
+
+    @Transactional
+    public void acceptFriend(User user1, String accepterEmail) {
+        User user2 = userRepository.findByEmail(accepterEmail).orElseThrow();
     }
 
 }
