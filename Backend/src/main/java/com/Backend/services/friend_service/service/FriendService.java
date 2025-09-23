@@ -2,6 +2,7 @@ package com.Backend.services.friend_service.service;
 
 
 import com.Backend.services.friend_service.model.Friend;
+import com.Backend.services.friend_service.model.Status;
 import com.Backend.services.friend_service.repository.FriendRepo;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.repository.UserRepository;
@@ -36,8 +37,11 @@ public class FriendService {
     }
 
     @Transactional
-    public void acceptFriend(User user1, String accepterEmail) {
+    public void updateFriend(User user1, String accepterEmail, Status status) {
         User user2 = userRepository.findByEmail(accepterEmail).orElseThrow();
+        Friend friendReq = friendRepo.findByUser1AndUser2(user1, user2).orElseThrow();
+        friendReq.setStatus(status);
+        friendRepo.save(friendReq);
     }
 
 }
