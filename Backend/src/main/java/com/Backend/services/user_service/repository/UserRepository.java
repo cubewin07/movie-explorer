@@ -23,21 +23,11 @@ public interface UserRepository extends JpaRepository<User, Long> {
     """)
      Optional<User> findByIdFull(Long id);
 
-    @Query("""
-        Select distinct u 
-        from User u
-        left join fetch u.friends f 
-        where u.id = :id
-    """)
-    Optional<User> findByIdwithFriendlistNoRequest(Long id);
+   @EntityGraph(attributePaths = "friends")
+    Optional<User> findWithFriends(Long id);
 
-    @Query("""
-        Select distinct u
-        from User u
-        left join fetch u.requests r
-        where u.id = :id
-        """)
-    Optional<User> findByIdwithRequestList(Long id);
+    @EntityGraph(attributePaths = "requests")
+    Optional<User> findWithRequests(Long id);
 
     Optional<User> findByUsername(String username);
 }

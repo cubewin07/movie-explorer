@@ -18,7 +18,7 @@ public class FriendService {
     private final UserRepository userRepository;
 
     public Set<Friend> getFriend(Long id) {
-        User user = userRepository.findByIdwithFriendlistNoRequest(id).orElseThrow();
+        User user = userRepository.findWithFriends(id).orElseThrow();
         return user.getFriends();
     }
 
