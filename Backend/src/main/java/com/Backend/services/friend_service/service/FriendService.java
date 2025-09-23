@@ -5,6 +5,7 @@ import com.Backend.services.friend_service.model.Friend;
 import com.Backend.services.friend_service.repository.FriendRepo;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,14 @@ public class FriendService {
     public Set<Friend> getRequest(Long id) {
         User user = userRepository.findWithFriends(id).orElseThrow();
         return user.getRequests();
+    }
+
+    @Transactional
+    public void requestFriend(Long id, Long friendId) {
+        User user1 = userRepository.findById(id).orElseThrow();
+        User user2 = userRepository.findById(friendId).orElseThrow();
+        Friend friendReq = Friend.builder().user1(user1).user2(user2).build();
+        friendRepo.save(friendReq);
     }
 
 }
