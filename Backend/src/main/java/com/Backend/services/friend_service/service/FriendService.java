@@ -50,6 +50,7 @@ public class FriendService {
         friendRepo.save(friendReq);
     }
 
+//    Need refinement
     @Transactional
     public void deleteFriend(User user1, String friendEmail) {
         User user2 = userRepository.findByEmail(friendEmail).orElseThrow();
