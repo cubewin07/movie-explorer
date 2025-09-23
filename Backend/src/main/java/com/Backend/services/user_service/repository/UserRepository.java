@@ -19,8 +19,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
         left join fetch u.friends f 
         left join fetch u.requests r
         where u.id = :id
-     
-     """)
+    """)
      Optional<User> findByIdwithFriendlist(Long id);
 
     Optional<User> findByUsername(String username);
