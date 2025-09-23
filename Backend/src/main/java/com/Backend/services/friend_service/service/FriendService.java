@@ -36,6 +36,12 @@ public class FriendService {
         friendRepo.save(friendReq);
     }
 
+    public Status getFriendStatus(User user1, String friendEmail) {
+        User user2 = userRepository.findByEmail(friendEmail).orElseThrow();
+        Friend friendReq = friendRepo.findByUser1AndUser2(user1, user2).orElseThrow();
+        return friendReq.getStatus();
+    }
+
     @Transactional
     public void updateFriend(User user1, String accepterEmail, Status status) {
         User user2 = userRepository.findByEmail(accepterEmail).orElseThrow();
