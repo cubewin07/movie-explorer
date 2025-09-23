@@ -22,4 +22,9 @@ public class FriendService {
         return user.getFriends();
     }
 
+    public Set<Friend> getRequest(Long id) {
+        User user = userRepository.findWithFriends(id).orElseThrow();
+        return user.getRequests();
+    }
+
 }
