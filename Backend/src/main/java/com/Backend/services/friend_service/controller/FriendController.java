@@ -16,6 +16,7 @@ import com.Backend.services.friend_service.model.Status;
 import com.Backend.services.friend_service.service.FriendService;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.friend_service.model.EmailBody;
+import com.Backend.services.friend_service.model.FriendUpdatingBody;
 
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 
@@ -48,8 +49,8 @@ public class FriendController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<Status> updateFriend(@RequestBody EmailBody emailBody, @AuthenticationPrincipal User user) {
-        friendService.updateFriend(user, emailBody.email());
+    public ResponseEntity<Void> updateFriend(@RequestBody FriendUpdatingBody friendUpdatingBody, @AuthenticationPrincipal User user) {
+        friendService.updateFriend(user, friendUpdatingBody.email(), friendUpdatingBody.status());
         return ResponseEntity.ok().build();
     }
 }
