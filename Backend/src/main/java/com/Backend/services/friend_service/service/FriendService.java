@@ -60,8 +60,8 @@ public class FriendService {
     }
 
     @Transactional
-    public void updateFriend(User user1, String friendEmail, Status status) {
-        User user2 = userRepository.findByEmail(friendEmail).orElseThrow();
+    public void updateFriend(User user1, String senderEmail, Status status) {
+        User user2 = userRepository.findByEmail(senderEmail).orElseThrow();
 
         // Check both directions
         Optional<Friend> friendReq = friendRepo.findByUser1AndUser2(user1, user2);
