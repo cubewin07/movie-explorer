@@ -5,7 +5,9 @@ import java.util.Set;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import lombok.RequiredArgsConstructor;
 import com.Backend.services.friend_service.model.Friend;
@@ -13,6 +15,8 @@ import com.Backend.services.friend_service.model.Status;
 import com.Backend.services.friend_service.service.FriendService;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.friend_service.model.EmailBody;
+
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 
 @RestController
 @RequestMapping("/friends")
@@ -32,7 +36,13 @@ public class FriendController {
     }
 
     @GetMapping("/status")
-    public ResponseEntity<Status> getFriendStatus(EmailBody emailBody, @AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(friendService.getFriendStatus(user, emailBody.email()));
+    public ResponseEntity<Status> getFriendStatus( @RequestParam("email") String email, @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(friendService.getFriendStatus(user, email));
+    }
+
+    @PostMapping("/request")
+    public ResponseEntity<Status> sendRequest(@RequestBody EmailBody emailBody, @AuthenticationPrincipal User user) {
+        friendService.sendRequest(user, emailBody.email());
+        return ResponseEntity.ok().build();
     }
 }
