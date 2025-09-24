@@ -32,7 +32,7 @@ public class FriendController {
     }
 
     @GetMapping("/requestsTo")
-    public ResponseEntity<Set<Friend>> getRequestsToThisUser(@AuthenticationPrincipal User user) {
+    public ResponseEntity<Set<FriendRequestDTO>> getRequestsToThisUser(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(friendService.getRequestsToThisUser(user.getId()));
     }
 

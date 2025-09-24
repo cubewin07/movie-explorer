@@ -29,9 +29,11 @@ public class FriendService {
                 .collect(Collectors.toSet());
     }
 
-    public Set<Friend> getRequestsToThisUser(Long id) {
+    public Set<FriendRequestDTO> getRequestsToThisUser(Long id) {
         User user = userRepository.findWithRequestsToById(id).orElseThrow();
-        return user.getRequestsTo();
+        return user.getRequestsTo().stream()
+                .map(f -> new FriendRequestDTO(f.getUser1().getId(), f.getUser1().getEmail(), f.getStatus(), f.getCreatedAt()))
+                .collect(Collectors.toSet());
     }
 
     @Transactional
