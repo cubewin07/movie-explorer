@@ -7,7 +7,6 @@ import com.Backend.services.friend_service.repository.FriendRepo;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.repository.UserRepository;
 import jakarta.transaction.Transactional;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,18 +18,18 @@ public class FriendService {
     private final FriendRepo friendRepo;
     private final UserRepository userRepository;
 
-    public Set<Friend> getFriend(Long id) {
-        User user = userRepository.findWithFriends(id).orElseThrow();
-        return user.getFriends();
+    public Set<Friend> getRequestsFromThisUser(Long id) {
+        User user = userRepository.findWithRequestsFrom(id).orElseThrow();
+        return user.getRequestsFrom();
     }
 
-    public Set<Friend> getRequest(Long id) {
-        User user = userRepository.findWithFriends(id).orElseThrow();
-        return user.getRequests();
+    public Set<Friend> getRequestsToThisUser(Long id) {
+        User user = userRepository.findWithRequestsToById(id).orElseThrow();
+        return user.getRequestsTo();
     }
 
     @Transactional
-    public void requestFriend(User user1, String friendEmail) {
+    public void sendRequest(User user1, String friendEmail) {
         User user2 = userRepository.findByEmail(friendEmail).orElseThrow();
         Friend friendReq = Friend.builder().user1(user1).user2(user2).build();
         friendRepo.save(friendReq);
