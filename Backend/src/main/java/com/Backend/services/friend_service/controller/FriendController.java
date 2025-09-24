@@ -17,6 +17,7 @@ import com.Backend.services.friend_service.service.FriendService;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.friend_service.model.EmailBody;
 import com.Backend.services.friend_service.model.FriendUpdatingBody;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 
@@ -53,4 +54,10 @@ public class FriendController {
         friendService.updateFriend(user, friendUpdatingBody.email(), friendUpdatingBody.status());
         return ResponseEntity.ok().build();
     }
+    
+    @DeleteMapping("/delete")
+    public ResponseEntity<Void> deleteFriend(@RequestBody EmailBody emailBody, @AuthenticationPrincipal User user) {
+        friendService.deleteFriend(user, emailBody.email());
+        return ResponseEntity.ok().build();
+    }       
 }
