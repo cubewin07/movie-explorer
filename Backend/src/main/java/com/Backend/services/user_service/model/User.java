@@ -43,10 +43,10 @@ public class User implements UserDetails {
     private Watchlist watchlist = new Watchlist();
 
     @OneToMany(mappedBy = "user1")
-    private Set<Friend> friends;
+    private Set<Friend> requestsFrom;
 
     @OneToMany(mappedBy = "user2")
-    private Set<Friend> requests;
+    private Set<Friend> requestsTo;
 
     @Enumerated(EnumType.STRING)
     private ROLE role;
