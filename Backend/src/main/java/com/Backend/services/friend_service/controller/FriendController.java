@@ -2,6 +2,7 @@ package com.Backend.services.friend_service.controller;
 
 import java.util.Set;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,12 +18,12 @@ public class FriendController {
     private final FriendService friendService;
     
     @GetMapping("/requestsFrom")
-    public Set<Friend> getRequestsFromThisUser(Long id) {
-        return friendService.getRequestsFromThisUser(id);
+    public ResponseEntity<Set<Friend>> getRequestsFromThisUser(Long id) {
+        return ResponseEntity.ok(friendService.getRequestsFromThisUser(id));
     }
 
     @GetMapping("/requestsTo")
-    public Set<Friend> getRequestsToThisUser(Long id) {
-        return friendService.getRequestsToThisUser(id);
+    public ResponseEntity<Set<Friend>> getRequestsToThisUser(Long id) {
+        return ResponseEntity.ok(friendService.getRequestsToThisUser(id));
     }
 }
