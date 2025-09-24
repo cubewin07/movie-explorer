@@ -2,6 +2,7 @@ package com.Backend.services.friend_service.service;
 
 
 import com.Backend.services.friend_service.model.Friend;
+import com.Backend.services.friend_service.model.FriendRequestDTO;
 import com.Backend.services.friend_service.model.Status;
 import com.Backend.services.friend_service.repository.FriendRepo;
 import com.Backend.services.user_service.model.User;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -20,9 +22,11 @@ public class FriendService {
     private final FriendRepo friendRepo;
     private final UserRepository userRepository;
 
-    public Set<Friend> getRequestsFromThisUser(Long id) {
+    public Set<FriendRequestDTO> getRequestsFromThisUser(Long id) {
         User user = userRepository.findWithRequestsFrom(id).orElseThrow();
-        return user.getRequestsFrom();
+        return user.getRequestsFrom().stream()
+                .map(f -> new FriendRequestDTO(f.getUser2().getId(), f.getUser2().getEmail(), f.getStatus(), f.getCreatedAt()))
+                .collect(Collectors.toSet());
     }
 
     public Set<Friend> getRequestsToThisUser(Long id) {
