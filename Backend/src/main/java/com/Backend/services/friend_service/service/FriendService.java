@@ -85,7 +85,7 @@ public class FriendService {
         User user2 = userRepository.findByEmail(friendEmail).orElseThrow();
 
         // Check both directions
-        Friend friend = friendRepo.findFriendshipBetween(user1, user2).orElseThrow(() -> new IllegalStateException("No friend relationship found");
+        Friend friend = friendRepo.findFriendshipBetween(user1, user2).orElseThrow(() -> new IllegalStateException("No friend relationship found"));
 
         // Both users should be able to delete the relationship
         if (friend.getUser1().getId().equals(user1.getId()) ||
