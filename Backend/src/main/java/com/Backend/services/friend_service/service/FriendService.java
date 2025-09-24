@@ -10,6 +10,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -78,6 +79,10 @@ public class FriendService {
         } else {
             throw new IllegalStateException("Only the request recipient can update the status");
         }
+    }
+
+    public List<Friend> getAllFriends(User user) {
+        return friendRepo.findAllFriendshipsByUserAndStatus(user, Status.ACCEPTED);
     }
 
     @Transactional

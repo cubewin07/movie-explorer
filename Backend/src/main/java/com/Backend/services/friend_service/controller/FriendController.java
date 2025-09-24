@@ -1,5 +1,6 @@
 package com.Backend.services.friend_service.controller;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import org.springframework.http.ResponseEntity;
@@ -36,6 +37,12 @@ public class FriendController {
     @GetMapping("/requestsTo")
     public ResponseEntity<Set<Friend>> getRequestsToThisUser(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(friendService.getRequestsToThisUser(user.getId()));
+    }
+
+    @GetMapping("/friend")
+    public ResponseEntity<Set<Friend>> getAllFriends(@AuthenticationPrincipal User user) {
+        Set<Friend> friends = new HashSet<>(friendService.getAllFriends(user));
+        return ResponseEntity.ok(friends);
     }
 
     @GetMapping("/status")
