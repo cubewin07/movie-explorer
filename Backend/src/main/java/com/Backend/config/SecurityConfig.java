@@ -79,8 +79,8 @@ public class SecurityConfig {
 
     @Bean
     @Primary
-    public AuthenticationManager authenticationManager(AuthenticationProvider provider) {
-        return new ProviderManager(provider);
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+        return config.getAuthenticationManager();
     }
 
 }
