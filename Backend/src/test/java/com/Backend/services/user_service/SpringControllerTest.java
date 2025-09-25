@@ -4,6 +4,9 @@ import com.Backend.services.user_service.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.Backend.services.watchlist_service.model.WatchlistPosting;
 import com.Backend.services.watchlist_service.model.WatchlistType;
+import com.Backend.services.friend_service.model.EmailBody;
+import com.Backend.services.friend_service.model.FriendUpdatingBody;
+import com.Backend.services.friend_service.model.Status;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -47,6 +50,53 @@ class SpringControllerTest {
         return (String) map.get("token");
     }
 
+    // Friend helpers
+    private String registerAndAuth(String username, String email) throws Exception {
+        register(username, email, "password123");
+        return authenticate(email, "password123");
+    }
+
+    @Test
+    @Order(8)
+    @DisplayName("Friend request send/accept/delete flow")
+    void friend_request_accept_delete_flow() throws Exception {
+        // user A and B
+        String tokenA = registerAndAuth("alice", "alice@example.com");
+        register("bob", "bob@example.com", "password123");
+
+        // A sends friend request to B
+        mockMvc.perform(post("/friends/request")
+                        .header("Authorization", bearer(tokenA))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new EmailBody("bob@example.com"))))
+                .andExpect(status().isOk());
+
+        // B authenticates and accepts
+        String tokenB = authenticate("bob@example.com", "password123");
+        mockMvc.perform(put("/friends/update")
+                        .header("Authorization", bearer(tokenB))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new FriendUpdatingBody("alice@example.com", Status.ACCEPTED))))
+                .andExpect(status().isOk());
+
+        // Both should see each other in friends list
+        mockMvc.perform(get("/friends/friend")
+                        .header("Authorization", bearer(tokenA)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].user1.email", hasItem("alice@example.com")))
+                .andExpect(jsonPath("$[*].user2.email", hasItem("bob@example.com")));
+
+        mockMvc.perform(get("/friends/friend")
+                        .header("Authorization", bearer(tokenB)))
+                .andExpect(status().isOk());
+
+        // A deletes friendship
+        mockMvc.perform(delete("/friends/delete")
+                        .header("Authorization", bearer(tokenA))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(new EmailBody("bob@example.com"))))
+                .andExpect(status().isOk());
+    }
     private String authenticate(String email, String password) throws Exception {
         AuthenticateDTO req = new AuthenticateDTO(email, password);
         MvcResult result = mockMvc.perform(post("/users/authenticate")
