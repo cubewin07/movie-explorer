@@ -13,6 +13,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.Backend.exception.AuthenticationFailedException;
+
 
 import java.util.List;
 
@@ -55,12 +57,18 @@ public class UserService {
 
     @Transactional
     public JwtToken authenticateUser(AuthenticateDTO authenticate) {
-        Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        authenticate.email(),
-                        authenticate.password()
-                )
-        );
+        Authentication auth;
+        try {
+            auth = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            authenticate.email(),
+                            authenticate.password()
+                    )
+            );
+        } catch (Exception ex) {
+            log.error("Authentication failed for email={}", authenticate.email());
+            throw new AuthenticationFailedException("Invalid email or password", ex);
+        }
         String token = jwtService.generateToken(auth.getName());
         return new JwtToken(token);
 

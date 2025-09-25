@@ -3,6 +3,7 @@ package com.Backend.exception;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -16,5 +17,14 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 System.currentTimeMillis());
         return new ResponseEntity<>(errorRes, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler({AuthenticationFailedException.class, BadCredentialsException.class})
+    public ResponseEntity<ErrorRes> handleAuthenticationFailed(Exception ex) {
+        ErrorRes errorRes = new ErrorRes(
+                HttpStatus.UNAUTHORIZED.value(),
+                ex.getMessage(),
+                System.currentTimeMillis());
+        return new ResponseEntity<>(errorRes, HttpStatus.UNAUTHORIZED);
     }
 }
