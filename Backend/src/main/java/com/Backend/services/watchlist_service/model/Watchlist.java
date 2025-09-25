@@ -1,6 +1,8 @@
 package com.Backend.services.watchlist_service.model;
 
 import com.Backend.services.user_service.model.User;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,6 +21,7 @@ public class Watchlist {
     @OneToOne
     @MapsId
     @JoinColumn(name = "user_id")
+    @JsonBackReference
     private User user;
 
     @ElementCollection

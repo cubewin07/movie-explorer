@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    @EntityGraph(attributePaths = {"watchlist", "requestsFrom", "requestsTo"})
+    @EntityGraph(attributePaths = {"watchlist", "watchlist.seriesId", "watchlist.moviesId" ,"requestsFrom", "requestsTo"})
     Optional<User> findByEmail(String email);
 
     @Query("""

@@ -2,6 +2,8 @@ package com.Backend.services.user_service.model;
 
 import com.Backend.services.friend_service.model.Friend;
 import com.Backend.services.watchlist_service.model.Watchlist;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -41,6 +43,7 @@ public class User implements UserDetails {
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     @Builder.Default
+    @JsonManagedReference
     private Watchlist watchlist = new Watchlist();
 
     @OneToMany(mappedBy = "user1")
