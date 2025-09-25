@@ -51,8 +51,8 @@ public class JwtService {
 
     public String generateToken(String username) {
         return Jwts.builder()
-                .setSubject(username)
                 .setClaims(new HashMap<>())
+                .setSubject(username)
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .signWith(getSignInKey())
@@ -61,8 +61,8 @@ public class JwtService {
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
         return Jwts.builder()
-                .setSubject(userDetails.getUsername())
                 .setClaims(extraClaims)
+                .setSubject(userDetails.getUsername())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .signWith(getSignInKey())
