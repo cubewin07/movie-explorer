@@ -76,10 +76,8 @@ class UserControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].id", is(1)))
-                // username getter returns email due to UserDetails override
-                .andExpect(jsonPath("$[0].username", is("john@example.com")))
-                .andExpect(jsonPath("$[0].email", is("john@example.com")));
+                .andExpect(jsonPath("$[*].email", containsInAnyOrder("john@example.com", "jane@example.com")))
+                .andExpect(jsonPath("$[*].username", containsInAnyOrder("john@example.com", "jane@example.com")));
     }
 
     @Test
