@@ -2,6 +2,8 @@ package com.Backend.services.user_service;
 
 import com.Backend.services.user_service.model.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.Backend.services.watchlist_service.model.WatchlistPosting;
+import com.Backend.services.watchlist_service.model.WatchlistType;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -61,6 +63,43 @@ class SpringControllerTest {
         return "Bearer " + token;
     }
 
+    // Watchlist helpers
+    private void addMovie(String token, long id) throws Exception {
+        WatchlistPosting posting = new WatchlistPosting(WatchlistType.MOVIE, id);
+        mockMvc.perform(post("/watchlist")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(posting)))
+                .andExpect(status().isOk());
+    }
+
+    private void addSeries(String token, long id) throws Exception {
+        WatchlistPosting posting = new WatchlistPosting(WatchlistType.SERIES, id);
+        mockMvc.perform(post("/watchlist")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(posting)))
+                .andExpect(status().isOk());
+    }
+
+    private void removeMovie(String token, long id) throws Exception {
+        WatchlistPosting posting = new WatchlistPosting(WatchlistType.MOVIE, id);
+        mockMvc.perform(delete("/watchlist")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(posting)))
+                .andExpect(status().isOk());
+    }
+
+    private void removeSeries(String token, long id) throws Exception {
+        WatchlistPosting posting = new WatchlistPosting(WatchlistType.SERIES, id);
+        mockMvc.perform(delete("/watchlist")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(posting)))
+                .andExpect(status().isOk());
+    }
+
     @Test
     @Order(1)
     @DisplayName("GET /users returns list of users")
@@ -70,99 +109,135 @@ class SpringControllerTest {
         register("jane", "jane@example.com", "password123");
         // Authenticate to get a token
         String token = authenticate("john@example.com", "password123");
-
+        
         mockMvc.perform(get("/users")
-                        .header("Authorization", bearer(token)))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[*].email", containsInAnyOrder("john@example.com", "jane@example.com")))
-                .andExpect(jsonPath("$[*].username", containsInAnyOrder("john@example.com", "jane@example.com")));
+        .header("Authorization", bearer(token)))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(2)))
+        .andExpect(jsonPath("$[*].email", containsInAnyOrder("john@example.com", "jane@example.com")))
+        .andExpect(jsonPath("$[*].username", containsInAnyOrder("john@example.com", "jane@example.com")));
     }
-
+    
     @Test
     @Order(2)
     @DisplayName("POST /users register returns token")
     void registerUser_returnsToken() throws Exception {
         RegisterDTO req = new RegisterDTO("john2", "john2@example.com", "password123");
-
+        
         mockMvc.perform(post("/users/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token", not(emptyString())));
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.token", not(emptyString())));
     }
-
+    
     @Test
     @Order(3)
     @DisplayName("POST /users/authenticate returns token")
     void authenticateUser_returnsToken() throws Exception {
         // Ensure user exists
         register("authuser", "auth@example.com", "password123");
-
+        
         AuthenticateDTO req = new AuthenticateDTO("auth@example.com", "password123");
         mockMvc.perform(post("/users/authenticate")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token", not(emptyString())));
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.token", not(emptyString())));
     }
-
+    
     @Test
     @Order(4)
     @DisplayName("GET /users/me returns authenticated user from principal")
     void getMe_returnsPrincipalUser() throws Exception {
         register("me", "me@example.com", "password123");
         String token = authenticate("me@example.com", "password123");
-
+        
         mockMvc.perform(get("/users/me")
-                        .header("Authorization", bearer(token)))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", greaterThanOrEqualTo(1)))
-                .andExpect(jsonPath("$.email", is("me@example.com")))
-                .andExpect(jsonPath("$.username", is("me")));
+        .header("Authorization", bearer(token)))
+        .andDo(print())
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id", greaterThanOrEqualTo(1)))
+        .andExpect(jsonPath("$.email", is("me@example.com")))
+        .andExpect(jsonPath("$.username", is("me")));
     }
-
+    
     @Test
     @Order(5)
     @DisplayName("PUT /users updates and returns user")
     void updateUser_returnsUpdated() throws Exception {
         register("old", "old@example.com", "password123");
         String token = authenticate("old@example.com", "password123");
-
+        
         UpdateUserDTO req = new UpdateUserDTO("new@example.com", "newname");
-
+        
         mockMvc.perform(put("/users")
-                        .header("Authorization", bearer(token))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id", greaterThanOrEqualTo(1)))
-                // username getter returns email due to UserDetails override
-                .andExpect(jsonPath("$.username", is("newname")))
-                .andExpect(jsonPath("$.email", is("new@example.com")));
+        .header("Authorization", bearer(token))
+        .contentType(MediaType.APPLICATION_JSON)
+        .content(objectMapper.writeValueAsString(req)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.id", greaterThanOrEqualTo(1)))
+        // username getter returns email due to UserDetails override
+        .andExpect(jsonPath("$.username", is("newname")))
+        .andExpect(jsonPath("$.email", is("new@example.com")));
     }
-
+    
     @Test
     @Order(6)
     @DisplayName("DELETE /users deletes and returns message")
     void deleteUser_returnsMessage() throws Exception {
         register("abc", "abc@example.com", "password123");
         String token = authenticate("abc@example.com", "password123");
-
+        
         // Fetch current user to get ID
         MvcResult meResult = mockMvc.perform(get("/users/me")
-                        .header("Authorization", bearer(token)))
-                .andExpect(status().isOk())
-                .andReturn();
+        .header("Authorization", bearer(token)))
+        .andExpect(status().isOk())
+        .andReturn();
         String meBody = meResult.getResponse().getContentAsString();
         Map<?,?> meMap = objectMapper.readValue(meBody, Map.class);
         Integer id = (Integer) meMap.get("id");
-
+        
         mockMvc.perform(delete("/users")
+        .header("Authorization", bearer(token)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.message", is("User with id " + id + " deleted successfully")));
+    }
+
+    // Watchlist test
+    @Test
+    @Order(7)
+    @DisplayName("GET /watchlist returns empty on new user, then reflects changes")
+    void watchlist_get_add_remove_flow() throws Exception {
+        register("wluser", "wl@example.com", "password123");
+        String token = authenticate("wl@example.com", "password123");
+    
+        // Initially empty
+        mockMvc.perform(get("/watchlist")
                         .header("Authorization", bearer(token)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message", is("User with id " + id + " deleted successfully")));
+                .andExpect(jsonPath("$.moviesId", hasSize(0)))
+                .andExpect(jsonPath("$.seriesId", hasSize(0)));
+    
+        // Add movie and series
+        addMovie(token, 101L);
+        addSeries(token, 202L);
+    
+        mockMvc.perform(get("/watchlist")
+                        .header("Authorization", bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.moviesId", contains(101)))
+                .andExpect(jsonPath("$.seriesId", contains(202)));
+    
+        // Remove them
+        removeMovie(token, 101L);
+        removeSeries(token, 202L);
+    
+        mockMvc.perform(get("/watchlist")
+                        .header("Authorization", bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.moviesId", not(hasItem(101))))
+                .andExpect(jsonPath("$.seriesId", not(hasItem(202))));
     }
 }
