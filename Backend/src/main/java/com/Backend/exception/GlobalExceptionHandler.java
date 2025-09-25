@@ -27,4 +27,23 @@ public class GlobalExceptionHandler {
                 System.currentTimeMillis());
         return new ResponseEntity<>(errorRes, HttpStatus.UNAUTHORIZED);
     }
+
+    @ExceptionHandler(FriendRequestAlreadyExistsException.class)
+    public ResponseEntity<ErrorRes> handleFriendRequestAlreadyExists(FriendRequestAlreadyExistsException ex) {
+        ErrorRes errorRes = new ErrorRes(
+                HttpStatus.CONFLICT.value(),
+                ex.getMessage(),
+                System.currentTimeMillis());
+        return new ResponseEntity<>(errorRes, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler({FriendNotFoundException.class, NotAuthorizedToModifyFriendshipException.class})
+    public ResponseEntity<ErrorRes> handleFriendErrors(RuntimeException ex) {
+        HttpStatus status = ex instanceof FriendNotFoundException ? HttpStatus.NOT_FOUND : HttpStatus.FORBIDDEN;
+        ErrorRes errorRes = new ErrorRes(
+                status.value(),
+                ex.getMessage(),
+                System.currentTimeMillis());
+        return new ResponseEntity<>(errorRes, status);
+    }
 }

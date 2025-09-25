@@ -7,6 +7,9 @@ import com.Backend.services.friend_service.model.Status;
 import com.Backend.services.friend_service.repository.FriendRepo;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.repository.UserRepository;
+import com.Backend.exception.FriendNotFoundException;
+import com.Backend.exception.FriendRequestAlreadyExistsException;
+import com.Backend.exception.NotAuthorizedToModifyFriendshipException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,14 +26,14 @@ public class FriendService {
     private final UserRepository userRepository;
 
     public Set<FriendRequestDTO> getRequestsFromThisUser(Long id) {
-        User user = userRepository.findWithRequestsFrom(id).orElseThrow();
+        User user = userRepository.findWithRequestsFrom(id).orElseThrow(() -> new FriendNotFoundException("User not found"));
         return user.getRequestsFrom().stream()
                 .map(f -> new FriendRequestDTO(f.getUser2().getId(), f.getUser2().getEmail(), f.getStatus(), f.getCreatedAt()))
                 .collect(Collectors.toSet());
     }
 
     public Set<FriendRequestDTO> getRequestsToThisUser(Long id) {
-        User user = userRepository.findWithRequestsToById(id).orElseThrow();
+        User user = userRepository.findWithRequestsToById(id).orElseThrow(() -> new FriendNotFoundException("User not found"));
         return user.getRequestsTo().stream()
                 .map(f -> new FriendRequestDTO(f.getUser1().getId(), f.getUser1().getEmail(), f.getStatus(), f.getCreatedAt()))
                 .collect(Collectors.toSet());
@@ -38,17 +41,17 @@ public class FriendService {
 
     @Transactional
     public void sendRequest(User user1, String friendEmail) {
-        User user2 = userRepository.findByEmail(friendEmail).orElseThrow();
+        User user2 = userRepository.findByEmail(friendEmail).orElseThrow(() -> new FriendNotFoundException("Friend user not found"));
 
         // Check if a request already exists in either direction
         Optional<Friend> existingRequest = friendRepo.findByUser1AndUser2(user1, user2);
         if (existingRequest.isPresent()) {
-            throw new IllegalStateException("Friend request already exists");
+            throw new FriendRequestAlreadyExistsException("Friend request already exists");
         }
 
         existingRequest = friendRepo.findByUser1AndUser2(user2, user1);
         if (existingRequest.isPresent()) {
-            throw new IllegalStateException("Friend request already exists in opposite direction");
+            throw new FriendRequestAlreadyExistsException("Friend request already exists in opposite direction");
         }
 
         Friend friendReq = Friend.builder()
@@ -68,7 +71,7 @@ public class FriendService {
 
     @Transactional
     public void updateFriend(User user1, String senderEmail, Status status) {
-        User user2 = userRepository.findByEmail(senderEmail).orElseThrow();
+        User user2 = userRepository.findByEmail(senderEmail).orElseThrow(() -> new FriendNotFoundException("Friend user not found"));
 
         // Check both directions
         Optional<Friend> friendReq = friendRepo.findByUser1AndUser2(user1, user2);
@@ -76,14 +79,14 @@ public class FriendService {
             friendReq = friendRepo.findByUser1AndUser2(user2, user1);
         }
 
-        Friend friend = friendReq.orElseThrow(() -> new IllegalStateException("No friend relationship found"));
+        Friend friend = friendReq.orElseThrow(() -> new FriendNotFoundException("No friend relationship found"));
 
         // Only recipient can accept/reject
         if (status != Status.PENDING && friend.getUser2().getId().equals(user1.getId())) {
             friend.setStatus(status);
             friendRepo.save(friend);
         } else {
-            throw new IllegalStateException("Only the request recipient can update the status");
+            throw new NotAuthorizedToModifyFriendshipException("Only the request recipient can update the status");
         }
     }
 
@@ -93,17 +96,17 @@ public class FriendService {
 
     @Transactional
     public void deleteFriend(User user1, String friendEmail) {
-        User user2 = userRepository.findByEmail(friendEmail).orElseThrow();
+        User user2 = userRepository.findByEmail(friendEmail).orElseThrow(() -> new FriendNotFoundException("Friend user not found"));
 
         // Check both directions
-        Friend friend = friendRepo.findFriendshipBetween(user1, user2).orElseThrow(() -> new IllegalStateException("No friend relationship found"));
+        Friend friend = friendRepo.findFriendshipBetween(user1, user2).orElseThrow(() -> new FriendNotFoundException("No friend relationship found"));
 
         // Both users should be able to delete the relationship
         if (friend.getUser1().getId().equals(user1.getId()) ||
                 friend.getUser2().getId().equals(user1.getId())) {
             friendRepo.delete(friend);
         } else {
-            throw new IllegalStateException("Not authorized to delete this relationship");
+            throw new NotAuthorizedToModifyFriendshipException("Not authorized to delete this relationship");
         }
     }
 
