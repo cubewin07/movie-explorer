@@ -1,0 +1,45 @@
+package com.Backend.services.watchlist_service;
+
+import com.Backend.services.user_service.model.User;
+import com.Backend.services.watchlist_service.model.Watchlist;
+import com.Backend.services.watchlist_service.model.WatchlistPosting;
+import com.Backend.services.watchlist_service.model.WatchlistType;
+import com.Backend.services.watchlist_service.service.WatchlistService;
+import jakarta.validation.executable.ValidateOnExecution;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/watchlist")
+@RequiredArgsConstructor
+public class WatchlistController {
+    private final WatchlistService watchlistService;
+
+    @GetMapping()
+    public ResponseEntity<Watchlist> getWatchlist(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(watchlistService.getWatchlist(user));
+    }
+
+    @PostMapping
+    public ResponseEntity<Void> addToWatchlist(@RequestBody WatchlistPosting posting, @AuthenticationPrincipal User user) {
+        if(posting.type().equals(WatchlistType.MOVIE))
+            watchlistService.addMovieToWatchlist(posting.id(), user);
+        else if(posting.type().equals(WatchlistType.SERIES))
+            watchlistService.addSeriesToWatchlist(posting.id(), user);
+        else
+            throw new IllegalArgumentException("Invalid posting type");
+        return ResponseEntity.ok().build();
+    }
+    @DeleteMapping
+    public ResponseEntity<Void> deleteMovieFromWatchlist(@RequestBody WatchlistPosting posting, @AuthenticationPrincipal User user) {
+        if(posting.type().equals(WatchlistType.MOVIE))
+            watchlistService.removeMovieFromWatchlist(posting.id(), user);
+        else if(posting.type().equals(WatchlistType.SERIES))
+            watchlistService.removeSeriesFromWatchlist(posting.id(), user);
+        else
+            throw new IllegalArgumentException("Invalid posting type");
+        return ResponseEntity.ok().build();
+    }
+}
