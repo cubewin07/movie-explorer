@@ -3,6 +3,7 @@ package com.Backend.config;
 import java.util.List;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -77,6 +78,7 @@ public class SecurityConfig {
     }
 
     @Bean
+    @Primary
     public AuthenticationManager authenticationManager(AuthenticationProvider provider) {
         return new ProviderManager(provider);
     }

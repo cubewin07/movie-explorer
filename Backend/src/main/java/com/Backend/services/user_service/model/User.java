@@ -14,6 +14,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -43,10 +44,12 @@ public class User implements UserDetails {
     private Watchlist watchlist = new Watchlist();
 
     @OneToMany(mappedBy = "user1")
-    private Set<Friend> requestsFrom;
+    @Builder.Default
+    private Set<Friend> requestsFrom = new HashSet<>();
 
     @OneToMany(mappedBy = "user2")
-    private Set<Friend> requestsTo;
+    @Builder.Default
+    private Set<Friend> requestsTo = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
     private ROLE role;

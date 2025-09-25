@@ -67,7 +67,7 @@ public class UserService {
             );
         } catch (Exception ex) {
             log.error("Authentication failed for email={}", authenticate.email());
-            throw new AuthenticationFailedException("Invalid email or password", ex);
+            throw new AuthenticationFailedException(ex.getMessage());
         }
         String token = jwtService.generateToken(auth.getName());
         return new JwtToken(token);
