@@ -2,7 +2,9 @@ package com.Backend.services.user_service.model;
 
 import com.Backend.services.friend_service.model.Friend;
 import com.Backend.services.watchlist_service.model.Watchlist;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -33,6 +35,7 @@ public class User implements UserDetails {
     private Long id;
 
     @NotNull(message = "Username cannot be null")
+    @JsonProperty("username")
     private String username;
 
     @NotNull(message = "Email cannot be null")
@@ -68,6 +71,7 @@ public class User implements UserDetails {
         return this.password;
     }
 
+    @JsonIgnore
     @Override
     public String getUsername() {
         return this.email;

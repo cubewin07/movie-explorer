@@ -121,8 +121,7 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", greaterThanOrEqualTo(1)))
                 .andExpect(jsonPath("$.email", is("me@example.com")))
-                // username getter returns email due to UserDetails override
-                .andExpect(jsonPath("$.username", is("me@example.com")));
+                .andExpect(jsonPath("$.username", is("me")));
     }
 
     @Test
@@ -132,7 +131,7 @@ class UserControllerTest {
         register("old", "old@example.com", "password123");
         String token = authenticate("old@example.com", "password123");
 
-        UpdateUserDTO req = new UpdateUserDTO("newname", "new@example.com");
+        UpdateUserDTO req = new UpdateUserDTO("new@example.com", "newname");
 
         mockMvc.perform(put("/users")
                         .header("Authorization", bearer(token))
@@ -141,7 +140,7 @@ class UserControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", greaterThanOrEqualTo(1)))
                 // username getter returns email due to UserDetails override
-                .andExpect(jsonPath("$.username", is("new@example.com")))
+                .andExpect(jsonPath("$.username", is("newname")))
                 .andExpect(jsonPath("$.email", is("new@example.com")));
     }
 
