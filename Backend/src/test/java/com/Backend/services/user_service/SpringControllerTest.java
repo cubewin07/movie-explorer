@@ -257,7 +257,7 @@ class SpringControllerTest {
     void friend_request_accept_delete_flow() throws Exception {
         // user A and B
         String tokenA = registerAndAuth("alice", "alice@example.com");
-        register("bob", "bob@example.com", "password123");
+        String tokenB = registerAndAuth("bob", "bob@example.com");
     
         // A sends friend request to B
         mockMvc.perform(post("/friends/request")
@@ -267,7 +267,7 @@ class SpringControllerTest {
                 .andExpect(status().isOk());
     
         // B authenticates and accepts
-        String tokenB = authenticate("bob@example.com", "password123");
+        authenticate("bob@example.com", "password123");
         mockMvc.perform(put("/friends/update")
                         .header("Authorization", bearer(tokenB))
                         .contentType(MediaType.APPLICATION_JSON)
