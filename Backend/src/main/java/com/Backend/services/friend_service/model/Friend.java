@@ -12,6 +12,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.IdClass;
 import jakarta.persistence.EnumType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -23,16 +25,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Builder    
 @Data
+@IdClass(FriendIdEb.class)
 public class Friend {
-    @EmbeddedId
-    private FriendIdEb id;
 
-    @MapsId("user1Id")
+    @Id
     @ManyToOne
     @JoinColumn(name = "user1_id")
     private User user1;
 
-    @MapsId("user2Id")
+    @Id
     @ManyToOne
     @JoinColumn(name = "user2_id")
     private User user2;

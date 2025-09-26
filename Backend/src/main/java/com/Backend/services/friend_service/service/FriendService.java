@@ -55,12 +55,7 @@ public class FriendService {
             throw new FriendRequestAlreadyExistsException("Friend request already exists in opposite direction");
         }
 
-        com.Backend.services.friend_service.model.FriendIdEb id = new com.Backend.services.friend_service.model.FriendIdEb();
-        id.setUser1Id(user1.getId());
-        id.setUser2Id(user2.getId());
-
         Friend friendReq = Friend.builder()
-                .id(id)
                 .user1(user1)
                 .user2(user2)
                 .status(Status.PENDING)

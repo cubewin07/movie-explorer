@@ -17,8 +17,8 @@ import lombok.NoArgsConstructor;
 public class FriendIdEb implements Serializable {
 
     @EqualsAndHashCode.Include
-    private Long user1Id;
+    private Long user1;
 
     @EqualsAndHashCode.Include
-    private Long user2Id;
+    private Long user2;
 }
