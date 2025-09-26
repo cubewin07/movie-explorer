@@ -2,6 +2,7 @@ package com.Backend.services.friend_service.service;
 
 
 import com.Backend.services.friend_service.model.Friend;
+import com.Backend.services.friend_service.model.FriendDTO;
 import com.Backend.services.friend_service.model.FriendRequestDTO;
 import com.Backend.services.friend_service.model.Status;
 import com.Backend.services.friend_service.repository.FriendRepo;
@@ -90,8 +91,17 @@ public class FriendService {
         }
     }
 
-    public List<Friend> getAllFriends(User user) {
-        return friendRepo.findAllFriendshipsByUserAndStatus(user, Status.ACCEPTED);
+    public Set<FriendDTO> getAllFriends(User user) {
+        List<Friend> friends = friendRepo.findAllFriendshipsByUserAndStatus(user, Status.ACCEPTED);
+        return friends.stream()
+                .map(f -> {
+                    if(f.getUser1().getId().equals(user.getId())){
+                        return new FriendDTO(f.getUser2(), f.getStatus());
+                    }else{
+                        return new FriendDTO(f.getUser1(), f.getStatus());
+                    }
+                })
+                .collect(Collectors.toSet());
     }
 
     @Transactional

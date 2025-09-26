@@ -37,9 +37,8 @@ public class FriendController {
     }
 
     @GetMapping("/friend")
-    public ResponseEntity<Set<Friend>> getAllFriends(@AuthenticationPrincipal User user) {
-        Set<Friend> friends = new HashSet<>(friendService.getAllFriends(user));
-        return ResponseEntity.ok(friends);
+    public ResponseEntity<Set<FriendDTO>> getAllFriends(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(friendService.getAllFriends(user));
     }
 
     @GetMapping("/status")
