@@ -27,12 +27,12 @@ public class Friend {
     @EmbeddedId
     private FriendIdEb id;
 
-    @MapsId("user1")
+    @MapsId("user1Id")
     @ManyToOne
     @JoinColumn(name = "user1_id")
     private User user1;
 
-    @MapsId("user2")
+    @MapsId("user2Id")
     @ManyToOne
     @JoinColumn(name = "user2_id")
     private User user2;

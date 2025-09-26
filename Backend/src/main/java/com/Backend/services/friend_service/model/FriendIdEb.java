@@ -9,19 +9,19 @@ import lombok.Data;
 @Embeddable
 @Data
 public class FriendIdEb implements Serializable{
-    private Long user1;
-    private Long user2;
+    private Long user1Id;
+    private Long user2Id;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         FriendIdEb that = (FriendIdEb) o;
-        return user1.equals(that.user1) && user2.equals(that.user2);
+        return user1Id.equals(that.user1Id) && user2Id.equals(that.user2Id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(user1, user2);
+        return Objects.hash(user1Id, user2Id);
     }
 }
