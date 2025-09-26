@@ -55,7 +55,12 @@ public class FriendService {
             throw new FriendRequestAlreadyExistsException("Friend request already exists in opposite direction");
         }
 
+        com.Backend.services.friend_service.model.FriendIdEb id = new com.Backend.services.friend_service.model.FriendIdEb();
+        id.setUser1Id(user1.getId());
+        id.setUser2Id(user2.getId());
+
         Friend friendReq = Friend.builder()
+                .id(id)
                 .user1(user1)
                 .user2(user2)
                 .status(Status.PENDING)
@@ -94,13 +99,15 @@ public class FriendService {
     public Set<FriendDTO> getAllFriends(User user) {
         List<Friend> friends = friendRepo.findAllFriendshipsByUserAndStatus(user, Status.ACCEPTED);
         return friends.stream()
-                .map(f -> {
-                    if(f.getUser1().getId().equals(user.getId())){
-                        return new FriendDTO(f.getUser2(), f.getStatus());
-                    }else{
-                        return new FriendDTO(f.getUser1(), f.getStatus());
-                    }
-                })
+                .map(f -> new FriendDTO(
+                        new com.Backend.services.friend_service.model.FriendUserDTO(
+                                f.getUser1().getId(), f.getUser1().getEmail(), f.getUser1().getUsername()
+                        ),
+                        new com.Backend.services.friend_service.model.FriendUserDTO(
+                                f.getUser2().getId(), f.getUser2().getEmail(), f.getUser2().getUsername()
+                        ),
+                        f.getStatus()
+                ))
                 .collect(Collectors.toSet());
     }
 
