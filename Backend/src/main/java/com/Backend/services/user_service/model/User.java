@@ -80,6 +80,11 @@ public class User implements UserDetails {
         return this.email;
     }
 
+    @JsonIgnore
+    public String getRealUsername() {
+        return this.username;
+    }
+
     public void setWatchlist(Watchlist watchlist) {
         this.watchlist = watchlist;
         if(watchlist.getUser() != this) {
