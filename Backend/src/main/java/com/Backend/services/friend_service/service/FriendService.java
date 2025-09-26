@@ -4,6 +4,7 @@ package com.Backend.services.friend_service.service;
 import com.Backend.services.friend_service.model.Friend;
 import com.Backend.services.friend_service.model.FriendDTO;
 import com.Backend.services.friend_service.model.FriendRequestDTO;
+import com.Backend.services.friend_service.model.FriendUserDTO;
 import com.Backend.services.friend_service.model.Status;
 import com.Backend.services.friend_service.repository.FriendRepo;
 import com.Backend.services.user_service.model.User;
@@ -95,10 +96,10 @@ public class FriendService {
         List<Friend> friends = friendRepo.findAllFriendshipsByUserAndStatus(user, Status.ACCEPTED);
         return friends.stream()
                 .map(f -> new FriendDTO(
-                        new com.Backend.services.friend_service.model.FriendUserDTO(
+                        new FriendUserDTO(
                                 f.getUser1().getId(), f.getUser1().getEmail(), f.getUser1().getUsername()
                         ),
-                        new com.Backend.services.friend_service.model.FriendUserDTO(
+                        new FriendUserDTO(
                                 f.getUser2().getId(), f.getUser2().getEmail(), f.getUser2().getUsername()
                         ),
                         f.getStatus()

@@ -1,7 +1,6 @@
 package com.Backend.services.friend_service.model;
 
 import java.io.Serializable;
-import java.util.Objects;
 
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;

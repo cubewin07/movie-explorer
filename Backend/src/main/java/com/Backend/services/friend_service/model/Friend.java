@@ -6,10 +6,8 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import com.Backend.services.user_service.model.User;
 
-import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.MapsId;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
