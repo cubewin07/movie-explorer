@@ -95,15 +95,19 @@ public class FriendService {
     public Set<FriendDTO> getAllFriends(User user) {
         List<Friend> friends = friendRepo.findAllFriendshipsByUserAndStatus(user, Status.ACCEPTED);
         return friends.stream()
-                .map(f -> new FriendDTO(
-                        new FriendUserDTO(
-                                f.getUser1().getId(), f.getUser1().getEmail(), f.getUser1().getUsername()
-                        ),
-                        new FriendUserDTO(
-                                f.getUser2().getId(), f.getUser2().getEmail(), f.getUser2().getUsername()
-                        ),
-                        f.getStatus()
-                ))
+                .map(f -> {
+                        if(f.getUser1().getId().equals(user.getId())) 
+                            return new FriendDTO(
+                                new FriendUserDTO(f.getUser2().getId(), f.getUser2().getEmail(), f.getUser2().getUsername()),
+                                f.getStatus()
+                            );
+                        else
+                            return new FriendDTO(
+                                new FriendUserDTO(f.getUser1().getId(), f.getUser1().getEmail(), f.getUser1().getUsername()),
+                                f.getStatus()
+                            );
+                    }
+                )
                 .collect(Collectors.toSet());
     }
 
