@@ -98,7 +98,7 @@ public class FriendService {
                 .map(f -> {
                         if(f.getUser1().getId().equals(user.getId())) 
                             return new FriendDTO(
-                                new FriendUserDTO(f.getUser2().getId(), f.getUser2().getEmail(), f.getUser2().getUsername()),
+                                new FriendUserDTO(f.getUser2().getId(), f.getUser2().getEmail(), f.getUser2().getRealUsername()),
                                 f.getStatus()
                             );
                         else
