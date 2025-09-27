@@ -5,6 +5,8 @@ import com.Backend.services.watchlist_service.model.Watchlist;
 import com.Backend.services.watchlist_service.model.WatchlistPosting;
 import com.Backend.services.watchlist_service.model.WatchlistType;
 import com.Backend.services.watchlist_service.repository.WatchlistRepository;
+import com.Backend.exception.WatchlistNotFoundException;
+import com.Backend.exception.DuplicateWatchlistItemException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +22,8 @@ public class WatchlistService {
     private final WatchlistRepository watchlistRepository;
 
     public Watchlist getWatchlist(User user) {
-        return watchlistRepository.findByUserId(user.getId()).orElseThrow();
+        return watchlistRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new WatchlistNotFoundException("Watchlist for user id " + user.getId() + " not found"));
     }
 
     @Transactional
@@ -35,7 +38,7 @@ public class WatchlistService {
 
         // Checking duplication
         if(IdSet.contains(posting.id())) {
-            throw new IllegalArgumentException("Movie/Series already in watchlist");
+            throw new DuplicateWatchlistItemException("Movie/Series already in watchlist");
         }
 
         IdSet.add(posting.id());

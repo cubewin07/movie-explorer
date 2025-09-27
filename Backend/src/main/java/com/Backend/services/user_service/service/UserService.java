@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.Backend.exception.AuthenticationFailedException;
+import com.Backend.exception.UserNotFoundException;
 
 
 import java.util.List;
@@ -32,7 +33,8 @@ public class UserService {
     }
 
     public User getUserById(Long id) {
-        return userRepository.findById(id).orElseThrow();
+        return userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
     }
 
     @Transactional
@@ -76,7 +78,8 @@ public class UserService {
 
     @Transactional
     public User updateUser(UpdateUserDTO update, User userFromContext) {
-        User managedUser = userRepository.findByEmail(userFromContext.getEmail()).orElseThrow();
+        User managedUser = userRepository.findByEmail(userFromContext.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("User with email " + userFromContext.getEmail() + " not found"));
         managedUser.setUsername(update.username());
         managedUser.setEmail(update.email());
         log.info("User updated: id={}", managedUser.getId());
@@ -87,7 +90,7 @@ public class UserService {
     public void deleteUserById(Long id) {
         if (!userRepository.existsById(id)) {
             log.error("User with id {} does not exist", id);
-            throw new IllegalArgumentException("User with id " + id + " does not exist");
+            throw new UserNotFoundException("User with id " + id + " does not exist");
         }
         userRepository.deleteById(id);
         log.info("User with id {} deleted successfully", id);

@@ -28,6 +28,24 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorRes, HttpStatus.UNAUTHORIZED);
     }
 
+    @ExceptionHandler({UserNotFoundException.class, WatchlistNotFoundException.class, FriendshipNotFoundException.class})
+    public ResponseEntity<ErrorRes> handleNotFound(RuntimeException ex) {
+        ErrorRes errorRes = new ErrorRes(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                System.currentTimeMillis());
+        return new ResponseEntity<>(errorRes, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(DuplicateWatchlistItemException.class)
+    public ResponseEntity<ErrorRes> handleDuplicateWatchlist(DuplicateWatchlistItemException ex) {
+        ErrorRes errorRes = new ErrorRes(
+                HttpStatus.CONFLICT.value(),
+                ex.getMessage(),
+                System.currentTimeMillis());
+        return new ResponseEntity<>(errorRes, HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(FriendRequestAlreadyExistsException.class)
     public ResponseEntity<ErrorRes> handleFriendRequestAlreadyExists(FriendRequestAlreadyExistsException ex) {
         ErrorRes errorRes = new ErrorRes(

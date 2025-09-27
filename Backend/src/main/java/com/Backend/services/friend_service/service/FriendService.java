@@ -9,6 +9,8 @@ import com.Backend.services.friend_service.model.Status;
 import com.Backend.services.friend_service.repository.FriendRepo;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.repository.UserRepository;
+import com.Backend.exception.UserNotFoundException;
+import com.Backend.exception.FriendshipNotFoundException;
 import com.Backend.exception.FriendNotFoundException;
 import com.Backend.exception.FriendRequestAlreadyExistsException;
 import com.Backend.exception.NotAuthorizedToModifyFriendshipException;
@@ -65,10 +67,11 @@ public class FriendService {
     }
 
     public Status getFriendStatus(User user1, String friendEmail) {
-        User user2 = userRepository.findByEmail(friendEmail).orElseThrow();
+        User user2 = userRepository.findByEmail(friendEmail)
+                .orElseThrow(() -> new UserNotFoundException("User with email " + friendEmail + " not found"));
         return friendRepo.findFriendshipBetween(user1, user2)
                 .map(Friend::getStatus)
-                .orElseThrow(() -> new IllegalStateException("No friend relationship found"));
+                .orElseThrow(() -> new FriendshipNotFoundException("No friend relationship found"));
     }
 
     @Transactional
@@ -81,7 +84,7 @@ public class FriendService {
             friendReq = friendRepo.findByUser1AndUser2(user2, user1);
         }
 
-        Friend friend = friendReq.orElseThrow(() -> new FriendNotFoundException("No friend relationship found"));
+        Friend friend = friendReq.orElseThrow(() -> new FriendshipNotFoundException("No friend relationship found"));
 
         // Only recipient can accept/reject
         if (status != Status.PENDING && friend.getUser2().getId().equals(user1.getId())) {
@@ -116,7 +119,8 @@ public class FriendService {
         User user2 = userRepository.findByEmail(friendEmail).orElseThrow(() -> new FriendNotFoundException("Friend user not found"));
 
         // Check both directions
-        Friend friend = friendRepo.findFriendshipBetween(user1, user2).orElseThrow(() -> new FriendNotFoundException("No friend relationship found"));
+        Friend friend = friendRepo.findFriendshipBetween(user1, user2)
+                .orElseThrow(() -> new FriendshipNotFoundException("No friend relationship found"));
 
         // Both users should be able to delete the relationship
         if (friend.getUser1().getId().equals(user1.getId()) ||
