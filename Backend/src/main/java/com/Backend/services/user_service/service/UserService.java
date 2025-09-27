@@ -83,6 +83,7 @@ public class UserService {
         return managedUser;
     }
 
+    @Transactional
     public void deleteUserById(Long id) {
         if (!userRepository.existsById(id)) {
             log.error("User with id {} does not exist", id);
