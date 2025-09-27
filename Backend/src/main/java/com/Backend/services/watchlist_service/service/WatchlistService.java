@@ -5,6 +5,7 @@ import com.Backend.services.watchlist_service.model.Watchlist;
 import com.Backend.services.watchlist_service.model.WatchlistPosting;
 import com.Backend.services.watchlist_service.model.WatchlistType;
 import com.Backend.services.watchlist_service.repository.WatchlistRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,7 @@ public class WatchlistService {
         return watchlistRepository.findByUserId(user.getId()).orElseThrow();
     }
 
+    @Transactional
     public void addToWatchlist(WatchlistPosting posting, User user) {
         Watchlist watchlist = getWatchlist(user);
 
@@ -41,13 +43,7 @@ public class WatchlistService {
         log.info("Movie id: {} successfully added to watchlist for user: {}", posting.id(), user.getUsername());
     }
 
-    public void addSeriesToWatchlist(Long seriesId, User user) {
-        Watchlist watchlist = getWatchlist(user);
-        watchlist.getSeriesId().add(seriesId);
-        watchlistRepository.save(watchlist);
-        log.info("Series id: {} successfully added to watchlist for user: {}", seriesId, user.getUsername());
-    }
-
+    @Transactional
     public void removeFromWatchlist(WatchlistPosting posting, User user) {
         Long id = posting.id();
 
@@ -69,15 +65,5 @@ public class WatchlistService {
         }
     }
 
-    public void removeSeriesFromWatchlist(Long seriesId, User user) {
-        Watchlist watchlist = getWatchlist(user);
-        boolean removed = watchlist.getSeriesId().remove(seriesId);
-        if (removed) {
-            watchlistRepository.save(watchlist);
-            log.info("Series id: {} successfully removed from watchlist for user: {}", seriesId, user.getUsername());
-        } else {
-            log.warn("Series id: {} was not found in watchlist for user: {}", seriesId, user.getUsername());
-        }
-    }
 
 }
