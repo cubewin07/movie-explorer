@@ -31,11 +31,9 @@ public class WatchlistController {
         return ResponseEntity.ok().build();
     }
     @DeleteMapping
-    public ResponseEntity<Void> deleteMovieFromWatchlist(@RequestBody WatchlistPosting posting, @AuthenticationPrincipal User user) {
-        if(posting.type().equals(WatchlistType.MOVIE))
-            watchlistService.removeMovieFromWatchlist(posting.id(), user);
-        else if(posting.type().equals(WatchlistType.SERIES))
-            watchlistService.removeSeriesFromWatchlist(posting.id(), user);
+    public ResponseEntity<Void> deleteFromWatchlist(@RequestBody WatchlistPosting posting, @AuthenticationPrincipal User user) {
+        if(posting.type().equals(WatchlistType.MOVIE) || posting.type().equals(WatchlistType.SERIES))
+            watchlistService.removeFromWatchlist(posting.id(), user);
         else
             throw new IllegalArgumentException("Invalid posting type");
         return ResponseEntity.ok().build();
