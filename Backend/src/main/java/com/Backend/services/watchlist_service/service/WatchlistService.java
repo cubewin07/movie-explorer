@@ -2,10 +2,14 @@ package com.Backend.services.watchlist_service.service;
 
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.watchlist_service.model.Watchlist;
+import com.Backend.services.watchlist_service.model.WatchlistPosting;
+import com.Backend.services.watchlist_service.model.WatchlistType;
 import com.Backend.services.watchlist_service.repository.WatchlistRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.Set;
 
 @Slf4j
 @Service
@@ -18,11 +22,23 @@ public class WatchlistService {
         return watchlistRepository.findByUserId(user.getId()).orElseThrow();
     }
 
-    public void addMovieToWatchlist(Long movieId, User user) {
+    public void addToWatchlist(WatchlistPosting posting, User user) {
         Watchlist watchlist = getWatchlist(user);
-        watchlist.getMoviesId().add(movieId);
+
+        Set<Long> IdSet;
+        if(posting.type().equals(WatchlistType.MOVIE))
+            IdSet = watchlist.getMoviesId();
+        else
+            IdSet = watchlist.getSeriesId();
+
+        // Checking duplication
+        if(IdSet.contains(posting.id())) {
+            throw new IllegalArgumentException("Movie/Series already in watchlist");
+        }
+
+        IdSet.add(posting.id());
         watchlistRepository.save(watchlist);
-        log.info("Movie id: {} successfully added to watchlist for user: {}", movieId, user.getUsername());
+        log.info("Movie id: {} successfully added to watchlist for user: {}", posting.id(), user.getUsername());
     }
 
     public void addSeriesToWatchlist(Long seriesId, User user) {
