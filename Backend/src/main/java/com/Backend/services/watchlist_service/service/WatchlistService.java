@@ -48,14 +48,24 @@ public class WatchlistService {
         log.info("Series id: {} successfully added to watchlist for user: {}", seriesId, user.getUsername());
     }
 
-    public void removeMovieFromWatchlist(Long movieId, User user) {
+    public void removeFromWatchlist(WatchlistPosting posting, User user) {
+        Long id = posting.id();
+
         Watchlist watchlist = getWatchlist(user);
-        boolean removed = watchlist.getMoviesId().remove(movieId);
+
+        Set<Long> IdSet;
+        if(posting.type().equals(WatchlistType.MOVIE))
+            IdSet = watchlist.getMoviesId();
+        else
+            IdSet = watchlist.getSeriesId();
+
+        boolean removed = IdSet.remove(id);
+
         if (removed) {
             watchlistRepository.save(watchlist);
-            log.info("Movie id: {} successfully removed from watchlist for user: {}", movieId, user.getUsername());
+            log.info("Movie id: {} successfully removed from watchlist for user: {}", id, user.getUsername());
         } else {
-            log.warn("Movie id: {} was not found in watchlist for user: {}", movieId, user.getUsername());
+            log.warn("Movie id: {} was not found in watchlist for user: {}", id, user.getUsername());
         }
     }
 
