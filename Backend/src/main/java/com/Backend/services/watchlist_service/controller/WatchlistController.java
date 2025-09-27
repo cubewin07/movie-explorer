@@ -24,10 +24,8 @@ public class WatchlistController {
 
     @PostMapping
     public ResponseEntity<Void> addToWatchlist(@RequestBody WatchlistPosting posting, @AuthenticationPrincipal User user) {
-        if(posting.type().equals(WatchlistType.MOVIE))
-            watchlistService.addMovieToWatchlist(posting.id(), user);
-        else if(posting.type().equals(WatchlistType.SERIES))
-            watchlistService.addSeriesToWatchlist(posting.id(), user);
+        if(posting.type().equals(WatchlistType.MOVIE) || posting.type().equals(WatchlistType.SERIES))
+            watchlistService.addToWatchlist(posting, user);
         else
             throw new IllegalArgumentException("Invalid posting type");
         return ResponseEntity.ok().build();
