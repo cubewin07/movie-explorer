@@ -1,4 +1,4 @@
-package com.Backend.services.user_service.notification;
+package com.Backend.services.notification_service;
 
 import java.util.List;
 
