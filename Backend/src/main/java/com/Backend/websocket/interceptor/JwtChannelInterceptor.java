@@ -37,9 +37,14 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
             if (jwtService.isTokenExpired(jwt)) {
                 throw new RuntimeException("Invalid token");
             }
-
-            // Extract username from JWT
+            
+            String attributedUsername = (String) accessor.getSessionAttributes().get("username");
             String username = jwtService.extractUsername(jwt);
+
+            if (attributedUsername != null && !attributedUsername.equals(username)) {
+                throw new RuntimeException("Username mismatch");
+            }
+            
             accessor.setUser(new UsernamePasswordAuthenticationToken(username, null));
             return message;
         }
