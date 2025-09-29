@@ -2,6 +2,7 @@ package com.Backend.websocket.interceptor;
 
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 
@@ -16,6 +17,7 @@ import org.springframework.lang.Nullable;
 import java.util.Map;
 
 @RequiredArgsConstructor
+@Component
 public class WebsocketHandshaker implements HandshakeInterceptor {
     
     private final UserRepository userRepository;
