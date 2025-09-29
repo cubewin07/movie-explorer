@@ -7,6 +7,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.lang.NonNull;
@@ -32,7 +33,7 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
                 throw new RuntimeException("Invalid token");
             }
             
-            String attributedUsername = (String) accessor.getSessionAttributes().get("username");
+            String attributedUsername = (String) Objects.requireNonNull(accessor.getSessionAttributes()).get("username");
             String username = jwtService.extractUsername(jwt);
 
             if (attributedUsername != null && !attributedUsername.equals(username)) {
