@@ -5,11 +5,13 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+import com.Backend.websocket.interceptor.JwtChannelInterceptor;
 import com.Backend.websocket.interceptor.WebsocketHandshaker;
 
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.lang.NonNull;
 
 @Configuration
@@ -18,6 +20,8 @@ import org.springframework.lang.NonNull;
 public class WebsocketConfiguration implements WebSocketMessageBrokerConfigurer {
 
     private final WebsocketHandshaker websocketHandshaker;
+
+    private final JwtChannelInterceptor inboundInterceptor;
     
     @Override
     public void configureMessageBroker(@NonNull MessageBrokerRegistry registry) {
@@ -31,6 +35,11 @@ public class WebsocketConfiguration implements WebSocketMessageBrokerConfigurer 
         .setAllowedOrigins("*")
         .addInterceptors(websocketHandshaker)
         .withSockJS();
+    }
+
+    @Override
+    public void configureClientInboundChannel(@NonNull ChannelRegistration registration) {
+        registration.interceptors(inboundInterceptor);
     }
     
 
