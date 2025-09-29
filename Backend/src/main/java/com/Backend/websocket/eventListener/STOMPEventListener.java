@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class STOMPEventListener {
-    private Map<String, Set<String>> userSessionMap = new ConcurrentHashMap<>();
+    private final Map<String, Set<String>> userSessionMap = new ConcurrentHashMap<>();
 
     @EventListener
     public void handleWebSocketConnect(SessionConnectedEvent event) {
