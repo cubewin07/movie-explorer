@@ -41,14 +41,18 @@ public class Chat {
 
     public void addParticipant(User user) {
         this.participants.add(user);
+        user.getChats().add(this);
     }
 
     public void removeParticipant(User user) {
         this.participants.remove(user);
+        user.getChats().remove(this);
     }
 
-    public void addMessage(Message message) {
+    public Message addMessage(Message message) {
         this.messages.add(message);
+        message.setChat(this);
+        return message;
     }
 
     public void removeMessage(Message message) {
