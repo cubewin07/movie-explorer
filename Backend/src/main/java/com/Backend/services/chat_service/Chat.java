@@ -27,7 +27,7 @@ public class Chat {
         joinColumns = @JoinColumn(name = "chat_id"),
         inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private Set<User> users;
+    private Set<User> participants;
 
     @OneToMany(mappedBy = "chat")
     private Set<Message> messages;
