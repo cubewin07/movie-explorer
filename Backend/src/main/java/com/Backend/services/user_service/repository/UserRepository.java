@@ -9,7 +9,7 @@ import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    @EntityGraph(attributePaths = {"watchlist", "watchlist.seriesId", "watchlist.moviesId" ,"requestsFrom", "requestsTo"})
+    @EntityGraph(attributePaths = {"watchlist", "watchlist.seriesId", "watchlist.moviesId" ,"requestsFrom", "requestsTo", "notifications"})
     Optional<User> findByEmail(String email);
 
     @Query("""
@@ -18,6 +18,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
         left join fetch u.requestsFrom f 
         left join fetch u.requestsTo r
         left join fetch u.watchlist 
+        left join fetch u.notifications
         where u.id = :id
     """)
      Optional<User> findByIdFull(Long id);
