@@ -1,5 +1,6 @@
 package com.Backend.services.user_service.model;
 
+import com.Backend.services.chat_service.Chat;
 import com.Backend.services.friend_service.model.Friend;
 import com.Backend.services.notification_service.Notification;
 import com.Backend.services.watchlist_service.model.Watchlist;
@@ -72,6 +73,10 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user2")
     @Builder.Default
     private Set<Friend> requestsTo = new HashSet<>();
+
+    @OneToMany(mappedBy = "participants")
+    @Builder.Default
+    private Set<Chat> chats = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
     private ROLE role;
