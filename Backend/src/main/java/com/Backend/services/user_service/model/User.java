@@ -1,6 +1,7 @@
 package com.Backend.services.user_service.model;
 
 import com.Backend.services.friend_service.model.Friend;
+import com.Backend.services.notification_service.Notification;
 import com.Backend.services.watchlist_service.model.Watchlist;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -59,6 +60,10 @@ public class User implements UserDetails {
     @Builder.Default
     @JsonManagedReference
     private Watchlist watchlist = new Watchlist();
+
+    @OneToMany(mappedBy = "user")
+    @Builder.Default
+    private Set<Notification> notifications = new HashSet<>();
 
     @OneToMany(mappedBy = "user1")
     @Builder.Default
