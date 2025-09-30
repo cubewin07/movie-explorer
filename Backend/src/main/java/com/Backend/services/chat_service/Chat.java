@@ -2,6 +2,7 @@ package com.Backend.services.chat_service;
 
 import java.util.Set;
 
+import com.Backend.services.chat_service.message.Message;
 import com.Backend.services.user_service.model.User;
 
 import jakarta.persistence.Entity;
@@ -26,8 +27,8 @@ public class Chat {
         joinColumns = @JoinColumn(name = "chat_id"),
         inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    Set<User> users;
+    private Set<User> users;
 
     @OneToMany(mappedBy = "chat")
-    Set<Message> messages;
+    private Set<Message> messages;
 }
