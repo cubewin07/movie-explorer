@@ -19,9 +19,9 @@ public class MessageService {
         Message message = Message.builder()
             .content(text)
             .chat(chat)
-            .senderId(sender)
+            .sender(sender)
             .build();
         messageRepository.save(message);
     }
-    
+
 }
