@@ -16,10 +16,12 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import lombok.Builder;
 import lombok.Data;
 
 @Entity
 @Data   
+@Builder
 public class Message {
     
     @Id
@@ -33,7 +35,7 @@ public class Message {
 
     @JoinColumn(name = "sender_id")
     @ManyToOne
-    private User senderId;
+    private User sender;
 
     private String content;
 
