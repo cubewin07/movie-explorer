@@ -1,10 +1,13 @@
 package com.Backend.services.chat_service;
 
 import java.util.Set;
+import java.util.HashSet;
 
 import com.Backend.services.chat_service.message.Message;
 import com.Backend.services.user_service.model.User;
 
+import lombok.Data;
+import lombok.Builder;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -15,6 +18,8 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 
 @Entity
+@Data
+@Builder
 public class Chat {
     
     @Id
@@ -27,8 +32,26 @@ public class Chat {
         joinColumns = @JoinColumn(name = "chat_id"),
         inverseJoinColumns = @JoinColumn(name = "user_id")
     )
-    private Set<User> participants;
+    @Builder.Default
+    private Set<User> participants = new HashSet<>();
 
     @OneToMany(mappedBy = "chat")
-    private Set<Message> messages;
+    @Builder.Default
+    private Set<Message> messages = new HashSet<>();
+
+    public void addParticipant(User user) {
+        this.participants.add(user);
+    }
+
+    public void removeParticipant(User user) {
+        this.participants.remove(user);
+    }
+
+    public void addMessage(Message message) {
+        this.messages.add(message);
+    }
+
+    public void removeMessage(Message message) {
+        this.messages.remove(message);
+    }
 }
