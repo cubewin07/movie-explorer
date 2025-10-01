@@ -39,7 +39,7 @@ public class NotificationService {
     public void createNotification(User user, String type, Long relatedId, Message message) {
 
         String messageContent = message.getContent();
-        
+
         if(type.equals("chat")) {
             messageContent = message.getSender().getUsername() + ": " + message.getContent();
         }
@@ -58,6 +58,36 @@ public class NotificationService {
         if(stompEventListener.isUserOnline(user.getUsername())) {
             template.convertAndSend("/topic/notifications/" + user.getId(), notification);
         }
+    }
+
+    public void createNotificationWithoutSending(User user, String type, Long relatedId, Message message) {
+
+        String messageContent = message.getContent();
+
+        if(type.equals("chat")) {
+            messageContent = message.getSender().getUsername() + ": " + message.getContent();
+        }
+        Notification notification = Notification.builder()
+            .user(user)
+            .type(type)
+            .relatedId(relatedId)
+            .message(messageContent)
+            .isRead(false)
+            .createdAt(LocalDateTime.now())
+            .build();
+            notificationRepo.save(notification);
+    }
+    
+    public void createNotificationWithoutSending(User user, String type, Long relatedId, String message) {
+        Notification notification = Notification.builder()
+            .user(user)
+            .type(type)
+            .relatedId(relatedId)
+            .message(message)
+            .isRead(false)
+            .createdAt(LocalDateTime.now())
+            .build();
+            notificationRepo.save(notification);
     }
 
 
