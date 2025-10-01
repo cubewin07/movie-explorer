@@ -51,4 +51,11 @@ public class NotificationService {
             }
         }
     }
+    
+    public void deleteNotification(User user, Long notificationId) {
+        Notification notification = notificationRepo.findById(notificationId).orElse(null);
+        if(notification != null && notification.getUser().equals(user)) {
+            notificationRepo.delete(notification);
+        }
+    }
 }
