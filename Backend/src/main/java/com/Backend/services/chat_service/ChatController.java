@@ -14,7 +14,8 @@ public class ChatController {
     private final ChatService chatService;
 
     @PostMapping
-    public ResponseEntity<Chat> createChat(@RequestBody ChatCreateDTOID chat) {
-        return ResponseEntity.ok(chatService.createChat(chat.user1Id(), chat.user2Id()));
+    public ResponseEntity<Long> createChat(@RequestBody ChatCreateDTOID chat) {
+        Long chatId = chatService.createChat(chat.user1Id(), chat.user2Id()).getId();
+        return ResponseEntity.ok(chatId);
     }
 }
