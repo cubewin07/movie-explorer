@@ -3,6 +3,7 @@ package com.Backend.services.notification_service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.user_service.model.User;
 import com.Backend.websocket.eventListener.STOMPEventListener;
 
@@ -24,6 +25,29 @@ public class NotificationService {
             .type(type)
             .relatedId(relatedId)
             .message(message)
+            .isRead(false)
+            .createdAt(LocalDateTime.now())
+            .build();
+            notificationRepo.save(notification);
+        if(type.equals("updates")) {
+            template.convertAndSend("/topic/updates", notification);
+        }
+        if(stompEventListener.isUserOnline(user.getUsername())) {
+            template.convertAndSend("/topic/notifications/" + user.getId(), notification);
+        }
+    }
+    public void createNotification(User user, String type, Long relatedId, Message message) {
+
+        String messageContent = message.getContent();
+        
+        if(type.equals("chat")) {
+            messageContent = message.getSender().getUsername() + ": " + message.getContent();
+        }
+        Notification notification = Notification.builder()
+            .user(user)
+            .type(type)
+            .relatedId(relatedId)
+            .message(messageContent)
             .isRead(false)
             .createdAt(LocalDateTime.now())
             .build();
