@@ -82,8 +82,8 @@ public class ChatService {
             .map(id -> userRepository.findById(id).orElse(null))
             .filter(Objects::nonNull)
             .collect(Collectors.toSet());
-        if (users.size() < 2) {
-            throw new RuntimeException("At least 2 valid users are required to create a group chat");
+        if (users.size() < 3) {
+            throw new RuntimeException("At least 3 valid users are required to create a group chat");
         }
         return createGroupChat(users);
     }
