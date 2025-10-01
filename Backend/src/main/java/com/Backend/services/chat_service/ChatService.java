@@ -2,6 +2,8 @@ package com.Backend.services.chat_service;
 
 import java.util.Set;
 
+import javax.management.RuntimeErrorException;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,7 +38,7 @@ public class ChatService {
         User user1 = userRepository.findById(user1Id).orElse(null);
         User user2 = userRepository.findById(user2Id).orElse(null);
         if(user1 == null || user2 == null) {
-            return null;
+            throw new RuntimeException("User not found");
         }
         return createChat(user1, user2);
     }
@@ -45,7 +47,7 @@ public class ChatService {
         User user1 = userRepository.findByUsername(username1).orElse(null);
         User user2 = userRepository.findByUsername(username2).orElse(null);
         if(user1 == null || user2 == null) {
-            return null;
+            throw new RuntimeException("User not found");
         }
         return createChat(user1, user2);
     }
@@ -64,7 +66,7 @@ public class ChatService {
     }
 
     public Set<User> getParticipants(Long chatId) {
-        return chatRepository.findById(chatId).orElse(null).getParticipants();
+        return chatRepository.findById(chatId).orElseThrow(() -> new RuntimeException("Chat not found")).getParticipants();
     }
 
     @Transactional
@@ -77,7 +79,7 @@ public class ChatService {
 
     @Transactional
     public Chat getChatById(Long id) {
-        return chatRepository.findById(id).orElse(null);
+        return chatRepository.findById(id).orElseThrow(() -> new RuntimeException("Chat not found"));
     }
 
     @Transactional
