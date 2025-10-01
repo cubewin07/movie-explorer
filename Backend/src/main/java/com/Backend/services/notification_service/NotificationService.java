@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.Backend.services.user_service.model.User;
+import com.Backend.websocket.eventListener.STOMPEventListener;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ public class NotificationService {
     
     private final NotificationRepo notificationRepo;
     private final SimpMessagingTemplate template;
+    private final STOMPEventListener stompEventListener;
     
     public void createNotification(User user, String type, Long relatedId, String message) {
         Notification notification = Notification.builder()
@@ -26,7 +28,9 @@ public class NotificationService {
             .createdAt(LocalDateTime.now())
             .build();
         notificationRepo.save(notification);
-        template.convertAndSend("/topic/notifications/" + user.getId(), notification);
+        if(stompEventListener.isUserOnline(user.getUsername())) {
+            template.convertAndSend("/topic/notifications/" + user.getId(), notification);
+        }
     }
 
     public List<Notification> getChatNotifications(User user) {
@@ -38,7 +42,9 @@ public class NotificationService {
         if(notification != null && notification.getUser().equals(user)) {
             notification.setRead(true);
             notificationRepo.save(notification);
-            template.convertAndSend("/topic/notifications/" + user.getId(), notification);
+            if(stompEventListener.isUserOnline(user.getUsername())) {
+                template.convertAndSend("/topic/notifications/" + user.getId(), notification);
+            }
         }
     }
 }
