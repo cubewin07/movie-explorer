@@ -6,8 +6,7 @@ import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-
-import com.Backend.services.chat_service.Chat;
+import com.Backend.services.chat_service.model.Chat;
 import com.Backend.services.user_service.model.User;
 
 import jakarta.persistence.Entity;

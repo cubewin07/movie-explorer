@@ -1,4 +1,4 @@
-package com.Backend.services.chat_service;
+package com.Backend.services.chat_service.model;
 
 import java.util.Set;
 

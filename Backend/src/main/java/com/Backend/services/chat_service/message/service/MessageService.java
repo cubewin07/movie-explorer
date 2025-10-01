@@ -5,10 +5,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import com.Backend.services.chat_service.Chat;
-import com.Backend.services.chat_service.ChatRepository;
 import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.chat_service.message.repository.MessageRepository;
+import com.Backend.services.chat_service.model.Chat;
+import com.Backend.services.chat_service.repository.ChatRepository;
 import com.Backend.services.user_service.model.User;
 
 import lombok.RequiredArgsConstructor;

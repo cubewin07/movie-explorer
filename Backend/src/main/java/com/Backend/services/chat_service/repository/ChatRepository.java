@@ -1,10 +1,11 @@
-package com.Backend.services.chat_service;
+package com.Backend.services.chat_service.repository;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
 
+import com.Backend.services.chat_service.model.Chat;
 import com.Backend.services.user_service.model.User;
 
 import io.lettuce.core.dynamic.annotation.Param;

@@ -1,4 +1,4 @@
-package com.Backend.services.chat_service;
+package com.Backend.services.chat_service.service;
 
 import java.util.Objects;
 import java.util.Set;
@@ -6,6 +6,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.Backend.services.chat_service.model.Chat;
+import com.Backend.services.chat_service.repository.ChatRepository;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.repository.UserRepository;
 
