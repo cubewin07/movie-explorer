@@ -9,4 +9,5 @@ import org.springframework.data.domain.Pageable;
 
 public interface MessageRepository extends JpaRepository<Message, Long>{
     Page<Message> findByChatIdOrderByCreatedAtDesc(Long chatId, Pageable pageable);
+    Message findTopByChatIdOrderByCreatedAtDesc(Long chatId);
 }

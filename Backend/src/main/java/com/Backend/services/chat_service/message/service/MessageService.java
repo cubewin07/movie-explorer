@@ -40,4 +40,8 @@ public class MessageService {
         return messageRepository.findByChatIdOrderByCreatedAtDesc(chatId, pageable);
     }
 
+    public Message getLatestMessage(Long chatId) {
+        return messageRepository.findTopByChatIdOrderByCreatedAtDesc(chatId);
+    }
+
 }
