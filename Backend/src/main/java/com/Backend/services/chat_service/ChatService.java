@@ -43,6 +43,10 @@ public class ChatService {
         return messageRepository.findByChatIdOrderByCreatedAtDesc(chatId, pageable);
     }
 
+    public Set<User> getParticipants(Long chatId) {
+        return chatRepository.findById(chatId).orElse(null).getParticipants();
+    }
+
     @Transactional
     public Chat createGroupChat(Set<User> users) {
         Chat chat = Chat.builder()
