@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.Backend.services.chat_service.message.Message;
 import com.Backend.services.chat_service.message.MessageRepository;
 import com.Backend.services.user_service.model.User;
+import com.Backend.services.user_service.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ public class ChatService {
 
     private final ChatRepository chatRepository;
     private final MessageRepository messageRepository;
+    private final UserRepository userRepository;
     
     @Transactional
     public Chat createChat(User user1, User user2) {
@@ -28,6 +30,24 @@ public class ChatService {
         chat.addParticipant(user1);
         chat.addParticipant(user2);
         return chatRepository.save(chat);
+    }
+
+    public Chat createChat(Long user1Id, Long user2Id) {
+        User user1 = userRepository.findById(user1Id).orElse(null);
+        User user2 = userRepository.findById(user2Id).orElse(null);
+        if(user1 == null || user2 == null) {
+            return null;
+        }
+        return createChat(user1, user2);
+    }
+
+    public Chat createChat(String username1, String username2) {
+        User user1 = userRepository.findByUsername(username1).orElse(null);
+        User user2 = userRepository.findByUsername(username2).orElse(null);
+        if(user1 == null || user2 == null) {
+            return null;
+        }
+        return createChat(user1, user2);
     }
 
     public Set<Chat> getChats(User user) {
