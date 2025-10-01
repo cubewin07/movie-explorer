@@ -19,14 +19,14 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final ChatRepository chatRepository;
 
-    public void sendMessage(String text, Long chatId, User sender) {
+    public Message sendMessage(String text, Long chatId, User sender) {
         Chat chat = chatRepository.findById(chatId).orElse(null);
         Message message = Message.builder()
             .content(text)
             .chat(chat)
             .sender(sender)
             .build();
-        messageRepository.save(message);
+        return messageRepository.save(message);
     }
 
 
