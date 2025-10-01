@@ -1,6 +1,7 @@
 package com.Backend.services.notification_service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.Backend.services.user_service.model.User;
 
@@ -26,5 +27,18 @@ public class NotificationService {
             .build();
         notificationRepo.save(notification);
         template.convertAndSend("/topic/notifications/" + user.getId(), notification);
+    }
+
+    public List<Notification> getChatNotifications(User user) {
+        return notificationRepo.findByUserAndType(user, "chat");
+    }
+
+    public void markNotificationAsRead(User user, Long notificationId) {
+        Notification notification = notificationRepo.findById(notificationId).orElse(null);
+        if(notification != null && notification.getUser().equals(user)) {
+            notification.setRead(true);
+            notificationRepo.save(notification);
+            template.convertAndSend("/topic/notifications/" + user.getId(), notification);
+        }
     }
 }
