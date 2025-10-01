@@ -2,7 +2,18 @@ package com.Backend.websocket.controller;
 
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+
+import com.Backend.services.chat_service.ChatService;
+import com.Backend.services.chat_service.message.MessageService;
+import com.Backend.services.user_service.model.User;
+import com.Backend.websocket.eventListener.STOMPEventListener;
+
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.Payload;
+
+import java.security.Principal;
+
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 
 import lombok.RequiredArgsConstructor;
 
@@ -10,9 +21,19 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class STOMPController {
     private final SimpMessagingTemplate template;
+    private final ChatService chatService;
+    private final MessageService messageService;
+    private final STOMPEventListener stompEventListener;
     
-    @MessageMapping("/hello")
-    public void hello() {
-        template.convertAndSend("/topic/hello", "Hello, World!");
+    @MessageMapping("/chat/{chatId}/send")
+    public void sendMessage(
+        @Payload String message, 
+        @DestinationVariable Long chatId,
+        Principal principal
+    ) {
+        User sender = (User) principal;
+        messageService.sendMessage(message, chatId, sender);
+        
+        
     }
 }
