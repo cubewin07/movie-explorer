@@ -4,13 +4,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import com.Backend.services.chat_service.message.Message;
-import com.Backend.services.chat_service.message.MessageRepository;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.repository.UserRepository;
 
@@ -22,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 public class ChatService {
 
     private final ChatRepository chatRepository;
-    private final MessageRepository messageRepository;
     private final UserRepository userRepository;
     
     @Transactional
@@ -54,15 +48,6 @@ public class ChatService {
 
     public Set<Chat> getChats(User user) {
         return chatRepository.findByParticipantsContaining(user);
-    }
-
-    public Page<Message> getMessages(Long chatId, Pageable pageable) {
-        return messageRepository.findByChatIdOrderByCreatedAtDesc(chatId, pageable);
-    }
-
-    public Page<Message> getMessages(Long chatId) {
-        Pageable pageable = PageRequest.of(0, 20);
-        return messageRepository.findByChatIdOrderByCreatedAtDesc(chatId, pageable);
     }
 
     public Set<User> getParticipants(Long chatId) {
