@@ -4,6 +4,7 @@ import com.Backend.services.chat_service.Chat;
 import com.Backend.services.friend_service.model.Friend;
 import com.Backend.services.notification_service.Notification;
 import com.Backend.services.watchlist_service.model.Watchlist;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -74,8 +75,9 @@ public class User implements UserDetails {
     @Builder.Default
     private Set<Friend> requestsTo = new HashSet<>();
 
-    @OneToMany(mappedBy = "participants")
+    @ManyToMany(mappedBy = "participants")
     @Builder.Default
+    @JsonBackReference
     private Set<Chat> chats = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
