@@ -1,7 +1,9 @@
 package com.Backend.services.chat_service.model;
 
-import java.util.Set;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.user_service.model.User;
@@ -18,6 +20,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 
 @Entity
 @Data
@@ -39,9 +42,10 @@ public class Chat {
     private Set<User> participants = new HashSet<>();
 
     @OneToMany(mappedBy = "chat")
+    @OrderBy("createdAt DESC")
     @Builder.Default
     @JsonBackReference
-    private Set<Message> messages = new HashSet<>();
+    private List<Message> messages = new ArrayList<>();
 
     public void addParticipant(User user) {
         this.participants.add(user);
@@ -54,7 +58,7 @@ public class Chat {
     }
 
     public Message addMessage(Message message) {
-        this.messages.add(message);
+        this.messages.add(0, message);
         message.setChat(this);
         return message;
     }
