@@ -28,10 +28,15 @@ public class NotificationService {
             .isRead(false)
             .createdAt(LocalDateTime.now())
             .build();
-            notificationRepo.save(notification);
-        if(type.equals("updates")) {
+        notificationRepo.save(notification);
+
+        // Send servers updated to all users
+        if(type.equals("updates") && stompEventListener.isUserOnline(user.getUsername())) {
             template.convertAndSend("/topic/updates", notification);
+            return;
         }
+
+        // Send notification to a specific user
         if(stompEventListener.isUserOnline(user.getUsername())) {
             template.convertAndSend("/topic/notifications/" + user.getId(), notification);
         }
@@ -51,10 +56,15 @@ public class NotificationService {
             .isRead(false)
             .createdAt(LocalDateTime.now())
             .build();
-            notificationRepo.save(notification);
-        if(type.equals("updates")) {
+        notificationRepo.save(notification);
+
+        // Send servers updated to all users
+        if(type.equals("updates") && stompEventListener.isUserOnline(user.getUsername())) {
             template.convertAndSend("/topic/updates", notification);
+            return;
         }
+
+        // Send notification to a specific user
         if(stompEventListener.isUserOnline(user.getUsername())) {
             template.convertAndSend("/topic/notifications/" + user.getId(), notification);
         }
