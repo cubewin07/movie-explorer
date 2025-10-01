@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 
 import com.Backend.services.chat_service.ChatService;
 import com.Backend.services.chat_service.message.MessageService;
+import com.Backend.services.notification_service.NotificationService;
 import com.Backend.services.user_service.model.User;
 import com.Backend.websocket.eventListener.STOMPEventListener;
 
@@ -25,6 +26,7 @@ public class STOMPController {
     private final ChatService chatService;
     private final MessageService messageService;
     private final STOMPEventListener stompEventListener;
+    private final NotificationService notificationService;
     
     @MessageMapping("/chat/{chatId}/send")
     public void sendMessage(
@@ -41,6 +43,7 @@ public class STOMPController {
                 if(stompEventListener.isUserOnline(participant.getUsername())) {
                     template.convertAndSend(destination, message);
                 }
+                notificationService.createNotification(participant, "chat", chatId, message);
             }
         });
     }
