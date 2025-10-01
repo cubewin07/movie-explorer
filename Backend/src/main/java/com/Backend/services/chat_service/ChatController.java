@@ -13,15 +13,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class ChatController {
     private final ChatService chatService;
 
-    @PostMapping
+    @PostMapping("/private")
     public ResponseEntity<Long> createChat(@RequestBody ChatCreateDTOID chat) {
         Long chatId = chatService.createChat(chat.user1Id(), chat.user2Id()).getId();
         return ResponseEntity.ok(chatId);
     }
 
-    @PostMapping
+    @PostMapping("/group")
     public ResponseEntity<Long> createGroupChat(@RequestBody ChatCreateGroupID chat) {
-        Long chatId = chatService.createGroupChat(chat.userIds());
+        Long chatId = chatService.createGroupChatByIds(chat.userIds()).getId();
         return ResponseEntity.ok(chatId);
     }
 }

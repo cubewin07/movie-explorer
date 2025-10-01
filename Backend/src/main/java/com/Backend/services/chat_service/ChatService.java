@@ -1,8 +1,8 @@
 package com.Backend.services.chat_service;
 
+import java.util.Objects;
 import java.util.Set;
-
-import javax.management.RuntimeErrorException;
+import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -75,6 +75,17 @@ public class ChatService {
             .build();
         users.forEach(user -> chat.addParticipant(user));
         return chatRepository.save(chat);
+    }
+
+    public Chat createGroupChatByIds(Set<Long> userIds) {
+        Set<User> users = userIds.stream()
+            .map(id -> userRepository.findById(id).orElse(null))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+        if (users.size() < 2) {
+            throw new RuntimeException("At least 2 valid users are required to create a group chat");
+        }
+        return createGroupChat(users);
     }
 
     @Transactional
