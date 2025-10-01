@@ -23,8 +23,17 @@ public interface ChatRepository extends JpaRepository<Chat, Long> {
     join c.participants p2
     where p1 = :user1 and p2 = :user2
 """)
-
     Set<Chat> findChatByParticipants(@NonNull @Param("user1") User user1, @NonNull @Param("user2") User user2);
+
+    @Query("""
+    select c from Chat c
+    join c.participants p1
+    join c.participants p2
+    where (p1 = :user1 and p2 = :user2)
+    and SIZE(c.participants) = 2
+""")
+    Optional<Chat> findPrivateChat(@NonNull @Param("user1") User user1, @NonNull @Param("user2") User user2);
+
 
 
     Set<Chat> findByParticipantsContaining(User user);
