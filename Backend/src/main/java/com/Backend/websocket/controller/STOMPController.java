@@ -4,7 +4,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import com.Backend.services.chat_service.ChatService;
-import com.Backend.services.chat_service.message.MessageService;
+import com.Backend.services.chat_service.message.service.MessageService;
 import com.Backend.services.notification_service.NotificationService;
 import com.Backend.services.user_service.model.User;
 import com.Backend.websocket.eventListener.STOMPEventListener;

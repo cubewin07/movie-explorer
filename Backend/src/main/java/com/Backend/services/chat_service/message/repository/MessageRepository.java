@@ -1,6 +1,9 @@
-package com.Backend.services.chat_service.message;
+package com.Backend.services.chat_service.message.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.Backend.services.chat_service.message.model.Message;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 

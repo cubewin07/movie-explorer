@@ -1,4 +1,4 @@
-package com.Backend.services.chat_service.message;
+package com.Backend.services.chat_service.message.service;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 
 import com.Backend.services.chat_service.Chat;
 import com.Backend.services.chat_service.ChatRepository;
+import com.Backend.services.chat_service.message.model.Message;
+import com.Backend.services.chat_service.message.repository.MessageRepository;
 import com.Backend.services.user_service.model.User;
 
 import lombok.RequiredArgsConstructor;

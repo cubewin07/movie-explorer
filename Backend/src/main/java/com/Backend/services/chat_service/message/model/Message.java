@@ -1,4 +1,4 @@
-package com.Backend.services.chat_service.message;
+package com.Backend.services.chat_service.message.model;
 
 import java.time.LocalDateTime;
 
