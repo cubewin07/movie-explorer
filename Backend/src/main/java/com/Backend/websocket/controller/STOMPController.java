@@ -5,6 +5,7 @@ import org.springframework.stereotype.Controller;
 
 import com.Backend.services.chat_service.message.service.MessageService;
 import com.Backend.services.chat_service.service.ChatService;
+import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.notification_service.NotificationService;
 import com.Backend.services.user_service.model.User;
 import com.Backend.websocket.eventListener.STOMPEventListener;
@@ -35,15 +36,15 @@ public class STOMPController {
         Principal principal
     ) {
         User sender = (User) principal;
-        messageService.sendMessage(message, chatId, sender);
+        Message sentMessage = messageService.sendMessage(message, chatId, sender);
         Set<User> participants = chatService.getParticipants(chatId);
         String destination = "/topic/chat/" + chatId;
         participants.forEach(participant -> {
             if(!participant.getId().equals(sender.getId())) {
                 if(stompEventListener.isUserOnline(participant.getUsername())) {
-                    template.convertAndSend(destination, message);
+                    template.convertAndSend(destination, sentMessage);
                 }
-                notificationService.createNotification(participant, "chat", chatId, message);
+                notificationService.createNotificationWithoutSending(participant, "chat", chatId, sentMessage);
             }
         });
     }
