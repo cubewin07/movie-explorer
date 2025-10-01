@@ -13,6 +13,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 
 import java.security.Principal;
 
+import java.util.Set;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 
 import lombok.RequiredArgsConstructor;
@@ -33,7 +34,14 @@ public class STOMPController {
     ) {
         User sender = (User) principal;
         messageService.sendMessage(message, chatId, sender);
-        
-        
+        Set<User> participants = chatService.getParticipants(chatId);
+        String destination = "/topic/chat/" + chatId;
+        participants.forEach(participant -> {
+            if(!participant.getId().equals(sender.getId())) {
+                if(stompEventListener.isUserOnline(participant.getUsername())) {
+                    template.convertAndSend(destination, message);
+                }
+            }
+        });
     }
 }
