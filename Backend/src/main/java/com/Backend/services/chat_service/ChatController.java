@@ -18,4 +18,10 @@ public class ChatController {
         Long chatId = chatService.createChat(chat.user1Id(), chat.user2Id()).getId();
         return ResponseEntity.ok(chatId);
     }
+
+    @PostMapping
+    public ResponseEntity<Long> createGroupChat(@RequestBody ChatCreateGroupID chat) {
+        Long chatId = chatService.createGroupChat(chat.userIds());
+        return ResponseEntity.ok(chatId);
+    }
 }
