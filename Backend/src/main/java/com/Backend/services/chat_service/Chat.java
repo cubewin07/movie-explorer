@@ -5,6 +5,8 @@ import java.util.HashSet;
 
 import com.Backend.services.chat_service.message.Message;
 import com.Backend.services.user_service.model.User;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import lombok.Data;
 import lombok.Builder;
@@ -33,10 +35,12 @@ public class Chat {
         inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     @Builder.Default
+    @JsonManagedReference
     private Set<User> participants = new HashSet<>();
 
     @OneToMany(mappedBy = "chat")
     @Builder.Default
+    @JsonBackReference
     private Set<Message> messages = new HashSet<>();
 
     public void addParticipant(User user) {
