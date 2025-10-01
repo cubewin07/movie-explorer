@@ -11,5 +11,7 @@ public interface NotificationRepo extends JpaRepository<Notification, Long> {
     List<Notification> findByUser(User user);
 
     List<Notification> findByUserAndIsRead(User user, boolean isRead);
+
+    List<Notification> findByUserAndType(User user, String type);
     
 }
