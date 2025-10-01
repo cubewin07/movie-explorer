@@ -27,11 +27,15 @@ public class NotificationService {
             .isRead(false)
             .createdAt(LocalDateTime.now())
             .build();
-        notificationRepo.save(notification);
+            notificationRepo.save(notification);
+        if(type.equals("updates")) {
+            template.convertAndSend("/topic/updates", notification);
+        }
         if(stompEventListener.isUserOnline(user.getUsername())) {
             template.convertAndSend("/topic/notifications/" + user.getId(), notification);
         }
     }
+
 
     public List<Notification> getChatNotifications(User user) {
         return notificationRepo.findByUserAndType(user, "chat");
