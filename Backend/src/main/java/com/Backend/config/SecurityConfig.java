@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -44,6 +43,7 @@ public class SecurityConfig {
                             .requestMatchers("/users/register").permitAll()
                             .requestMatchers("/users/authenticate").permitAll()
                             .requestMatchers("/actuator/**").permitAll()
+                            .requestMatchers("/ws/**").permitAll()
                 .anyRequest().authenticated()
             )
             .cors(Customizer.withDefaults())
