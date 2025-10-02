@@ -46,7 +46,8 @@ public class NotificationService {
         String messageContent = message.getContent();
 
         if(type.equals("chat")) {
-            messageContent = message.getSender().getUsername() + ": " + message.getContent();
+            String senderName = message.getSender() != null ? message.getSender().getUsername() : "Unknown";
+            messageContent = senderName + ": " + message.getContent();
         }
         Notification notification = Notification.builder()
             .user(user)

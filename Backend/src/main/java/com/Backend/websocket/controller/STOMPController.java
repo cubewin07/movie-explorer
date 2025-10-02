@@ -8,6 +8,7 @@ import com.Backend.services.chat_service.service.ChatService;
 import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.notification_service.NotificationService;
 import com.Backend.services.user_service.model.User;
+import com.Backend.services.user_service.repository.UserRepository;
 import com.Backend.websocket.eventListener.STOMPEventListener;
 
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -28,6 +29,7 @@ public class STOMPController {
     private final MessageService messageService;
     private final STOMPEventListener stompEventListener;
     private final NotificationService notificationService;
+    private final UserRepository userRepository;
     
     @MessageMapping("/chat/{chatId}/send")
     public void sendMessage(
@@ -35,15 +37,16 @@ public class STOMPController {
         @DestinationVariable Long chatId,
         Principal principal
     ) {
-        User sender = (User) principal;
+        String username = principal.getName();
+        User sender = userRepository.findByUsername(username)
+            .orElseThrow(() -> new RuntimeException("User not found"));
         Message sentMessage = messageService.sendMessage(message, chatId, sender);
         Set<User> participants = chatService.getParticipants(chatId);
         String destination = "/topic/chat/" + chatId;
+        template.convertAndSend(destination, sentMessage);
+
         participants.forEach(participant -> {
             if(!participant.getId().equals(sender.getId())) {
-                if(stompEventListener.isUserOnline(participant.getUsername())) {
-                    template.convertAndSend(destination, sentMessage);
-                }
                 notificationService.createNotificationWithoutSending(participant, "chat", chatId, sentMessage);
             }
         });

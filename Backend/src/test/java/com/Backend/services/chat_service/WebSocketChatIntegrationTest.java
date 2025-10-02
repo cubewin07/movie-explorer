@@ -153,13 +153,12 @@ class WebSocketChatIntegrationTest {
         bobSession.subscribe("/topic/chat/" + chatId, new StompFrameHandler() {
             @Override
             public @NonNull Type getPayloadType(@NonNull StompHeaders headers) {
-                return Objects.class;
+                return Message.class;
             }
 
             @Override
             public void handleFrame(@NonNull StompHeaders headers, @Nullable Object payload) {
-                // Convert manually using ObjectMapper
-                Message msg = objectMapper.convertValue(payload, Message.class);
+                Message msg = (Message) payload;
                 payloadFuture.complete(msg);
             }
         });
