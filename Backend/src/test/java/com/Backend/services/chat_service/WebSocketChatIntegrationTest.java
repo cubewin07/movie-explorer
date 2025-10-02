@@ -1,5 +1,6 @@
 package com.Backend.services.chat_service;
 
+import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.notification_service.Notification;
 import com.Backend.services.notification_service.NotificationRepo;
 import com.Backend.services.user_service.model.AuthenticateDTO;
@@ -15,6 +16,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
+import org.springframework.messaging.converter.MappingJackson2MessageConverter;
 import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
@@ -104,7 +106,7 @@ class WebSocketChatIntegrationTest {
 
     private WebSocketStompClient buildStompClient() {
         WebSocketStompClient client = new WebSocketStompClient(new StandardWebSocketClient());
-        client.setMessageConverter(new StringMessageConverter());
+        client.setMessageConverter(new MappingJackson2MessageConverter());
         client.setTaskScheduler(new ConcurrentTaskScheduler(Executors.newSingleThreadScheduledExecutor()));
         return client;
     }
@@ -147,18 +149,18 @@ class WebSocketChatIntegrationTest {
 
         WebSocketStompClient stompClient = buildStompClient();
 
-        CompletableFuture<String> payloadFuture = new CompletableFuture<>();
+        CompletableFuture<Message> payloadFuture = new CompletableFuture<>();
 
         StompSession bobSession = connectStomp(stompClient, bobToken, bobId);
         bobSession.subscribe("/topic/chat/" + chatId, new StompFrameHandler() {
             @Override
             public @NonNull Type getPayloadType(@NonNull StompHeaders headers) {
-                return String.class;
+                return Message.class;
             }
 
             @Override
             public void handleFrame(@NonNull StompHeaders headers, @Nullable Object payload) {
-                payloadFuture.complete(Objects.toString(payload, ""));
+                payloadFuture.complete((Message) payload);
             }
         });
 
@@ -168,8 +170,8 @@ class WebSocketChatIntegrationTest {
         String messageContent = "Hello via STOMP!";
         aliceSession.send("/app/chat/" + chatId + "/send", messageContent);
 
-        String payload = payloadFuture.get(5, TimeUnit.SECONDS);
-        assertThat(payload).contains(messageContent);
+        Message payload = payloadFuture.get(5, TimeUnit.SECONDS);
+        assertThat(payload.getContent()).isEqualTo(messageContent);
 
         Notification notification = awaitNotification(bobId, messageContent);
         assertThat(notification).isNotNull();
