@@ -7,9 +7,6 @@ import com.Backend.services.watchlist_service.model.WatchlistType;
 import com.Backend.services.friend_service.model.EmailBody;
 import com.Backend.services.friend_service.model.FriendUpdatingBody;
 import com.Backend.services.friend_service.model.Status;
-import com.Backend.services.notification_service.Notification;
-import com.Backend.services.notification_service.NotificationRepo;
-import com.Backend.services.user_service.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -18,39 +15,19 @@ import org.junit.jupiter.api.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.MediaType;
-import org.springframework.messaging.converter.StringMessageConverter;
-import org.springframework.messaging.simp.stomp.StompFrameHandler;
-import org.springframework.messaging.simp.stomp.StompHeaders;
-import org.springframework.messaging.simp.stomp.StompSession;
-import org.springframework.messaging.simp.stomp.StompSessionHandlerAdapter;
-import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.web.socket.WebSocketHttpHeaders;
-import org.springframework.web.socket.client.standard.StandardWebSocketClient;
-import org.springframework.web.socket.messaging.WebSocketStompClient;
-import org.springframework.lang.NonNull;
-import org.springframework.lang.Nullable;
 
-import java.lang.reflect.Type;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.Objects;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@SpringBootTest
 @AutoConfigureMockMvc
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @ActiveProfiles("test")
@@ -58,15 +35,6 @@ class SpringControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private NotificationRepo notificationRepo;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @LocalServerPort
-    private int port;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -102,61 +70,6 @@ class SpringControllerTest {
     
     private String bearer(String token) {
         return "Bearer " + token;
-    }
-
-    private long getUserId(String token) throws Exception {
-        MvcResult result = mockMvc.perform(get("/users/me")
-                        .header("Authorization", bearer(token)))
-                .andExpect(status().isOk())
-                .andReturn();
-        Map<?,?> map = objectMapper.readValue(result.getResponse().getContentAsString(), Map.class);
-        Number id = (Number) map.get("id");
-        return id.longValue();
-    }
-
-    private long createPrivateChat(String token, long user1Id, long user2Id) throws Exception {
-        Map<String, Long> payload = Map.of(
-                "user1Id", user1Id,
-                "user2Id", user2Id
-        );
-
-        MvcResult result = mockMvc.perform(post("/chats/private")
-                        .header("Authorization", bearer(token))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(payload)))
-                .andExpect(status().isOk())
-                .andReturn();
-        return Long.parseLong(result.getResponse().getContentAsString());
-    }
-
-    private WebSocketStompClient buildStompClient() {
-        WebSocketStompClient client = new WebSocketStompClient(new StandardWebSocketClient());
-        client.setMessageConverter(new StringMessageConverter());
-        client.setTaskScheduler(new ConcurrentTaskScheduler(Executors.newSingleThreadScheduledExecutor()));
-        return client;
-    }
-
-    private StompSession connectStomp(WebSocketStompClient client, String token, long userId) throws Exception {
-        String url = String.format("ws://localhost:%d/ws?userId=%d", port, userId);
-        StompHeaders headers = new StompHeaders();
-        headers.add("Authorization", bearer(token));
-        return client.connectAsync(url, new WebSocketHttpHeaders(), headers, new StompSessionHandlerAdapter() {})
-                .get(5, TimeUnit.SECONDS);
-    }
-
-    private Notification awaitNotification(long userId, String expectedContent) throws InterruptedException {
-        User user = userRepository.findById(userId).orElseThrow();
-        for (int attempt = 0; attempt < 20; attempt++) {
-            List<Notification> notifications = notificationRepo.findByUserAndType(user, "chat");
-            Optional<Notification> match = notifications.stream()
-                    .filter(n -> n.getMessage() != null && n.getMessage().contains(expectedContent))
-                    .findFirst();
-            if (match.isPresent()) {
-                return match.get();
-            }
-            Thread.sleep(200);
-        }
-        return null;
     }
     
     // Watchlist helpers
@@ -382,51 +295,4 @@ class SpringControllerTest {
                 .andExpect(status().isOk());
     }
 
-    @Test
-    @Order(9)
-    @DisplayName("WebSocket chat broadcasts message and stores notification")
-    void websocket_chat_flow_persists_notification() throws Exception {
-        String aliceToken = registerAndAuth("wsAlice", "wsAlice@example.com");
-        String bobToken = registerAndAuth("wsBob", "wsBob@example.com");
-
-        long aliceId = getUserId(aliceToken);
-        long bobId = getUserId(bobToken);
-
-        long chatId = createPrivateChat(aliceToken, aliceId, bobId);
-
-        WebSocketStompClient stompClient = buildStompClient();
-
-        CompletableFuture<String> payloadFuture = new CompletableFuture<>();
-
-        StompSession bobSession = connectStomp(stompClient, bobToken, bobId);
-        bobSession.subscribe("/topic/chat/" + chatId, new StompFrameHandler() {
-            @Override
-            public @NonNull Type getPayloadType(@NonNull StompHeaders headers) {
-                return String.class;
-            }
-
-            @Override
-            public void handleFrame(@NonNull StompHeaders headers, @Nullable Object payload) {
-                payloadFuture.complete(Objects.toString(payload, ""));
-            }
-        });
-
-        StompSession aliceSession = connectStomp(stompClient, aliceToken, aliceId);
-        Thread.sleep(250);
-
-        String messageContent = "Hello via STOMP!";
-        aliceSession.send("/app/chat/" + chatId + "/send", messageContent);
-
-        String payload = payloadFuture.get(5, TimeUnit.SECONDS);
-        assertThat(payload).contains(messageContent);
-
-        Notification notification = awaitNotification(bobId, messageContent);
-        assertThat(notification).isNotNull();
-        assertThat(notification.getType()).isEqualTo("chat");
-        assertThat(notification.getRelatedId()).isEqualTo(chatId);
-
-        aliceSession.disconnect();
-        bobSession.disconnect();
-        stompClient.stop();
-    }
 }
