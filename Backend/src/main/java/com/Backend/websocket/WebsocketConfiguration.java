@@ -22,26 +22,26 @@ public class WebsocketConfiguration implements WebSocketMessageBrokerConfigurer 
     private final WebsocketHandshaker websocketHandshaker;
 
     private final JwtChannelInterceptor inboundInterceptor;
-    
+
     @Override
     public void configureMessageBroker(@NonNull MessageBrokerRegistry registry) {
         registry.enableSimpleBroker("/topic");
         registry.setApplicationDestinationPrefixes("/app");
     }
-    
+
     @Override
     public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
         .setAllowedOrigins("*")
-        .addInterceptors(websocketHandshaker)
-        .withSockJS();
+        .addInterceptors(websocketHandshaker);
+//        .withSockJS();
     }
 
     @Override
     public void configureClientInboundChannel(@NonNull ChannelRegistration registration) {
         registration.interceptors(inboundInterceptor);
     }
-    
 
-    
+
+
 }
