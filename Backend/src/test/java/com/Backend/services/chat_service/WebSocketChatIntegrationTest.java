@@ -17,7 +17,6 @@ import org.springframework.http.*;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
-import org.springframework.messaging.converter.StringMessageConverter;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
@@ -45,7 +44,6 @@ class WebSocketChatIntegrationTest {
 
     @LocalServerPort
     private int port;
-
     @Autowired
     private TestRestTemplate restTemplate;
 
@@ -155,12 +153,14 @@ class WebSocketChatIntegrationTest {
         bobSession.subscribe("/topic/chat/" + chatId, new StompFrameHandler() {
             @Override
             public @NonNull Type getPayloadType(@NonNull StompHeaders headers) {
-                return Message.class;
+                return Objects.class;
             }
 
             @Override
             public void handleFrame(@NonNull StompHeaders headers, @Nullable Object payload) {
-                payloadFuture.complete((Message) payload);
+                // Convert manually using ObjectMapper
+                Message msg = objectMapper.convertValue(payload, Message.class);
+                payloadFuture.complete(msg);
             }
         });
 
