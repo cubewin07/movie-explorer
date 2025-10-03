@@ -45,7 +45,7 @@ public class Chat {
     @OneToMany(mappedBy = "chat")
     @OrderBy("createdAt DESC")
     @Builder.Default
-    @JsonBackReference(value = "chat-messages")
+    @JsonManagedReference(value = "chat-messages")
     private List<Message> messages = new ArrayList<>();
 
     public void addParticipant(User user) {
