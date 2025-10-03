@@ -8,6 +8,7 @@ import java.util.Set;
 import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.user_service.model.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import lombok.*;
@@ -26,10 +27,12 @@ import jakarta.persistence.OrderBy;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Chat {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @ManyToMany()
@@ -45,6 +48,7 @@ public class Chat {
     @OneToMany(mappedBy = "chat")
     @OrderBy("createdAt DESC")
     @Builder.Default
+    // @JsonIgnore
     @JsonManagedReference(value = "chat-messages")
     private List<Message> messages = new ArrayList<>();
 
