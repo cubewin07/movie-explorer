@@ -39,13 +39,13 @@ public class Chat {
         inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     @Builder.Default
-    @JsonManagedReference
+    @JsonManagedReference(value = "chat-participants")
     private Set<User> participants = new HashSet<>();
 
     @OneToMany(mappedBy = "chat")
     @OrderBy("createdAt DESC")
     @Builder.Default
-    @JsonBackReference
+    @JsonBackReference(value = "chat-messages")
     private List<Message> messages = new ArrayList<>();
 
     public void addParticipant(User user) {

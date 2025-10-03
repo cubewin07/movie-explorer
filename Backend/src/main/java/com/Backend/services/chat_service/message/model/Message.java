@@ -33,12 +33,12 @@ public class Message {
 
     @JoinColumn(name = "chat_id")
     @ManyToOne
-    @JsonBackReference
+    @JsonBackReference(value = "chat-messages")
     private Chat chat;
 
     @JoinColumn(name = "sender_id")
     @ManyToOne
-    @JsonBackReference
+    @JsonBackReference(value = "user-sent-messages")
     private User sender;
 
     private String content;

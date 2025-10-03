@@ -15,12 +15,16 @@ import jakarta.persistence.Column;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Builder;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
 
 @Entity
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Notification {
     
     @Id
@@ -30,7 +34,7 @@ public class Notification {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    @JsonBackReference
+    @JsonBackReference(value = "user-notifications")
     private User user;
 
     @Column(name = "type")
