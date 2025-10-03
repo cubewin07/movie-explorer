@@ -33,8 +33,8 @@ public class UserController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<User> getUserById(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(user);
+    public ResponseEntity<UserMeDTO> getUserById(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(userService.getMeDTO(user));
     }
 
     @PutMapping()

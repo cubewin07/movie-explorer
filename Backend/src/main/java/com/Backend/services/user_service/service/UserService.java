@@ -1,6 +1,8 @@
 package com.Backend.services.user_service.service;
 
 import com.Backend.services.user_service.model.*;
+import com.Backend.services.chat_service.message.service.MessageService;
+import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.user_service.repository.UserRepository;
 import com.Backend.services.watchlist_service.model.Watchlist;
 import com.Backend.springSecurity.jwtAuthentication.JwtService;
@@ -27,6 +29,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final MessageService messageService;
 
     public List<User> getAllUsers() {
         return userRepository.findAll();
@@ -94,6 +97,103 @@ public class UserService {
         }
         userRepository.deleteById(id);
         log.info("User with id {} deleted successfully", id);
+    }
+
+    @Transactional(readOnly = true)
+    public UserMeDTO getMeDTO(User principal) {
+        // Load with entity graph
+        User user = userRepository.findByEmail(principal.getEmail())
+                .orElseThrow(() -> new UserNotFoundException("User with email " + principal.getEmail() + " not found"));
+
+        // Base info
+        UserMeDTO dto = new UserMeDTO();
+        dto.setId(user.getId());
+        dto.setEmail(user.getEmail());
+        dto.setUsername(user.getRealUsername());
+
+        // Watchlist
+        if (user.getWatchlist() != null) {
+            dto.setWatchlist(new WatchlistDTO(
+                    user.getWatchlist().getSeriesId(),
+                    user.getWatchlist().getMoviesId()
+            ));
+        }
+
+        // Notifications
+        if (user.getNotifications() != null) {
+            dto.setNotifications(user.getNotifications().stream()
+                    .map(n -> new NotificationDTO(
+                            n.getId(),
+                            n.getType(),
+                            n.getRelatedId(),
+                            n.getMessage(),
+                            n.isRead(),
+                            n.getCreatedAt()
+                    ))
+                    .toList());
+        }
+
+        // Requests From (user1 = me) -> other is user2
+        if (user.getRequestsFrom() != null) {
+            dto.setRequestsFrom(user.getRequestsFrom().stream()
+                    .map(f -> new FriendDTO(
+                            new SimpleUserDTO(
+                                    f.getUser2().getId(),
+                                    f.getUser2().getEmail(),
+                                    f.getUser2().getRealUsername()
+                            ),
+                            f.getStatus(),
+                            f.getCreatedAt()
+                    ))
+                    .toList());
+        }
+
+        // Requests To (user2 = me) -> other is user1
+        if (user.getRequestsTo() != null) {
+            dto.setRequestsTo(user.getRequestsTo().stream()
+                    .map(f -> new FriendDTO(
+                            new SimpleUserDTO(
+                                    f.getUser1().getId(),
+                                    f.getUser1().getEmail(),
+                                    f.getUser1().getRealUsername()
+                            ),
+                            f.getStatus(),
+                            f.getCreatedAt()
+                    ))
+                    .toList());
+        }
+
+        // Chats with participants and latest message
+        if (user.getChats() != null) {
+            dto.setChats(user.getChats().stream()
+                    .map(chat -> {
+                        ChatSummaryDTO c = new ChatSummaryDTO();
+                        c.setId(chat.getId());
+                        // participants
+                        c.setParticipants(chat.getParticipants().stream()
+                                .map(u -> new SimpleUserDTO(u.getId(), u.getEmail(), u.getRealUsername()))
+                                .toList());
+                        // latest message via MessageService
+                        Message latest = messageService.getLatestMessage(chat.getId());
+                        if (latest != null) {
+                            c.setLatestMessage(new MessageDTO(
+                                    latest.getId(),
+                                    latest.getContent(),
+                                    new SimpleUserDTO(
+                                            latest.getSender().getId(),
+                                            latest.getSender().getEmail(),
+                                            latest.getSender().getRealUsername()
+                                    ),
+                                    latest.isRead(),
+                                    latest.getCreatedAt()
+                            ));
+                        }
+                        return c;
+                    })
+                    .toList());
+        }
+
+        return dto;
     }
 
 }
