@@ -9,6 +9,8 @@ import com.Backend.services.user_service.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
@@ -41,6 +43,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 class WebSocketChatIntegrationTest {
+
+    private static final Logger log = LoggerFactory.getLogger(WebSocketChatIntegrationTest.class);
 
     @LocalServerPort
     private int port;
@@ -113,8 +117,10 @@ class WebSocketChatIntegrationTest {
         String url = String.format("ws://localhost:%d/ws?userId=%d", port, userId);
         StompHeaders headers = new StompHeaders();
         headers.add("Authorization", "Bearer " + token);
-        return client.connectAsync(url, new WebSocketHttpHeaders(), headers, new StompSessionHandlerAdapter() {})
+        StompSession session = client.connectAsync(url, new WebSocketHttpHeaders(), headers, new StompSessionHandlerAdapter() {})
                 .get(5, TimeUnit.SECONDS);
+        log.debug("STOMP connection opened for user {} with session {}", userId, session.getSessionId());
+        return session;
     }
 
     private Notification awaitNotification(long userId, String expectedContent) throws InterruptedException {
@@ -125,10 +131,13 @@ class WebSocketChatIntegrationTest {
                     .filter(n -> n.getMessage() != null && n.getMessage().contains(expectedContent))
                     .findFirst();
             if (match.isPresent()) {
-                return match.get();
+                Notification notification = match.get();
+                log.debug("Notification retrieved for user {}: id={}, message={} ", userId, notification.getId(), notification.getMessage());
+                return notification;
             }
             Thread.sleep(200);
         }
+        log.error("Notification not retrieved for user {} within timeout for expected content '{}'", userId, expectedContent);
         return null;
     }
 
@@ -150,7 +159,9 @@ class WebSocketChatIntegrationTest {
         CompletableFuture<Message> payloadFuture = new CompletableFuture<>();
 
         StompSession bobSession = connectStomp(stompClient, bobToken, bobId);
-        bobSession.subscribe("/topic/chat/" + chatId, new StompFrameHandler() {
+        String destination = "/topic/chat/" + chatId;
+        log.debug("Creating subscription for user {} on destination {}", bobId, destination);
+        bobSession.subscribe(destination, new StompFrameHandler() {
             @Override
             public @NonNull Type getPayloadType(@NonNull StompHeaders headers) {
                 return Message.class;
@@ -158,7 +169,19 @@ class WebSocketChatIntegrationTest {
 
             @Override
             public void handleFrame(@NonNull StompHeaders headers, @Nullable Object payload) {
+                log.debug("Received raw payload in handleFrame: {}", payload);
+                if (payload == null) {
+                    log.error("Received null payload in handleFrame (headers: {})", headers);
+                    payloadFuture.completeExceptionally(new IllegalArgumentException("Received null payload"));
+                    return;
+                }
+                if (!(payload instanceof Message)) {
+                    log.error("Payload is not an instance of Message. Type: {}, Headers: {}", payload.getClass(), headers);
+                    payloadFuture.completeExceptionally(new IllegalArgumentException("Payload is not a Message instance"));
+                    return;
+                }
                 Message msg = (Message) payload;
+                log.debug("Deserialized Message payload: {}", msg);
                 payloadFuture.complete(msg);
             }
         });
@@ -167,6 +190,7 @@ class WebSocketChatIntegrationTest {
         Thread.sleep(250);
 
         String messageContent = "Hello via STOMP!";
+        log.debug("Sending message from Alice (userId={}) to chat {}: {}", aliceId, chatId, messageContent);
         aliceSession.send("/app/chat/" + chatId + "/send", messageContent);
 
         Message payload = payloadFuture.get(5, TimeUnit.SECONDS);
