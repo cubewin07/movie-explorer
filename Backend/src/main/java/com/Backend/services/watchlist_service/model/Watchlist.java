@@ -24,7 +24,7 @@ public class Watchlist {
     @OneToOne
     @MapsId
     @JoinColumn(name = "user_id")
-    @JsonBackReference
+    @JsonBackReference(value = "user-watchlist")
     private User user;
 
     @ElementCollection
