@@ -19,26 +19,26 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Component
 public class WebsocketHandshaker implements HandshakeInterceptor {
-    
+
     private final UserRepository userRepository;
 
     @Override
     public boolean beforeHandshake(
-        @NonNull ServerHttpRequest request, 
-        @NonNull ServerHttpResponse response, 
-        @NonNull WebSocketHandler wsHandler, 
+        @NonNull ServerHttpRequest request,
+        @NonNull ServerHttpResponse response,
+        @NonNull WebSocketHandler wsHandler,
         @NonNull Map<String, Object> attributes
     ) throws Exception {
         String uri = request.getURI().toString();
         String userId = uri.split("=")[1];
         User user = userRepository.findById(Long.parseLong(userId)).orElseThrow(() -> new UserNotFoundException("User not found"));
-        String username = user.getUsername();
-        attributes.put("username", username);
+        String email = user.getEmail();
+        attributes.put("email", email);
         return true;
     }
 
     @Override
     public void afterHandshake(@NonNull ServerHttpRequest request, @NonNull ServerHttpResponse response, @NonNull WebSocketHandler wsHandler, @Nullable Exception exception) {
-        
+
     }
 }

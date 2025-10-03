@@ -1,5 +1,6 @@
 package com.Backend.websocket.controller;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
@@ -23,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 
 @Controller
 @RequiredArgsConstructor
+@Slf4j
 public class STOMPController {
     private final SimpMessagingTemplate template;
     private final ChatService chatService;
@@ -37,8 +39,9 @@ public class STOMPController {
         @DestinationVariable Long chatId,
         Principal principal
     ) {
-        String username = principal.getName();
-        User sender = userRepository.findByUsername(username)
+        String email = principal.getName();
+        log.info("User {} sent message: {}", email, message);
+        User sender = userRepository.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("User not found"));
         Message sentMessage = messageService.sendMessage(message, chatId, sender);
         Set<User> participants = chatService.getParticipants(chatId);
