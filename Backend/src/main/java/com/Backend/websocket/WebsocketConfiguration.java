@@ -1,6 +1,10 @@
 package com.Backend.websocket;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.server.ServerHttpRequest;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -13,6 +17,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.lang.NonNull;
+import org.springframework.web.socket.server.support.DefaultHandshakeHandler;
+
+import java.security.Principal;
+import java.util.List;
+import java.util.Map;
 
 @Configuration
 @EnableWebSocketMessageBroker
@@ -32,8 +41,9 @@ public class WebsocketConfiguration implements WebSocketMessageBrokerConfigurer 
     @Override
     public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-        .setAllowedOrigins("*")
-        .addInterceptors(websocketHandshaker);
+                .setAllowedOrigins("*")
+                .setHandshakeHandler(handshakeHandler())
+                .addInterceptors(websocketHandshaker);
 //        .withSockJS();
     }
 
@@ -42,6 +52,22 @@ public class WebsocketConfiguration implements WebSocketMessageBrokerConfigurer 
         registration.interceptors(inboundInterceptor);
     }
 
-
+    @Bean
+    public DefaultHandshakeHandler handshakeHandler() {
+        return new DefaultHandshakeHandler() {
+            @Override
+            protected Principal determineUser(ServerHttpRequest request,
+                                              WebSocketHandler wsHandler,
+                                              Map<String, Object> attributes) {
+                // attributes["email"] comes from your HandshakeInterceptor
+                String email = (String) attributes.get("email");
+                if (email == null) {
+                    return null;
+                }
+                // Create a Principal that Spring will use as simpUser
+                return new UsernamePasswordAuthenticationToken(email, null, List.of());
+            }
+        };
+    }
 
 }
