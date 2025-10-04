@@ -29,11 +29,4 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
         return MessageBuilder.createMessage(message.getPayload(), accessor.getMessageHeaders());
     }
-
-    private String resolveJwt(StompHeaderAccessor accessor) {
-        return Optional.ofNullable(accessor.getFirstNativeHeader("Authorization"))
-            .filter(authHeader -> authHeader.startsWith("Bearer "))
-            .map(authHeader -> authHeader.substring(7))
-            .orElseThrow(() -> new RuntimeException("Missing or invalid Authorization header"));
-    }
 }
