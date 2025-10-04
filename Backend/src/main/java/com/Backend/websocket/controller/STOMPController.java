@@ -7,6 +7,7 @@ import org.springframework.stereotype.Controller;
 import com.Backend.services.chat_service.message.service.MessageService;
 import com.Backend.services.chat_service.service.ChatService;
 import com.Backend.services.chat_service.message.model.Message;
+import com.Backend.services.chat_service.message.dto.MessageWebSocketDTO;
 import com.Backend.services.notification_service.NotificationService;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.repository.UserRepository;
@@ -46,7 +47,10 @@ public class STOMPController {
         Message sentMessage = messageService.sendMessage(message, chatId, sender);
         Set<User> participants = chatService.getParticipants(chatId);
         String destination = "/topic/chat/" + chatId;
-        template.convertAndSend(destination, sentMessage);
+        MessageWebSocketDTO messageDto = MessageWebSocketDTO.fromMessage(sentMessage);
+        log.info("Sending WebSocket message to destination: {} with DTO: {}", destination, messageDto);
+        template.convertAndSend(destination, messageDto);
+        log.info("WebSocket message sent successfully");
 
         participants.forEach(participant -> {
             if(!participant.getId().equals(sender.getId())) {

@@ -1,6 +1,7 @@
 package com.Backend.services.chat_service;
 
 import com.Backend.services.chat_service.message.model.Message;
+import com.Backend.services.chat_service.message.dto.MessageWebSocketDTO;
 import com.Backend.services.notification_service.Notification;
 import com.Backend.services.notification_service.NotificationRepo;
 import com.Backend.services.user_service.model.AuthenticateDTO;
@@ -19,6 +20,7 @@ import org.springframework.http.*;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.messaging.simp.stomp.StompFrameHandler;
 import org.springframework.messaging.simp.stomp.StompHeaders;
 import org.springframework.messaging.simp.stomp.StompSession;
@@ -108,7 +110,11 @@ class WebSocketChatIntegrationTest {
 
     private WebSocketStompClient buildStompClient() {
         WebSocketStompClient client = new WebSocketStompClient(new StandardWebSocketClient());
-        client.setMessageConverter(new MappingJackson2MessageConverter());
+        MappingJackson2MessageConverter messageConverter = new MappingJackson2MessageConverter();
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        messageConverter.setObjectMapper(objectMapper);
+        client.setMessageConverter(messageConverter);
         client.setTaskScheduler(new ConcurrentTaskScheduler(Executors.newSingleThreadScheduledExecutor()));
         return client;
     }
@@ -156,15 +162,15 @@ class WebSocketChatIntegrationTest {
 
         WebSocketStompClient stompClient = buildStompClient();
 
-        CompletableFuture<Message> payloadFuture = new CompletableFuture<>();
+        CompletableFuture<MessageWebSocketDTO> payloadFuture = new CompletableFuture<>();
 
         StompSession bobSession = connectStomp(stompClient, bobToken, bobId);
         String destination = "/topic/chat/" + chatId;
-        log.debug("Creating subscription for user {} on destination {}", bobId, destination);
+        log.info("Creating subscription for user {} on destination {}", bobId, destination);
         bobSession.subscribe(destination, new StompFrameHandler() {
             @Override
             public @NonNull Type getPayloadType(@NonNull StompHeaders headers) {
-                return Message.class;
+                return MessageWebSocketDTO.class;
             }
 
             @Override
@@ -175,13 +181,13 @@ class WebSocketChatIntegrationTest {
                     payloadFuture.completeExceptionally(new IllegalArgumentException("Received null payload"));
                     return;
                 }
-                if (!(payload instanceof Message)) {
-                    log.error("Payload is not an instance of Message. Type: {}, Headers: {}", payload.getClass(), headers);
-                    payloadFuture.completeExceptionally(new IllegalArgumentException("Payload is not a Message instance"));
+                if (!(payload instanceof MessageWebSocketDTO)) {
+                    log.error("Payload is not an instance of MessageWebSocketDTO. Type: {}, Headers: {}", payload.getClass(), headers);
+                    payloadFuture.completeExceptionally(new IllegalArgumentException("Payload is not a MessageWebSocketDTO instance"));
                     return;
                 }
-                Message msg = (Message) payload;
-                log.debug("Deserialized Message payload: {}", msg);
+                MessageWebSocketDTO msg = (MessageWebSocketDTO) payload;
+                log.debug("Deserialized MessageWebSocketDTO payload: {}", msg);
                 payloadFuture.complete(msg);
             }
         });
@@ -190,10 +196,11 @@ class WebSocketChatIntegrationTest {
         Thread.sleep(250);
 
         String messageContent = "Hello via STOMP!";
-        log.debug("Sending message from Alice (userId={}) to chat {}: {}", aliceId, chatId, messageContent);
-        aliceSession.send("/app/chat/" + chatId + "/send", messageContent);
+        String sendDestination = "/app/chat/" + chatId + "/send";
+        log.info("Sending message from Alice (userId={}) to destination {}: {}", aliceId, sendDestination, messageContent);
+        aliceSession.send(sendDestination, messageContent);
 
-        Message payload = payloadFuture.get(5, TimeUnit.SECONDS);
+        MessageWebSocketDTO payload = payloadFuture.get(5, TimeUnit.SECONDS);
         assertThat(payload.getContent()).isEqualTo(messageContent);
 
         Notification notification = awaitNotification(bobId, messageContent);
