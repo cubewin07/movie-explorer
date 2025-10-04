@@ -27,46 +27,6 @@ public class JwtChannelInterceptor implements ChannelInterceptor {
     @Override
     public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
-        if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-
-            String jwt = resolveJwt(accessor);
-            
-            // Validate JWT
-            if (jwtService.isTokenExpired(jwt)) {
-                throw new RuntimeException("Invalid token");
-            }
-            
-            var sessionAttributes = Objects.requireNonNull(accessor.getSessionAttributes());
-            String attributedUsername = (String) sessionAttributes.get("email");
-            log.info("User with username {} is trying to connect", attributedUsername);
-
-            String usernameFromToken = jwtService.extractUsername(jwt);
-            log.info("Username extracted from token: {}", usernameFromToken);
-
-            if (attributedUsername != null && !attributedUsername.equals(usernameFromToken)) {
-                throw new RuntimeException("Username mismatch");
-            }
-
-            String effectiveUsername = attributedUsername != null ? attributedUsername : usernameFromToken;
-            log.info("Effective username: {}", effectiveUsername);
-            sessionAttributes.putIfAbsent("email", effectiveUsername);
-
-            accessor.setUser(new UsernamePasswordAuthenticationToken(effectiveUsername, null));
-            return message;
-        } else {
-            if (accessor.getUser() == null) {
-                var sessionAttributes = Objects.requireNonNull(accessor.getSessionAttributes());
-                String username = (String) sessionAttributes.get("email");
-                if (username != null) {
-                    log.debug("Restoring user from sessionAttributes: {}", username);
-                    accessor.setUser(new UsernamePasswordAuthenticationToken(username, null));
-                } else {
-                    log.warn("No email found in sessionAttributes for command {}", accessor.getCommand());
-                }
-            } else {
-                log.debug("User already present in accessor: {}", accessor.getUser());
-            }
-        }
         return MessageBuilder.createMessage(message.getPayload(), accessor.getMessageHeaders());
     }
 
