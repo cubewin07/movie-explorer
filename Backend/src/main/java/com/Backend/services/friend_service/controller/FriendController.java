@@ -3,6 +3,10 @@ package com.Backend.services.friend_service.controller;
 import java.util.Set;
 
 import com.Backend.services.friend_service.model.*;
+import com.Backend.services.friend_service.model.DTO.FriendDTO;
+import com.Backend.services.friend_service.model.DTO.FriendRequestDTO;
+import com.Backend.services.friend_service.model.DTO.FriendUpdatingBody;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;

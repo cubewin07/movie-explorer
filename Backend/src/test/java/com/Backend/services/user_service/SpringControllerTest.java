@@ -8,8 +8,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.Backend.services.watchlist_service.model.WatchlistPosting;
 import com.Backend.services.watchlist_service.model.WatchlistType;
 import com.Backend.services.friend_service.model.EmailBody;
-import com.Backend.services.friend_service.model.FriendUpdatingBody;
 import com.Backend.services.friend_service.model.Status;
+import com.Backend.services.friend_service.model.DTO.FriendUpdatingBody;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;

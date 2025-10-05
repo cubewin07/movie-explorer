@@ -2,10 +2,10 @@ package com.Backend.services.friend_service.service;
 
 
 import com.Backend.services.friend_service.model.Friend;
-import com.Backend.services.friend_service.model.FriendDTO;
-import com.Backend.services.friend_service.model.FriendRequestDTO;
-import com.Backend.services.friend_service.model.FriendUserDTO;
 import com.Backend.services.friend_service.model.Status;
+import com.Backend.services.friend_service.model.DTO.FriendDTO;
+import com.Backend.services.friend_service.model.DTO.FriendRequestDTO;
+import com.Backend.services.friend_service.model.DTO.FriendUserDTO;
 import com.Backend.services.friend_service.repository.FriendRepo;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.repository.UserRepository;
