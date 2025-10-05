@@ -7,8 +7,6 @@ import java.util.Set;
 
 import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.user_service.model.User;
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import lombok.*;
