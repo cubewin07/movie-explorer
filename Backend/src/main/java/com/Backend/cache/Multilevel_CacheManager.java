@@ -1,8 +1,11 @@
 package com.Backend.cache;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
+
+
 
 import java.util.Collection;
 import java.util.Map;
@@ -15,7 +18,7 @@ public class Multilevel_CacheManager implements CacheManager {
     private Map<String, Cache> cacheMap = new ConcurrentHashMap<>();
 
     @Override
-    public Cache getCache(String name) {
+    public Cache getCache(@NonNull String name) {
         return cacheMap.computeIfAbsent(name, cacheName -> {
             Cache remote = redis.getCache(cacheName);
             Cache local = caffeine.getCache(cacheName);

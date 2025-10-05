@@ -56,9 +56,9 @@ public class WebsocketConfiguration implements WebSocketMessageBrokerConfigurer 
     public DefaultHandshakeHandler handshakeHandler() {
         return new DefaultHandshakeHandler() {
             @Override
-            protected Principal determineUser(ServerHttpRequest request,
-                                              WebSocketHandler wsHandler,
-                                              Map<String, Object> attributes) {
+            protected Principal determineUser(@NonNull ServerHttpRequest request,
+                                              @NonNull WebSocketHandler wsHandler,
+                                              @NonNull Map<String, Object> attributes) {
                 // attributes["email"] comes from your HandshakeInterceptor
                 String email = (String) attributes.get("email");
                 if (email == null) {

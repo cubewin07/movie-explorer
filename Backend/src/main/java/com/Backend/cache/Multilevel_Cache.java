@@ -3,6 +3,7 @@ package com.Backend.cache;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.Cache;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 import java.util.concurrent.Callable;
 
@@ -39,7 +40,7 @@ public class Multilevel_Cache implements Cache {
     }
 
     @Override
-    public <T> T get(@NonNull Object key, Class<T> type) {
+    public <T> T get(@NonNull Object key,@Nullable Class<T> type) {
         // Try local cache first
         T localValue = local.get(key, type);
         if (localValue != null) {
@@ -59,6 +60,7 @@ public class Multilevel_Cache implements Cache {
     public <T> T get(@NonNull Object key, @NonNull Callable<T> valueLoader) {
         try {
             // Try local cache first
+            @SuppressWarnings("unchecked")
             T localValue = (T) local.get(key, valueLoader.getClass());
             if (localValue != null) {
                 return localValue;
@@ -82,7 +84,7 @@ public class Multilevel_Cache implements Cache {
     }
 
     @Override
-    public void put(@NonNull Object key, @NonNull Object value) {
+    public void put(@NonNull Object key, @Nullable Object value) {
         // Update both caches
         remote.put(key, value);
         local.put(key, value);
