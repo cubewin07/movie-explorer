@@ -1,6 +1,9 @@
 package com.Backend.services.user_service;
 
 import com.Backend.services.user_service.model.*;
+import com.Backend.services.user_service.model.DTO.AuthenticateDTO;
+import com.Backend.services.user_service.model.DTO.RegisterDTO;
+import com.Backend.services.user_service.model.DTO.UpdateUserDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.Backend.services.watchlist_service.model.WatchlistPosting;
 import com.Backend.services.watchlist_service.model.WatchlistType;

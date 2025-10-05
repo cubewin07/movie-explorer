@@ -1,4 +1,4 @@
-package com.Backend.services.user_service.model;
+package com.Backend.services.user_service.model.DTO;
 
 import java.time.LocalDateTime;
 
@@ -9,10 +9,11 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class MessageDTO {
+public class NotificationDTO {
     private Long id;
-    private String content;
-    private SimpleUserDTO sender;
+    private String type;
+    private Long relatedId;
+    private String message;
     private boolean read;
     private LocalDateTime createdAt;
 }

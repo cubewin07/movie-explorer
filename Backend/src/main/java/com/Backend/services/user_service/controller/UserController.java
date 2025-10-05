@@ -1,6 +1,10 @@
 package com.Backend.services.user_service.controller;
 
 import com.Backend.services.user_service.model.*;
+import com.Backend.services.user_service.model.DTO.AuthenticateDTO;
+import com.Backend.services.user_service.model.DTO.RegisterDTO;
+import com.Backend.services.user_service.model.DTO.UpdateUserDTO;
+import com.Backend.services.user_service.model.DTO.UserMeDTO;
 import com.Backend.services.user_service.service.UserService;
 
 import lombok.RequiredArgsConstructor;
