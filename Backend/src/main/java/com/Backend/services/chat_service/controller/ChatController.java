@@ -9,9 +9,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.Backend.services.chat_service.model.ChatCreateDTOID;
-import com.Backend.services.chat_service.model.ChatCreateGroupID;
-import com.Backend.services.chat_service.model.ChatResponseDTO;
+import com.Backend.services.chat_service.model.DTO.ChatCreateDTOID;
+import com.Backend.services.chat_service.model.DTO.ChatCreateGroupID;
+import com.Backend.services.chat_service.model.DTO.ChatResponseDTO;
 import com.Backend.services.chat_service.service.ChatService;
 import com.Backend.services.chat_service.message.service.MessageService;
 import com.Backend.services.chat_service.model.Chat;

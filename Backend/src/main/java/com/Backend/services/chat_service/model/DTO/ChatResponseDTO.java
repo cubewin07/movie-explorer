@@ -1,4 +1,4 @@
-package com.Backend.services.chat_service.model;
+package com.Backend.services.chat_service.model.DTO;
 
 import java.time.LocalDateTime;
 import java.util.Set;
