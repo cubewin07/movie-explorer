@@ -25,7 +25,6 @@ public class NotificationService {
             .type(type)
             .relatedId(relatedId)
             .message(message)
-            .isRead(false)
             .createdAt(LocalDateTime.now())
             .build();
         notificationRepo.save(notification);
@@ -54,7 +53,6 @@ public class NotificationService {
             .type(type)
             .relatedId(relatedId)
             .message(messageContent)
-            .isRead(false)
             .createdAt(LocalDateTime.now())
             .build();
         notificationRepo.save(notification);
@@ -83,7 +81,6 @@ public class NotificationService {
             .type(type)
             .relatedId(relatedId)
             .message(messageContent)
-            .isRead(false)
             .createdAt(LocalDateTime.now())
             .build();
             notificationRepo.save(notification);
@@ -95,7 +92,6 @@ public class NotificationService {
             .type(type)
             .relatedId(relatedId)
             .message(message)
-            .isRead(false)
             .createdAt(LocalDateTime.now())
             .build();
             notificationRepo.save(notification);
