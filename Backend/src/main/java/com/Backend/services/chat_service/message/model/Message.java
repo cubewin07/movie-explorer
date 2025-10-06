@@ -17,6 +17,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Index;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -27,6 +29,12 @@ import lombok.EqualsAndHashCode;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Table(
+    name = "messages",
+    indexes = {
+        @Index(name = "idx_chat_id", columnList = "chat_id, created_at DESC"),
+    }
+)
 public class Message {
     
     @Id
