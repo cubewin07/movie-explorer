@@ -39,17 +39,16 @@ import lombok.NoArgsConstructor;
 public class Friend {
 
     @Id
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "user1_id")
     private User user1;
 
     @Id
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "user2_id")
     private User user2;
     
     @Enumerated(EnumType.STRING)
-    @ColumnDefault("PENDING")
     @Builder.Default
     private Status status = Status.PENDING;
 

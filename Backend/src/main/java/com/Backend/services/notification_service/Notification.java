@@ -53,7 +53,6 @@ public class Notification {
 
     private String message;
 
-    @ColumnDefault("false")
     @Builder.Default
     private boolean isRead = false;
 

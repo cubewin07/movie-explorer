@@ -54,7 +54,6 @@ public class Message {
 
     private String content;
 
-    @ColumnDefault("false")
     @Builder.Default
     private boolean isRead = false;
 
