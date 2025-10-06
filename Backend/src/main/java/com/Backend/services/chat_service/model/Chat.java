@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.hibernate.annotations.BatchSize;
+
 import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.user_service.model.User;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -48,13 +50,14 @@ public class Chat {
         inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     @Builder.Default
+    @BatchSize(size = 20)
     @JsonManagedReference(value = "chat-participants")
     private Set<User> participants = new HashSet<>();
 
     @OneToMany(mappedBy = "chat")
     @OrderBy("createdAt DESC")
     @Builder.Default
-    // @JsonIgnore
+    @BatchSize(size = 20)
     @JsonManagedReference(value = "chat-messages")
     private List<Message> messages = new ArrayList<>();
 
