@@ -68,33 +68,34 @@ public class User implements UserDetails {
     private String password;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    @Builder.Default
     @JsonManagedReference(value = "user-watchlist")
+    @OrderBy("created_at DESC")
+    @Builder.Default
     private Watchlist watchlist = new Watchlist();
 
     @OneToMany(mappedBy = "user")
     @JsonManagedReference(value = "user-notifications")
-    @OrderBy("createdAt DESC")
+    @OrderBy("created_at DESC")
     @Builder.Default
     private List<Notification> notifications = new ArrayList<>();
 
     @OneToMany(mappedBy = "user1")
-    @OrderBy("createdAt DESC")
+    @OrderBy("created_at DESC")
     @Builder.Default
     private List<Friend> requestsFrom = new ArrayList<>();
 
     @OneToMany(mappedBy = "user2")
-    @OrderBy("createdAt DESC")
+    @OrderBy("created_at DESC")
     @Builder.Default
     private List<Friend> requestsTo = new ArrayList<>();
 
     @ManyToMany(mappedBy = "participants")
+    @OrderBy("created_at DESC")
     @Builder.Default
     @JsonBackReference(value = "chat-participants")
     private Set<Chat> chats = new HashSet<>();
 
     @OneToMany(mappedBy = "sender")
-    @OrderBy("createdAt DESC")
     @Builder.Default
     @JsonManagedReference(value = "user-sent-messages")
     private Set<Message> sentMessages = new HashSet<>();

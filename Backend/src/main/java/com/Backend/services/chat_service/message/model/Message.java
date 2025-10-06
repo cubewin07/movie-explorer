@@ -55,7 +55,7 @@ public class Message {
     private String content;
 
     @Builder.Default
-    @ColumnDefault("'false'")
+    @ColumnDefault("false")
     private boolean isRead = false;
 
     @CreationTimestamp
