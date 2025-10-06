@@ -40,15 +40,13 @@ import lombok.NoArgsConstructor;
 public class Friend {
 
     @Id
-    @ManyToOne
+    @ManyToOne()
     @JoinColumn(name = "user1_id")
-    @BatchSize(size = 20)
     private User user1;
 
     @Id
-    @ManyToOne
+    @ManyToOne()
     @JoinColumn(name = "user2_id")
-    @BatchSize(size = 20)
     private User user2;
     
     @Enumerated(EnumType.STRING)
