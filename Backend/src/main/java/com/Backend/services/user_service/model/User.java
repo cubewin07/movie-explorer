@@ -50,6 +50,7 @@ import java.util.Set;
         @Index(name = "idx_user_id", columnList = "id"),
     }
 )
+@BatchSize(size = 20)
 public class User implements UserDetails {
 
     @Id
