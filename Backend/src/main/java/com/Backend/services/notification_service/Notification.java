@@ -18,6 +18,8 @@ import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
+import jakarta.persistence.Table;
+import jakarta.persistence.Index;
 
 @Entity
 @Data
@@ -25,6 +27,12 @@ import org.hibernate.annotations.ColumnDefault;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(
+    name = "notifications",
+    indexes = {
+        @Index(name = "idx_notification_user_id", columnList = "user_id, created_at DESC"),
+    }
+)
 public class Notification {
     
     @Id
