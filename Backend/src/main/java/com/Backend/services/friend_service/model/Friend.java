@@ -49,7 +49,6 @@ public class Friend {
     private User user2;
     
     @Enumerated(EnumType.STRING)
-    @ColumnDefault("PENDING")
     @Builder.Default
     private Status status = Status.PENDING;
 

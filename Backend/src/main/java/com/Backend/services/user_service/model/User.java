@@ -90,7 +90,6 @@ public class User implements UserDetails {
     private List<Friend> requestsTo = new ArrayList<>();
 
     @ManyToMany(mappedBy = "participants")
-    @OrderBy("created_at DESC")
     @Builder.Default
     @JsonBackReference(value = "chat-participants")
     private Set<Chat> chats = new HashSet<>();

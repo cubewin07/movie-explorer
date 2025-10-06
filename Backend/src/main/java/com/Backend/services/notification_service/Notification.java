@@ -54,7 +54,6 @@ public class Notification {
     private String message;
 
     @Builder.Default
-    @ColumnDefault("false")
     private boolean isRead = false;
 
     @Column(name = "created_at")
