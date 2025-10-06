@@ -31,7 +31,7 @@ import jakarta.persistence.Index;
 @Table(
     name = "chats",
     indexes = {
-        @Index(name = "idx_chat_id", columnList = "id"),
+        @Index(name = "idx_chat", columnList = "id"),
     }
 )
 public class Chat {
