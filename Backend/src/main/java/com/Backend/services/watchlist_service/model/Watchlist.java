@@ -15,6 +15,12 @@ import java.util.Set;
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @NoArgsConstructor
+@Table(
+    name = "watchlist",
+    indexes = {
+        @Index(name = "idx_watchlist_user_id", columnList = "user_id"),
+    }
+)
 public class Watchlist {
 
     @Id
