@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import org.hibernate.annotations.BatchSize;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -24,6 +25,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -71,17 +73,20 @@ public class User implements UserDetails {
     private Watchlist watchlist = new Watchlist();
 
     @OneToMany(mappedBy = "user")
-    @Builder.Default
     @JsonManagedReference(value = "user-notifications")
-    private Set<Notification> notifications = new HashSet<>();
+    @OrderBy("createdAt DESC")
+    @Builder.Default
+    private List<Notification> notifications = new ArrayList<>();
 
     @OneToMany(mappedBy = "user1")
+    @OrderBy("createdAt DESC")
     @Builder.Default
-    private Set<Friend> requestsFrom = new HashSet<>();
+    private List<Friend> requestsFrom = new ArrayList<>();
 
     @OneToMany(mappedBy = "user2")
+    @OrderBy("createdAt DESC")
     @Builder.Default
-    private Set<Friend> requestsTo = new HashSet<>();
+    private List<Friend> requestsTo = new ArrayList<>();
 
     @ManyToMany(mappedBy = "participants")
     @Builder.Default
@@ -89,6 +94,7 @@ public class User implements UserDetails {
     private Set<Chat> chats = new HashSet<>();
 
     @OneToMany(mappedBy = "sender")
+    @OrderBy("createdAt DESC")
     @Builder.Default
     @JsonManagedReference(value = "user-sent-messages")
     private Set<Message> sentMessages = new HashSet<>();
