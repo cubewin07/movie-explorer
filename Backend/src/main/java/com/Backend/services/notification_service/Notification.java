@@ -53,9 +53,9 @@ public class Notification {
 
     private String message;
 
-    @Column(name = "is_read")
     @ColumnDefault("false")
-    private boolean isRead;
+    @Builder.Default
+    private boolean isRead = false;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
