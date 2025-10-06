@@ -17,7 +17,6 @@ import lombok.EqualsAndHashCode;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import org.hibernate.annotations.ColumnDefault;
 import jakarta.persistence.Table;
 import jakarta.persistence.Index;
 
