@@ -2,6 +2,7 @@ package com.Backend.services.friend_service.model;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -41,11 +42,13 @@ public class Friend {
     @Id
     @ManyToOne
     @JoinColumn(name = "user1_id")
+    @BatchSize(size = 20)
     private User user1;
 
     @Id
     @ManyToOne
     @JoinColumn(name = "user2_id")
+    @BatchSize(size = 20)
     private User user2;
     
     @Enumerated(EnumType.STRING)
