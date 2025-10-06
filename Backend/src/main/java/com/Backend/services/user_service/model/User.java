@@ -41,7 +41,13 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "users")
+@Table(
+    name = "users",
+    indexes = {
+        @Index(name = "idx_user_email", columnList = "email"),
+        @Index(name = "idx_user_id", columnList = "id"),
+    }
+)
 public class User implements UserDetails {
 
     @Id
