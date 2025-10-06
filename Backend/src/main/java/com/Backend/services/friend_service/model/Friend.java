@@ -2,6 +2,7 @@ package com.Backend.services.friend_service.model;
 
 import java.time.LocalDateTime;
 
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
 import com.Backend.services.user_service.model.User;
@@ -47,6 +48,7 @@ public class Friend {
     private User user2;
     
     @Enumerated(EnumType.STRING)
+    @ColumnDefault("PENDING")
     @Builder.Default
     private Status status = Status.PENDING;
 
