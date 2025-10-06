@@ -19,6 +19,8 @@ import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
+import jakarta.persistence.Table;
+import jakarta.persistence.Index;
 
 @Entity
 @Data
@@ -26,6 +28,12 @@ import jakarta.persistence.OrderBy;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Table(
+    name = "chats",
+    indexes = {
+        @Index(name = "idx_chat_id", columnList = "id"),
+    }
+)
 public class Chat {
     
     @Id
