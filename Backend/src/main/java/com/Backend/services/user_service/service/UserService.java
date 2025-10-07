@@ -18,6 +18,10 @@ import com.Backend.services.watchlist_service.model.Watchlist;
 import com.Backend.springSecurity.jwtAuthentication.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,7 +31,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.Backend.exception.AuthenticationFailedException;
 import com.Backend.exception.UserNotFoundException;
-
 
 import java.util.List;
 
@@ -41,16 +44,21 @@ public class UserService {
     private final AuthenticationManager authenticationManager;
     private final MessageService messageService;
 
+    @Cacheable(value = "users", key = "'all'")
     public List<User> getAllUsers() {
+        log.debug("Fetching all users from database");
         return userRepository.findAll();
     }
 
+    @Cacheable(value = "users", key = "#id")
     public User getUserById(Long id) {
+        log.debug("Fetching user by id={} from database", id);
         return userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
     }
 
     @Transactional
+    @CacheEvict(value = "users", key = "'all'")
     public JwtToken registerUser(RegisterDTO registerDTO) {
         String encryptedPassword = passwordEncoder.encode(registerDTO.password());
         User user = User.builder()
@@ -86,10 +94,16 @@ public class UserService {
         }
         String token = jwtService.generateToken(auth.getName());
         return new JwtToken(token);
-
     }
 
     @Transactional
+    @Caching(
+        put = @CachePut(value = "users", key = "#result.id"),
+        evict = {
+            @CacheEvict(value = "users", key = "'all'"),
+            @CacheEvict(value = "userMeDTO", key = "#userFromContext.email")
+        }
+    )
     public User updateUser(UpdateUserDTO update, User userFromContext) {
         User managedUser = userRepository.findByEmail(userFromContext.getEmail())
                 .orElseThrow(() -> new UserNotFoundException("User with email " + userFromContext.getEmail() + " not found"));
@@ -100,6 +114,11 @@ public class UserService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "users", key = "#id"),
+        @CacheEvict(value = "users", key = "'all'"),
+        @CacheEvict(value = "userMeDTO", allEntries = true)
+    })
     public void deleteUserById(Long id) {
         if (!userRepository.existsById(id)) {
             log.error("User with id {} does not exist", id);
@@ -110,7 +129,10 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "userMeDTO", key = "#principal.email")
     public UserMeDTO getMeDTO(User principal) {
+        log.debug("Fetching UserMeDTO for email={} from database", principal.getEmail());
+        
         // Load with entity graph
         User user = userRepository.findByEmail(principal.getEmail())
                 .orElseThrow(() -> new UserNotFoundException("User with email " + principal.getEmail() + " not found"));
@@ -205,5 +227,4 @@ public class UserService {
 
         return dto;
     }
-
 }
