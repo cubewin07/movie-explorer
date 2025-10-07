@@ -10,6 +10,9 @@ import com.Backend.exception.DuplicateWatchlistItemException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.Set;
@@ -21,14 +24,21 @@ public class WatchlistService {
 
     private final WatchlistRepository watchlistRepository;
 
+    @Cacheable(value = "watchlist", key = "#user.id")
     public Watchlist getWatchlist(User user) {
+        log.debug("Fetching watchlist for user id={} from database", user.getId());
         return watchlistRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new WatchlistNotFoundException("Watchlist for user id " + user.getId() + " not found"));
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "watchlist", key = "#user.id"),
+        @CacheEvict(value = "userMeDTO", key = "#user.email")
+    })
     public void addToWatchlist(WatchlistPosting posting, User user) {
-        Watchlist watchlist = getWatchlist(user);
+        Watchlist watchlist = watchlistRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new WatchlistNotFoundException("Watchlist for user id " + user.getId() + " not found"));
 
         Set<Long> IdSet;
         if(posting.type().equals(WatchlistType.MOVIE))
@@ -47,10 +57,15 @@ public class WatchlistService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "watchlist", key = "#user.id"),
+        @CacheEvict(value = "userMeDTO", key = "#user.email")
+    })
     public void removeFromWatchlist(WatchlistPosting posting, User user) {
         Long id = posting.id();
 
-        Watchlist watchlist = getWatchlist(user);
+        Watchlist watchlist = watchlistRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new WatchlistNotFoundException("Watchlist for user id " + user.getId() + " not found"));
 
         Set<Long> IdSet;
         if(posting.type().equals(WatchlistType.MOVIE))
@@ -67,6 +82,4 @@ public class WatchlistService {
             log.warn("Movie id: {} was not found in watchlist for user: {}", id, user.getUsername());
         }
     }
-
-
 }
