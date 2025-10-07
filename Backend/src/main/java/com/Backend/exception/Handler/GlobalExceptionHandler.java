@@ -32,7 +32,8 @@ public class GlobalExceptionHandler {
         ErrorRes errorRes = new ErrorRes(
                 HttpStatus.NOT_FOUND.value(),
                 ex.getMessage(),
-                System.currentTimeMillis());
+                "User not found",
+                Instant.now().toString());
         return new ResponseEntity<>(errorRes, HttpStatus.NOT_FOUND);
     }
 
@@ -41,16 +42,21 @@ public class GlobalExceptionHandler {
         ErrorRes errorRes = new ErrorRes(
                 HttpStatus.UNAUTHORIZED.value(),
                 ex.getMessage(),
-                System.currentTimeMillis());
+                "Authentication failed",
+                Instant.now().toString());
         return new ResponseEntity<>(errorRes, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler({UserNotFoundException.class, WatchlistNotFoundException.class, FriendshipNotFoundException.class})
     public ResponseEntity<ErrorRes> handleNotFound(RuntimeException ex) {
+        String errorType = ex instanceof UserNotFoundException ? "User not found" :
+                         ex instanceof WatchlistNotFoundException ? "Watchlist not found" :
+                         "Friendship not found";
         ErrorRes errorRes = new ErrorRes(
                 HttpStatus.NOT_FOUND.value(),
                 ex.getMessage(),
-                System.currentTimeMillis());
+                errorType,
+                Instant.now().toString());
         return new ResponseEntity<>(errorRes, HttpStatus.NOT_FOUND);
     }
 
@@ -59,7 +65,8 @@ public class GlobalExceptionHandler {
         ErrorRes errorRes = new ErrorRes(
                 HttpStatus.CONFLICT.value(),
                 ex.getMessage(),
-                System.currentTimeMillis());
+                "Duplicate watchlist item",
+                Instant.now().toString());
         return new ResponseEntity<>(errorRes, HttpStatus.CONFLICT);
     }
 
@@ -68,17 +75,20 @@ public class GlobalExceptionHandler {
         ErrorRes errorRes = new ErrorRes(
                 HttpStatus.CONFLICT.value(),
                 ex.getMessage(),
-                System.currentTimeMillis());
+                "Friend request already exists",
+                Instant.now().toString());
         return new ResponseEntity<>(errorRes, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler({FriendNotFoundException.class, NotAuthorizedToModifyFriendshipException.class})
     public ResponseEntity<ErrorRes> handleFriendErrors(RuntimeException ex) {
         HttpStatus status = ex instanceof FriendNotFoundException ? HttpStatus.NOT_FOUND : HttpStatus.FORBIDDEN;
+        String errorType = ex instanceof FriendNotFoundException ? "Friend not found" : "Not authorized to modify friendship";
         ErrorRes errorRes = new ErrorRes(
                 status.value(),
                 ex.getMessage(),
-                System.currentTimeMillis());
+                errorType,
+                Instant.now().toString());
         return new ResponseEntity<>(errorRes, status);
     }
 
@@ -87,7 +97,8 @@ public class GlobalExceptionHandler {
         ErrorRes errorRes = new ErrorRes(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 ex.getMessage(),
-                System.currentTimeMillis());
+                "Internal server error",
+                Instant.now().toString());
         return new ResponseEntity<>(errorRes, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
