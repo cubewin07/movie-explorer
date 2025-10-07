@@ -23,6 +23,10 @@ spring:
 #      jakarta.persistence.schema-generation.scripts.action: create
 #      jakarta.persistence.schema-generation.scripts.create-target: schema.sql
 #      jakarta.persistence.schema-generation.scripts.create-source: metadata
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
   profiles:
     default: dev
 
