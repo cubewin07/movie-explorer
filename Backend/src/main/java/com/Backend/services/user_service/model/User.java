@@ -49,6 +49,9 @@ import java.util.Set;
     indexes = {
         @Index(name = "idx_user_email", columnList = "email"),
         @Index(name = "idx_user_id", columnList = "id"),
+    },
+    uniqueConstraints = {
+        @UniqueConstraint(name = "unique_email", columnNames = "email"),
     }
 )
 @BatchSize(size = 20)
@@ -59,13 +62,13 @@ public class User implements UserDetails {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(nullable = false, length = 50)
     @NotNull(message = "Username cannot be null")
     @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
     @JsonProperty("username")
     private String username;
 
-    @Column(nullable = false, unique = true, length = 100)
+    @Column(nullable = false, length = 100)
     @NotNull(message = "Email cannot be null")
     @Email(message = "Email should be valid")
     private String email;
