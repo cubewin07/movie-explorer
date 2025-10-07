@@ -15,6 +15,8 @@ import jakarta.persistence.IdClass;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Table;
 import jakarta.persistence.Index;
+import jakarta.persistence.Column;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -38,18 +40,23 @@ public class Friend {
 
     @Id
     @ManyToOne()
-    @JoinColumn(name = "user1_id")
+    @JoinColumn(name = "user1_id", nullable = false)
+    @NotNull(message = "User1 cannot be null")
     private User user1;
 
     @Id
     @ManyToOne()
-    @JoinColumn(name = "user2_id")
+    @JoinColumn(name = "user2_id", nullable = false)
+    @NotNull(message = "User2 cannot be null")
     private User user2;
     
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     @Builder.Default
+    @NotNull(message = "Status cannot be null")
     private Status status = Status.PENDING;
 
     @CreationTimestamp
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 }

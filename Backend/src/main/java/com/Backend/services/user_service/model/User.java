@@ -15,6 +15,7 @@ import org.hibernate.annotations.BatchSize;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -58,14 +59,21 @@ public class User implements UserDetails {
     @EqualsAndHashCode.Include
     private Long id;
 
+    @Column(nullable = false, unique = true, length = 50)
     @NotNull(message = "Username cannot be null")
+    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
     @JsonProperty("username")
     private String username;
 
+    @Column(nullable = false, unique = true, length = 100)
     @NotNull(message = "Email cannot be null")
+    @Email(message = "Email should be valid")
     private String email;
 
+    @Column(nullable = false)
     @Size(min = 8, message = "Password must be at least 8 characters long")
+    @NotNull(message = "Password cannot be null")
+    @JsonIgnore
     private String password;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
@@ -74,30 +82,35 @@ public class User implements UserDetails {
     @Builder.Default
     private Watchlist watchlist = new Watchlist();
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @JsonManagedReference(value = "user-notifications")
-    @OrderBy("created_at DESC")
+    @OrderBy("createdAt DESC")
     @Builder.Default
+    @NotNull(message = "Notifications list cannot be null")
     private List<Notification> notifications = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user1")
-    @OrderBy("created_at DESC")
+    @OneToMany(mappedBy = "user1", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OrderBy("createdAt DESC")
     @Builder.Default
+    @NotNull(message = "Friend requests from user cannot be null")
     private List<Friend> requestsFrom = new ArrayList<>();
 
-    @OneToMany(mappedBy = "user2")
-    @OrderBy("created_at DESC")
+    @OneToMany(mappedBy = "user2", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OrderBy("createdAt DESC")
     @Builder.Default
+    @NotNull(message = "Friend requests to user cannot be null")
     private List<Friend> requestsTo = new ArrayList<>();
 
     @ManyToMany(mappedBy = "participants")
     @Builder.Default
     @JsonBackReference(value = "chat-participants")
+    @NotNull(message = "Chats set cannot be null")
     private Set<Chat> chats = new HashSet<>();
 
     @OneToMany(mappedBy = "sender")
     @Builder.Default
     @JsonManagedReference(value = "user-sent-messages")
+    @NotNull(message = "Sent messages list cannot be null")
     private Set<Message> sentMessages = new HashSet<>();
 
     @Enumerated(EnumType.STRING)

@@ -23,6 +23,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
 import jakarta.persistence.Index;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 @Data
@@ -49,6 +50,7 @@ public class Chat {
         joinColumns = @JoinColumn(name = "chat_id"),
         inverseJoinColumns = @JoinColumn(name = "user_id")
     )
+    @NotNull(message = "Participants cannot be null")
     @Builder.Default
     @BatchSize(size = 20)
     @JsonManagedReference(value = "chat-participants")
@@ -56,6 +58,7 @@ public class Chat {
 
     @OneToMany(mappedBy = "chat")
     @OrderBy("createdAt DESC")
+    @NotNull(message = "Messages list cannot be null")
     @Builder.Default
     @BatchSize(size = 20)
     @JsonManagedReference(value = "chat-messages")

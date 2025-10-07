@@ -18,6 +18,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.Index;
+import jakarta.persistence.Column;
+import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -41,21 +43,26 @@ public class Message {
     @EqualsAndHashCode.Include
     private Long id;
 
-    @JoinColumn(name = "chat_id")
+    @JoinColumn(name = "chat_id", nullable = false)
     @ManyToOne
+    @NotNull(message = "Chat cannot be null")
     @JsonBackReference(value = "chat-messages")
     private Chat chat;
 
-    @JoinColumn(name = "sender_id")
+    @JoinColumn(name = "sender_id", nullable = false)
     @ManyToOne
+    @NotNull(message = "Sender cannot be null")
     @JsonBackReference(value = "user-sent-messages")
     private User sender;
 
+    @NotNull(message = "Message content cannot be null")
+    @Column(nullable = false)
     private String content;
 
     @Builder.Default
     private boolean isRead = false;
 
     @CreationTimestamp
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 }
