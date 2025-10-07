@@ -163,7 +163,7 @@ class SpringControllerTest {
     @Order(4)
     @DisplayName("GET /users/me returns authenticated user from principal")
     void getMe_returnsPrincipalUser() throws Exception {
-        register("me", "me@example.com", "password123");
+        register("metest", "me@example.com", "password123");
         String token = authenticate("me@example.com", "password123");
         
         mockMvc.perform(get("/users/me")
