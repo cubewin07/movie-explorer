@@ -1,7 +1,13 @@
 package com.Backend.exception.Handler;
 
+import java.time.Instant;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.support.MethodArgumentNotValidException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -16,6 +22,7 @@ import com.Backend.exception.FriendshipNotFoundException;
 import com.Backend.exception.NotAuthorizedToModifyFriendshipException;
 import com.Backend.exception.UserNotFoundException;
 import com.Backend.exception.WatchlistNotFoundException;
+import com.Backend.exception.ErrorResObject;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -73,5 +80,33 @@ public class GlobalExceptionHandler {
                 ex.getMessage(),
                 System.currentTimeMillis());
         return new ResponseEntity<>(errorRes, status);
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorRes> handleException(Exception ex) {
+        ErrorRes errorRes = new ErrorRes(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                ex.getMessage(),
+                System.currentTimeMillis());
+        return new ResponseEntity<>(errorRes, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResObject> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
+        List<Map<String, String>> fieldErrors = ex.getBindingResult().getFieldErrors()
+                .stream()
+                .map(error -> Map.of(
+                        error.getField(),
+                        error.getDefaultMessage()
+                ))
+                .collect(Collectors.toList());
+        
+        ErrorResObject errorResponse = new ErrorResObject(
+                HttpStatus.BAD_REQUEST.value(),
+                "Validation Failed",
+                fieldErrors,
+                Instant.now().toString()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 }
