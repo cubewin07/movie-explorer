@@ -1,5 +1,6 @@
 package com.Backend.services.user_service.controller;
 
+import jakarta.validation.Valid;
 import com.Backend.services.user_service.model.*;
 import com.Backend.services.user_service.model.DTO.AuthenticateDTO;
 import com.Backend.services.user_service.model.DTO.RegisterDTO;
@@ -27,7 +28,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<JwtToken> registerUser(@RequestBody RegisterDTO register) {
+    public ResponseEntity<JwtToken> registerUser(@Valid @RequestBody RegisterDTO register) {
         return ResponseEntity.ok(userService.registerUser(register));
     }
 
