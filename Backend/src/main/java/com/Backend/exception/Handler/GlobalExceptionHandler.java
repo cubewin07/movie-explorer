@@ -14,11 +14,13 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.Backend.exception.AuthenticationFailedException;
+import com.Backend.exception.ChatNotFoundException;
 import com.Backend.exception.DuplicateWatchlistItemException;
 import com.Backend.exception.ErrorRes;
 import com.Backend.exception.FriendNotFoundException;
 import com.Backend.exception.FriendRequestAlreadyExistsException;
 import com.Backend.exception.FriendshipNotFoundException;
+import com.Backend.exception.MessageNotFoundException;
 import com.Backend.exception.NotAuthorizedToModifyFriendshipException;
 import com.Backend.exception.UserNotFoundException;
 import com.Backend.exception.WatchlistNotFoundException;
@@ -47,11 +49,19 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorRes, HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler({UserNotFoundException.class, WatchlistNotFoundException.class, FriendshipNotFoundException.class})
+    @ExceptionHandler({
+        UserNotFoundException.class, 
+        WatchlistNotFoundException.class, 
+        FriendshipNotFoundException.class,
+        ChatNotFoundException.class,
+        MessageNotFoundException.class
+    })
     public ResponseEntity<ErrorRes> handleNotFound(RuntimeException ex) {
         String errorType = ex instanceof UserNotFoundException ? "User not found" :
                          ex instanceof WatchlistNotFoundException ? "Watchlist not found" :
-                         "Friendship not found";
+                         ex instanceof ChatNotFoundException ? "Chat not found" :
+                         ex instanceof MessageNotFoundException ? "Message not found" :
+                         "Resource not found";
         ErrorRes errorRes = new ErrorRes(
                 HttpStatus.NOT_FOUND.value(),
                 ex.getMessage(),
