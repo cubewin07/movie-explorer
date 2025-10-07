@@ -1,11 +1,10 @@
 package com.Backend.services.chat_service.message.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.Backend.exception.ChatNotFoundException;
 import com.Backend.exception.MessageNotFoundException;
@@ -15,119 +14,120 @@ import com.Backend.services.chat_service.model.Chat;
 import com.Backend.services.chat_service.repository.ChatRepository;
 import com.Backend.services.user_service.model.User;
 
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class MessageService {
-    private static final Logger logger = LoggerFactory.getLogger(MessageService.class);
+    
+    private static final int DEFAULT_PAGE_SIZE = 20;
+    private static final int MIN_PAGE_NUMBER = 0;
+    private static final int MIN_PAGE_SIZE = 1;
     
     private final MessageRepository messageRepository;
     private final ChatRepository chatRepository;
 
+    // ==================== Send Message ====================
+
     @Transactional
     public Message sendMessage(String text, Long chatId, User sender) {
+        validateMessageText(text);
+        validateNotNull(sender, "Sender");
+        
+        log.debug("Sending message to chat: {}", chatId);
+        
+        Chat chat = findChatById(chatId);
+        
+        Message message = Message.builder()
+            .content(text)
+            .chat(chat)
+            .sender(sender)
+            .build();
+            
+        Message savedMessage = messageRepository.save(message);
+        log.info("Message sent successfully with id: {}", savedMessage.getId());
+        
+        return savedMessage;
+    }
+
+    // ==================== Retrieve Messages ====================
+
+    @Transactional(readOnly = true)
+    public Page<Message> getMessages(Long chatId, int page, int size) {
+        validateNotNull(chatId, "Chat ID");
+        
+        page = normalizePage(page);
+        size = normalizePageSize(size);
+        
+        log.debug("Fetching messages for chat: {}, page: {}, size: {}", chatId, page, size);
+        
+        verifyChatExists(chatId);
+        
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Message> messages = messageRepository.findByChatIdOrderByCreatedAtDesc(chatId, pageable);
+        
+        log.info("Found {} messages for chat: {}", messages.getTotalElements(), chatId);
+        
+        return messages;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Message> getMessages(Long chatId, int page) {
+        return getMessages(chatId, page, DEFAULT_PAGE_SIZE);
+    }
+
+    @Transactional(readOnly = true)
+    public Message getLatestMessage(Long chatId) {
+        validateNotNull(chatId, "Chat ID");
+        
+        log.debug("Fetching latest message for chat: {}", chatId);
+        
+        verifyChatExists(chatId);
+        
+        return messageRepository.findTopByChatIdOrderByCreatedAtDesc(chatId)
+            .orElseThrow(() -> new MessageNotFoundException("No messages found for chat: " + chatId));
+    }
+    
+    // ==================== Private Helper Methods ====================
+    
+    private Chat findChatById(Long chatId) {
+        return chatRepository.findById(chatId)
+            .orElseThrow(() -> new ChatNotFoundException("Chat not found with id: " + chatId));
+    }
+    
+    private void verifyChatExists(Long chatId) {
+        if (!chatRepository.existsById(chatId)) {
+            throw new ChatNotFoundException("Chat not found with id: " + chatId);
+        }
+    }
+    
+    private void validateNotNull(Object obj, String fieldName) {
+        if (obj == null) {
+            throw new IllegalArgumentException(fieldName + " cannot be null");
+        }
+    }
+    
+    private void validateMessageText(String text) {
         if (text == null || text.trim().isEmpty()) {
-            logger.error("Cannot send message: Message text is empty");
             throw new IllegalArgumentException("Message text cannot be empty");
         }
-        
-        if (sender == null) {
-            logger.error("Cannot send message: Sender is null");
-            throw new IllegalArgumentException("Sender cannot be null");
-        }
-        
-        logger.debug("Sending message to chat: {}", chatId);
-        try {
-            Chat chat = chatRepository.findById(chatId)
-                .orElseThrow(() -> {
-                    logger.error("Chat not found with id: {}", chatId);
-                    return new ChatNotFoundException("Chat not found with id: " + chatId);
-                });
-                
-            Message message = Message.builder()
-                .content(text)
-                .chat(chat)
-                .sender(sender)
-                .build();
-                
-            Message savedMessage = messageRepository.save(message);
-            logger.info("Message sent successfully with id: {}", savedMessage.getId());
-            return savedMessage;
-        } catch (ChatNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
-            logger.error("Error sending message to chat {}: {}", chatId, e.getMessage(), e);
-            throw new RuntimeException("Failed to send message", e);
-        }
     }
-
-
-    public Page<Message> getMessages(Long chatId, int page, int size) {
-        if (chatId == null) {
-            logger.error("Cannot get messages: Chat ID is null");
-            throw new IllegalArgumentException("Chat ID cannot be null");
+    
+    private int normalizePage(int page) {
+        if (page < MIN_PAGE_NUMBER) {
+            log.warn("Page number cannot be negative, defaulting to {}", MIN_PAGE_NUMBER);
+            return MIN_PAGE_NUMBER;
         }
-        
-        if (page < 0) {
-            logger.warn("Page number cannot be negative, defaulting to 0");
-            page = 0;
-        }
-        
-        if (size <= 0) {
-            logger.warn("Page size must be positive, defaulting to 20");
-            size = 20;
-        }
-        
-        logger.debug("Fetching messages for chat: {}, page: {}, size: {}", chatId, page, size);
-        try {
-            if (!chatRepository.existsById(chatId)) {
-                logger.error("Chat not found with id: {}", chatId);
-                throw new ChatNotFoundException("Chat not found with id: " + chatId);
-            }
-            
-            Pageable pageable = PageRequest.of(page, size);
-            Page<Message> messages = messageRepository.findByChatIdOrderByCreatedAtDesc(chatId, pageable);
-            logger.info("Found {} messages for chat: {}", messages.getTotalElements(), chatId);
-            return messages;
-        } catch (ChatNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
-            logger.error("Error fetching messages for chat {}: {}", chatId, e.getMessage(), e);
-            throw new RuntimeException("Failed to fetch messages", e);
-        }
+        return page;
     }
-
-    public Page<Message> getMessages(Long chatId, int page) {
-        // Default page size of 20 messages per page
-        return getMessages(chatId, page, 20);
-    }
-
-    public Message getLatestMessage(Long chatId) {
-        if (chatId == null) {
-            logger.error("Cannot get latest message: Chat ID is null");
-            throw new IllegalArgumentException("Chat ID cannot be null");
+    
+    private int normalizePageSize(int size) {
+        if (size < MIN_PAGE_SIZE) {
+            log.warn("Page size must be positive, defaulting to {}", DEFAULT_PAGE_SIZE);
+            return DEFAULT_PAGE_SIZE;
         }
-        
-        logger.debug("Fetching latest message for chat: {}", chatId);
-        try {
-            if (!chatRepository.existsById(chatId)) {
-                logger.error("Chat not found with id: {}", chatId);
-                throw new ChatNotFoundException("Chat not found with id: " + chatId);
-            }
-            
-            return messageRepository.findTopByChatIdOrderByCreatedAtDesc(chatId)
-                .orElseThrow(() -> {
-                    logger.info("No messages found for chat: {}", chatId);
-                    return new MessageNotFoundException("No messages found for chat: " + chatId);
-                });
-        } catch (ChatNotFoundException | MessageNotFoundException e) {
-            throw e;
-        } catch (Exception e) {
-            logger.error("Error fetching latest message for chat {}: {}", chatId, e.getMessage(), e);
-            throw new RuntimeException("Failed to fetch latest message", e);
-        }
+        return size;
     }
-
 }
