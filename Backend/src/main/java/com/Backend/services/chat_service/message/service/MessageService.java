@@ -1,5 +1,8 @@
 package com.Backend.services.chat_service.message.service;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -33,6 +36,11 @@ public class MessageService {
     // ==================== Send Message ====================
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "messages", key = "#chatId"),
+        @CacheEvict(value = "latestMessage", key = "#chatId"),
+        @CacheEvict(value = "userMeDTO", allEntries = true)
+    })
     public Message sendMessage(String text, Long chatId, User sender) {
         validateMessageText(text);
         validateNotNull(sender, "Sender");
@@ -56,13 +64,14 @@ public class MessageService {
     // ==================== Retrieve Messages ====================
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "messages", key = "#chatId + '-' + #page + '-' + #size")
     public Page<Message> getMessages(Long chatId, int page, int size) {
         validateNotNull(chatId, "Chat ID");
         
         page = normalizePage(page);
         size = normalizePageSize(size);
         
-        log.debug("Fetching messages for chat: {}, page: {}, size: {}", chatId, page, size);
+        log.debug("Fetching messages for chat: {}, page: {}, size: {} from database", chatId, page, size);
         
         verifyChatExists(chatId);
         
@@ -80,10 +89,11 @@ public class MessageService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "latestMessage", key = "#chatId")
     public Message getLatestMessage(Long chatId) {
         validateNotNull(chatId, "Chat ID");
         
-        log.debug("Fetching latest message for chat: {}", chatId);
+        log.debug("Fetching latest message for chat: {} from database", chatId);
         
         verifyChatExists(chatId);
         
