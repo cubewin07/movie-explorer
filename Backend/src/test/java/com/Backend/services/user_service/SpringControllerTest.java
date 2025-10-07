@@ -172,7 +172,7 @@ class SpringControllerTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.id", greaterThanOrEqualTo(1)))
         .andExpect(jsonPath("$.email", is("me@example.com")))
-        .andExpect(jsonPath("$.username", is("me")));
+        .andExpect(jsonPath("$.username", is("metest")));
     }
     
     @Test
