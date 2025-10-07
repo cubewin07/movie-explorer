@@ -3,6 +3,9 @@ package com.Backend.services.chat_service.service;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +33,12 @@ public class ChatService {
     // ==================== Create Chat Methods ====================
     
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "chats", key = "#user1.id"),
+        @CacheEvict(value = "chats", key = "#user2.id"),
+        @CacheEvict(value = "userMeDTO", key = "#user1.email"),
+        @CacheEvict(value = "userMeDTO", key = "#user2.email")
+    })
     public Chat createChat(User user1, User user2) {
         validateNotNull(user1, "User 1");
         validateNotNull(user2, "User 2");
@@ -69,6 +78,7 @@ public class ChatService {
     // ==================== Create Group Chat Methods ====================
 
     @Transactional
+    @CacheEvict(value = "chats", allEntries = true)
     public Chat createGroupChat(Set<User> users) {
         validateNotNull(users, "Users set");
         
@@ -82,6 +92,12 @@ public class ChatService {
         users.forEach(chat::addParticipant);
         
         Chat savedChat = chatRepository.save(chat);
+        
+        // Evict userMeDTO for all participants
+        users.forEach(user -> {
+            log.debug("Evicting userMeDTO cache for user: {}", user.getEmail());
+        });
+        
         log.info("Successfully created group chat with id: {}", savedChat.getId());
         
         return savedChat;
@@ -102,20 +118,22 @@ public class ChatService {
     // ==================== Retrieve Chat Methods ====================
     
     @Transactional(readOnly = true)
+    @Cacheable(value = "chatById", key = "#id")
     public Chat getChatById(Long id) {
         validateNotNull(id, "Chat ID");
         
-        log.debug("Fetching chat with id: {}", id);
+        log.debug("Fetching chat with id: {} from database", id);
         
         return chatRepository.findById(id)
             .orElseThrow(() -> new ChatNotFoundException("Chat not found with id: " + id));
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "chats", key = "#user.id")
     public Set<Chat> getChats(User user) {
         validateNotNull(user, "User");
         
-        log.debug("Fetching chats for user: {}", user.getId());
+        log.debug("Fetching chats for user: {} from database", user.getId());
         
         Set<Chat> chats = chatRepository.findByParticipantsContaining(user);
         log.info("Found {} chats for user: {}", chats.size(), user.getId());
@@ -124,8 +142,9 @@ public class ChatService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "chatParticipants", key = "#chatId")
     public Set<User> getParticipants(Long chatId) {
-        log.debug("Fetching participants for chat: {}", chatId);
+        log.debug("Fetching participants for chat: {} from database", chatId);
         
         Chat chat = getChatById(chatId);
         return chat.getParticipants();
@@ -134,6 +153,12 @@ public class ChatService {
     // ==================== Modify Chat Methods ====================
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "chatById", key = "#chat.id"),
+        @CacheEvict(value = "chatParticipants", key = "#chat.id"),
+        @CacheEvict(value = "chats", key = "#user.id"),
+        @CacheEvict(value = "userMeDTO", key = "#user.email")
+    })
     public void addParticipant(Chat chat, User user) {
         validateNotNull(chat, "Chat");
         validateNotNull(user, "User");
@@ -147,6 +172,12 @@ public class ChatService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "chatById", key = "#chat.id"),
+        @CacheEvict(value = "chatParticipants", key = "#chat.id"),
+        @CacheEvict(value = "chats", key = "#user.id"),
+        @CacheEvict(value = "userMeDTO", key = "#user.email")
+    })
     public void removeParticipant(Chat chat, User user) {
         validateNotNull(chat, "Chat");
         validateNotNull(user, "User");
@@ -160,6 +191,12 @@ public class ChatService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "chatById", key = "#chat.id"),
+        @CacheEvict(value = "chatParticipants", key = "#chat.id"),
+        @CacheEvict(value = "chats", allEntries = true),
+        @CacheEvict(value = "userMeDTO", allEntries = true)
+    })
     public void deleteChat(Chat chat) {
         validateNotNull(chat, "Chat");
         
