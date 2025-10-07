@@ -24,10 +24,32 @@ import com.Backend.exception.MessageNotFoundException;
 import com.Backend.exception.NotAuthorizedToModifyFriendshipException;
 import com.Backend.exception.UserNotFoundException;
 import com.Backend.exception.WatchlistNotFoundException;
+import com.Backend.exception.ChatValidationException;
+import com.Backend.exception.MessageValidationException;
 import com.Backend.exception.ErrorResObject;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(ChatValidationException.class)
+    public ResponseEntity<ErrorRes> handleChatValidationException(ChatValidationException ex) {
+        ErrorRes errorRes = new ErrorRes(
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(),
+                "Invalid chat request",
+                Instant.now().toString());
+        return new ResponseEntity<>(errorRes, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(MessageValidationException.class)
+    public ResponseEntity<ErrorRes> handleMessageValidationException(MessageValidationException ex) {
+        ErrorRes errorRes = new ErrorRes(
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage(),
+                "Invalid message request",
+                Instant.now().toString());
+        return new ResponseEntity<>(errorRes, HttpStatus.BAD_REQUEST);
+    }
 
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<ErrorRes> handleUsernameNotFoundException(UsernameNotFoundException ex) {
