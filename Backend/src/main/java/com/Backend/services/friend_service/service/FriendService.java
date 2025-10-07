@@ -1,6 +1,5 @@
 package com.Backend.services.friend_service.service;
 
-
 import com.Backend.services.friend_service.model.Friend;
 import com.Backend.services.friend_service.model.Status;
 import com.Backend.services.friend_service.model.DTO.FriendDTO;
@@ -16,6 +15,10 @@ import com.Backend.exception.FriendRequestAlreadyExistsException;
 import com.Backend.exception.NotAuthorizedToModifyFriendshipException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,20 +26,25 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FriendService {
     private final FriendRepo friendRepo;
     private final UserRepository userRepository;
 
+    @Cacheable(value = "friendRequests", key = "'from-' + #id")
     public Set<FriendRequestDTO> getRequestsFromThisUser(Long id) {
+        log.debug("Fetching requests from user id={} from database", id);
         User user = userRepository.findWithRequestsFrom(id).orElseThrow(() -> new FriendNotFoundException("User not found"));
         return user.getRequestsFrom().stream()
                 .map(f -> new FriendRequestDTO(f.getUser2().getId(), f.getUser2().getEmail(), f.getStatus(), f.getCreatedAt()))
                 .collect(Collectors.toSet());
     }
 
+    @Cacheable(value = "friendRequests", key = "'to-' + #id")
     public Set<FriendRequestDTO> getRequestsToThisUser(Long id) {
+        log.debug("Fetching requests to user id={} from database", id);
         User user = userRepository.findWithRequestsToById(id).orElseThrow(() -> new FriendNotFoundException("User not found"));
         return user.getRequestsTo().stream()
                 .map(f -> new FriendRequestDTO(f.getUser1().getId(), f.getUser1().getEmail(), f.getStatus(), f.getCreatedAt()))
@@ -44,6 +52,13 @@ public class FriendService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "friendRequests", key = "'from-' + #user1.id"),
+        @CacheEvict(value = "friendRequests", key = "'to-' + #user1.id"),
+        @CacheEvict(value = "friends", key = "#user1.id"),
+        @CacheEvict(value = "friendStatus", allEntries = true),
+        @CacheEvict(value = "userMeDTO", key = "#user1.email")
+    })
     public void sendRequest(User user1, String friendEmail) {
         User user2 = userRepository.findByEmail(friendEmail).orElseThrow(() -> new FriendNotFoundException("Friend user not found"));
 
@@ -64,9 +79,14 @@ public class FriendService {
                 .status(Status.PENDING)
                 .build();
         friendRepo.save(friendReq);
+        
+        // Evict user2's caches as well since they received a request
+        log.debug("Friend request sent from user={} to user={}", user1.getId(), user2.getId());
     }
 
+    @Cacheable(value = "friendStatus", key = "#user1.id + '-' + #friendEmail")
     public Status getFriendStatus(User user1, String friendEmail) {
+        log.debug("Fetching friend status for user={} and friend={} from database", user1.getId(), friendEmail);
         User user2 = userRepository.findByEmail(friendEmail)
                 .orElseThrow(() -> new UserNotFoundException("User with email " + friendEmail + " not found"));
         return friendRepo.findFriendshipBetween(user1, user2)
@@ -75,6 +95,13 @@ public class FriendService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "friendRequests", key = "'from-' + #user1.id"),
+        @CacheEvict(value = "friendRequests", key = "'to-' + #user1.id"),
+        @CacheEvict(value = "friends", key = "#user1.id"),
+        @CacheEvict(value = "friendStatus", allEntries = true),
+        @CacheEvict(value = "userMeDTO", key = "#user1.email")
+    })
     public void updateFriend(User user1, String senderEmail, Status status) {
         User user2 = userRepository.findByEmail(senderEmail).orElseThrow(() -> new FriendNotFoundException("Friend user not found"));
 
@@ -90,12 +117,15 @@ public class FriendService {
         if (status != Status.PENDING && friend.getUser2().getId().equals(user1.getId())) {
             friend.setStatus(status);
             friendRepo.save(friend);
+            log.debug("Friend request updated: user={} to status={}", user1.getId(), status);
         } else {
             throw new NotAuthorizedToModifyFriendshipException("Only the request recipient can update the status");
         }
     }
 
+    @Cacheable(value = "friends", key = "#user.id")
     public Set<FriendDTO> getAllFriends(User user) {
+        log.debug("Fetching all friends for user id={} from database", user.getId());
         List<Friend> friends = friendRepo.findAllFriendshipsByUserAndStatus(user, Status.ACCEPTED);
         return friends.stream()
                 .map(f -> {
@@ -115,6 +145,13 @@ public class FriendService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "friendRequests", key = "'from-' + #user1.id"),
+        @CacheEvict(value = "friendRequests", key = "'to-' + #user1.id"),
+        @CacheEvict(value = "friends", key = "#user1.id"),
+        @CacheEvict(value = "friendStatus", allEntries = true),
+        @CacheEvict(value = "userMeDTO", key = "#user1.email")
+    })
     public void deleteFriend(User user1, String friendEmail) {
         User user2 = userRepository.findByEmail(friendEmail).orElseThrow(() -> new FriendNotFoundException("Friend user not found"));
 
@@ -126,9 +163,9 @@ public class FriendService {
         if (friend.getUser1().getId().equals(user1.getId()) ||
                 friend.getUser2().getId().equals(user1.getId())) {
             friendRepo.delete(friend);
+            log.debug("Friend relationship deleted between user={} and friend={}", user1.getId(), user2.getId());
         } else {
             throw new NotAuthorizedToModifyFriendshipException("Not authorized to delete this relationship");
         }
     }
-
 }
