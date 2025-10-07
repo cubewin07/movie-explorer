@@ -1,4 +1,4 @@
-package com.Backend.exception;
+package com.Backend.exception.Handler;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -6,6 +6,16 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import com.Backend.exception.AuthenticationFailedException;
+import com.Backend.exception.DuplicateWatchlistItemException;
+import com.Backend.exception.ErrorRes;
+import com.Backend.exception.FriendNotFoundException;
+import com.Backend.exception.FriendRequestAlreadyExistsException;
+import com.Backend.exception.FriendshipNotFoundException;
+import com.Backend.exception.NotAuthorizedToModifyFriendshipException;
+import com.Backend.exception.UserNotFoundException;
+import com.Backend.exception.WatchlistNotFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
