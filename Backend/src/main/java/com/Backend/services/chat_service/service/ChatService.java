@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.Backend.exception.ChatNotFoundException;
+import com.Backend.exception.ChatValidationException;
 import com.Backend.exception.UserNotFoundException;
 import com.Backend.services.chat_service.model.Chat;
 import com.Backend.services.chat_service.repository.ChatRepository;
@@ -189,13 +190,13 @@ public class ChatService {
     
     private void validateNotNull(Object obj, String fieldName) {
         if (obj == null) {
-            throw new IllegalArgumentException(fieldName + " cannot be null");
+            throw new ChatValidationException(fieldName + " cannot be null");
         }
     }
     
     private void validateGroupChatUserIds(Set<Long> userIds) {
         if (userIds == null || userIds.size() < MIN_GROUP_CHAT_PARTICIPANTS) {
-            throw new IllegalArgumentException(
+            throw new ChatValidationException(
                 "At least " + MIN_GROUP_CHAT_PARTICIPANTS + " user IDs are required to create a group chat"
             );
         }
@@ -203,7 +204,7 @@ public class ChatService {
     
     private void validateGroupChatSize(Set<User> users) {
         if (users.size() < MIN_GROUP_CHAT_PARTICIPANTS) {
-            throw new IllegalArgumentException(
+            throw new ChatValidationException(
                 "At least " + MIN_GROUP_CHAT_PARTICIPANTS + " valid users are required to create a group chat"
             );
         }

@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.Backend.exception.ChatNotFoundException;
 import com.Backend.exception.MessageNotFoundException;
+import com.Backend.exception.MessageValidationException;
 import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.chat_service.message.repository.MessageRepository;
 import com.Backend.services.chat_service.model.Chat;
@@ -105,28 +106,26 @@ public class MessageService {
     
     private void validateNotNull(Object obj, String fieldName) {
         if (obj == null) {
-            throw new IllegalArgumentException(fieldName + " cannot be null");
+            throw new MessageValidationException(fieldName + " cannot be null");
         }
     }
     
     private void validateMessageText(String text) {
         if (text == null || text.trim().isEmpty()) {
-            throw new IllegalArgumentException("Message text cannot be empty");
+            throw new MessageValidationException("Message text cannot be empty");
         }
     }
     
     private int normalizePage(int page) {
         if (page < MIN_PAGE_NUMBER) {
-            log.warn("Page number cannot be negative, defaulting to {}", MIN_PAGE_NUMBER);
-            return MIN_PAGE_NUMBER;
+            throw new MessageValidationException("Page number cannot be less than " + MIN_PAGE_NUMBER);
         }
         return page;
     }
     
     private int normalizePageSize(int size) {
         if (size < MIN_PAGE_SIZE) {
-            log.warn("Page size must be positive, defaulting to {}", DEFAULT_PAGE_SIZE);
-            return DEFAULT_PAGE_SIZE;
+            throw new MessageValidationException("Page size must be at least " + MIN_PAGE_SIZE);
         }
         return size;
     }
