@@ -69,7 +69,7 @@ class WebSocketChatIntegrationTest {
 
     private String register(String username, String email, String password) throws Exception {
         RegisterDTO dto = new RegisterDTO(username, email, password);
-        ResponseEntity<String> response = restTemplate.postForEntity(baseUrl("/users/register"), dto, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(baseUrl("/user/register"), dto, String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         Map<?, ?> map = objectMapper.readValue(Objects.requireNonNull(response.getBody()), Map.class);
         return (String) map.get("token");
@@ -77,7 +77,7 @@ class WebSocketChatIntegrationTest {
 
     private String authenticate(String email, String password) throws Exception {
         AuthenticateDTO dto = new AuthenticateDTO(email, password);
-        ResponseEntity<String> response = restTemplate.postForEntity(baseUrl("/users/authenticate"), dto, String.class);
+        ResponseEntity<String> response = restTemplate.postForEntity(baseUrl("/user/authenticate"), dto, String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         Map<?, ?> map = objectMapper.readValue(Objects.requireNonNull(response.getBody()), Map.class);
         return (String) map.get("token");
@@ -92,7 +92,7 @@ class WebSocketChatIntegrationTest {
 
     private long getUserId(String token) throws Exception {
         HttpEntity<Void> entity = new HttpEntity<>(bearerHeaders(token));
-        ResponseEntity<String> response = restTemplate.exchange(baseUrl("/users/me"), HttpMethod.GET, entity, String.class);
+        ResponseEntity<String> response = restTemplate.exchange(baseUrl("/user/me"), HttpMethod.GET, entity, String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         Map<?, ?> map = objectMapper.readValue(Objects.requireNonNull(response.getBody()), Map.class);
         Number id = (Number) map.get("id");
