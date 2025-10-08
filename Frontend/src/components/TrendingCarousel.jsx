@@ -12,7 +12,7 @@ export function TrendingCarousel({ items }) {
     const [showLoginModal, setShowLoginModal] = useState(false);
 
     const { user } = useAuthen();
-    const { mutate: addToWatchlist, isPending } = useAddToWatchlist(user?.email, 'movie');
+    const { mutate: addToWatchlist, isPending } = useAddToWatchlist();
 
     const navigate = useNavigate();
 
@@ -56,11 +56,14 @@ export function TrendingCarousel({ items }) {
             setShowLoginModal(true);
             return;
         }
-        addToWatchlist(items[current].id);
+        addToWatchlist({ id: items[current].id, type: isTV ? 'tv' : 'movie' });
     };
 
     const handleLoginSuccess = () => {
-        addToWatchlist(items[current].id);
+        // Determine if the current item is a TV show or movie
+        const isTV = !!items[current].name;
+        // Add to watchlist after successful login
+        addToWatchlist({ id: items[current].id, type: isTV ? 'tv' : 'movie' });
     };
 
     return (
@@ -154,7 +157,7 @@ export function TrendingCarousel({ items }) {
 
                                     {/* Add to List – Outline + Icon + Improved Hover */}
                                     <button
-                                        onClick={handleAddToWatchlist}
+                                        onClick={() => handleAddToWatchlist()}
                                         className="flex items-center gap-2 px-5 py-2 border border-blue-500 text-blue-600 
                    text-sm font-medium rounded-lg bg-transparent w-full sm:w-auto
                    hover:bg-blue-50 dark:hover:bg-blue-900/20 
