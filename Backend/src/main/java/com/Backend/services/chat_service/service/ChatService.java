@@ -15,6 +15,7 @@ import com.Backend.exception.UserNotFoundException;
 import com.Backend.services.chat_service.model.Chat;
 import com.Backend.services.chat_service.repository.ChatRepository;
 import com.Backend.services.user_service.model.User;
+import com.Backend.services.user_service.model.DTO.SimpleUserDTO;
 import com.Backend.services.user_service.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -143,11 +144,19 @@ public class ChatService {
 
     @Transactional(readOnly = true)
     @Cacheable(value = "chatParticipants", key = "#chatId")
-    public Set<User> getParticipants(Long chatId) {
+    public Set<SimpleUserDTO> getParticipants(Long chatId) {
         log.debug("Fetching participants for chat: {} from database", chatId);
         
         Chat chat = getChatById(chatId);
-        return chat.getParticipants();
+        // Map participants to SimpleUserDTO
+        return chat.getParticipants().stream().map(user -> {
+            SimpleUserDTO dto = new SimpleUserDTO();
+            dto.setId(user.getId());
+            dto.setEmail(user.getEmail());
+            dto.setUsername(user.getUsername());
+            return dto;
+        }).collect(Collectors.toSet());
+        
     }
     
     // ==================== Modify Chat Methods ====================
