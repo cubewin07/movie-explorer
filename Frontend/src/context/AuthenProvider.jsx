@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import Cookies from 'js-cookie';
 import { toast } from 'sonner';
-import { useLogin, useRegister, useLogout, useGetUserInfo } from '../hooks/API/login&register';
+import { useLogin, useRegister, useGetUserInfo } from '../hooks/API/login&register';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import Login from '../components/pages/Authentication/Login';
 
@@ -16,7 +16,6 @@ export function AuthenProvider({ children }) {
     const loginMutation = useLogin();
     const { mutateAsync: registerMutateAsync } = useRegister();
     const token = Cookies.get('token');
-    const logoutMutation = useLogout(token || '');
     const userInfoQuery = useGetUserInfo(token);
 
     // Handle token expiration and automatic logout
@@ -96,6 +95,16 @@ export function AuthenProvider({ children }) {
             if (showNotification) {
                 toast.success('Logged out successfully');
             }
+    };
+        
+    // Handle login modal success
+    const handleLoginModalSuccess = () => {
+        setShowLoginModal(false);
+    };
+
+    // Handle login modal close
+    const handleLoginModalClose = () => {
+        setShowLoginModal(false);
     };
 
     return (
