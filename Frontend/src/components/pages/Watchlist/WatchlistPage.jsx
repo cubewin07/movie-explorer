@@ -10,7 +10,7 @@ import useWatchlistFilmData from '@/hooks/watchList/useWatchListFilmData';
 
 function WatchlistPage() {
     const { user } = useAuthen();
-    const navigate = useNavigate();
+    const navigate = useNavigate(); 
     const { mutate: removeFromWatchList } = useRemoveFromWatchList();
     const [page, setPage] = useState(1);
 
