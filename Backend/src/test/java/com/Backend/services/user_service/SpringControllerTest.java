@@ -45,7 +45,7 @@ class SpringControllerTest {
 
     private String register(String username, String email, String password) throws Exception {
         RegisterDTO req = new RegisterDTO(username, email, password);
-        MvcResult result = mockMvc.perform(post("/users/register")
+        MvcResult result = mockMvc.perform(post("/user/register")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
@@ -63,11 +63,11 @@ class SpringControllerTest {
 
     private String authenticate(String email, String password) throws Exception {
         AuthenticateDTO req = new AuthenticateDTO(email, password);
-        MvcResult result = mockMvc.perform(post("/users/authenticate")
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(req)))
-        .andExpect(status().isOk())
-        .andReturn();
+        MvcResult result = mockMvc.perform(post("/user/authenticate")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isOk())
+                .andReturn();
         String body = result.getResponse().getContentAsString();
         Map<?,?> map = objectMapper.readValue(body, Map.class);
         return (String) map.get("token");
@@ -116,7 +116,7 @@ class SpringControllerTest {
     
     @Test
     @Order(1)
-    @DisplayName("GET /users returns list of users")
+    @DisplayName("GET /user/all returns list of users")
     void getAllUsers_returnsOk() throws Exception {
         // Register two users
         register("john", "john@example.com", "password123");
@@ -124,7 +124,7 @@ class SpringControllerTest {
         // Authenticate to get a token
         String token = authenticate("john@example.com", "password123");
         
-        mockMvc.perform(get("/users")
+        mockMvc.perform(get("/user/all")
         .header("Authorization", bearer(token)))
         .andDo(print())
         .andExpect(status().isOk())
@@ -135,11 +135,11 @@ class SpringControllerTest {
     
     @Test
     @Order(2)
-    @DisplayName("POST /users register returns token")
+    @DisplayName("POST /user register returns token")
     void registerUser_returnsToken() throws Exception {
         RegisterDTO req = new RegisterDTO("john2", "john2@example.com", "password123");
         
-        mockMvc.perform(post("/users/register")
+        mockMvc.perform(post("/user/register")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(req)))
         .andExpect(status().isOk())
@@ -148,13 +148,13 @@ class SpringControllerTest {
     
     @Test
     @Order(3)
-    @DisplayName("POST /users/authenticate returns token")
+    @DisplayName("POST /user/authenticate returns token")
     void authenticateUser_returnsToken() throws Exception {
         // Ensure user exists
         register("authuser", "auth@example.com", "password123");
         
         AuthenticateDTO req = new AuthenticateDTO("auth@example.com", "password123");
-        mockMvc.perform(post("/users/authenticate")
+        mockMvc.perform(post("/user/authenticate")
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(req)))
         .andExpect(status().isOk())
@@ -163,12 +163,12 @@ class SpringControllerTest {
     
     @Test
     @Order(4)
-    @DisplayName("GET /users/me returns authenticated user from principal")
+    @DisplayName("GET /user/me returns authenticated user from principal")
     void getMe_returnsPrincipalUser() throws Exception {
         register("metest", "me@example.com", "password123");
         String token = authenticate("me@example.com", "password123");
         
-        mockMvc.perform(get("/users/me")
+        mockMvc.perform(get("/user/me")
         .header("Authorization", bearer(token)))
         .andDo(print())
         .andExpect(status().isOk())
@@ -179,14 +179,14 @@ class SpringControllerTest {
     
     @Test
     @Order(5)
-    @DisplayName("PUT /users updates and returns user")
+    @DisplayName("PUT /user updates and returns user")
     void updateUser_returnsUpdated() throws Exception {
         register("old", "old@example.com", "password123");
         String token = authenticate("old@example.com", "password123");
         
         UpdateUserDTO req = new UpdateUserDTO("new@example.com", "newname");
         
-        mockMvc.perform(put("/users")
+        mockMvc.perform(put("/user")
         .header("Authorization", bearer(token))
         .contentType(MediaType.APPLICATION_JSON)
         .content(objectMapper.writeValueAsString(req)))
@@ -199,13 +199,13 @@ class SpringControllerTest {
     
     @Test
     @Order(6)
-    @DisplayName("DELETE /users deletes and returns message")
+    @DisplayName("DELETE /user deletes and returns message")
     void deleteUser_returnsMessage() throws Exception {
         register("abc", "abc@example.com", "password123");
         String token = authenticate("abc@example.com", "password123");
         
         // Fetch current user to get ID
-        MvcResult meResult = mockMvc.perform(get("/users/me")
+        MvcResult meResult = mockMvc.perform(get("/user/me")
         .header("Authorization", bearer(token)))
         .andExpect(status().isOk())
         .andReturn();
@@ -213,7 +213,7 @@ class SpringControllerTest {
         Map<?,?> meMap = objectMapper.readValue(meBody, Map.class);
         Integer id = (Integer) meMap.get("id");
         
-        mockMvc.perform(delete("/users")
+        mockMvc.perform(delete("/user")
         .header("Authorization", bearer(token)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.message", is("User with id " + id + " deleted successfully")));
