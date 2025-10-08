@@ -3,6 +3,7 @@ package com.Backend.services.watchlist_service.service;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.watchlist_service.model.Watchlist;
 import com.Backend.services.watchlist_service.model.WatchlistPosting;
+import com.Backend.services.watchlist_service.model.WatchlistDTO;
 import com.Backend.services.watchlist_service.model.WatchlistType;
 import com.Backend.services.watchlist_service.repository.WatchlistRepository;
 import com.Backend.exception.WatchlistNotFoundException;
@@ -25,10 +26,11 @@ public class WatchlistService {
     private final WatchlistRepository watchlistRepository;
 
     @Cacheable(value = "watchlist", key = "#user.id")
-    public Watchlist getWatchlist(User user) {
+    public WatchlistDTO getWatchlist(User user) {
         log.debug("Fetching watchlist for user id={} from database", user.getId());
-        return watchlistRepository.findByUserId(user.getId())
+        Watchlist watchlist = watchlistRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new WatchlistNotFoundException("Watchlist for user id " + user.getId() + " not found"));
+        return new WatchlistDTO(watchlist.getMoviesId(), watchlist.getSeriesId());
     }
 
     @Transactional

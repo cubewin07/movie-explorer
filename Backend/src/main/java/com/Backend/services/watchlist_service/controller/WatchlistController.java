@@ -1,8 +1,8 @@
 package com.Backend.services.watchlist_service.controller;
 
 import com.Backend.services.user_service.model.User;
-import com.Backend.services.watchlist_service.model.Watchlist;
 import com.Backend.services.watchlist_service.model.WatchlistPosting;
+import com.Backend.services.watchlist_service.model.WatchlistDTO;
 import com.Backend.services.watchlist_service.model.WatchlistType;
 import com.Backend.services.watchlist_service.service.WatchlistService;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ public class WatchlistController {
     private final WatchlistService watchlistService;
 
     @GetMapping()
-    public ResponseEntity<Watchlist> getWatchlist(@AuthenticationPrincipal User user) {
+    public ResponseEntity<WatchlistDTO> getWatchlist(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(watchlistService.getWatchlist(user));
     }
 
