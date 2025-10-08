@@ -6,7 +6,7 @@ export function useLogin() {
     return useMutation({
         mutationFn: async ({ email, password }) => {
             const res = await instance.post(
-                '/user/login',
+                '/user/authenticate',
                 { email, password },
                 { headers: { 'Content-Type': 'application/json' } },
             );
