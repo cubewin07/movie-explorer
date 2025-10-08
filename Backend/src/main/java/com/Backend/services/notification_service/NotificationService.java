@@ -8,6 +8,7 @@ import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.model.DTO.SimpleUserDTO;
 import com.Backend.websocket.eventListener.STOMPEventListener;
 import com.Backend.services.user_service.repository.UserRepository;
+import com.Backend.exception.UserNotFoundException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
