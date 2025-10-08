@@ -9,10 +9,11 @@ import com.Backend.services.chat_service.service.ChatService;
 import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.chat_service.message.dto.MessageWebSocketDTO;
 import com.Backend.services.notification_service.NotificationService;
-import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.model.DTO.SimpleUserDTO;
+import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.repository.UserRepository;
 import com.Backend.websocket.eventListener.STOMPEventListener;
+import com.Backend.exception.UserNotFoundException;
 
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -44,7 +45,7 @@ public class STOMPController {
         String email = principal.getName();
         log.info("User {} sent message: {}", email, message);
         User sender = userRepository.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+            .orElseThrow(() -> new UserNotFoundException("User not found"));
         Message sentMessage = messageService.sendMessage(message, chatId, sender);
         Set<SimpleUserDTO> participants = chatService.getParticipants(chatId);
         String destination = "/topic/chat/" + chatId;

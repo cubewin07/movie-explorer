@@ -5,7 +5,9 @@ import java.util.List;
 
 import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.user_service.model.User;
+import com.Backend.services.user_service.model.DTO.SimpleUserDTO;
 import com.Backend.websocket.eventListener.STOMPEventListener;
+import com.Backend.services.user_service.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +23,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 public class NotificationService {
     
     private final NotificationRepo notificationRepo;
+    private final UserRepository userRepository;
     private final SimpMessagingTemplate template;
     private final STOMPEventListener stompEventListener;
     
@@ -92,6 +95,30 @@ public class NotificationService {
     public void createNotificationWithoutSending(User user, String type, Long relatedId, Message message) {
 
         String messageContent = message.getContent();
+
+        if(type.equals("chat")) {
+            messageContent = message.getSender().getUsername() + ": " + message.getContent();
+        }
+        Notification notification = Notification.builder()
+            .user(user)
+            .type(type)
+            .relatedId(relatedId)
+            .message(messageContent)
+            .createdAt(LocalDateTime.now())
+            .build();
+        notificationRepo.save(notification);
+        log.debug("Notification created (not sent) for user id={}, type={}", user.getId(), type);
+    }
+
+    @Caching(evict = {
+        @CacheEvict(value = "chatNotifications", key = "#user.id"),
+        @CacheEvict(value = "userMeDTO", key = "#user.email")
+    })
+    public void createNotificationWithoutSending(SimpleUserDTO userDTO, String type, Long relatedId, Message message) {
+
+        String messageContent = message.getContent();
+        User user = userRepository.findById(userDTO.getId())
+            .orElseThrow(() -> new UserNotFoundException("User not found"));
 
         if(type.equals("chat")) {
             messageContent = message.getSender().getUsername() + ": " + message.getContent();
