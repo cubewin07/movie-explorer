@@ -10,7 +10,7 @@ export default function useAddToWatchlist() {
         // Accept object with id and type properties
         mutationFn: async ({ id, type }) => {
             console.log('Adding to watchlist:', { id, type });
-            const payload = { mediaId: String(id), mediaType: type };
+            const payload = { id, type };
             const res = await instance.post('watchlist/add', payload);
             return res.data;
         },
