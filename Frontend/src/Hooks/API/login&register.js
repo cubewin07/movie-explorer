@@ -1,14 +1,12 @@
+import instance from '@/lib/instance';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import axios from 'axios';
-
-const API_BASE_URL = 'http://localhost:8080';
 
 // Login hook
 export function useLogin() {
     return useMutation({
         mutationFn: async ({ email, password }) => {
-            const res = await axios.post(
-                `${API_BASE_URL}/user/login`,
+            const res = await instance.post(
+                '/user/login',
                 { email, password },
                 { headers: { 'Content-Type': 'application/json' } },
             );
@@ -20,26 +18,11 @@ export function useLogin() {
 // Register hook for user registration
 export function useRegister() {
     return useMutation({
-        mutationFn: async ({ email, password, username }) => {
-            const res = await axios.post(
-                `${API_BASE_URL}/user/register`,
+        mutationFn: async ({ username, email, password }) => {
+            const res = await instance.post(
+                '/user/register',
                 { email, password, username },
                 { headers: { 'Content-Type': 'application/json' } },
-            );
-            return res.data;
-        },
-    });
-}
-
-// Logout hook
-export function useLogout(token) {
-    return useMutation({
-        mutationFn: async (email, password) => {
-            console.log(email, password);
-            const res = await axios.post(
-                `${API_BASE_URL}/auth/logout`,
-                {email, password},
-                { headers: { Authorization: `Bearer ${token}` } },
             );
             return res.data;
         },
@@ -52,7 +35,7 @@ export function useGetUserInfo(token) {
         queryKey: ['userInfo', token],
         queryFn: async () => {
             try {
-                const res = await axios.get(`${API_BASE_URL}/auth/me`, {
+                const res = await instance.get('/user/me', {
                     headers: { Authorization: `Bearer ${token}` },
                 });
                 return res.data;
