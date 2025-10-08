@@ -62,12 +62,12 @@ export function AuthenProvider({ children }) {
     const login = async ({ email, password }) => {
         try {
             const res = await loginMutation.mutateAsync({ email, password });
-            if (res?.data?.token && res?.data?.user) {
-                Cookies.set('token', res.data.token, { expires: 7 });
-                setUser(res.data.user);
+            if (res?.token) {
+                Cookies.set('token', res.token, { expires: 7 });
+                setUser(res.user);
                 return { success: true };
             }
-            return { success: true };
+            return { success: false, message: res?.message || 'Login failed' };
         } catch (err) {
             console.log(err);
             return { success: false, message: err?.response?.data?.message || 'Login failed' };
@@ -77,12 +77,12 @@ export function AuthenProvider({ children }) {
     const register = async ({ email, password, username }) => {
         try {
             const res = await registerMutateAsync({ email, password, username });
-            if (res?.token && res?.user) {
+            if (res?.token) {
                 Cookies.set('token', res.token, { expires: 7 });
                 setUser(res.user);
                 return { success: true };
             }
-            return { success: true };
+            return { success: false, message: res?.message || 'Register failed' };
         } catch (err) {
             console.log(err);
             return { success: false, message: err?.response?.data?.message || 'Register failed' };
@@ -90,34 +90,16 @@ export function AuthenProvider({ children }) {
     };
 
     const logout = async (showNotification = true) => {
-        try {
-            if (token) {
-                await logoutMutation.mutateAsync({email: user?.email, password: user?.password});
-            }
-        } catch (err) {
-            console.log(err);
-            // Continue with logout even if API call fails
-        } finally {
             // Always clear local state regardless of API call success
             Cookies.remove('token');
             setUser(null);
             if (showNotification) {
                 toast.success('Logged out successfully');
             }
-        }
-    };
-
-    const handleLoginModalClose = () => {
-        setShowLoginModal(false);
-    };
-
-    const handleLoginModalSuccess = () => {
-        setShowLoginModal(false);
-        // User state will be updated by the login function
     };
 
     return (
-        <AuthenContext.Provider value={{ user, loading, login, register, logout, token, showLoginModal, setShowLoginModal }}>
+        <AuthenContext.Provider value={{ user, loading, login, register, logout, showLoginModal, setShowLoginModal }}>
             {children}
             <Dialog open={showLoginModal} onOpenChange={handleLoginModalClose}>
                 <DialogContent className="w-full max-w-md">
