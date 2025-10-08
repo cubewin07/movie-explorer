@@ -44,6 +44,8 @@ public class SecurityConfig {
                             .requestMatchers("/users/authenticate").permitAll()
                             .requestMatchers("/actuator/**").permitAll()
                             .requestMatchers("/ws/**").permitAll()
+                            .requestMatchers("/swagger-ui/**").permitAll()
+                            .requestMatchers("/v3/api-docs/**").permitAll()
                 .anyRequest().authenticated()
             )
             .cors(Customizer.withDefaults())
