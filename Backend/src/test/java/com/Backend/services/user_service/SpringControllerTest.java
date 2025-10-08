@@ -224,6 +224,7 @@ class SpringControllerTest {
     @Order(7)
     @DisplayName("GET /watchlist returns empty on new user, then reflects changes")
     void watchlist_get_add_remove_flow() throws Exception {
+        System.out.println( "watchlist_get_add_remove_flow" );
         register("wluser", "wl@example.com", "password123");
         String token = authenticate("wl@example.com", "password123");
         
