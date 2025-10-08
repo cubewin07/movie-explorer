@@ -15,7 +15,7 @@ function WatchlistPage() {
     const [page, setPage] = useState(1);
 
     const { data: watchlistData, isLoading: isWatchlistLoading, error: watchlistError } = useWatchlist();
-    const { films, isLoading: isFilmsLoading, isError: filmsError } = useWatchlistFilmData(watchlistData);
+    const { films, isLoading: isFilmsLoading, error: filmsError } = useWatchlistFilmData(watchlistData);
 
     const isLoading = isWatchlistLoading || isFilmsLoading;
     const hasError = watchlistError || filmsError;
@@ -383,7 +383,10 @@ function WatchlistPage() {
                                                     className="mt-auto text-xs hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-800 dark:hover:text-white transition-colors"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        removeFromWatchList(item.id);
+                                                        removeFromWatchList({
+                                                            id: item.id,
+                                                            type: item.type === 'tv' ? 'SERIES' : 'MOVIE'
+                                                        });
                                                     }}
                                                 >
                                                     Remove
