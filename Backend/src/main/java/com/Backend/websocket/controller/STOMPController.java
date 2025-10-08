@@ -10,6 +10,7 @@ import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.chat_service.message.dto.MessageWebSocketDTO;
 import com.Backend.services.notification_service.NotificationService;
 import com.Backend.services.user_service.model.User;
+import com.Backend.services.user_service.model.DTO.SimpleUserDTO;
 import com.Backend.services.user_service.repository.UserRepository;
 import com.Backend.websocket.eventListener.STOMPEventListener;
 
@@ -45,7 +46,7 @@ public class STOMPController {
         User sender = userRepository.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("User not found"));
         Message sentMessage = messageService.sendMessage(message, chatId, sender);
-        Set<User> participants = chatService.getParticipants(chatId);
+        Set<SimpleUserDTO> participants = chatService.getParticipants(chatId);
         String destination = "/topic/chat/" + chatId;
         MessageWebSocketDTO messageDto = MessageWebSocketDTO.fromMessage(sentMessage);
         log.info("Sending WebSocket message to destination: {} with DTO: {}", destination, messageDto);
