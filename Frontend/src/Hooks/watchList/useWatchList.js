@@ -8,9 +8,8 @@ export default function useWatchlist() {
         queryKey: watchlistQueryKey(),
         queryFn: async () => {
             // Assume backend expects userId and page as query params
-            const res = await instance.get('/watchlist/own');
-            return res.data.data; // Should be paginated: { results, page, total_pages, ... }
+            const res = await instance.get('/watchlist');
+            return res.data // Should be paginated: { results, page, total_pages, ... }
         },
-        keepPreviousData: true,
     });
 }
