@@ -13,6 +13,7 @@ import com.Backend.exception.ChatNotFoundException;
 import com.Backend.exception.ChatValidationException;
 import com.Backend.exception.UserNotFoundException;
 import com.Backend.services.chat_service.model.Chat;
+import com.Backend.services.chat_service.model.DTO.SimpleChatDTO;
 import com.Backend.services.chat_service.repository.ChatRepository;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.model.DTO.SimpleUserDTO;
@@ -131,15 +132,21 @@ public class ChatService {
 
     @Transactional(readOnly = true)
     @Cacheable(value = "chats", key = "#user.id")
-    public Set<Chat> getChats(User user) {
+    public Set<SimpleChatDTO> getChats(User user) {
         validateNotNull(user, "User");
         
         log.debug("Fetching chats for user: {} from database", user.getId());
         
         Set<Chat> chats = chatRepository.findByParticipantsContaining(user);
         log.info("Found {} chats for user: {}", chats.size(), user.getId());
+
         
-        return chats;
+        return chats.stream()
+            .map(chat -> new SimpleChatDTO(
+                chat.getId(),
+                convertToSimpleUserDTOs(chat.getParticipants())
+            ))
+            .collect(Collectors.toSet());
     }
 
     @Transactional(readOnly = true)
@@ -254,5 +261,17 @@ public class ChatService {
                 "At least " + MIN_GROUP_CHAT_PARTICIPANTS + " valid users are required to create a group chat"
             );
         }
+    }
+
+    private Set<SimpleUserDTO> convertToSimpleUserDTOs(Set<User> users) {
+        return users.stream()
+            .map(user -> {
+                SimpleUserDTO dto = new SimpleUserDTO();
+                dto.setId(user.getId());
+                dto.setEmail(user.getEmail());
+                dto.setUsername(user.getUsername());
+                return dto;
+            })
+            .collect(Collectors.toSet());
     }
 }
