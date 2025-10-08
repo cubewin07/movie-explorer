@@ -1,14 +1,14 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
-const API_BASE_URL = 'https://moviehub.congminh.site/api';
+const API_BASE_URL = 'http://localhost:8080';
 
 // Login hook
 export function useLogin() {
     return useMutation({
         mutationFn: async ({ email, password }) => {
             const res = await axios.post(
-                `${API_BASE_URL}/auth/login`,
+                `${API_BASE_URL}/user/login`,
                 { email, password },
                 { headers: { 'Content-Type': 'application/json' } },
             );
@@ -22,7 +22,7 @@ export function useRegister() {
     return useMutation({
         mutationFn: async ({ email, password, username }) => {
             const res = await axios.post(
-                `${API_BASE_URL}/auth/register`,
+                `${API_BASE_URL}/user/register`,
                 { email, password, username },
                 { headers: { 'Content-Type': 'application/json' } },
             );
