@@ -56,6 +56,7 @@ export function TrendingCarousel({ items }) {
             setShowLoginModal(true);
             return;
         }
+        const isTV = !!items[current].name;
         addToWatchlist({ id: items[current].id, type: isTV ? 'tv' : 'movie' });
     };
 

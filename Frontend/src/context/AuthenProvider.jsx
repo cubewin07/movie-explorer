@@ -62,6 +62,7 @@ export function AuthenProvider({ children }) {
         try {
             const res = await loginMutation.mutateAsync({ email, password });
             if (res?.token) {
+                console.log(res.token);
                 Cookies.set('token', res.token, { expires: 7 });
                 setUser(res.user);
                 return { success: true };
