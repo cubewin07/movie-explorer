@@ -267,7 +267,7 @@ function Home() {
         setAddingId(item.id);
         // Determine if it's a TV show or movie based on whether it has a name property
         const isTV = !!item.name;
-        addToWatchlist({ id: item.id, type: isTV ? 'TV' : 'MOVIE' }, {
+        addToWatchlist({ id: item.id, type: isTV ? 'SERIES' : 'MOVIE' }, {
             onSettled: () => setAddingId(null),
         });
     };
