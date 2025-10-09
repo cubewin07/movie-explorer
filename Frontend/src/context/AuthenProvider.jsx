@@ -10,6 +10,7 @@ const AuthenContext = createContext();
 export function AuthenProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [refresh, setRefresh] = useState(false);
     const [showLoginModal, setShowLoginModal] = useState(false);
 
     // Always call hooks at the top level
@@ -39,6 +40,7 @@ export function AuthenProvider({ children }) {
     useEffect(() => {
         if (token && userInfoQuery.data) {
             setUser(userInfoQuery.data);
+            setRefresh(false);
         } else if (token && userInfoQuery.error) {
             // Check if error is due to token expiration (401 or 403)
             const errorStatus = userInfoQuery.error?.response?.status;
@@ -47,7 +49,7 @@ export function AuthenProvider({ children }) {
             }
         }
         setLoading(false);
-    }, [token, userInfoQuery.data, userInfoQuery.error]);
+    }, [token, userInfoQuery.data, userInfoQuery.error, refresh]);
 
     // Monitor userInfoQuery for token expiration errors
     useEffect(() => {
@@ -57,7 +59,7 @@ export function AuthenProvider({ children }) {
                 handleTokenExpiration();
             }
         }
-    }, [userInfoQuery.error, token]);
+    }, [userInfoQuery.error, token, refresh]);
 
     const login = async ({ email, password }) => {
         try {
@@ -110,7 +112,7 @@ export function AuthenProvider({ children }) {
     };
 
     return (
-        <AuthenContext.Provider value={{ user, loading, login, register, logout, showLoginModal, setShowLoginModal }}>
+        <AuthenContext.Provider value={{ user, loading, login, register, logout, showLoginModal, setShowLoginModal, setRefresh }}>
             {children}
             <Dialog open={showLoginModal} onOpenChange={handleLoginModalClose}>
                 <DialogContent className="w-full max-w-md">
