@@ -265,7 +265,9 @@ function Home() {
             return;
         }
         setAddingId(item.id);
-        addToWatchlist(item.id, {
+        // Determine if it's a TV show or movie based on whether it has a name property
+        const isTV = !!item.name;
+        addToWatchlist({ id: item.id, type: isTV ? 'TV' : 'MOVIE' }, {
             onSettled: () => setAddingId(null),
         });
     };
@@ -273,7 +275,9 @@ function Home() {
     const handleLoginSuccess = () => {
         if (selectedItem) {
             setAddingId(selectedItem.id);
-            addToWatchlist(selectedItem.id, {
+            // Determine if it's a TV show or movie based on whether it has a name property
+            const isTV = !!selectedItem.name;
+            addToWatchlist({ id: selectedItem.id, type: isTV ? 'TV' : 'MOVIE' }, {
                 onSettled: () => setAddingId(null),
             });
             setSelectedItem(null);

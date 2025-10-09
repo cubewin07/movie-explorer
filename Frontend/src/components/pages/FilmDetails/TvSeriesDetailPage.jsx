@@ -42,18 +42,18 @@ export default function TVSeriesDetailPage() {
         extra: genres,
     };
 
-    const { mutate: addToWatchlist, isPending } = useAddToWatchlist(user?.email, 'tv');
+    const { mutate: addToWatchlist, isPending } = useAddToWatchlist();
 
     const handleAddToWatchlist = () => {
         if (!user) {
             setShowLoginModal(true);
             return;
         }
-        addToWatchlist(series.id);
+        addToWatchlist({ id: series.id, type: 'TV' });
     };
 
     const handleLoginSuccess = () => {
-        addToWatchlist(series.id);
+        addToWatchlist({ id: series.id, type: 'TV' });
     };
 
     const [openSeason, setOpenSeason] = useState(null);
