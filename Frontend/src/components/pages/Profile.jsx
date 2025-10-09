@@ -21,6 +21,7 @@ const defaultUserData = {
 
 export default function Profile() {
     const { user: authUser } = useAuthen();
+    console.log(authUser);
     const [user, setUser] = useState({
         ...defaultUserData,
         avatar: authUser?.avatar || '',

@@ -49,11 +49,11 @@ export default function TVSeriesDetailPage() {
             setShowLoginModal(true);
             return;
         }
-        addToWatchlist({ id: series.id, type: 'TV' });
+        addToWatchlist({ id: series.id, type: 'SERIES' });
     };
 
     const handleLoginSuccess = () => {
-        addToWatchlist({ id: series.id, type: 'TV' });
+        addToWatchlist({ id: series.id, type: 'SERIES' });
     };
 
     const [openSeason, setOpenSeason] = useState(null);
