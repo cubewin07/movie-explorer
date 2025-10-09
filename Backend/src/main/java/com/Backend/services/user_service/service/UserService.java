@@ -32,7 +32,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.Backend.exception.AuthenticationFailedException;
 import com.Backend.exception.UserNotFoundException;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -145,9 +147,16 @@ public class UserService {
 
         // Watchlist
         if (user.getWatchlist() != null) {
+            Set<Long> seriesIds = user.getWatchlist().getSeriesId() != null
+                    ? new HashSet<>(user.getWatchlist().getSeriesId())
+                    : new HashSet<>();
+
+            Set<Long> moviesIds = user.getWatchlist().getMoviesId() != null
+                    ? new HashSet<>(user.getWatchlist().getMoviesId())
+                    : new HashSet<>();
             dto.setWatchlist(new WatchlistDTO(
-                    user.getWatchlist().getSeriesId(),
-                    user.getWatchlist().getMoviesId()
+                    moviesIds,
+                    seriesIds
             ));
         }
 
@@ -224,7 +233,6 @@ public class UserService {
                     })
                     .toList());
         }
-
         return dto;
     }
 }
