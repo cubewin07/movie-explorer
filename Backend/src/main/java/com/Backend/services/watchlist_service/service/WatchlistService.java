@@ -16,6 +16,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Slf4j
@@ -30,7 +31,15 @@ public class WatchlistService {
         log.debug("Fetching watchlist for user id={} from database", user.getId());
         Watchlist watchlist = watchlistRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new WatchlistNotFoundException("Watchlist for user id " + user.getId() + " not found"));
-        return new WatchlistDTO(watchlist.getMoviesId(), watchlist.getSeriesId());
+        Set<Long> seriesIds = user.getWatchlist().getSeriesId() != null
+                ? new HashSet<>(user.getWatchlist().getSeriesId())
+                : new HashSet<>();
+
+        Set<Long> moviesIds = user.getWatchlist().getMoviesId() != null
+                ? new HashSet<>(user.getWatchlist().getMoviesId())
+                : new HashSet<>();
+
+        return new WatchlistDTO(moviesIds, seriesIds);
     }
 
     @Transactional
