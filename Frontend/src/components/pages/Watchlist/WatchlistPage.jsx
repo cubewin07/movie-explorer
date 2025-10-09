@@ -102,23 +102,31 @@ function WatchlistPage() {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.5 }}
                 >
-                    <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                        {[...Array(8)].map((_, i) => (
+                    <div className="grid gap-3 xs:gap-4 sm:gap-5 md:gap-6 grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
+                        {[...Array(12)].map((_, i) => (
                             <motion.div
                                 key={i}
-                                className="bg-card rounded-xl overflow-hidden border border-border shadow-sm"
+                                className="bg-card rounded-xl overflow-hidden border border-border shadow-md"
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: 0.6 + i * 0.1 }}
+                                transition={{ delay: 0.3 + i * 0.05 }}
                             >
-                                <div className="w-full h-56 bg-muted animate-pulse"></div>
-                                <div className="p-4 space-y-3">
-                                    <div className="h-4 bg-muted rounded animate-pulse"></div>
-                                    <div className="h-3 bg-muted rounded w-3/4 animate-pulse"></div>
-                                    <div className="flex gap-2">
-                                        <div className="h-6 bg-muted rounded-full w-16 animate-pulse"></div>
-                                        <div className="h-6 bg-muted rounded-full w-20 animate-pulse"></div>
+                                <div className="w-full h-64 sm:h-56 md:h-60 lg:h-64 bg-muted animate-pulse relative">
+                                    <div className="absolute top-3 left-3">
+                                        <div className="h-5 bg-black/30 rounded-full w-16 animate-pulse"></div>
                                     </div>
+                                    <div className="absolute bottom-3 right-3">
+                                        <div className="h-5 bg-yellow-400/30 rounded-full w-12 animate-pulse"></div>
+                                    </div>
+                                </div>
+                                <div className="p-4 space-y-3">
+                                    <div className="h-5 bg-muted rounded animate-pulse"></div>
+                                    <div className="h-3 bg-muted rounded w-1/4 animate-pulse"></div>
+                                    <div className="flex gap-2 pt-1">
+                                        <div className="h-5 bg-blue-100/30 rounded-full w-16 animate-pulse"></div>
+                                        <div className="h-5 bg-blue-100/30 rounded-full w-14 animate-pulse"></div>
+                                    </div>
+                                    <div className="h-8 mt-2 bg-muted/30 rounded w-full animate-pulse"></div>
                                 </div>
                             </motion.div>
                         ))}
@@ -282,7 +290,7 @@ function WatchlistPage() {
                 </motion.div>
             ) : (
                 <>
-                    <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                    <div className="grid gap-3 xs:gap-4 sm:gap-5 md:gap-6 grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
                         <AnimatePresence>
                             <motion.div
                                 initial="hidden"
@@ -319,11 +327,11 @@ function WatchlistPage() {
                                                 },
                                             }}
                                             whileHover={{
-                                                scale: 1.05,
-                                                rotate: -0.2,
-                                                transition: { type: 'spring', stiffness: 200 },
-                                                boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+                                                scale: 1.02,
+                                                transition: { duration: 0.15, ease: "easeOut" },
+                                                boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
                                             }}
+                                            whileTap={{ scale: 0.98 }}
                                             exit={{
                                                 opacity: 0,
                                                 y: 50,
@@ -331,56 +339,84 @@ function WatchlistPage() {
                                                 transition: { duration: 0.2 },
                                             }}
                                             onClick={() => navigate(redirectPath)}
-                                            className="relative bg-card border border-border rounded-xl overflow-hidden flex flex-col cursor-pointer transition-all"
+                                            className="group relative bg-card border border-border rounded-xl overflow-hidden flex flex-col cursor-pointer shadow-md hover:shadow-xl"
                                         >
+                                            {/* Gradient overlay for image */}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-10"></div>
+                                            
+                                            {/* Quick action overlay - centered play button */}
+                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-20">
+                                                <div className="bg-black/60 backdrop-blur-sm p-2.5 rounded-full">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                                                    </svg>
+                                                </div>
+                                            </div>
+                                            
                                             {/* Floating badges */}
-                                            <div className="absolute top-2 left-2 z-10">
-                                                <span className="bg-black/80 text-white text-[10px] px-2 py-0.5 rounded">
+                                            <div className="absolute top-3 left-3 z-20">
+                                                <span className="bg-black/80 text-white text-xs px-2.5 py-1 rounded-full font-medium backdrop-blur-sm">
                                                     {isTVSeries ? 'TV Series' : 'Movie'}
                                                 </span>
                                             </div>
 
                                             {isTVSeries && item.totalSeasons && (
-                                                <div className="absolute top-2 right-2 z-10">
-                                                    <span className="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded shadow-sm">
+                                                <div className="absolute top-3 right-3 z-20">
+                                                    <span className="bg-blue-600/90 text-white text-xs px-2.5 py-1 rounded-full font-medium backdrop-blur-sm shadow-lg">
                                                         {item.totalSeasons} Seasons
                                                     </span>
                                                 </div>
                                             )}
 
-                                            <img
-                                                src={item.image || '/placeholder.svg'}
-                                                alt={displayTitle}
-                                                className="w-full h-56 object-cover"
-                                            />
-
-                                            <div className="p-4 flex flex-col gap-2 flex-grow">
-                                                <div className="flex items-center gap-2">
-                                                    <h3 className="text-base font-bold truncate flex-grow">
-                                                        {displayTitle}
-                                                    </h3>
-                                                    <span className="flex-shrink-0 bg-yellow-400 text-black text-xs font-bold px-2 py-0.5 rounded shadow-sm">
-                                                        ★ {item.rating}
+                                            <div className="relative overflow-hidden">
+                                                <img
+                                                    src={item.image || '/placeholder.svg'}
+                                                    alt={displayTitle}
+                                                    className="w-full h-64 sm:h-56 md:h-60 lg:h-64 object-cover transition-transform duration-700 hover:scale-110"
+                                                    loading="lazy"
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+                                                
+                                                {/* Rating badge positioned over image */}
+                                                <div className="absolute bottom-3 right-3">
+                                                    <span className="flex items-center gap-1 bg-yellow-400/90 text-black text-xs font-bold px-2.5 py-1 rounded-full shadow-lg backdrop-blur-sm">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                        </svg>
+                                                        {item.rating}
                                                     </span>
                                                 </div>
+                                            </div>
 
-                                                <div className="text-xs text-muted-foreground">{item.year}</div>
+                                            <div className="p-4 flex flex-col gap-2 flex-grow">
+                                                <div className="flex items-start gap-2">
+                                                    <h3 className="text-base font-bold line-clamp-2 flex-grow">
+                                                        {displayTitle}
+                                                    </h3>
+                                                </div>
 
-                                                <div className="flex gap-2 flex-wrap">
-                                                    {item.extra?.map((tag, index) => (
+                                                <div className="text-xs text-muted-foreground font-medium">{item.year}</div>
+
+                                                <div className="flex gap-1.5 flex-wrap mt-1">
+                                                    {item.extra?.slice(0, 3).map((tag, index) => (
                                                         <span
                                                             key={index}
-                                                            className="bg-blue-100 text-blue-800 text-xs px-2 py-0.5 rounded-full"
+                                                            className="bg-blue-100/80 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full transition-colors duration-200 hover:bg-blue-200 dark:hover:bg-blue-800/70"
                                                         >
                                                             {tag}
                                                         </span>
                                                     ))}
+                                                    {item.extra?.length > 3 && (
+                                                        <span className="text-xs text-muted-foreground">
+                                                            +{item.extra.length - 3} more
+                                                        </span>
+                                                    )}
                                                 </div>
 
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
-                                                    className="mt-auto text-xs hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-800 dark:hover:text-white transition-colors"
+                                                    className="mt-auto text-xs hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/40 dark:hover:text-red-400 transition-colors duration-150"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         removeFromWatchList({
@@ -389,7 +425,12 @@ function WatchlistPage() {
                                                         });
                                                     }}
                                                 >
-                                                    Remove
+                                                    <span className="flex items-center gap-1.5">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                                                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                                                        </svg>
+                                                        Remove
+                                                    </span>
                                                 </Button>
                                             </div>
                                         </motion.div>
