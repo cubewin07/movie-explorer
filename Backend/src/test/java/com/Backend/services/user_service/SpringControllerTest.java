@@ -97,21 +97,19 @@ class SpringControllerTest {
     }
     
     private void removeMovie(String token, long id) throws Exception {
-        WatchlistPosting posting = new WatchlistPosting(WatchlistType.MOVIE, id);
         mockMvc.perform(delete("/watchlist")
-        .header("Authorization", bearer(token))
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(posting)))
-        .andExpect(status().isOk());
+                        .header("Authorization", bearer(token))
+                        .param("id", String.valueOf(id))
+                        .param("type", WatchlistType.MOVIE.name())) // "MOVIE"
+                .andExpect(status().isOk());
     }
     
     private void removeSeries(String token, long id) throws Exception {
-        WatchlistPosting posting = new WatchlistPosting(WatchlistType.SERIES, id);
         mockMvc.perform(delete("/watchlist")
-        .header("Authorization", bearer(token))
-        .contentType(MediaType.APPLICATION_JSON)
-        .content(objectMapper.writeValueAsString(posting)))
-        .andExpect(status().isOk());
+                        .header("Authorization", bearer(token))
+                        .param("id", String.valueOf(id))
+                        .param("type", WatchlistType.SERIES.name())) // "MOVIE"
+                .andExpect(status().isOk());
     }
     
     @Test
