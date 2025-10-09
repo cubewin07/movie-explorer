@@ -341,28 +341,28 @@ function WatchlistPage() {
                                             onClick={() => navigate(redirectPath)}
                                             className="group relative bg-card border border-border rounded-xl overflow-hidden flex flex-col cursor-pointer shadow-md hover:shadow-xl"
                                         >
-                                            {/* Gradient overlay for image */}
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-10"></div>
+                                            {/* Gradient overlay for image only */}
+                                            <div className="absolute inset-x-0 top-0 bottom-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-10 pointer-events-none"></div>
                                             
-                                            {/* Quick action overlay - centered play button */}
-                                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-20">
+                                            {/* Quick action overlay - centered play button on image only */}
+                                            <div className="absolute inset-x-0 top-0 h-64 sm:h-56 md:h-60 lg:h-64 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-20 pointer-events-none">
                                                 <div className="bg-black/60 backdrop-blur-sm p-2.5 rounded-full">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" viewBox="0 0 20 20" fill="currentColor">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-white" viewBox="0 0 20 20" fill="currentColor">
                                                         <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                                                     </svg>
                                                 </div>
                                             </div>
                                             
                                             {/* Floating badges */}
-                                            <div className="absolute top-3 left-3 z-20">
-                                                <span className="bg-black/80 text-white text-xs px-2.5 py-1 rounded-full font-medium backdrop-blur-sm">
+                                            <div className="absolute top-2 sm:top-3 left-2 sm:left-3 z-30">
+                                                <span className="bg-black/80 text-white text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full font-medium backdrop-blur-sm">
                                                     {isTVSeries ? 'TV Series' : 'Movie'}
                                                 </span>
                                             </div>
 
                                             {isTVSeries && item.totalSeasons && (
-                                                <div className="absolute top-3 right-3 z-20">
-                                                    <span className="bg-blue-600/90 text-white text-xs px-2.5 py-1 rounded-full font-medium backdrop-blur-sm shadow-lg">
+                                                <div className="absolute top-2 sm:top-3 right-2 sm:right-3 z-30">
+                                                    <span className="bg-blue-600/90 text-white text-[10px] sm:text-xs px-2 sm:px-2.5 py-0.5 sm:py-1 rounded-full font-medium backdrop-blur-sm shadow-lg">
                                                         {item.totalSeasons} Seasons
                                                     </span>
                                                 </div>
@@ -378,9 +378,9 @@ function WatchlistPage() {
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
                                                 
                                                 {/* Rating badge positioned over image */}
-                                                <div className="absolute bottom-3 right-3">
-                                                    <span className="flex items-center gap-1 bg-yellow-400/90 text-black text-xs font-bold px-2.5 py-1 rounded-full shadow-lg backdrop-blur-sm">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
+                                                <div className="absolute bottom-2 sm:bottom-3 right-2 sm:right-3 z-30">
+                                                    <span className="flex items-center gap-0.5 sm:gap-1 bg-yellow-400/90 text-black text-[10px] sm:text-xs font-bold px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full shadow-lg backdrop-blur-sm">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-3.5 sm:w-3.5" viewBox="0 0 20 20" fill="currentColor">
                                                             <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                                                         </svg>
                                                         {item.rating}
@@ -388,27 +388,27 @@ function WatchlistPage() {
                                                 </div>
                                             </div>
 
-                                            <div className="p-4 flex flex-col gap-2 flex-grow">
+                                            <div className="p-3 sm:p-4 flex flex-col gap-1.5 sm:gap-2 flex-grow relative z-30">
                                                 <div className="flex items-start gap-2">
-                                                    <h3 className="text-base font-bold line-clamp-2 flex-grow">
+                                                    <h3 className="text-sm sm:text-base font-bold line-clamp-2 flex-grow">
                                                         {displayTitle}
                                                     </h3>
                                                 </div>
 
-                                                <div className="text-xs text-muted-foreground font-medium">{item.year}</div>
+                                                <div className="text-[10px] sm:text-xs text-muted-foreground font-medium">{item.year}</div>
 
-                                                <div className="flex gap-1.5 flex-wrap mt-1">
+                                                <div className="flex gap-1 sm:gap-1.5 flex-wrap mt-0.5 sm:mt-1">
                                                     {item.extra?.slice(0, 3).map((tag, index) => (
                                                         <span
                                                             key={index}
-                                                            className="bg-blue-100/80 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 text-xs px-2 py-0.5 rounded-full transition-colors duration-200 hover:bg-blue-200 dark:hover:bg-blue-800/70"
+                                                            className="bg-blue-100/80 text-blue-800 dark:bg-blue-900/50 dark:text-blue-300 text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full transition-colors duration-200 hover:bg-blue-200 dark:hover:bg-blue-800/70"
                                                         >
                                                             {tag}
                                                         </span>
                                                     ))}
                                                     {item.extra?.length > 3 && (
-                                                        <span className="text-xs text-muted-foreground">
-                                                            +{item.extra.length - 3} more
+                                                        <span className="text-[10px] sm:text-xs text-muted-foreground">
+                                                            +{item.extra.length - 3}
                                                         </span>
                                                     )}
                                                 </div>
@@ -416,7 +416,7 @@ function WatchlistPage() {
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
-                                                    className="mt-auto text-xs hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/40 dark:hover:text-red-400 transition-colors duration-150"
+                                                    className="mt-auto text-[10px] sm:text-xs py-1 sm:py-2 h-auto hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/40 dark:hover:text-red-400 transition-colors duration-150 relative z-40"
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         removeFromWatchList({
@@ -425,8 +425,8 @@ function WatchlistPage() {
                                                         });
                                                     }}
                                                 >
-                                                    <span className="flex items-center gap-1.5">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                                                    <span className="flex items-center gap-1 sm:gap-1.5">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
                                                             <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
                                                         </svg>
                                                         Remove
