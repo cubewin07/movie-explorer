@@ -19,7 +19,7 @@ export default function useAddToWatchlist() {
             toast.success(`Added to your watchlist!`);
         },
         onError: (error) => {
-            toast.error('Failed to add to watchlist. Please try again.');
+            toast.error(error?.response?.data?.message || 'Failed to add to watchlist. Please try again.');
             console.error(error);
         },
     });
