@@ -39,7 +39,6 @@ export function AuthenProvider({ children }) {
     useEffect(() => {
         if (token && userInfoQuery.data) {
             setUser(userInfoQuery.data);
-            setRefresh(false);
         } else if (token && userInfoQuery.error) {
             // Check if error is due to token expiration (401 or 403)
             const errorStatus = userInfoQuery.error?.response?.status;
@@ -55,7 +54,7 @@ export function AuthenProvider({ children }) {
         if (userInfoQuery.error && token) {
             const errorStatus = userInfoQuery.error?.response?.status;
             if (errorStatus === 401 || errorStatus === 403) {
-                handleTokenExpiration();
+                handleTokenExpiration();    
             }
         }
     }, [userInfoQuery.error, token]);
@@ -112,7 +111,7 @@ export function AuthenProvider({ children }) {
     };
 
     return (
-        <AuthenContext.Provider value={{ user, loading, login, register, logout, showLoginModal, setShowLoginModal, setRefresh, token }}>
+        <AuthenContext.Provider value={{ user, loading, login, register, logout, showLoginModal, setShowLoginModal, token }}>
             {children}
             <Dialog open={showLoginModal} onOpenChange={handleLoginModalClose}>
                 <DialogContent className="w-full max-w-md">

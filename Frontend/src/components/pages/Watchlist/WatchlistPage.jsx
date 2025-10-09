@@ -2,14 +2,17 @@ import { useAuthen } from '@/context/AuthenProvider';
 import { useNavigate } from 'react-router-dom';
 import useWatchlist from '@/hooks/watchList/useWatchList';
 import { Button } from '@/components/ui/button';
-import { Loader, AlertCircle, Wifi, RefreshCw, Film, Tv, Trash2 } from 'lucide-react';
+import { Film, Tv, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useRemoveFromWatchList from '@/hooks/watchList/useRemoveFromWatchList';
 import { useState } from 'react';
 import useWatchlistFilmData from '@/hooks/watchList/useWatchListFilmData';
+import LoadingState from '@/components/ui/LoadingState';
+import ErrorState from '@/components/ui/ErrorState';
+import SkeletonCard from '@/components/ui/skeletonCard';
 
 function WatchlistPage() {
-    const { user, setRefresh, token } = useAuthen();
+    const { user, token } = useAuthen();
     const navigate = useNavigate(); 
     const { mutate: removeFromWatchList } = useRemoveFromWatchList(token);
     const [page, setPage] = useState(1);
