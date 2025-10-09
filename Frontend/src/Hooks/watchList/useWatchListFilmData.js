@@ -47,7 +47,8 @@ export default function useWatchlistFilmData(watchlistData = null) {
                 year: new Date(data.release_date || data.first_air_date).getFullYear(),
                 type: isTV ? 'tv' : 'movie',
                 overview: data.overview,
-                genres: data.genres?.map(g => g.name) || []
+                genres: data.genres?.map(g => g.name) || [],
+                totalSeasons: data?.number_of_seasons || 0,
             };
         });
 

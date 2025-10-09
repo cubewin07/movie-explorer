@@ -314,7 +314,7 @@ function WatchlistPage() {
                                 className="contents"
                             >
                                 {films.map((item) => {
-                                    const isTVSeries = !!item.name;
+                                    const isTVSeries = item.type === 'tv';
                                     const displayTitle = item.title || item.name;
                                     const redirectPath = isTVSeries ? `/tv/${item.id}` : `/movie/${item.id}`;
 
