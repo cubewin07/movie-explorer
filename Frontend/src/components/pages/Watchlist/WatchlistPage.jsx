@@ -2,7 +2,7 @@ import { useAuthen } from '@/context/AuthenProvider';
 import { useNavigate } from 'react-router-dom';
 import useWatchlist from '@/hooks/watchList/useWatchList';
 import { Button } from '@/components/ui/button';
-import { Loader, AlertCircle, Wifi, RefreshCw, Film, Tv } from 'lucide-react';
+import { Loader, AlertCircle, Wifi, RefreshCw, Film, Tv, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useRemoveFromWatchList from '@/hooks/watchList/useRemoveFromWatchList';
 import { useState } from 'react';
@@ -434,18 +434,7 @@ function WatchlistPage() {
                                                         <span className="absolute inset-0 -translate-x-full group-hover/btn:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-red-200/30 dark:via-red-400/20 to-transparent"></span>
                                                         
                                                         <span className="flex items-center gap-1 sm:gap-1.5 relative z-10">
-                                                            <motion.svg 
-                                                                xmlns="http://www.w3.org/2000/svg" 
-                                                                className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-red-500 group-hover/btn:text-red-600 dark:group-hover/btn:text-red-400"
-                                                                viewBox="0 0 20 20" 
-                                                                fill="currentColor"
-                                                                whileHover={{ 
-                                                                    rotate: [0, -10, 10, -10, 0],
-                                                                    transition: { duration: 0.5 }
-                                                                }}
-                                                            >
-                                                                <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
-                                                            </motion.svg>
+                                                            <Trash2 className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-red-500 group-hover/btn:text-red-600 dark:group-hover/btn:text-red-400" />
                                                             <span className="font-medium">Remove</span>
                                                         </span>
                                                     </Button>
