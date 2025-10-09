@@ -57,14 +57,14 @@ export function TrendingCarousel({ items }) {
             return;
         }
         const isTV = !!items[current].name;
-        addToWatchlist({ id: items[current].id, type: isTV ? 'tv' : 'movie' });
+        addToWatchlist({ id: items[current].id, type: isTV ? 'TV' : 'MOVIE' });
     };
 
     const handleLoginSuccess = () => {
         // Determine if the current item is a TV show or movie
         const isTV = !!items[current].name;
         // Add to watchlist after successful login
-        addToWatchlist({ id: items[current].id, type: isTV ? 'tv' : 'movie' });
+        addToWatchlist({ id: items[current].id, type: isTV ? 'TV' : 'MOVIE' });
     };
 
     return (
