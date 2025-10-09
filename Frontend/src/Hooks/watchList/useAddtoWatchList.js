@@ -11,7 +11,7 @@ export default function useAddToWatchlist() {
         mutationFn: async ({ id, type }) => {
             console.log('Adding to watchlist:', { id, type });
             const payload = { id, type };
-            const res = await instance.post('watchlist/add', payload);
+            const res = await instance.post('watchlist', payload);
             return res.data;
         },
         onSuccess: (data) => {
