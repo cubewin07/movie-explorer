@@ -3,7 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { watchlistQueryKey } from './useWatchList';
 
-function useRemoveFromWatchList() {
+function useRemoveFromWatchList(token) {
     const queryClient = useQueryClient();
         return useMutation({
             mutationFn: async ({ id, type }) => {
@@ -12,6 +12,7 @@ function useRemoveFromWatchList() {
             },
             onSuccess: (data) => {
                 queryClient.invalidateQueries({ queryKey: ['watchlist'] });
+                queryClient.invalidateQueries({ queryKey: ['userInfo', token] });
                 console.log(data);
                 toast.success(`Removed from your watchlist`);
             },

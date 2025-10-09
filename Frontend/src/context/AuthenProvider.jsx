@@ -10,7 +10,6 @@ const AuthenContext = createContext();
 export function AuthenProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [refresh, setRefresh] = useState(false);
     const [showLoginModal, setShowLoginModal] = useState(false);
 
     // Always call hooks at the top level
@@ -61,21 +60,6 @@ export function AuthenProvider({ children }) {
         }
     }, [userInfoQuery.error, token]);
 
-    useEffect(() => {
-        if (refresh && token) {
-            async function fetchUserInfo() {
-                const newUserData = await userInfoQuery.refetch();
-                if (newUserData.data) {
-                    console.log(newUserData.data);
-                    setUser(newUserData.data);
-                    setRefresh(false);
-                    setLoading(false);
-                }
-            }
-            setLoading(true);
-            fetchUserInfo();
-        }
-    }, [refresh, token]);
 
     const login = async ({ email, password }) => {
         try {
@@ -128,7 +112,7 @@ export function AuthenProvider({ children }) {
     };
 
     return (
-        <AuthenContext.Provider value={{ user, loading, login, register, logout, showLoginModal, setShowLoginModal, setRefresh }}>
+        <AuthenContext.Provider value={{ user, loading, login, register, logout, showLoginModal, setShowLoginModal, setRefresh, token }}>
             {children}
             <Dialog open={showLoginModal} onOpenChange={handleLoginModalClose}>
                 <DialogContent className="w-full max-w-md">

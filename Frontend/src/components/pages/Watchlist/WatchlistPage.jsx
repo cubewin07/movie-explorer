@@ -9,9 +9,9 @@ import { useState } from 'react';
 import useWatchlistFilmData from '@/hooks/watchList/useWatchListFilmData';
 
 function WatchlistPage() {
-    const { user, setRefresh } = useAuthen();
+    const { user, setRefresh, token } = useAuthen();
     const navigate = useNavigate(); 
-    const { mutate: removeFromWatchList } = useRemoveFromWatchList();
+    const { mutate: removeFromWatchList } = useRemoveFromWatchList(token);
     const [page, setPage] = useState(1);
 
     const { data: watchlistData, isLoading: isWatchlistLoading, error: watchlistError } = useWatchlist();
@@ -23,7 +23,6 @@ function WatchlistPage() {
     async function handleRemoveFromWatchlist(event, filmId) {
         event.stopPropagation();
         await removeFromWatchList({ ...filmId });
-        setRefresh(true);
     }
 
     if (!user) {
