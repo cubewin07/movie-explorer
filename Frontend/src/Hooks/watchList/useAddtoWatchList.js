@@ -3,7 +3,7 @@ import instance from '@/lib/instance';
 import { toast } from 'sonner';
 
 // Accepts userId and type (optional)
-export default function useAddToWatchlist() {
+export default function useAddToWatchlist(token) {
     const queryClient = useQueryClient();
 
     return useMutation({
@@ -16,6 +16,7 @@ export default function useAddToWatchlist() {
         },
         onSuccess: (data) => {
             queryClient.invalidateQueries({ queryKey: ['watchlist'] });
+            queryClient.invalidateQueries({ queryKey: ['userInfo', token] });
             toast.success(`Added to your watchlist!`);
         },
         onError: (error) => {
