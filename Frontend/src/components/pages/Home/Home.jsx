@@ -223,7 +223,7 @@ const MovieCard = ({ movie, type = 'movie', index = 0, genreMap, setContext, set
 function Home() {
     const navigate = useNavigate();
     const { setIsOpen, setContext } = useContext(FilmModalContext);
-    const { user } = useAuthen();
+    const { user, token } = useAuthen();
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
     const [addingId, setAddingId] = useState(null);
@@ -235,7 +235,7 @@ function Home() {
     const { popularTVShows, isLoading: isPopularTVLoading } = usePopularTVShows();
     const { data: trendingData, isLoading: isTrendingLoading } = usePaginatedFetch('trending/movie/week', 1);
     const { MovieGenres, isGenresLoading } = useMovieGenres();
-    const { mutate: addToWatchlist } = useAddToWatchlist();
+    const { mutate: addToWatchlist } = useAddToWatchlist(token);
 
     const genreMap =
         MovieGenres?.data?.genres?.reduce((acc, g) => {

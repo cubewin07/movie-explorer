@@ -19,7 +19,7 @@ import axiosInstance from '@/lib/axiosInstance';
 
 export default function MovieDetailPage() {
     const { id } = useParams();
-    const { user } = useAuthen();
+    const { user, token } = useAuthen();
     const [showLoginModal, setShowLoginModal] = useState(false);
     const { movie, isLoading, isError } = useMovieDetails(id);
     const { trailerUrl, isLoadingTrailer } = useMovieTrailer(id);
@@ -40,7 +40,7 @@ export default function MovieDetailPage() {
     const cast = credits?.cast?.slice(0, 10) || [];
     const crew = credits?.crew?.slice(0, 5) || [];
 
-    const { mutate: addToWatchlist, isPending } = useAddToWatchlist();
+    const { mutate: addToWatchlist, isPending } = useAddToWatchlist(token);
 
     const handleAddToWatchlist = () => {
         if (!user) {

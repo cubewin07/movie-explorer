@@ -19,7 +19,7 @@ import SeasonAccordion from './SeasonAccordion';
 
 export default function TVSeriesDetailPage() {
     const { id } = useParams();
-    const { user } = useAuthen();
+    const { user, token } = useAuthen();
     const [showLoginModal, setShowLoginModal] = useState(false);
     const { series, isLoading, isError } = useTVSeriesDetails(id);
     const { trailerUrl, isLoadingTrailer } = useTVSeriesTrailer(id);
@@ -42,7 +42,7 @@ export default function TVSeriesDetailPage() {
         extra: genres,
     };
 
-    const { mutate: addToWatchlist, isPending } = useAddToWatchlist();
+    const { mutate: addToWatchlist, isPending } = useAddToWatchlist(token);
 
     const handleAddToWatchlist = () => {
         if (!user) {

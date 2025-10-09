@@ -11,8 +11,8 @@ export function TrendingCarousel({ items }) {
     const [direction, setDirection] = useState(0);
     const [showLoginModal, setShowLoginModal] = useState(false);
 
-    const { user } = useAuthen();
-    const { mutate: addToWatchlist, isPending } = useAddToWatchlist();
+    const { user, token } = useAuthen();
+    const { mutate: addToWatchlist, isPending } = useAddToWatchlist(token);
 
     const navigate = useNavigate();
 
