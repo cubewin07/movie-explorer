@@ -9,7 +9,7 @@ import { useState } from 'react';
 import useWatchlistFilmData from '@/hooks/watchList/useWatchListFilmData';
 
 function WatchlistPage() {
-    const { user } = useAuthen();
+    const { user, setRefresh } = useAuthen();
     const navigate = useNavigate(); 
     const { mutate: removeFromWatchList } = useRemoveFromWatchList();
     const [page, setPage] = useState(1);
@@ -19,6 +19,12 @@ function WatchlistPage() {
 
     const isLoading = isWatchlistLoading || isFilmsLoading;
     const hasError = watchlistError || filmsError;
+
+    function handleRemoveFromWatchlist(event, filmId) {
+        event.stopPropagation();
+        removeFromWatchList({ ...filmId });
+        setRefresh(true);
+    }
 
     if (!user) {
         return (
@@ -423,8 +429,7 @@ function WatchlistPage() {
                                                         variant="outline"
                                                         className="group/btn mt-auto text-[10px] sm:text-xs py-1 sm:py-2 h-auto w-full hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/40 dark:hover:text-red-400 transition-all duration-200 relative overflow-hidden border-red-200 dark:border-red-800/50 hover:border-red-400 dark:hover:border-red-600 hover:shadow-lg hover:shadow-red-500/20"
                                                         onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            removeFromWatchList({
+                                                            handleRemoveFromWatchlist(e, {
                                                                 id: item.id,
                                                                 type: item.type === 'tv' ? 'SERIES' : 'MOVIE'
                                                             });
