@@ -33,6 +33,7 @@ export function AuthenProvider({ children }) {
             }
         });
     };
+    console.log(token);
 
     // Initialize user on mount - fetch user info if token exists
     useEffect(() => {
@@ -62,9 +63,9 @@ export function AuthenProvider({ children }) {
         try {
             const res = await loginMutation.mutateAsync({ email, password });
             if (res?.token) {
+                console.log(res);
                 console.log(res.token);
                 Cookies.set('token', res.token, { expires: 7 });
-                setUser(res.user);
                 return { success: true };
             }
             return { success: false, message: res?.message || 'Login failed' };
