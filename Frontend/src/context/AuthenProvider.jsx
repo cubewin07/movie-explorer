@@ -49,7 +49,7 @@ export function AuthenProvider({ children }) {
             }
         }
         setLoading(false);
-    }, [token, userInfoQuery.data, userInfoQuery.error, refresh]);
+    }, [token, userInfoQuery.data, userInfoQuery.error]);
 
     // Monitor userInfoQuery for token expiration errors
     useEffect(() => {
@@ -59,7 +59,23 @@ export function AuthenProvider({ children }) {
                 handleTokenExpiration();
             }
         }
-    }, [userInfoQuery.error, token, refresh]);
+    }, [userInfoQuery.error, token]);
+
+    useEffect(() => {
+        if (refresh && token) {
+            async function fetchUserInfo() {
+                const newUserData = await userInfoQuery.refetch();
+                if (newUserData.data) {
+                    console.log(newUserData.data);
+                    setUser(newUserData.data);
+                    setRefresh(false);
+                    setLoading(false);
+                }
+            }
+            setLoading(true);
+            fetchUserInfo();
+        }
+    }, [refresh, token]);
 
     const login = async ({ email, password }) => {
         try {

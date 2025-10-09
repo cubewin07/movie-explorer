@@ -20,9 +20,9 @@ function WatchlistPage() {
     const isLoading = isWatchlistLoading || isFilmsLoading;
     const hasError = watchlistError || filmsError;
 
-    function handleRemoveFromWatchlist(event, filmId) {
+    async function handleRemoveFromWatchlist(event, filmId) {
         event.stopPropagation();
-        removeFromWatchList({ ...filmId });
+        await removeFromWatchList({ ...filmId });
         setRefresh(true);
     }
 
