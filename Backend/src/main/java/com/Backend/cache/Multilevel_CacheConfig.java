@@ -14,7 +14,7 @@ public class Multilevel_CacheConfig {
     @Primary
     public CacheManager cacheManager(
         @Qualifier("caffeineCacheManager")CacheManager caffeine,
-        @Qualifier("redisCacheManagercacheManager")CacheManager redis
+        @Qualifier("redisCacheManager")CacheManager redis
     ) {
         return new Multilevel_CacheManager(caffeine, redis);
     }
