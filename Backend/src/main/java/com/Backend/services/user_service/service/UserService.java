@@ -22,6 +22,9 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -128,6 +131,13 @@ public class UserService {
         }
         userRepository.deleteById(id);
         log.info("User with id {} deleted successfully", id);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<SimpleUserDTO> searchUsers(String query, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<User> users = userRepository.findByUsernameContainingIgnoreCase(query, pageable);
+        return users.map(u -> new SimpleUserDTO(u.getId(), u.getEmail(), u.getRealUsername()));
     }
 
     @Transactional(readOnly = true)
