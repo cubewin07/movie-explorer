@@ -42,8 +42,9 @@ public class UserController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Page<SimpleUserDTO>> searchUsers(@RequestParam(name = "query") String query, @RequestParam(name = "page") int page) {
-        return ResponseEntity.ok(userService.searchUsers(query, page, 20));
+    public ResponseEntity<Page<SimpleUserDTO>> searchUsers(@RequestParam(name = "query") String query, @RequestParam(name = "page") int page, @AuthenticationPrincipal User user) {
+        Long id = user.getId();
+        return ResponseEntity.ok(userService.searchUsers(query, id, page, 20));
     }
 
     @PutMapping()
