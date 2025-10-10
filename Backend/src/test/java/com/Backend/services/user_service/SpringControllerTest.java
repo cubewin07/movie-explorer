@@ -299,4 +299,40 @@ class SpringControllerTest {
                 .andExpect(status().isOk());
     }
 
+    @Test
+    @Order(9)
+    @DisplayName("GET /user/search returns paginated search results")
+    void searchUsers_returnsPaginatedResults() throws Exception {
+        // Register test users
+        String token = register("search_test", "search_test@example.com", "password123");
+        register("test_user1", "test1@example.com", "password123");
+        register("test_user2", "test2@example.com", "password123");
+        register("other_user", "other@example.com", "password123");
+
+        // Search for users with "test" in their username
+        mockMvc.perform(get("/user/search")
+                .header("Authorization", bearer(token))
+                .param("query", "test")
+                .param("page", "0"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(3)))
+                .andExpect(jsonPath("$.content[*].username", containsInAnyOrder(
+                        "search_test",
+                        "test_user1",
+                        "test_user2"
+                )))
+                .andExpect(jsonPath("$.totalElements", is(3)))
+                .andExpect(jsonPath("$.number", is(0)))
+                .andExpect(jsonPath("$.size", is(20)));
+
+        // Search with no matches
+        mockMvc.perform(get("/user/search")
+                .header("Authorization", bearer(token))
+                .param("query", "nonexistent")
+                .param("page", "0"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", hasSize(0)))
+                .andExpect(jsonPath("$.totalElements", is(0)));
+    }
+
 }
