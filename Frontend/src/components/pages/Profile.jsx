@@ -21,16 +21,25 @@ const defaultUserData = {
 
 export default function Profile() {
     const { user: authUser } = useAuthen();
-    console.log(authUser);
+
+    const watchlistQuantity = [...(authUser?.watchlist?.moviesId || []), ...(authUser?.watchlist?.seriesId || [])].length || 0;
+
+    const stats = {
+        watchlist: watchlistQuantity,
+        reviews: authUser?.reviews?.length || 0,
+        favorites: authUser?.favorites?.length || 0,
+    }
     const [user, setUser] = useState({
         ...defaultUserData,
         avatar: authUser?.avatar || '',
         username: authUser?.username || 'Guest',
         email: authUser?.email || '',
         bio: authUser?.bio || defaultUserData.bio,
-        stats: authUser?.stats || defaultUserData.stats,
+        stats: stats || defaultUserData.stats,
         recent: authUser?.recent || defaultUserData.recent
     });
+
+    console.log(user);
     const [editOpen, setEditOpen] = useState(false);
     const [editData, setEditData] = useState({ ...defaultUserData });
     const [avatarPreview, setAvatarPreview] = useState('');
