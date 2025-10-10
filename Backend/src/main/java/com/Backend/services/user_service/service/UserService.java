@@ -134,9 +134,9 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public Page<SimpleUserDTO> searchUsers(String query, int page, int size) {
+    public Page<SimpleUserDTO> searchUsers(String query, Long id ,int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<User> users = userRepository.findByUsernameContainingIgnoreCase(query, pageable);
+        Page<User> users = userRepository.findByUsernameContainingIgnoreCaseAndIdNot(query, id, pageable);
         return users.map(u -> new SimpleUserDTO(u.getId(), u.getEmail(), u.getRealUsername()));
     }
 
