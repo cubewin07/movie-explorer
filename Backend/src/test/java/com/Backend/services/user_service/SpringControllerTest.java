@@ -317,7 +317,7 @@ class SpringControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(3)))
                 .andExpect(jsonPath("$.content[*].username", containsInAnyOrder(
-                        "search_test",
+                        "metest",
                         "test_user1",
                         "test_user2"
                 )))
