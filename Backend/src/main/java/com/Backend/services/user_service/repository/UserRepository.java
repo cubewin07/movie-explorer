@@ -1,11 +1,13 @@
 package com.Backend.services.user_service.repository;
 
 import com.Backend.services.user_service.model.User;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
+import java.util.Set;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
@@ -40,4 +42,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findWithRequestsToById(Long id);
 
     Optional<User> findByUsername(String username);
+
+    Set<User> findByUsernameContainingIgnoreCase(String username, Pageable pageable);
 }
