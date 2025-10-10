@@ -305,14 +305,14 @@ function WatchlistPage() {
 
                                         <div className="p-3 sm:p-4 flex flex-col gap-1.5 sm:gap-2 flex-grow relative z-30">
                                             <div className="flex items-start gap-2">
-                                                <h3 className="text-sm sm:text-base font-bold line-clamp-2 flex-grow">
+                                                <h3 className="text-sm sm:text-base font-bold line-clamp-2 flex-grow min-h-[2.5rem] sm:min-h-[3rem]">
                                                     {displayTitle}
                                                 </h3>
                                             </div>
 
                                             <div className="text-[10px] sm:text-xs text-muted-foreground font-medium">{item.year}</div>
 
-                                            <div className="flex gap-1 sm:gap-1.5 flex-wrap mt-0.5 sm:mt-1">
+                                            <div className="flex gap-1 sm:gap-1.5 flex-wrap mt-0.5 sm:mt-1 min-h-[1.5rem]">
                                                 {item.extra?.slice(0, 3).map((tag, index) => (
                                                     <span
                                                         key={index}
@@ -331,7 +331,7 @@ function WatchlistPage() {
                                             <motion.div
                                                 whileHover={{ scale: 1.05 }}
                                                 whileTap={{ scale: 0.95 }}
-                                                className="relative z-40"
+                                                className="relative z-40 mt-auto"
                                             >
                                                 <Button
                                                     size="sm"
