@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -15,9 +15,29 @@ const SAMPLE_MESSAGES = [
 export default function ChatConversation() {
   const { chatId } = useParams();
   const [newMessage, setNewMessage] = useState('');
-  
+  const [messages, setMessages] = useState(SAMPLE_MESSAGES);
+  const scrollRef = useRef(null);
+
+  // Scroll to the bottom when a new message is added
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const handleSendMessage = () => {
+    if (newMessage.trim()) {
+      setMessages((prev) => [
+        ...prev,
+        { id: Date.now(), sender: 'me', text: newMessage, time: 'Now' }
+      ]);
+      setNewMessage('');
+    }
+  };
+
   return (
     <div className="h-full flex flex-col">
+      {/* Header */}
       <div className="p-4 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm bg-white/50 dark:bg-slate-900/50">
         <div className="flex items-center gap-3">
           <Avatar className="ring-2 ring-green-500">
@@ -31,15 +51,16 @@ export default function ChatConversation() {
         </div>
       </div>
 
-      <ScrollArea className="flex-1 p-4">
+      {/* Messages */}
+      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
         <div className="space-y-4">
-          {SAMPLE_MESSAGES.map((message) => (
+          {messages.map((message) => (
             <div
               key={message.id}
-              className={`flex ${message.sender === 'me' ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${message.sender === 'me' ? 'justify-end' : 'justify-start'} animate-fade-in`}
             >
               <div
-                className={`max-w-[80%] rounded-2xl px-4 py-2 ${
+                className={`max-w-[80%] rounded-2xl px-4 py-2 transition-transform duration-300 ${
                   message.sender === 'me'
                     ? 'bg-blue-500 dark:bg-blue-600 text-white'
                     : 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100'
@@ -53,8 +74,15 @@ export default function ChatConversation() {
         </div>
       </ScrollArea>
 
+      {/* Input */}
       <div className="p-4 border-t border-slate-200 dark:border-slate-700">
-        <form className="flex gap-2" onSubmit={(e) => e.preventDefault()}>
+        <form
+          className="flex gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSendMessage();
+          }}
+        >
           <Input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
