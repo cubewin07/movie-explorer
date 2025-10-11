@@ -9,7 +9,7 @@ import { Send } from 'lucide-react';
 const SAMPLE_MESSAGES = [
   { id: 1, sender: 'other', text: 'Hey there!', time: '10:00' },
   { id: 2, sender: 'me', text: 'Hi! How are you?', time: '10:01' },
-  { id: 3, sender: 'other', text: 'I'm good, thanks! Did you watch the new movie?', time: '10:02' },
+  { id: 3, sender: 'other', text: 'I\'m good, thanks! Did you watch the new movie?', time: '10:02' }
 ];
 
 export default function ChatConversation() {
