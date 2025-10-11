@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -12,11 +12,26 @@ export default function ChatLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   
-  const [activeTab, setActiveTab] = useState('chats');
+  // Initialize activeTab based on current path
+  const getInitialTab = () => {
+    if (location.pathname.includes('/friend/chat')) return 'chats';
+    if (location.pathname.includes('/friend/friends')) return 'friends';
+    if (location.pathname.includes('/friend/requests')) return 'requests';
+    return 'chats';
+  };
+
+  const [activeTab, setActiveTab] = useState(getInitialTab);
   
   const handleTabChange = (value) => {
     setActiveTab(value);
-    navigate(`/friend/${value}`);
+    // Set default paths for each tab
+    const paths = {
+      chats: '/friend/chat',
+      friends: '/friend/friends',
+      requests: '/friend/requests'
+    };
+    navigate(paths[value]);
+    setShowMobileContent(false);
   };
 
   const getSidebarContent = () => {
@@ -41,12 +56,17 @@ export default function ChatLayout() {
     }
   };
 
+  // Update active tab when route changes
+  useEffect(() => {
+    setActiveTab(getInitialTab());
+  }, [location.pathname]);
+
   return (
     <div className="h-[calc(100vh-4rem)] flex">
       {/* Sidebar with Tabs */}
       <div className={`w-full md:w-80 bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col
         ${showMobileContent ? 'hidden md:flex' : 'flex'}`}>
-        <Tabs defaultValue="chats" className="w-full" onValueChange={handleTabChange}>
+        <Tabs value={activeTab} className="w-full" onValueChange={handleTabChange}>
           <TabsList className="w-full">
             <TabsTrigger value="chats">Chats</TabsTrigger>
             <TabsTrigger value="friends">Friends</TabsTrigger>

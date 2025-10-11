@@ -143,6 +143,12 @@ const router = createBrowserRouter(
                             </div>
                         },
                         {
+                            path: 'chat',
+                            element: <div className="flex items-center justify-center h-full text-slate-500">
+                                Select a chat to start conversation
+                            </div>
+                        },
+                        {
                             path: 'chat/:chatId',
                             element: <ChatConversation />
                         },
