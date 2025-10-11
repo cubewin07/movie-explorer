@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { useNavigate } from 'react-router-dom';
 
 const SAMPLE_CHATS = [
   { id: 1, name: 'Sarah Johnson', message: 'Hey! How are you?', time: '2m', unread: 2, online: true },
@@ -13,6 +14,7 @@ const SAMPLE_CHATS = [
 
 export default function ChatList() {
   const [search, setSearch] = useState('');
+  const navigate = useNavigate();
 
   return (
     <div className="h-full flex flex-col">
@@ -32,6 +34,7 @@ export default function ChatList() {
               key={chat.id}
               className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 
                 cursor-pointer transition-colors"
+              onClick={() => navigate(`/friend/chat/${chat.id}`)}
             >
               <Avatar className={chat.online ? 'ring-2 ring-green-500' : ''}>
                 <AvatarImage src={`https://avatar.vercel.sh/${chat.id}.png`} />
