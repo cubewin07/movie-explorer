@@ -3,6 +3,7 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import ChatList from './ChatList';
 import FriendsList from './FriendsList';
 import RequestTabs from './RequestTabs';
@@ -35,22 +36,13 @@ export default function ChatLayout() {
   };
 
   const getSidebarContent = () => {
-    switch(activeTab) {
+    switch (activeTab) {
       case 'chats':
-        return <ChatList onChatSelect={(chatId) => {
-          navigate(`/friend/chat/${chatId}`);
-          setShowMobileContent(true);
-        }} />;
+        return <ChatList onChatSelect={(chatId) => navigate(`/friend/chat/${chatId}`)} />;
       case 'friends':
-        return <FriendsList onFriendSelect={(friendId) => {
-          navigate(`/friend/friends/${friendId}`);
-          setShowMobileContent(true);
-        }} />;
+        return <FriendsList onFriendSelect={(friendId) => navigate(`/friend/friends/${friendId}`)} />;
       case 'requests':
-        return <RequestTabs onRequestSelect={(requestId) => {
-          navigate(`/friend/requests/${requestId}`);
-          setShowMobileContent(true);
-        }} />;
+        return <RequestTabs onRequestSelect={(requestId) => navigate(`/friend/requests/${requestId}`)} />;
       default:
         return null;
     }
@@ -66,7 +58,7 @@ export default function ChatLayout() {
       {/* Sidebar with Tabs */}
       <div className={`w-full md:w-80 bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col rounded-tl-md rounded-bl-md
         ${showMobileContent ? 'hidden md:flex' : 'flex'}`}>
-        {/* New "Friend" text */}
+        {/* "Friend" text */}
         <div className="p-4 text-lg font-semibold text-slate-900 dark:text-slate-100">
           Friend
         </div>
@@ -78,7 +70,18 @@ export default function ChatLayout() {
           </TabsList>
         </Tabs>
         <div className="flex-1 overflow-y-auto">
-          {getSidebarContent()}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+              className="h-full"
+            >
+              {getSidebarContent()}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
 
