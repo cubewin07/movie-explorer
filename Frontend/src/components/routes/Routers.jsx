@@ -14,6 +14,11 @@ import NotFound from '../pages/NotFound/NotFound';
 import Profile from '../pages/Profile';
 import ProtectedRoute from './ProtectedRoute';
 import PublicRoute from './PublicRoute';
+import ChatLayout from '../pages/Chat/ChatLayout';
+import ChatList from '../pages/Chat/ChatList';
+import ChatConversation from '../pages/Chat/ChatConversation';
+import FriendsList from '../pages/Chat/FriendsList';
+import FriendRequests from '../pages/Chat/FriendRequests';
 
 const router = createBrowserRouter(
     [
@@ -119,6 +124,33 @@ const router = createBrowserRouter(
                             <Settings />
                         </ProtectedRoute>
                     ),
+                },
+                // Chat Routes
+                {
+                    path: '/chat',
+                    element: (
+                        <ProtectedRoute>
+                            <ChatLayout />
+                        </ProtectedRoute>
+                    ),
+                    children: [
+                        {
+                            path: '',
+                            element: <ChatList />
+                        },
+                        {
+                            path: ':chatId',
+                            element: <ChatConversation />
+                        },
+                        {
+                            path: 'friends',
+                            element: <FriendsList />
+                        },
+                        {
+                            path: 'requests',
+                            element: <FriendRequests />
+                        }
+                    ]
                 },
                 // Add other routes here
             ],
