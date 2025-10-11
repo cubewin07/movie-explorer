@@ -66,6 +66,10 @@ export default function ChatLayout() {
       {/* Sidebar with Tabs */}
       <div className={`w-full md:w-80 bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col rounded-tl-md rounded-bl-md
         ${showMobileContent ? 'hidden md:flex' : 'flex'}`}>
+        {/* New "Friend" text */}
+        <div className="p-4 text-lg font-semibold text-slate-900 dark:text-slate-100">
+          Friend
+        </div>
         <Tabs value={activeTab} className="w-full" onValueChange={handleTabChange}>
           <TabsList className="w-full">
             <TabsTrigger value="chats">Chats</TabsTrigger>
