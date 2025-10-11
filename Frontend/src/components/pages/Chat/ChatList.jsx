@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 const SAMPLE_CHATS = [
@@ -16,6 +16,10 @@ const SAMPLE_CHATS = [
 export default function ChatList() {
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Extract the active chatId from the current path
+  const activeChatId = location.pathname.split('/').pop();
 
   return (
     <div className="h-full flex flex-col">
@@ -38,8 +42,10 @@ export default function ChatList() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 
-                cursor-pointer transition-colors shadow-sm hover:shadow-md"
+              className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors shadow-sm 
+                ${chat.id.toString() === activeChatId 
+                  ? 'bg-blue-100 dark:bg-blue-900 scale-102 shadow-md' 
+                  : 'hover:bg-slate-50 dark:hover:bg-slate-700 hover:scale-102 hover:shadow-md'}`}
               onClick={() => navigate(`/friend/chat/${chat.id}`)}
             >
               <Avatar className={chat.online ? 'ring-2 ring-green-500' : ''}>
