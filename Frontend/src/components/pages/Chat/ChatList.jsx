@@ -43,9 +43,11 @@ export default function ChatList() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
               className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-colors shadow-sm 
-                ${chat.id.toString() === activeChatId 
-                  ? 'bg-blue-100 dark:bg-blue-900 scale-102 shadow-md' 
-                  : 'hover:bg-slate-50 dark:hover:bg-slate-700 hover:scale-102 hover:shadow-md'}`}
+                ${
+                  chat.id.toString() === activeChatId
+                    ? 'bg-blue-200 dark:bg-blue-900 scale-[1.02] shadow-md' // Updated active chat background
+                    : 'hover:bg-slate-100 dark:hover:bg-slate-700 hover:scale-[1.02] hover:shadow-md' // Updated hover background
+                }`}
               onClick={() => navigate(`/friend/chat/${chat.id}`)}
             >
               <Avatar className={chat.online ? 'ring-2 ring-green-500' : ''}>
