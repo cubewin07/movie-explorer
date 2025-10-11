@@ -4,6 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 const SAMPLE_CHATS = [
   { id: 1, name: 'Sarah Johnson', message: 'Hey! How are you?', time: '2m', unread: 2, online: true },
@@ -30,10 +31,15 @@ export default function ChatList() {
       <ScrollArea className="flex-1">
         <div className="space-y-2 p-4">
           {SAMPLE_CHATS.map((chat) => (
-            <div
+            <motion.div
               key={chat.id}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
               className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 
-                cursor-pointer transition-colors"
+                cursor-pointer transition-colors shadow-sm hover:shadow-md"
               onClick={() => navigate(`/friend/chat/${chat.id}`)}
             >
               <Avatar className={chat.online ? 'ring-2 ring-green-500' : ''}>
@@ -54,7 +60,7 @@ export default function ChatList() {
                   {chat.unread}
                 </Badge>
               )}
-            </div>
+            </motion.div>
           ))}
         </div>
       </ScrollArea>
