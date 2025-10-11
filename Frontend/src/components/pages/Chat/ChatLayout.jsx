@@ -62,13 +62,28 @@ export default function ChatLayout() {
         <div className="p-4 text-lg font-semibold text-slate-900 dark:text-slate-100">
           Friend
         </div>
-        <Tabs value={activeTab} className="w-full" onValueChange={handleTabChange}>
-          <TabsList className="w-full">
-            <TabsTrigger value="chats">Chats</TabsTrigger>
-            <TabsTrigger value="friends">Friends</TabsTrigger>
-            <TabsTrigger value="requests">Requests</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: 'easeInOut' }}
+        >
+          <Tabs value={activeTab} className="w-full" onValueChange={handleTabChange}>
+            <TabsList className="w-full flex justify-around">
+              {['chats', 'friends', 'requests'].map((tab) => (
+                <motion.div
+                  key={tab}
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex-1"
+                >
+                  <TabsTrigger value={tab} className="w-full text-center">
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </TabsTrigger>
+                </motion.div>
+              ))}
+            </TabsList>
+          </Tabs>
+        </motion.div>
         <div className="flex-1 overflow-y-auto">
           <AnimatePresence mode="wait">
             <motion.div
