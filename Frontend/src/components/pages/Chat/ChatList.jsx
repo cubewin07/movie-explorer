@@ -38,7 +38,7 @@ export default function ChatList() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 
+              className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 
                 cursor-pointer transition-colors shadow-sm hover:shadow-md"
               onClick={() => navigate(`/friend/chat/${chat.id}`)}
             >
