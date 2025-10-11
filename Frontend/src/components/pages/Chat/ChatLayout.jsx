@@ -3,29 +3,59 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from 'lucide-react';
+import ChatList from './ChatList';
+import FriendsList from './FriendsList';
+import RequestTabs from './RequestTabs';
 
 export default function ChatLayout() {
   const [showMobileContent, setShowMobileContent] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   
+  const [activeTab, setActiveTab] = useState('chats');
+  
   const handleTabChange = (value) => {
-    navigate(value);
-    setShowMobileContent(false);
+    setActiveTab(value);
+    navigate(`/friend/${value}`);
+  };
+
+  const getSidebarContent = () => {
+    switch(activeTab) {
+      case 'chats':
+        return <ChatList onChatSelect={(chatId) => {
+          navigate(`/friend/chat/${chatId}`);
+          setShowMobileContent(true);
+        }} />;
+      case 'friends':
+        return <FriendsList onFriendSelect={(friendId) => {
+          navigate(`/friend/friends/${friendId}`);
+          setShowMobileContent(true);
+        }} />;
+      case 'requests':
+        return <RequestTabs onRequestSelect={(requestId) => {
+          navigate(`/friend/requests/${requestId}`);
+          setShowMobileContent(true);
+        }} />;
+      default:
+        return null;
+    }
   };
 
   return (
     <div className="h-[calc(100vh-4rem)] flex">
-      {/* Sidebar */}
-      <div className={`w-full md:w-80 bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 
-        ${showMobileContent ? 'hidden md:block' : 'block'}`}>
-        <Tabs defaultValue="/chat" className="w-full" onValueChange={handleTabChange}>
+      {/* Sidebar with Tabs */}
+      <div className={`w-full md:w-80 bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col
+        ${showMobileContent ? 'hidden md:flex' : 'flex'}`}>
+        <Tabs defaultValue="chats" className="w-full" onValueChange={handleTabChange}>
           <TabsList className="w-full">
-            <TabsTrigger value="/chat">Chats</TabsTrigger>
-            <TabsTrigger value="/chat/friends">Friends</TabsTrigger>
-            <TabsTrigger value="/chat/requests">Requests</TabsTrigger>
+            <TabsTrigger value="chats">Chats</TabsTrigger>
+            <TabsTrigger value="friends">Friends</TabsTrigger>
+            <TabsTrigger value="requests">Requests</TabsTrigger>
           </TabsList>
         </Tabs>
+        <div className="flex-1 overflow-y-auto">
+          {getSidebarContent()}
+        </div>
       </div>
 
       {/* Content Area */}

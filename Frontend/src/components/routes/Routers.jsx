@@ -19,6 +19,8 @@ import ChatList from '../pages/Chat/ChatList';
 import ChatConversation from '../pages/Chat/ChatConversation';
 import FriendsList from '../pages/Chat/FriendsList';
 import FriendRequests from '../pages/Chat/FriendRequests';
+import RequestsView from '../pages/Chat/RequestsView';
+import FriendsView from '../pages/Chat/FriendsView';
 
 const router = createBrowserRouter(
     [
@@ -127,7 +129,7 @@ const router = createBrowserRouter(
                 },
                 // Chat Routes
                 {
-                    path: '/chat',
+                    path: '/friend',
                     element: (
                         <ProtectedRoute>
                             <ChatLayout />
@@ -136,19 +138,21 @@ const router = createBrowserRouter(
                     children: [
                         {
                             path: '',
-                            element: <ChatList />
+                            element: <div className="flex items-center justify-center h-full text-slate-500">
+                                Select a conversation or friend to start
+                            </div>
                         },
                         {
-                            path: ':chatId',
+                            path: 'chat/:chatId',
                             element: <ChatConversation />
                         },
                         {
-                            path: 'friends',
-                            element: <FriendsList />
+                            path: 'friends/:friendId?',
+                            element: <FriendsView />
                         },
                         {
-                            path: 'requests',
-                            element: <FriendRequests />
+                            path: 'requests/:type?',
+                            element: <RequestsView />
                         }
                     ]
                 },
