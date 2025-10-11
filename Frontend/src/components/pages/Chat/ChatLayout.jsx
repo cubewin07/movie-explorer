@@ -62,9 +62,9 @@ export default function ChatLayout() {
   }, [location.pathname]);
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex">
+    <div className="h-[calc(100vh-4.61rem)] flex mt-2 rounded-md">
       {/* Sidebar with Tabs */}
-      <div className={`w-full md:w-80 bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col
+      <div className={`w-full md:w-80 bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col rounded-tl-md rounded-bl-md
         ${showMobileContent ? 'hidden md:flex' : 'flex'}`}>
         <Tabs value={activeTab} className="w-full" onValueChange={handleTabChange}>
           <TabsList className="w-full">
@@ -79,7 +79,7 @@ export default function ChatLayout() {
       </div>
 
       {/* Content Area */}
-      <div className={`flex-1 bg-white dark:bg-slate-900 
+      <div className={`flex-1 bg-white dark:bg-slate-900 rounded-tr-md rounded-br-md  
         ${!showMobileContent ? 'hidden md:block' : 'block'}`}>
         {showMobileContent && (
           <Button 

@@ -39,7 +39,7 @@ export default function ChatConversation() {
 	return (
 		<div className="h-full flex flex-col">
 			{/* Header */}
-			<div className="p-4 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm bg-white/50 dark:bg-slate-900/50">
+			<div className="p-4 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm bg-white/50 dark:bg-slate-900/50 rounded-md">
 				<div className="flex items-center gap-3">
 					<Avatar className="ring-2 ring-green-500">
 						<AvatarImage src={`https://avatar.vercel.sh/${chatId}.png`} />
