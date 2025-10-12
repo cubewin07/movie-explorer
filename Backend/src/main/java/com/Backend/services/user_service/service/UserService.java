@@ -63,7 +63,10 @@ public class UserService {
     }
 
     @Transactional
-    @CacheEvict(value = "users", key = "'all'")
+    @Caching(evict = {
+        @CacheEvict(value = "users", key = "'all'"),
+        @CacheEvict(value = "userSearch", allEntries = true)
+    })
     public JwtToken registerUser(RegisterDTO registerDTO) {
         String encryptedPassword = passwordEncoder.encode(registerDTO.password());
         User user = User.builder()
@@ -106,7 +109,8 @@ public class UserService {
         put = @CachePut(value = "users", key = "#result.id"),
         evict = {
             @CacheEvict(value = "users", key = "'all'"),
-            @CacheEvict(value = "userMeDTO", key = "#userFromContext.email")
+            @CacheEvict(value = "userMeDTO", key = "#userFromContext.email"),
+            @CacheEvict(value = "userSearch", allEntries = true)
         }
     )
     public User updateUser(UpdateUserDTO update, User userFromContext) {
@@ -122,7 +126,8 @@ public class UserService {
     @Caching(evict = {
         @CacheEvict(value = "users", key = "#id"),
         @CacheEvict(value = "users", key = "'all'"),
-        @CacheEvict(value = "userMeDTO", allEntries = true)
+        @CacheEvict(value = "userMeDTO", allEntries = true),
+        @CacheEvict(value = "userSearch", allEntries = true)
     })
     public void deleteUserById(Long id) {
         if (!userRepository.existsById(id)) {
@@ -134,6 +139,7 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "userSearch", key = "{#query, #id, #page, #size}")
     public Page<SimpleUserDTO> searchUsers(String query, Long id ,int page, int size) {
         log.debug("Searching users with query: '{}', excluding user ID: {}, page: {}, size: {}", 
                 query, id, page, size);
