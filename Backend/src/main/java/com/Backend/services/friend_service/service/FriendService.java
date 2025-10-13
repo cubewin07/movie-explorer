@@ -38,7 +38,7 @@ public class FriendService {
         log.debug("Fetching requests from user id={} from database", id);
         User user = userRepository.findWithRequestsFrom(id).orElseThrow(() -> new FriendNotFoundException("User not found"));
         return user.getRequestsFrom().stream()
-                .map(f -> new FriendRequestDTO(f.getUser2().getId(), f.getUser2().getEmail(), f.getStatus(), f.getCreatedAt()))
+                .map(f -> new FriendRequestDTO(f.getUser2().getId(), f.getUser2().getEmail(), f.getUser2().getRealUsername(), f.getStatus(), f.getCreatedAt()))
                 .collect(Collectors.toSet());
     }
 
@@ -47,7 +47,7 @@ public class FriendService {
         log.debug("Fetching requests to user id={} from database", id);
         User user = userRepository.findWithRequestsToById(id).orElseThrow(() -> new FriendNotFoundException("User not found"));
         return user.getRequestsTo().stream()
-                .map(f -> new FriendRequestDTO(f.getUser1().getId(), f.getUser1().getEmail(), f.getStatus(), f.getCreatedAt()))
+                .map(f -> new FriendRequestDTO(f.getUser1().getId(), f.getUser1().getEmail(), f.getUser1().getRealUsername(),f.getStatus(), f.getCreatedAt()))
                 .collect(Collectors.toSet());
     }
 
