@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import useUserInfo from '@/hooks/API/useUserInfo';
-import WatchlistCard from '@/components/react_components/List/WatchlistCard';
+import WatchlistCard from '@/components/ui/WatchlistCard';
 
 const UserInfoPage = () => {
   const { userId } = useParams();
@@ -33,7 +33,7 @@ const UserInfoPage = () => {
           <div className="mb-6">
             <h3 className="font-semibold">Movies:</h3>
             {userInfo.watchlist.moviesId.map((movieId) => (
-              <WatchlistCard key={movieId} id={movieId} type="movie" />
+              <WatchlistCard key={movieId} item={{ id: movieId, type: 'movie' }} />
             ))}
           </div>
         )}
@@ -41,7 +41,7 @@ const UserInfoPage = () => {
           <div>
             <h3 className="font-semibold">Series:</h3>
             {userInfo.watchlist.seriesId.map((seriesId) => (
-              <WatchlistCard key={seriesId} id={seriesId} type="series" />
+              <WatchlistCard key={seriesId} item={{ id: seriesId, type: 'tv' }} />
             ))}
           </div>
         )}
