@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { useLogin, useRegister, useGetUserInfo } from '../hooks/API/login&register';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../components/ui/dialog';
 import Login from '../components/pages/Authentication/Login';
+import { useQueryClient } from '@tanstack/react-query';
 
 const AuthenContext = createContext();
 
@@ -11,6 +12,7 @@ export function AuthenProvider({ children }) {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showLoginModal, setShowLoginModal] = useState(false);
+    const queryClient = useQueryClient();
 
     // Always call hooks at the top level
     const loginMutation = useLogin();
@@ -61,15 +63,19 @@ export function AuthenProvider({ children }) {
 
     const login = async ({ email, password }) => {
         try {
-            const res = await loginMutation.mutateAsync({ email, password });
-            if (res?.token) {
-                Cookies.set('token', res.token, { expires: 7 });
-                return { success: true };
-            }
-            return { success: false, message: res?.message || 'Login failed' };
-        } catch (err) {
-            return { success: false, message: err?.response?.data?.message || 'Login failed' };
+        const res = await loginMutation.mutateAsync({ email, password });
+        if (res?.token) {
+
+            await queryClient.cancelQueries();
+            queryClient.clear(); 
+
+            Cookies.set('token', res.token, { expires: 7 });
+            return { success: true };
         }
+        return { success: false, message: res?.message || 'Login failed' };
+    } catch (err) {
+        return { success: false, message: err?.response?.data?.message || 'Login failed' };
+    }
     };
 
     const register = async ({ email, password, username }) => {
@@ -87,7 +93,10 @@ export function AuthenProvider({ children }) {
     };
 
     const logout = async (showNotification = true) => {
-            // Always clear local state regardless of API call success
+
+            await queryClient.cancelQueries();
+            queryClient.clear(); // Instead of removeQueries()
+            
             Cookies.remove('token');
             setUser(null);
             if (showNotification) {
