@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
-import axiosInstance from '../../lib/axiosInstance';
+import instance from '@/lib/instance';
 
 export const useFriendRequests = () => {
   // Get requests sent to current user
   const incomingRequests = useQuery({
     queryKey: ['friendRequests', 'incoming'],
     queryFn: async () => {
-      const response = await axiosInstance.get('/friends/requestsTo');
+      const response = await instance.get('/friends/requestsTo');
       return response.data;
     }
   });
@@ -15,7 +15,7 @@ export const useFriendRequests = () => {
   const outgoingRequests = useQuery({
     queryKey: ['friendRequests', 'outgoing'],
     queryFn: async () => {
-      const response = await axiosInstance.get('/friends/requestsFrom');
+      const response = await instance.get('/friends/requestsFrom');
       return response.data;
     }
   });

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import axiosInstance from '../../lib/axiosInstance';
+import instance from '@/lib/instance';
 
 export const useFriendActions = () => {
   const queryClient = useQueryClient();
@@ -7,7 +7,7 @@ export const useFriendActions = () => {
   // Send friend request
   const sendRequest = useMutation({
     mutationFn: async (email) => {
-      const response = await axiosInstance.post('/friends/request', { email });
+      const response = await instance.post('/friends/request', { email });
       return response.data;
     },
     onSuccess: () => {
@@ -19,7 +19,7 @@ export const useFriendActions = () => {
   // Update friend status (accept/block)
   const updateFriendStatus = useMutation({
     mutationFn: async ({ email, status }) => {
-      const response = await axiosInstance.put('/friends/update', { email, status });
+      const response = await instance.put('/friends/update', { email, status });
       return response.data;
     },
     onSuccess: () => {
@@ -32,7 +32,7 @@ export const useFriendActions = () => {
   // Delete friend
   const deleteFriend = useMutation({
     mutationFn: async (email) => {
-      const response = await axiosInstance.delete('/friends/delete', {
+      const response = await instance.delete('/friends/delete', {
         data: { email }
       });
       return response.data;

@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
-import axiosInstance from '../../lib/axiosInstance';
+import instance from '@/lib/instance';
 
 export const useFriendStatus = (email) => {
   return useQuery({
     queryKey: ['friendStatus', email],
     queryFn: async () => {
-      const response = await axiosInstance.get('/friends/status', {
+      const response = await instance.get('/friends/status', {
         params: { email }
       });
       return response.data;
