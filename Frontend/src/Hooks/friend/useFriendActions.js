@@ -26,6 +26,9 @@ export const useFriendActions = () => {
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ['friends'] });
       queryClient.invalidateQueries({ queryKey: ['friendRequests'] });
+      queryClient.invalidateQueries({ queryKey: ['friendRequests', 'incoming'] });
+      queryClient.invalidateQueries({ queryKey: ['friendRequests', 'outgoing'] });
+
       console.log(" Friend status updated successfully");
     },
     onError: (error) => {
