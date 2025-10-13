@@ -20,6 +20,7 @@ import ChatConversation from '../pages/Chat/ChatConversation';
 import FriendsList from '../pages/Chat/FriendsList';
 import RequestsView from '../pages/Chat/RequestsView';
 import FriendsView from '../pages/Chat/FriendsView';
+import UserInfoPage from '../pages/User/UserInfoPage';
 
 const router = createBrowserRouter(
     [
@@ -160,6 +161,14 @@ const router = createBrowserRouter(
                             element: <RequestsView />
                         }
                     ]
+                },
+                {
+                    path: '/user/:userId',
+                    element: (
+                        <ProtectedRoute>
+                            <UserInfoPage />
+                        </ProtectedRoute>
+                    ),
                 },
                 // Add other routes here
             ],

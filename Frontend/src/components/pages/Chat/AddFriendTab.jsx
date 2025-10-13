@@ -8,11 +8,12 @@ import UserSearchCard from "./UserSearchCard";
 import { toast } from "sonner";
 import useUserSearch from "@/hooks/friend/useUserSearch";
 import useUserInfo from "@/hooks/API/useUserInfo";
+import { useNavigate } from "react-router";
 
 const AddFriendTab = ({ compact }) => {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedQuery, setDebouncedQuery] = useState('');
-  const { mutate: fetchUserInfo } = useUserInfo();
+    const [searchQuery, setSearchQuery] = useState('');
+    const [debouncedQuery, setDebouncedQuery] = useState('');
+    const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -25,15 +26,7 @@ const AddFriendTab = ({ compact }) => {
   const { data: searchResults, isLoading, error } = useUserSearch(debouncedQuery);
 
   const handleViewDetails = (user) => {
-    fetchUserInfo(user.id, {
-      onSuccess: (data) => {
-        // Open modal or navigate to user profile
-        toast.info(`Viewing details for ${data.name}`);
-      },
-      onError: () => {
-        toast.error("Failed to fetch user details");
-      }
-    });
+    navigate(`/user/${user.id}`);
   };
 
   return (

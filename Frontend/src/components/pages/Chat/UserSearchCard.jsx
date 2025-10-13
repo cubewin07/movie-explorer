@@ -3,23 +3,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Info, UserPlus } from "lucide-react";
 import { useFriendActions } from "@/hooks/friend/useFriendActions";
-import { toast } from "sonner";
 
 const UserSearchCard = ({ user, compact, onViewDetails }) => {
   const { sendRequest } = useFriendActions();
   const [requestSent, setRequestSent] = useState(false);
 
-  const handleSendRequest = () => {
-    sendRequest.mutate(user.email, {
-      onSuccess: () => {
-        toast.success(`Friend request sent to ${user.name}`);
-        setRequestSent(true);
-      },
-      onError: (error) => {
-        toast.error(error.response?.data?.message || "Failed to send request");
-      }
-    });
-  };
 
   return (
     <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
@@ -41,7 +29,7 @@ const UserSearchCard = ({ user, compact, onViewDetails }) => {
           variant="ghost" 
           size="icon"
           className="h-8 w-8 mt-[3px]"
-          onClick={() => onViewDetails?.(user)}
+          onClick={onViewDetails?.(user)}
         >
           <Info className="h-4 w-4" />
         </Button>
