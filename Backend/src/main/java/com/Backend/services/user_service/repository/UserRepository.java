@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import com.Backend.services.friend_service.model.Status;
 
 import java.util.Optional;
 import java.util.Set;
@@ -30,7 +31,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
         Select distinct u 
         from User u
         left join fetch u.requestsFrom f 
-        where u.id = :id
+        where u.id = :id 
+            AND f.status <> Status.ACCEPTED
     """)
     Optional<User> findWithRequestsFrom(Long id);
 
@@ -39,6 +41,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
         from User u
         left join fetch u.requestsTo r
         where u.id = :id
+            AND r.status <> Status.ACCEPTED
         """)
     Optional<User> findWithRequestsToById(Long id);
 

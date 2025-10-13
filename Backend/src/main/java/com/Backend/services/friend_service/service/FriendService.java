@@ -36,7 +36,10 @@ public class FriendService {
     @Cacheable(value = "friendRequests", key = "'from-' + #id")
     public Set<FriendRequestDTO> getRequestsFromThisUser(Long id) {
         log.debug("Fetching requests from user id={} from database", id);
-        User user = userRepository.findWithRequestsFrom(id).orElseThrow(() -> new FriendNotFoundException("User not found"));
+        User user = userRepository.findWithRequestsFrom(id).orElse(null);
+        if (user == null) {
+            return Set.of();
+        }
         return user.getRequestsFrom().stream()
                 .map(f -> new FriendRequestDTO(f.getUser2().getId(), f.getUser2().getEmail(), f.getUser2().getRealUsername(), f.getStatus(), f.getCreatedAt()))
                 .collect(Collectors.toSet());
@@ -45,7 +48,10 @@ public class FriendService {
     @Cacheable(value = "friendRequests", key = "'to-' + #id")
     public Set<FriendRequestDTO> getRequestsToThisUser(Long id) {
         log.debug("Fetching requests to user id={} from database", id);
-        User user = userRepository.findWithRequestsToById(id).orElseThrow(() -> new FriendNotFoundException("User not found"));
+        User user = userRepository.findWithRequestsToById(id).orElse(null);
+        if (user == null) {
+            return Set.of();
+        }
         return user.getRequestsTo().stream()
                 .map(f -> new FriendRequestDTO(f.getUser1().getId(), f.getUser1().getEmail(), f.getUser1().getRealUsername(),f.getStatus(), f.getCreatedAt()))
                 .collect(Collectors.toSet());
