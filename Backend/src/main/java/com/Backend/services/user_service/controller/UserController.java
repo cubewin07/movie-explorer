@@ -58,6 +58,11 @@ public class UserController {
         return ResponseEntity.ok(pageResult);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<GetInfoDTO> getUserById(@PathVariable("id") Long id, @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(userService.getInfoDTO(user, id));
+    }
+
     @PutMapping()
     public ResponseEntity<User> updateUser(@RequestBody UpdateUserDTO update, @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(userService.updateUser(update, user));
