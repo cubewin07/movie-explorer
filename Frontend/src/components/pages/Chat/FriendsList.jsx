@@ -1,61 +1,23 @@
-import { useState } from 'react';
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { UserPlus } from 'lucide-react';
-import { useFriends } from '@/hooks/friend/useFriends';
-import ErrorState from '@/components/ui/ErrorState';
-import LoadingState from '@/components/ui/LoadingState';
+import { useEffect, useState } from 'react';
+import FriendsView from './FriendsView';
 
-export default function FriendsList() {
-  const [search, setSearch] = useState('');
-  const { data: friends, isLoading, error } = useFriends();
+export default function FriendsList({ onFriendSelect }) {
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsSmallScreen(window.innerWidth < 768); // md breakpoint
+    };
+
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  if (!isSmallScreen) return null;
 
   return (
-    <div className="h-full flex-col p-4 flex sm:hidden rounded-lg">
-      <div className="flex gap-2 mb-4">
-        <Input 
-          placeholder="Search friends..." 
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="flex-1"
-        />
-        <Button>
-          <UserPlus className="h-4 w-4 mr-2" />
-          Add Friend
-        </Button>
-      </div>
-
-      <ScrollArea className="flex-1">
-        {isLoading && <LoadingState />}
-        {error && <ErrorState message="Failed to load friends" />}
-        {friends && (
-          <div className="space-y-2">
-            {friends
-              .filter(friend => 
-                friend.name.toLowerCase().includes(search.toLowerCase())
-              )
-              .map((friend) => (
-                <div
-                  key={friend.id}
-                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 
-                    transition-colors"
-                >
-                  <Avatar className={friend.status === 'online' ? 'ring-2 ring-green-500' : ''}>
-                    <AvatarImage src={friend.avatarUrl || `https://avatar.vercel.sh/${friend.id}.png`} />
-                    <AvatarFallback>{friend.name[0]}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <p className="font-medium text-slate-900 dark:text-slate-100">{friend.name}</p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">{friend.status || 'offline'}</p>
-                  </div>
-                  <Button variant="ghost" size="sm">Message</Button>
-                </div>
-              ))}
-          </div>
-        )}
-      </ScrollArea>
-    </div>
+    <FriendsView onFriendSelect={onFriendSelect} compact />
   );
 }
