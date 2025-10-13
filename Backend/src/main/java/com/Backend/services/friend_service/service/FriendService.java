@@ -131,13 +131,14 @@ public class FriendService {
     @Caching(evict = {
         @CacheEvict(value = "friendRequests", key = "'from-' + #user1.id"),
         @CacheEvict(value = "friendRequests", key = "'to-' + #user1.id"),
+            @CacheEvict(value = "friendRequests", key = "'from-' + #user2.id"),
         @CacheEvict(value = "friends", key = "#user1.id"),
         @CacheEvict(value = "friendStatus", allEntries = true),
             @CacheEvict(value = "isFriend", allEntries = true),
         @CacheEvict(value = "userMeDTO", key = "#user1.email")
     })
-    public void updateFriend(User user1, String senderEmail, Status status) {
-        User user2 = userRepository.findByEmail(senderEmail).orElseThrow(() -> new FriendNotFoundException("Friend user not found"));
+    public void updateFriend(User user1, Long senderEmail, Status status) {
+        User user2 = userRepository.findById(senderEmail).orElseThrow(() -> new FriendNotFoundException("Friend user not found"));
 
         // Check both directions
         Optional<Friend> friendReq = friendRepo.findByUser1AndUser2(user1, user2);
@@ -181,13 +182,15 @@ public class FriendService {
     @Transactional
     @Caching(evict = {
         @CacheEvict(value = "friendRequests", key = "'from-' + #user1.id"),
-        @CacheEvict(value = "friendRequests", key = "'to-' + #user1.id"),
+            @CacheEvict(value = "friendRequests", key = "'to-' + #user1.id"),
+            @CacheEvict(value = "friendRequests", key = "'to-' + #user2.id"),
+
         @CacheEvict(value = "friends", key = "#user1.id"),
         @CacheEvict(value = "friendStatus", allEntries = true),
         @CacheEvict(value = "userMeDTO", key = "#user1.email")
     })
-    public void deleteFriend(User user1, String friendEmail) {
-        User user2 = userRepository.findByEmail(friendEmail).orElseThrow(() -> new FriendNotFoundException("Friend user not found"));
+    public void deleteFriend(User user1, Long friendEmail) {
+        User user2 = userRepository.findById(friendEmail).orElseThrow(() -> new FriendNotFoundException("Friend user not found"));
 
         // Check both directions
         Friend friend = friendRepo.findFriendshipBetween(user1, user2)

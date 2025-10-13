@@ -57,13 +57,13 @@ public class FriendController {
 
     @PutMapping("/update")
     public ResponseEntity<Void> updateFriend(@RequestBody FriendUpdatingBody friendUpdatingBody, @AuthenticationPrincipal User user) {
-        friendService.updateFriend(user, friendUpdatingBody.email(), friendUpdatingBody.status());
+        friendService.updateFriend(user, friendUpdatingBody.id(), friendUpdatingBody.status());
         return ResponseEntity.ok().build();
     }
     
     @DeleteMapping("/delete")
-    public ResponseEntity<Void> deleteFriend(@RequestBody EmailBody emailBody, @AuthenticationPrincipal User user) {
-        friendService.deleteFriend(user, emailBody.email());
+    public ResponseEntity<Void> deleteFriend(@RequestParam(name = "id") Long id, @AuthenticationPrincipal User user) {
+        friendService.deleteFriend(user, id);
         return ResponseEntity.ok().build();
     }       
 }
