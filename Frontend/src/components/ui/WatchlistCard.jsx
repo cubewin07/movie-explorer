@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-const WatchlistCard = ({ item, onRemove }) => {
+const WatchlistCard = ({ item, onRemove, info = false }) => {
   const navigate = useNavigate();
   const isTVSeries = item.type === 'tv';
   const displayTitle = item.title || item.name;
@@ -49,7 +49,7 @@ const WatchlistCard = ({ item, onRemove }) => {
         <motion.div
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="relative z-40 mt-auto"
+          className={`relative z-40 mt-auto ${info ? 'hidden' : ''}`}
         >
           <Button
             size="sm"

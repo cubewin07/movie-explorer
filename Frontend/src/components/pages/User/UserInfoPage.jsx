@@ -33,7 +33,7 @@ const UserInfoPage = () => {
           <div className="mb-6">
             <h3 className="font-semibold">Movies:</h3>
             {userInfo.watchlist.moviesId.map((movieId) => (
-              <WatchlistCard key={movieId} item={{ id: movieId, type: 'movie' }} />
+              <WatchlistCard key={movieId} item={{ id: movieId, type: 'movie' }} info/>
             ))}
           </div>
         )}
@@ -41,7 +41,7 @@ const UserInfoPage = () => {
           <div>
             <h3 className="font-semibold">Series:</h3>
             {userInfo.watchlist.seriesId.map((seriesId) => (
-              <WatchlistCard key={seriesId} item={{ id: seriesId, type: 'tv' }} />
+              <WatchlistCard key={seriesId} item={{ id: seriesId, type: 'tv' }} info/>
             ))}
           </div>
         )}
