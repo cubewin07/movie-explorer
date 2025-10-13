@@ -77,8 +77,8 @@ export default function RequestsView() {
   const { incomingRequests, outgoingRequests } = useFriendRequests();
   const { updateFriendStatus } = useFriendActions();
   
-  const handleStatusUpdate = (email, status) => {
-    updateFriendStatus.mutate({ email, status });
+  const handleStatusUpdate = (id, status) => {
+    updateFriendStatus.mutate({ id, status });
   };
 
   return (
@@ -103,12 +103,12 @@ export default function RequestsView() {
                   {
                     label: 'Accept',
                     variant: 'default',
-                    onClick: () => handleStatusUpdate(request.email, 'ACCEPTED')
+                    onClick: () => handleStatusUpdate(request.id, 'ACCEPTED')
                   },
                   {
                     label: 'Block',
                     variant: 'outline',
-                    onClick: () => handleStatusUpdate(request.email, 'BLOCKED')
+                    onClick: () => handleStatusUpdate(request.id, 'BLOCKED')
                   }
                 ]
               })}

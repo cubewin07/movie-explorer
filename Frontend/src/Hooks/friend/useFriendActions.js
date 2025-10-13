@@ -18,8 +18,8 @@ export const useFriendActions = () => {
 
   // Update friend status (accept/block)
   const updateFriendStatus = useMutation({
-    mutationFn: async ({ email, status }) => {
-      const response = await instance.put('/friends/update', { email, status });
+    mutationFn: async ({ id, status }) => {
+      const response = await instance.put('/friends/update', { id, status });
       return response.data;
     },
     onSuccess: () => {
