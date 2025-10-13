@@ -8,6 +8,8 @@ import com.Backend.services.user_service.service.UserService;
 import lombok.RequiredArgsConstructor;
 import net.bytebuddy.build.Plugin;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -42,9 +44,18 @@ public class UserController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Page<SimpleUserDTO>> searchUsers(@RequestParam(name = "query") String query, @RequestParam(name = "page") int page, @AuthenticationPrincipal User user) {
+    public ResponseEntity<Page<SimpleUserDTO>> searchUsers(
+            @RequestParam(name = "query") String query,
+            @RequestParam(name = "page") int page,
+            @AuthenticationPrincipal User user) {
+
         Long id = user.getId();
-        return ResponseEntity.ok(userService.searchUsers(query, id, page, 20));
+        int size = 20;
+
+        List<SimpleUserDTO> results = userService.searchUsers(query, id, page, size);
+
+        Page<SimpleUserDTO> pageResult = new PageImpl<>(results, PageRequest.of(page, size), results.size());
+        return ResponseEntity.ok(pageResult);
     }
 
     @PutMapping()

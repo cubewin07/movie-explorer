@@ -35,9 +35,11 @@ import org.springframework.transaction.annotation.Transactional;
 import com.Backend.exception.AuthenticationFailedException;
 import com.Backend.exception.UserNotFoundException;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -140,14 +142,25 @@ public class UserService {
 
     @Transactional(readOnly = true)
     @Cacheable(value = "userSearch", key = "{#query, #id, #page, #size}")
-    public Page<SimpleUserDTO> searchUsers(String query, Long id ,int page, int size) {
-        log.debug("Searching users with query: '{}', excluding user ID: {}, page: {}, size: {}", 
+    public List<SimpleUserDTO> searchUsers(String query, Long id, int page, int size) {
+        log.debug("Searching users with query: '{}', excluding user ID: {}, page: {}, size: {}",
                 query, id, page, size);
+
         Pageable pageable = PageRequest.of(page, size);
         Page<User> users = userRepository.findByUsernameContainingIgnoreCaseAndIdNot(query, id, pageable);
-        log.info("Found {} users matching query '{}' (Page {} of {})", 
+
+        if (users == null || users.isEmpty()) {
+            log.info("No users found matching query '{}'", query);
+            return Collections.emptyList();
+        }
+
+        log.info("Found {} users matching query '{}' (Page {} of {})",
                 users.getTotalElements(), query, page + 1, users.getTotalPages());
-        return users.map(u -> new SimpleUserDTO(u.getId(), u.getEmail(), u.getRealUsername()));
+
+        // Cache only DTOs
+        return users.getContent().stream()
+                .map(u -> new SimpleUserDTO(u.getId(), u.getEmail(), u.getRealUsername()))
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
