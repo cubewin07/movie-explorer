@@ -104,6 +104,22 @@ public class FriendService {
                 .orElseThrow(() -> new FriendshipNotFoundException("No friend relationship found"));
     }
 
+    @Cacheable(value = "isFriend", key = "#user1.id + '-' + #friendEmail" )
+    public boolean isFriend(User user1, String friendEmail) {
+        log.debug("Checking if user={} is a friend of user with email={}", user1.getId(), friendEmail);
+        User user2 = userRepository.findByEmail(friendEmail)
+                .orElseThrow(() -> new UserNotFoundException("User with email " + friendEmail + " not found"));
+        return friendRepo.existsFriendshipBetween(user1, user2);
+    }
+
+    @Cacheable(value = "isFriend", key = "#user1.id + '-' + #friendId" )
+    public boolean isFriend(User user1, Long friendId) {
+        log.debug("Checking if user={} is a friend of user with id={}", user1.getId(), friendId);
+        User user2 = userRepository.findById(friendId)
+                .orElseThrow(() -> new UserNotFoundException("User with email " + friendId + " not found"));
+        return friendRepo.existsFriendshipBetween(user1, user2);
+    }
+
 
     @Transactional
     @Caching(evict = {
@@ -111,6 +127,7 @@ public class FriendService {
         @CacheEvict(value = "friendRequests", key = "'to-' + #user1.id"),
         @CacheEvict(value = "friends", key = "#user1.id"),
         @CacheEvict(value = "friendStatus", allEntries = true),
+            @CacheEvict(value = "isFriend", allEntries = true),
         @CacheEvict(value = "userMeDTO", key = "#user1.email")
     })
     public void updateFriend(User user1, String senderEmail, Status status) {
