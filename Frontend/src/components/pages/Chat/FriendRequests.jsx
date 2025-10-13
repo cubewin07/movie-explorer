@@ -10,8 +10,7 @@ export default function FriendRequests() {
   const { incomingRequests: { data: requests, isLoading, error } } = useFriendRequests();
   const { updateFriendStatus } = useFriendActions();
   return (
-    <div className="h-full p-4">
-      <h2 className="text-xl font-semibold mb-4 text-slate-900 dark:text-slate-100">Friend Requests</h2>
+    <div className="h-full p-4 ">
       
       <ScrollArea className="h-[calc(100%-2rem)]">
         {isLoading && <LoadingState />}

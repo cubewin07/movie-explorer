@@ -13,7 +13,7 @@ export default function FriendsList() {
   const { data: friends, isLoading, error } = useFriends();
 
   return (
-    <div className="h-full flex flex-col p-4">
+    <div className="h-full flex-col p-4 flex sm:hidden rounded-lg">
       <div className="flex gap-2 mb-4">
         <Input 
           placeholder="Search friends..." 
