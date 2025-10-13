@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { UserPlus, Search, Mail } from 'lucide-react';
+import { UserPlus, Search, Info } from 'lucide-react';
 import { useFriends } from '@/hooks/friend/useFriends';
 import { useFriendActions } from '@/hooks/friend/useFriendActions';
+import { useQuery } from '@tanstack/react-query';
+import instance from '@/lib/instance';
 import ErrorState from '@/components/ui/ErrorState';
 import LoadingState from '@/components/ui/LoadingState';
 import { toast } from 'sonner';
@@ -29,56 +31,139 @@ const FriendItem = ({ friend, compact, onFriendSelect }) => (
   </div>
 );
 
-const AddFriendTab = ({ compact }) => {
-  const [email, setEmail] = useState('');
+const UserSearchCard = ({ user, compact, onViewDetails }) => {
   const { sendRequest } = useFriendActions();
+  const [requestSent, setRequestSent] = useState(false);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!email.trim()) return;
-
-    sendRequest.mutate(email, {
+  const handleSendRequest = () => {
+    sendRequest.mutate(user.email, {
       onSuccess: () => {
-        toast.success(`Request sent to ${email}`);
-        setEmail('');
+        toast.success(`Friend request sent to ${user.name}`);
+        setRequestSent(true);
       },
       onError: (error) => {
-        toast.error(error.response?.data?.message || "Something went wrong");
+        toast.error(error.response?.data?.message || "Failed to send request");
       }
     });
   };
 
   return (
-    <div className="space-y-4">
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <div className="relative">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input
-            type="email"
-            placeholder="Enter friend's email..."
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="pl-10"
-            disabled={sendRequest.isPending}
-          />
-        </div>
-        <Button 
-          type="submit" 
-          className="w-full"
-          disabled={sendRequest.isPending || !email.trim()}
-        >
-          <UserPlus className="h-4 w-4 mr-2" />
-          {sendRequest.isPending ? 'Sending...' : 'Send Friend Request'}
-        </Button>
-      </form>
-
-      {!compact && (
-        <div className="pt-4 border-t border-slate-200 dark:border-slate-700">
-          <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
-            Send a friend request by entering their email address. They'll receive a notification and can accept or decline your request.
+    <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+      <Avatar>
+        <AvatarImage src={user.avatarUrl || `https://avatar.vercel.sh/${user.id}.png`} />
+        <AvatarFallback>{user.name[0]}</AvatarFallback>
+      </Avatar>
+      <div className="flex-1 min-w-0">
+        <p className="font-medium text-slate-900 dark:text-slate-100 truncate">{user.name}</p>
+        <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
+        {user.mutualFriends > 0 && (
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+            {user.mutualFriends} mutual friend{user.mutualFriends > 1 ? 's' : ''}
           </p>
-        </div>
-      )}
+        )}
+      </div>
+      <div className="flex gap-1.5">
+        <Button 
+          variant="ghost" 
+          size="icon"
+          className="h-8 w-8"
+          onClick={() => onViewDetails?.(user)}
+        >
+          <Info className="h-4 w-4" />
+        </Button>
+        <Button 
+          variant="default"
+          size={compact ? "sm" : "default"}
+          onClick={handleSendRequest}
+          disabled={sendRequest.isPending || requestSent || user.isFriend || user.requestPending}
+        >
+          {requestSent || user.requestPending ? (
+            'Pending'
+          ) : user.isFriend ? (
+            'Friends'
+          ) : (
+            <>
+              <UserPlus className="h-3.5 w-3.5 mr-1.5" />
+              Add
+            </>
+          )}
+        </Button>
+      </div>
+    </div>
+  );
+};
+
+const AddFriendTab = ({ compact }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(searchQuery);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  const { data: searchResults, isLoading, error } = useQuery({
+    queryKey: ['userSearch', debouncedQuery],
+    queryFn: async () => {
+      if (!debouncedQuery.trim()) return [];
+      const response = await instance.get('/user/search', {
+        params: { query: debouncedQuery, page: 1 }
+      });
+      return response.data;
+    },
+    enabled: debouncedQuery.length > 0
+  });
+
+  const handleViewDetails = (user) => {
+    // Open modal or navigate to user profile
+    toast.info(`Viewing details for ${user.name}`);
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+        <Input
+          placeholder="Search users by name or email..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+
+      <ScrollArea className={compact ? 'h-[calc(100vh-18rem)]' : 'h-[calc(100%-5rem)]'}>
+        {isLoading && <LoadingState />}
+        {error && <ErrorState message="Failed to search users" />}
+        
+        {searchResults && searchResults.length > 0 && (
+          <div className="space-y-2">
+            {searchResults.map((user) => (
+              <UserSearchCard 
+                key={user.id}
+                user={user}
+                compact={compact}
+                onViewDetails={handleViewDetails}
+              />
+            ))}
+          </div>
+        )}
+
+        {searchResults && searchResults.length === 0 && debouncedQuery && (
+          <div className="text-center text-slate-500 dark:text-slate-400 py-8">
+            No users found matching "{debouncedQuery}"
+          </div>
+        )}
+
+        {!debouncedQuery && (
+          <div className="text-center text-slate-500 dark:text-slate-400 py-8">
+            <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            <p className="text-sm">Start typing to search for users</p>
+          </div>
+        )}
+      </ScrollArea>
     </div>
   );
 };
@@ -88,19 +173,10 @@ export default function FriendsView({ onFriendSelect, compact = false }) {
   const [activeTab, setActiveTab] = useState('friends');
   const { data: friends, isLoading, error } = useFriends();
 
-  if (error) {
-    toast.error('Failed to load friends. Please try again later.');
-  }
-
   const filteredFriends = friends?.filter(friend => 
     friend.name.toLowerCase().includes(search.toLowerCase()) ||
     friend.email?.toLowerCase().includes(search.toLowerCase())
   ) || [];
-
-  const handleAddFriend = () => {
-    // Simulate adding a friend
-    toast.success('Friend added successfully!');
-  };
 
   return (
     <div className={`h-full ${compact ? 'p-2' : 'p-4'} ${
@@ -156,9 +232,7 @@ export default function FriendsView({ onFriendSelect, compact = false }) {
         </TabsContent>
 
         <TabsContent value="add" className="mt-0">
-          <ScrollArea className={compact ? 'h-[calc(100vh-16rem)]' : 'h-[calc(100%-8rem)]'}>
-            <AddFriendTab compact={compact} />
-          </ScrollArea>
+          <AddFriendTab compact={compact} />
         </TabsContent>
       </Tabs>
     </div>
