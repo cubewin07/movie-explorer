@@ -13,10 +13,10 @@ const RequestCard = ({ request, actions, isPending }) => (
     <div className="flex items-center gap-3 mb-3">
       <Avatar>
         <AvatarImage src={request.avatarUrl || `https://avatar.vercel.sh/${request.id}.png`} />
-        <AvatarFallback>{request.name[0]}</AvatarFallback>
+        <AvatarFallback>{request?.username[0]}</AvatarFallback>
       </Avatar>
       <div className="flex-1">
-        <p className="font-medium text-slate-900 dark:text-slate-100">{request.name}</p>
+        <p className="font-medium text-slate-900 dark:text-slate-100">{request?.username}</p>
         <p className="text-sm text-slate-500 dark:text-slate-400">
           {request.mutualFriends ? `${request.mutualFriends} mutual friends` : actions?.subtitle || 'No mutual friends'}
         </p>

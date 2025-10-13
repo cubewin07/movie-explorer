@@ -25,7 +25,7 @@ export default function RequestTabs({ onRequestSelect }) {
             {incomingRequests.error && <ErrorState message="Failed to load incoming requests" />}
             {incomingRequests.data && (
               <div className="space-y-2 p-2">
-                {incomingRequests.data.map((request) => (
+                {incomingRequests?.data?.map((request) => (
                   <div
                     key={request.id}
                     onClick={() => onRequestSelect?.(request.id)}
@@ -34,10 +34,10 @@ export default function RequestTabs({ onRequestSelect }) {
                     <div className="flex items-center gap-2">
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={request.avatarUrl || `https://avatar.vercel.sh/${request.id}.png`} />
-                        <AvatarFallback>{request.name[0]}</AvatarFallback>
+                        <AvatarFallback>{request?.username[0]}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm text-slate-900 dark:text-slate-100 truncate">{request.name}</p>
+                        <p className="font-medium text-sm text-slate-900 dark:text-slate-100 truncate">{request?.username}</p>
                         <p className="text-xs text-slate-500 dark:text-slate-400">Incoming request</p>
                       </div>
                     </div>
@@ -59,7 +59,7 @@ export default function RequestTabs({ onRequestSelect }) {
             {outgoingRequests.error && <ErrorState message="Failed to load sent requests" />}
             {outgoingRequests.data && (
               <div className="space-y-2 p-2">
-                {outgoingRequests.data.map((request) => (
+                {outgoingRequests?.data?.map((request) => (
                   <div
                     key={request.id}
                     onClick={() => onRequestSelect?.(request.id)}
@@ -68,10 +68,10 @@ export default function RequestTabs({ onRequestSelect }) {
                     <div className="flex items-center gap-2">
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={request.avatarUrl || `https://avatar.vercel.sh/${request.id}.png`} />
-                        <AvatarFallback>{request.name[0]}</AvatarFallback>
+                        <AvatarFallback>{request?.username[0]}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm text-slate-900 dark:text-slate-100 truncate">{request.name}</p>
+                        <p className="font-medium text-sm text-slate-900 dark:text-slate-100 truncate">{request?.username}</p>
                         <p className="text-xs text-slate-500 dark:text-slate-400">Pending sent request</p>
                       </div>
                     </div>
