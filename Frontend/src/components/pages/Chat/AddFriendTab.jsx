@@ -8,6 +8,7 @@ import ErrorState from "@/components/ui/ErrorState";
 import LoadingState from "@/components/ui/LoadingState";
 import UserSearchCard from "./UserSearchCard";
 import { toast } from "sonner";
+import useUserSearch from "@/hooks/friend/useUserSearch";
 
 const AddFriendTab = ({ compact }) => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -21,17 +22,7 @@ const AddFriendTab = ({ compact }) => {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  const { data: searchResults, isLoading, error } = useQuery({
-    queryKey: ['userSearch', debouncedQuery],
-    queryFn: async () => {
-      if (!debouncedQuery.trim()) return [];
-      const response = await instance.get('/user/search', {
-        params: { query: debouncedQuery, page: 0 }
-      });
-      return response.data;
-    },
-    enabled: debouncedQuery.length > 0
-  });
+  const { data: searchResults, isLoading, error } = useUserSearch(debouncedQuery);
 
   const handleViewDetails = (user) => {
     // Open modal or navigate to user profile
