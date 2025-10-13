@@ -3,10 +3,13 @@ import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import useUserInfo from '@/hooks/API/useUserInfo';
 import WatchlistCard from '@/components/ui/WatchlistCard';
+import useWatchlistFilmData from '@/hooks/watchList/useWatchListFilmData';
+
 
 const UserInfoPage = () => {
   const { userId } = useParams();
   const { mutate: fetchUserInfo, data: userInfo, isLoading, isError } = useUserInfo();
+  const { films, isLoading: isFilmsLoading, error: filmsError } = useWatchlistFilmData(userInfo?.watchlist);
 
   useEffect(() => {
     if (userId) {
@@ -31,17 +34,12 @@ const UserInfoPage = () => {
         <h2 className="text-xl font-semibold mb-4">Watchlist</h2>
         {userInfo.watchlist.moviesId.length > 0 && (
           <div className="mb-6">
-            <h3 className="font-semibold">Movies:</h3>
-            {userInfo.watchlist.moviesId.map((movieId) => (
-              <WatchlistCard key={movieId} item={{ id: movieId, type: 'movie' }} info/>
-            ))}
-          </div>
-        )}
-        {userInfo.watchlist.seriesId.length > 0 && (
-          <div>
-            <h3 className="font-semibold">Series:</h3>
-            {userInfo.watchlist.seriesId.map((seriesId) => (
-              <WatchlistCard key={seriesId} item={{ id: seriesId, type: 'tv' }} info/>
+            {films.map((item) => (
+                <WatchlistCard
+                    key={item.id}
+                    item={item}
+                    onRemove={(film) => handleRemoveFromWatchlist(film)}
+                />
             ))}
           </div>
         )}
