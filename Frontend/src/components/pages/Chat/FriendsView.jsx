@@ -110,12 +110,13 @@ const AddFriendTab = ({ compact }) => {
     queryFn: async () => {
       if (!debouncedQuery.trim()) return [];
       const response = await instance.get('/user/search', {
-        params: { query: debouncedQuery, page: 1 }
+        params: { query: debouncedQuery, page: 0 }
       });
       return response.data;
     },
     enabled: debouncedQuery.length > 0
   });
+
 
   const handleViewDetails = (user) => {
     // Open modal or navigate to user profile
@@ -138,7 +139,7 @@ const AddFriendTab = ({ compact }) => {
         {isLoading && <LoadingState />}
         {error && <ErrorState message="Failed to search users" />}
         
-        {searchResults && searchResults.length > 0 && (
+        {searchResults && searchResults?.totalPages > 0 && (
           <div className="space-y-2">
             {searchResults.map((user) => (
               <UserSearchCard 
@@ -151,7 +152,7 @@ const AddFriendTab = ({ compact }) => {
           </div>
         )}
 
-        {searchResults && searchResults.length === 0 && debouncedQuery && (
+        {searchResults && searchResults?.totalPages === 0 && debouncedQuery && (
           <div className="text-center text-slate-500 dark:text-slate-400 py-8">
             No users found matching "{debouncedQuery}"
           </div>
