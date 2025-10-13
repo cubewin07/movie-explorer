@@ -2,17 +2,17 @@ import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import instance from "@/lib/instance";
 import ErrorState from "@/components/ui/ErrorState";
 import LoadingState from "@/components/ui/LoadingState";
 import UserSearchCard from "./UserSearchCard";
 import { toast } from "sonner";
 import useUserSearch from "@/hooks/friend/useUserSearch";
+import useUserInfo from "@/hooks/API/useUserInfo";
 
 const AddFriendTab = ({ compact }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
+  const { mutate: fetchUserInfo } = useUserInfo();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -25,8 +25,15 @@ const AddFriendTab = ({ compact }) => {
   const { data: searchResults, isLoading, error } = useUserSearch(debouncedQuery);
 
   const handleViewDetails = (user) => {
-    // Open modal or navigate to user profile
-    toast.info(`Viewing details for ${user.name}`);
+    fetchUserInfo(user.id, {
+      onSuccess: (data) => {
+        // Open modal or navigate to user profile
+        toast.info(`Viewing details for ${data.name}`);
+      },
+      onError: () => {
+        toast.error("Failed to fetch user details");
+      }
+    });
   };
 
   return (
