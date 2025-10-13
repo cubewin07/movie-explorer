@@ -39,6 +39,7 @@ const UserInfoPage = () => {
                     key={item.id}
                     item={item}
                     onRemove={(film) => handleRemoveFromWatchlist(film)}
+                    info
                 />
             ))}
           </div>
