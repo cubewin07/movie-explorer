@@ -1,14 +1,24 @@
+import { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserPlus } from 'lucide-react';
+import { useFriends } from '@/hooks/friend/useFriends';
+import ErrorState from '@/components/ui/ErrorState';
+import LoadingState from '@/components/ui/LoadingState';
 
 export default function FriendsView() {
+  const [search, setSearch] = useState('');
+  const { data: friends, isLoading, error } = useFriends();
+
   return (
-    <div className="h-full p-4">
+    <div className="h-full p-4 bg-white dark:bg-slate-900 rounded-lg">
       <div className="flex gap-2 mb-4">
         <Input 
-          placeholder="Search friends or add new..." 
+          placeholder="Search friends..." 
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
           className="flex-1"
         />
         <Button>
@@ -18,7 +28,38 @@ export default function FriendsView() {
       </div>
       
       <ScrollArea className="h-[calc(100%-4rem)]">
-        {/* Friends list will go here */}
+        {isLoading && <LoadingState />}
+        {error && <ErrorState message="Failed to load friends" />}
+        {friends && (
+          <div className="space-y-2">
+            {friends
+              .filter(friend => 
+                friend.name.toLowerCase().includes(search.toLowerCase())
+              )
+              .map((friend) => (
+                <div
+                  key={friend.id}
+                  className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 
+                    transition-colors"
+                >
+                  <Avatar className={friend.status === 'online' ? 'ring-2 ring-green-500' : ''}>
+                    <AvatarImage src={friend.avatarUrl || `https://avatar.vercel.sh/${friend.id}.png`} />
+                    <AvatarFallback>{friend.name[0]}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <p className="font-medium text-slate-900 dark:text-slate-100">{friend.name}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">{friend.status || 'offline'}</p>
+                  </div>
+                  <Button variant="ghost" size="sm">Message</Button>
+                </div>
+              ))}
+            {friends && friends.length === 0 && (
+              <div className="text-center text-slate-500 dark:text-slate-400">
+                No friends found
+              </div>
+            )}
+          </div>
+        )}
       </ScrollArea>
     </div>
   );
