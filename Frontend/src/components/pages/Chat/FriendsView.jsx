@@ -1,17 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { UserPlus, Search } from 'lucide-react';
 import { useFriends } from '@/hooks/friend/useFriends';
-import { useQuery } from '@tanstack/react-query';
-import instance from '@/lib/instance';
 import ErrorState from '@/components/ui/ErrorState';
 import LoadingState from '@/components/ui/LoadingState';
-import { toast } from 'sonner';
 import FriendItem from "./FriendItem";
-import UserSearchCard from "./UserSearchCard";
 import AddFriendTab from "./AddFriendTab";
 
 export default function FriendsView({ onFriendSelect, compact = false }) {
