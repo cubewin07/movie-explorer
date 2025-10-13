@@ -5,6 +5,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.Backend.services.watchlist_service.model.WatchlistDTO;
 
 @Data
 @NoArgsConstructor

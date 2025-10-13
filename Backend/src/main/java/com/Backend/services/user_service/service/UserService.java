@@ -9,6 +9,7 @@ import com.Backend.services.chat_service.message.service.MessageService;
 import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.user_service.repository.UserRepository;
 import com.Backend.services.watchlist_service.model.Watchlist;
+import com.Backend.services.watchlist_service.model.WatchlistDTO;
 import com.Backend.springSecurity.jwtAuthentication.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -262,5 +263,31 @@ public class UserService {
                     .toList());
         }
         return dto;
+    }
+
+    public GetInfoDTO getInfoDTO(User principal, Long id) {
+        if(friendService.isFriend(principal, id)) {
+            Status status = friendService.getFriendStatus(principal, id);
+            User info = getUserById(id);
+            Set<Long> moviesId= info.getWatchlist().getMoviesId();
+            Set<Long> seriesId= info.getWatchlist().getSeriesId();
+            return GetInfoDTO.builder()
+                    .id(info.getId())
+                    .email(info.getEmail())
+                    .username(info.getRealUsername())
+                    .status(status)
+                    .watchlist(new WatchlistDTO(moviesId, seriesId))
+                    .build();
+        } else {
+            User info = getUserById(id);
+            Set<Long> moviesId= info.getWatchlist().getMoviesId();
+            Set<Long> seriesId= info.getWatchlist().getSeriesId();
+            return GetInfoDTO.builder()
+                    .id(info.getId())
+                    .email(info.getEmail())
+                    .username(info.getRealUsername())
+                    .watchlist(new WatchlistDTO(moviesId, seriesId))
+                    .build();
+        }
     }
 }
