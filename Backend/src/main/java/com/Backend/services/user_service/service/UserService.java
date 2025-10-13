@@ -1,16 +1,10 @@
 package com.Backend.services.user_service.service;
 
+import com.Backend.services.friend_service.model.Friend;
+import com.Backend.services.friend_service.model.Status;
+import com.Backend.services.friend_service.service.FriendService;
 import com.Backend.services.user_service.model.*;
-import com.Backend.services.user_service.model.DTO.AuthenticateDTO;
-import com.Backend.services.user_service.model.DTO.ChatSummaryDTO;
-import com.Backend.services.user_service.model.DTO.FriendDTO;
-import com.Backend.services.user_service.model.DTO.MessageDTO;
-import com.Backend.services.user_service.model.DTO.NotificationDTO;
-import com.Backend.services.user_service.model.DTO.RegisterDTO;
-import com.Backend.services.user_service.model.DTO.SimpleUserDTO;
-import com.Backend.services.user_service.model.DTO.UpdateUserDTO;
-import com.Backend.services.user_service.model.DTO.UserMeDTO;
-import com.Backend.services.user_service.model.DTO.WatchlistDTO;
+import com.Backend.services.user_service.model.DTO.*;
 import com.Backend.services.chat_service.message.service.MessageService;
 import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.user_service.repository.UserRepository;
@@ -50,6 +44,7 @@ public class UserService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final MessageService messageService;
+    private final FriendService friendService;
 
     @Cacheable(value = "users", key = "'all'")
     public List<User> getAllUsers() {

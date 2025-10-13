@@ -94,6 +94,17 @@ public class FriendService {
                 .orElseThrow(() -> new FriendshipNotFoundException("No friend relationship found"));
     }
 
+    @Cacheable(value = "friendStatus", key = "#user1.id + '-' + #friendId")
+    public Status getFriendStatus(User user1, Long friendId) {
+        log.debug("Fetching friend status for user={} and friendId={} from database", user1.getId(), friendId);
+        User user2 = userRepository.findById(friendId)
+                .orElseThrow(() -> new UserNotFoundException("User with id " + friendId + " not found"));
+        return friendRepo.findFriendshipBetween(user1, user2)
+                .map(Friend::getStatus)
+                .orElseThrow(() -> new FriendshipNotFoundException("No friend relationship found"));
+    }
+
+
     @Transactional
     @Caching(evict = {
         @CacheEvict(value = "friendRequests", key = "'from-' + #user1.id"),
