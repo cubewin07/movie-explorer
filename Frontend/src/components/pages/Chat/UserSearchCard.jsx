@@ -5,10 +5,6 @@ import { Info, UserPlus } from "lucide-react";
 import { useFriendActions } from "@/hooks/friend/useFriendActions";
 
 const UserSearchCard = ({ user, compact, onViewDetails }) => {
-  const { sendRequest } = useFriendActions();
-  const [requestSent, setRequestSent] = useState(false);
-
-
   return (
     <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
       <Avatar>
@@ -29,26 +25,9 @@ const UserSearchCard = ({ user, compact, onViewDetails }) => {
           variant="ghost" 
           size="icon"
           className="h-8 w-8 mt-[3px]"
-          onClick={onViewDetails?.(user)}
+          onClick={() => onViewDetails?.(user)}
         >
           <Info className="h-4 w-4" />
-        </Button>
-        <Button 
-          variant="default"
-          size={compact ? "sm" : "default"}
-          onClick={handleSendRequest}
-          disabled={sendRequest.isPending || requestSent || user.isFriend || user.requestPending}
-        >
-          {requestSent || user.requestPending ? (
-            'Pending'
-          ) : user.isFriend ? (
-            'Friends'
-          ) : (
-            <>
-              <UserPlus className="h-3.5 w-3.5 mr-1.5" />
-              Add
-            </>
-          )}
         </Button>
       </div>
     </div>
