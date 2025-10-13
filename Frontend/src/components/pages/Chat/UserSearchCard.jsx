@@ -25,10 +25,10 @@ const UserSearchCard = ({ user, compact, onViewDetails }) => {
     <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
       <Avatar>
         <AvatarImage src={user.avatarUrl || `https://avatar.vercel.sh/${user.id}.png`} />
-        <AvatarFallback>{user.name[0]}</AvatarFallback>
+        <AvatarFallback>{user.username[0]}</AvatarFallback>
       </Avatar>
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-slate-900 dark:text-slate-100 truncate">{user.name}</p>
+        <p className="font-medium text-slate-900 dark:text-slate-100 truncate">{user.username}</p>
         <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.email}</p>
         {user.mutualFriends > 0 && (
           <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
@@ -40,7 +40,7 @@ const UserSearchCard = ({ user, compact, onViewDetails }) => {
         <Button 
           variant="ghost" 
           size="icon"
-          className="h-8 w-8"
+          className="h-8 w-8 mt-[3px]"
           onClick={() => onViewDetails?.(user)}
         >
           <Info className="h-4 w-4" />
