@@ -7,13 +7,13 @@ const FriendItem = ({ friend, compact, onFriendSelect }) => (
       transition-colors ${compact ? 'cursor-pointer' : ''}`}
     onClick={() => compact && onFriendSelect?.(friend.id)}
   >
-    <Avatar className={friend.status === 'online' ? 'ring-2 ring-green-500' : ''}>
-      <AvatarImage src={friend.avatarUrl || `https://avatar.vercel.sh/${friend.id}.png`} />
-      <AvatarFallback>{friend.name[0]}</AvatarFallback>
+    <Avatar className={friend?.status === 'online' ? 'ring-2 ring-green-500' : ''}>
+      <AvatarImage src={friend?.avatarUrl || `https://avatar.vercel.sh/${friend.id}.png`} />
+      <AvatarFallback>{friend?.username[0]}</AvatarFallback>
     </Avatar>
     <div className="flex-1 min-w-0">
-      <p className="font-medium text-slate-900 dark:text-slate-100 truncate">{friend.name}</p>
-      <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{friend.status || 'offline'}</p>
+      <p className="font-medium text-slate-900 dark:text-slate-100 truncate">{friend?.username}</p>
+      <p className="text-sm text-slate-500 dark:text-slate-400 truncate">{friend?.status || 'offline'}</p>
     </div>
     {!compact && <Button variant="ghost" size="sm">Message</Button>}
   </div>

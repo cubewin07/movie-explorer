@@ -13,10 +13,11 @@ export default function FriendsView({ onFriendSelect, compact = false }) {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('friends');
   const { data: friends, isLoading, error } = useFriends();
+  console.log(friends);
 
   const filteredFriends = friends?.filter(friend => 
-    friend.name.toLowerCase().includes(search.toLowerCase()) ||
-    friend.email?.toLowerCase().includes(search.toLowerCase())
+    friend?.user?.username.toLowerCase().includes(search.toLowerCase()) ||
+    friend?.user?.email?.toLowerCase().includes(search.toLowerCase())
   ) || [];
 
   return (
@@ -57,7 +58,7 @@ export default function FriendsView({ onFriendSelect, compact = false }) {
                 {filteredFriends.map((friend) => (
                   <FriendItem 
                     key={friend.id}
-                    friend={friend}
+                    friend={friend.user}
                     compact={compact}
                     onFriendSelect={onFriendSelect}
                   />

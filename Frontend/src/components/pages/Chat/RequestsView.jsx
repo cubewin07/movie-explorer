@@ -103,12 +103,12 @@ export default function RequestsView() {
                   {
                     label: 'Accept',
                     variant: 'default',
-                    onClick: () => handleStatusUpdate(request.email, 'accepted')
+                    onClick: () => handleStatusUpdate(request.email, 'ACCEPTED')
                   },
                   {
-                    label: 'Decline',
+                    label: 'Block',
                     variant: 'outline',
-                    onClick: () => handleStatusUpdate(request.email, 'declined')
+                    onClick: () => handleStatusUpdate(request.email, 'BLOCKED')
                   }
                 ]
               })}
