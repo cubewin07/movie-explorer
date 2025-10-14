@@ -66,6 +66,7 @@ export function AuthenProvider({ children }) {
         const res = await loginMutation.mutateAsync({ email, password });
         if (res?.token) {
 
+            // Clear all queries and mutations to avoid stale data
             await queryClient.cancelQueries();
             queryClient.clear(); 
 
@@ -94,9 +95,10 @@ export function AuthenProvider({ children }) {
 
     const logout = async (showNotification = true) => {
 
+            // Clear all queries and mutations to avoid stale data
             await queryClient.cancelQueries();
-            queryClient.clear(); // Instead of removeQueries()
-            
+            queryClient.clear();
+
             Cookies.remove('token');
             setUser(null);
             if (showNotification) {
