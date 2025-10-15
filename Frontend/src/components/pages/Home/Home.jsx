@@ -2,6 +2,7 @@ import { useState, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Plus, ArrowRight, Flame, CalendarDays, Star as StarIcon, Tv } from 'lucide-react';
+import NotificationBell from '@/components/ui/notificationBell';
 
 import { Button } from '@/components/ui/button';
 import { TrendingCarousel } from '@/components/TrendingCarousel';
@@ -427,6 +428,12 @@ function Home() {
 
     return (
         <div className="w-full max-w-screen-xl mx-auto flex flex-col gap-8 px-2 sm:px-4 md:px-8 ">
+
+            <div className="flex items-center justify-between py-4 px-4 sticky top-0 z-50 bg-slate-950/80 backdrop-blur-lg rounded-b-2xl border-b border-slate-800">
+                <h1 className="text-xl font-semibold text-white px-2 sm:px-4">Home</h1>
+                <NotificationBell />
+            </div>
+
             {/* Featured Hero Banner */}
             {featuredContent && !isFeaturedLoading && (
                 <section className="relative h-96 sm:h-[500px] rounded-2xl overflow-hidden mb-8 shadow-xl">
