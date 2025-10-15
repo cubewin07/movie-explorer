@@ -92,7 +92,7 @@ create table notifications (
     is_read boolean not null,
     created_at timestamp(6) not null,
     primary key (id),
-    constraint fk_notifications_user foreign key (user_id) references notifications
+    constraint fk_notifications_user foreign key (user_id) references users(id)
 );
 
 create index idx_notification_user_id on notifications (user_id, created_at desc);

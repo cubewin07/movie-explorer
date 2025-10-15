@@ -267,6 +267,7 @@ public class UserService {
 
     public GetInfoDTO getInfoDTO(User principal, Long id) {
         if(friendService.isFriend(principal, id)) {
+            log.info("Fetching info for friend id={} from database", id);
             Status status = friendService.getFriendStatus(principal, id);
             User info = getUserById(id);
             Set<Long> moviesId= info.getWatchlist().getMoviesId();
@@ -279,6 +280,7 @@ public class UserService {
                     .watchlist(new WatchlistDTO(moviesId, seriesId))
                     .build();
         } else {
+            log.info("No friend ship found for user id={} and friend id={}", principal.getId(), id);
             User info = getUserById(id);
             Set<Long> moviesId= info.getWatchlist().getMoviesId();
             Set<Long> seriesId= info.getWatchlist().getSeriesId();

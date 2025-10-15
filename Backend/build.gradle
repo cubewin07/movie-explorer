@@ -36,7 +36,7 @@ dependencies {
     implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
 
     // PostgreSQL
-    runtimeOnly 'org.postgresql:postgresql:42.7.3'
+    implementation 'org.postgresql:postgresql:42.7.3'
 
     // Validation
     implementation 'jakarta.validation:jakarta.validation-api:3.0.2'
@@ -113,9 +113,9 @@ dependencies {
 }
 
 flyway {
-    url = 'jdbc:postgresql://localhost:5432/Learning'
+    url = 'jdbc:postgresql://localhost:5432/movie_explorer'
     user = 'postgres'
-    password = ''
+    password = '071208'
     schemas = ['public']
     locations = ['classpath:db/migration']
     cleanDisabled = false
