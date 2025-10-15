@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { Bell, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import SockJS from "sockjs-client";
+import { Client } from "@stomp/stompjs";
+
+
+// Put stomp logic here
 
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
