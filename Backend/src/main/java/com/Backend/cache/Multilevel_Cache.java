@@ -1,6 +1,7 @@
 package com.Backend.cache;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.Cache;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -8,6 +9,7 @@ import org.springframework.lang.Nullable;
 import java.util.concurrent.Callable;
 
 @RequiredArgsConstructor
+@Slf4j
 public class Multilevel_Cache implements Cache {
     private final Cache remote;
     private final Cache local;
@@ -95,6 +97,7 @@ public class Multilevel_Cache implements Cache {
         // Remove from both caches
         remote.evict(key);
         local.evict(key);
+        log.info("Evicted key {} from both caches", key);
     }
 
     @Override

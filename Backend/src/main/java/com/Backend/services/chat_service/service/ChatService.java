@@ -208,10 +208,10 @@ public class ChatService {
 
     @Transactional
     @Caching(evict = {
-        @CacheEvict(value = "chatById", key = "#chat.id"),
-        @CacheEvict(value = "chatParticipants", key = "#chat.id"),
-        @CacheEvict(value = "chats", allEntries = true),
-        @CacheEvict(value = "userMeDTO", allEntries = true)
+            @CacheEvict(value = "chatById", key = "#chat.id"),
+            @CacheEvict(value = "chatParticipants", key = "#chat.id"),
+            @CacheEvict(value = "chats", allEntries = true), // Changed to allEntries
+            @CacheEvict(value = "userMeDTO", allEntries = true) // Changed to allEntries
     })
     public void deleteChat(Chat chat) {
         validateNotNull(chat, "Chat");

@@ -61,11 +61,13 @@ public class FriendService {
 
     @Transactional
     @Caching(evict = {
-        @CacheEvict(value = "friendRequests", key = "'from-' + #user1.id"),
-        @CacheEvict(value = "friendRequests", key = "'to-' + #user1.id"),
-        @CacheEvict(value = "friends", key = "#user1.id"),
-        @CacheEvict(value = "friendStatus", allEntries = true),
-        @CacheEvict(value = "userMeDTO", key = "#user1.email"),
+            @CacheEvict(value = "friendRequests", key = "'from-' + #user1.id"),
+            @CacheEvict(value = "friendRequests", key = "'to-' + #user1.id"),
+            @CacheEvict(value = "friendRequests", key = "'to-' + #user2.id"), // ADD THIS
+            @CacheEvict(value = "friends", key = "#user1.id"),
+            @CacheEvict(value = "friendStatus", allEntries = true),
+            @CacheEvict(value = "userMeDTO", key = "#user1.email"),
+            @CacheEvict(value = "userMeDTO", key = "#user2.email"), // ADD THIS
             @CacheEvict(value = "isFriend", allEntries = true)
     })
     public void sendRequest(User user1, String friendEmail) {
@@ -134,13 +136,16 @@ public class FriendService {
 
     @Transactional
     @Caching(evict = {
-        @CacheEvict(value = "friendRequests", key = "'from-' + #user1.id"),
-        @CacheEvict(value = "friendRequests", key = "'to-' + #user1.id"),
+            @CacheEvict(value = "friendRequests", key = "'from-' + #user1.id"),
+            @CacheEvict(value = "friendRequests", key = "'to-' + #user1.id"),
             @CacheEvict(value = "friendRequests", key = "'from-' + #user2.id"),
-        @CacheEvict(value = "friends", key = "#user1.id"),
-        @CacheEvict(value = "friendStatus", allEntries = true),
+            @CacheEvict(value = "friendRequests", key = "'to-' + #user2.id"), // ADD THIS
+            @CacheEvict(value = "friends", key = "#user1.id"),
+            @CacheEvict(value = "friends", key = "#user2.id"), // ADD THIS
+            @CacheEvict(value = "friendStatus", allEntries = true),
             @CacheEvict(value = "isFriend", allEntries = true),
-        @CacheEvict(value = "userMeDTO", key = "#user1.email")
+            @CacheEvict(value = "userMeDTO", key = "#user1.email"),
+            @CacheEvict(value = "userMeDTO", key = "#user2.email") // ADD THIS
     })
     public void updateFriend(User user1, Long senderEmail, Status status) {
         User user2 = userRepository.findById(senderEmail).orElseThrow(() -> new FriendNotFoundException("Friend user not found"));
@@ -186,13 +191,16 @@ public class FriendService {
 
     @Transactional
     @Caching(evict = {
-        @CacheEvict(value = "friendRequests", key = "'from-' + #user1.id"),
+            @CacheEvict(value = "friendRequests", key = "'from-' + #user1.id"),
             @CacheEvict(value = "friendRequests", key = "'to-' + #user1.id"),
+            @CacheEvict(value = "friendRequests", key = "'from-' + #user2.id"), // ADD THIS
             @CacheEvict(value = "friendRequests", key = "'to-' + #user2.id"),
-
-        @CacheEvict(value = "friends", key = "#user1.id"),
-        @CacheEvict(value = "friendStatus", allEntries = true),
-        @CacheEvict(value = "userMeDTO", key = "#user1.email")
+            @CacheEvict(value = "friends", key = "#user1.id"),
+            @CacheEvict(value = "friends", key = "#user2.id"), // ADD THIS
+            @CacheEvict(value = "friendStatus", allEntries = true),
+            @CacheEvict(value = "isFriend", allEntries = true), // ADD THIS
+            @CacheEvict(value = "userMeDTO", key = "#user1.email"),
+            @CacheEvict(value = "userMeDTO", key = "#user2.email") // ADD THIS
     })
     public void deleteFriend(User user1, Long friendEmail) {
         User user2 = userRepository.findById(friendEmail).orElseThrow(() -> new FriendNotFoundException("Friend user not found"));
