@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { Bell, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import SockJS from "sockjs-client";
+import { useAuthen } from '@/context/AuthenProvider';
+
+
 import { Client } from "@stomp/stompjs";
 
 
@@ -9,13 +11,42 @@ import { Client } from "@stomp/stompjs";
 
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const { user, token } = useAuthen();
 
-  // Example notifications (you can later fetch from backend)
-  const notifications = [
-    { id: 1, message: "New movie added to your Watchlist!" },
-    { id: 2, message: "Friend request accepted." },
-    { id: 3, message: "New episode available for your favorite show." },
-  ];
+  // // Example notifications (you can later fetch from backend)
+  // const notifications = [
+  //   { id: 1, message: "New movie added to your Watchlist!" },
+  //   { id: 2, message: "Friend request accepted." },
+  //   { id: 3, message: "New episode available for your favorite show." },
+  // ];
+
+  useEffect(() => {
+    if (!user || !token) return;
+    const stompClient = new Client({
+      brokerURL: "ws://localhost:8080/ws?userId=" + user?.id,
+      debug: (str) => {
+        console.log(str);
+      },
+      reconnectDelay: 5000,
+      connectHeaders: {
+        Authorization: "Bearer " + token,
+      },
+      onConnect: () => {
+        console.log("Connected to WebSocket");
+        stompClient.subscribe("/topic/notifications/" + user?.id, (message) => {
+          const notification = JSON.parse(message.body);
+          setNotifications((prev) => [...prev, notification]);
+        });
+      },
+    });
+
+    stompClient.activate();
+
+    return () => {
+      stompClient.deactivate();
+    };
+  }, [user, token]);
 
   return (
     <div className="relative">
