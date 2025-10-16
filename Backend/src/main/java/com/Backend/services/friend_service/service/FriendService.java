@@ -183,7 +183,7 @@ public class FriendService {
                                 );
                             else
                                 return new FriendDTO(
-                                        new FriendUserDTO(f.getUser1().getId(), f.getUser1().getEmail(), f.getUser1().getUsername()),
+                                        new FriendUserDTO(f.getUser1().getId(), f.getUser1().getEmail(), f.getUser1().getRealUsername()),
                                         f.getStatus()
                                 );
                         }
