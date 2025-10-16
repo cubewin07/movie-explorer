@@ -91,7 +91,7 @@ export default function Discovery() {
                 </div>
 
                 {/* Sorting Dropdown */}
-                <div className="flex justify-end mb-4 sticky top-12 z-20">
+                <div className="flex justify-end mb-4 sticky top-28 z-20">
                     <Select value={sortBy} onValueChange={setSortBy}>
                         <SelectTrigger className="w-full max-w-xs">
                             <SelectValue placeholder="Sort by..." />
