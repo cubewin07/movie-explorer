@@ -10,12 +10,15 @@ import ErrorState from '@/components/ui/ErrorState';
 import LoadingState from '@/components/ui/LoadingState';
 import FriendItem from "./FriendItem";
 import AddFriendTab from "./AddFriendTab";
+import { useFriendActions } from '@/hooks/friend/useFriendActions';
+import { fr } from 'zod/dist/types/v4/locales';
 
 export default function FriendsView({ onFriendSelect, compact = false }) {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('friends');
 
   const { data: friends, isLoading, error } = useFriends();
+  const { deleteFriend, updateFriendStatus } = useFriendActions();
   const navigate = useNavigate();
 
   const filteredFriends = friends?.filter(friend => 
@@ -33,11 +36,11 @@ export default function FriendsView({ onFriendSelect, compact = false }) {
   }
 
   const onRemoveFriend = (friend) => {
-    // Handled in FriendItem
+    deleteFriend.mutate(friend.id);
   }
 
   const onBlock = (friend) => {
-    // Handled in FriendItem
+    updateFriendStatus.mutate({ id: friend.id, status: 'BLOCKED' });
   }
 
   return (
