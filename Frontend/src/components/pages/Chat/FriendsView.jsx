@@ -13,7 +13,6 @@ export default function FriendsView({ onFriendSelect, compact = false }) {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('friends');
   const { data: friends, isLoading, error } = useFriends();
-  console.log(friends);
 
   const filteredFriends = friends?.filter(friend => 
     friend?.user?.username.toLowerCase().includes(search.toLowerCase()) ||
