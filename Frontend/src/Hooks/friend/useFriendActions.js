@@ -12,7 +12,12 @@ export const useFriendActions = () => {
     },
     onSuccess: () => {
       // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ['friends'] });
       queryClient.invalidateQueries({ queryKey: ['friendRequests'] });
+      queryClient.invalidateQueries({ queryKey: ['friendRequests', 'outgoing'] });
+    },
+    onError: (error) => {
+      console.error('Error sending friend request:', error);
     }
   });
 
@@ -47,6 +52,9 @@ export const useFriendActions = () => {
     onSuccess: () => {
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ['friends'] });
+      queryClient.invalidateQueries({ queryKey: ['friendRequests'] });
+      queryClient.invalidateQueries({ queryKey: ['friendRequests', 'incoming'] });
+      queryClient.invalidateQueries({ queryKey: ['friendRequests', 'outgoing'] });
     },
     onError: (error) => {
       console.error('Error deleting friend:', error);
