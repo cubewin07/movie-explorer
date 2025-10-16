@@ -39,12 +39,12 @@ function PopularTvSeries() {
                 >
                     Failed to load popular TV series. Please try again later.
                 </motion.div>
-            ) : LoadingPopularTvSeries ? (
+            ) : LoadingPopularTvSeries || LoadingTvSeriesGenre ? (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
                     <LoadingSideBar />
                 </motion.div>
             ) : (
-                !LoadingTvSeriesGenre && <Popular movies={visiblePopularTvSeries} genres={TvSeriesGenres} />
+                <Popular movies={visiblePopularTvSeries} genres={TvSeriesGenres} />
             )}
         </motion.div>
     );
