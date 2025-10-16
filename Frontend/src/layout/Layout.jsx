@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Toaster } from 'sonner';
 
+import NotificationBell from '@/components/ui/notificationBell';
 import { useThemeToggle } from '@/hooks/useThemeToggle';
 import FilmModalProvider from '@/context/FilmModalProvider';
 import { AuthenProvider, useAuthen } from '@/context/AuthenProvider';
@@ -37,7 +38,13 @@ function Layout() {
                             </ShadSidebar>
                         </aside>
                         <main className="flex-grow h-full overflow-y-auto bg-background text-foreground">
-                            <Outlet />
+                            <div className="flex items-center justify-between py-3 px-4 sticky top-0 z-50 bg-slate-950/80 backdrop-blur-lg rounded-b-2xl border-b border-slate-800">
+                                <h1 className="text-xl font-semibold text-white px-2 sm:px-4">Movie Explorer</h1>
+                                <NotificationBell />
+                            </div>
+                            <div className="mt-4">
+                                <Outlet />
+                            </div>
                         </main>
                         <aside className="hidden md:block w-64 sm:w-72 h-full bg-card">
                             <Sidebar right={true} />
