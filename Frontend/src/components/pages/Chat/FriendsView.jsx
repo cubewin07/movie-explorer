@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { UserPlus, Search } from 'lucide-react';
+import { useNavigate } from 'react-router';
+
 import { useFriends } from '@/hooks/friend/useFriends';
 import ErrorState from '@/components/ui/ErrorState';
 import LoadingState from '@/components/ui/LoadingState';
@@ -12,12 +14,31 @@ import AddFriendTab from "./AddFriendTab";
 export default function FriendsView({ onFriendSelect, compact = false }) {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('friends');
+
   const { data: friends, isLoading, error } = useFriends();
+  const navigate = useNavigate();
 
   const filteredFriends = friends?.filter(friend => 
     friend?.user?.username.toLowerCase().includes(search.toLowerCase()) ||
     friend?.user?.email?.toLowerCase().includes(search.toLowerCase())
   ) || [];
+
+  // Actions methods
+  const onMessage = (friend) => {
+    // Wait for chat ui + logic finished
+  }
+
+  const onViewProfile = (friend) => {
+    navigate(`/user/${friend.id}`);
+  }
+
+  const onRemoveFriend = (friend) => {
+    // Handled in FriendItem
+  }
+
+  const onBlock = (friend) => {
+    // Handled in FriendItem
+  }
 
   return (
     <div className={`h-full ${compact ? 'p-2' : 'p-4'} ${
