@@ -38,15 +38,18 @@ export const useFriendActions = () => {
 
   // Delete friend
   const deleteFriend = useMutation({
-    mutationFn: async (email) => {
+    mutationFn: async (id) => {
       const response = await instance.delete('/friends/delete', {
-        data: { email }
+        params: { id }
       });
       return response.data;
     },
     onSuccess: () => {
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ['friends'] });
+    },
+    onError: (error) => {
+      console.error('Error deleting friend:', error);
     }
   });
 

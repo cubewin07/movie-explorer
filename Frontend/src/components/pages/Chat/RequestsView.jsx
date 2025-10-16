@@ -75,11 +75,15 @@ const RequestsList = ({ data, isLoading, error, errorMessage, emptyMessage, rend
 export default function RequestsView() {
   const { type = 'incoming' } = useParams();
   const { incomingRequests, outgoingRequests } = useFriendRequests();
-  const { updateFriendStatus } = useFriendActions();
+  const { updateFriendStatus, deleteFriend } = useFriendActions();
   
   const handleStatusUpdate = (id, status) => {
     updateFriendStatus.mutate({ id, status });
   };
+
+  const handleCancelRequest = (id) => {
+    deleteFriend.mutate(id);
+  }
 
   return (
     <div className="h-full p-4 bg-white dark:bg-slate-900 rounded-lg">
@@ -129,7 +133,7 @@ export default function RequestsView() {
                 subtitle: 'Request pending',
                 inline: {
                   label: 'Cancel',
-                  onClick: () => handleStatusUpdate(request.email, 'cancelled')
+                  onClick: () => handleCancelRequest(request.id)
                 }
               })}
             />
