@@ -11,7 +11,6 @@ import LoadingState from '@/components/ui/LoadingState';
 import FriendItem from "./FriendItem";
 import AddFriendTab from "./AddFriendTab";
 import { useFriendActions } from '@/hooks/friend/useFriendActions';
-import { fr } from 'zod/dist/types/v4/locales';
 
 export default function FriendsView({ onFriendSelect, compact = false }) {
   const [search, setSearch] = useState('');
@@ -84,6 +83,10 @@ export default function FriendsView({ onFriendSelect, compact = false }) {
                     friend={friend.user}
                     compact={compact}
                     onFriendSelect={onFriendSelect}
+                    onViewProfile={onViewProfile}
+                    onMessage={onMessage}
+                    onRemoveFriend={onRemoveFriend}
+                    onBlock={onBlock}
                   />
                 ))}
                 {filteredFriends.length === 0 && (
