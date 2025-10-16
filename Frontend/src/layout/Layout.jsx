@@ -1,6 +1,7 @@
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { Sidebar as ShadSidebar, SidebarBody } from '@/components/ui/Sidebar';
 import { useState } from 'react';
+
 import Sidebar from '@/components/react_components/SideBar/Sidebar';
 import LeftSidebarContent from './LeftSideBarContent';
 
@@ -17,6 +18,7 @@ function Layout() {
     const [open, setOpen] = useState(false);
     const [loginOpen, setLoginOpen] = useState(false);
     const [registerOpen, setRegisterOpen] = useState(false);
+    const navigate = useNavigate();
 
     return (
         <AuthenProvider>
@@ -36,7 +38,7 @@ function Layout() {
                         </aside>
                         <main className="flex-grow h-full overflow-y-auto bg-background text-foreground">
                             <div className="flex items-center justify-between py-3 px-4 sticky top-0 z-50 bg-slate-950/80 backdrop-blur-lg rounded-b-2xl border-b border-slate-800">
-                                <h1 className="text-xl font-semibold text-white px-2 sm:px-4">Movie Hub</h1>
+                                <h1 className="text-xl font-semibold text-white px-2 sm:px-4 cursor-pointer" onClick={() => navigate("/")}>Movie Hub</h1>
                                 <NotificationBell />
                             </div>
                             <div className="mt-4">
