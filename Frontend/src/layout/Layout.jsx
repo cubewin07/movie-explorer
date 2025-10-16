@@ -39,7 +39,7 @@ function Layout() {
                         </aside>
                         <main className="flex-grow h-full overflow-y-auto bg-background text-foreground">
                             <div className="flex items-center justify-between py-3 px-4 sticky top-0 z-50 bg-slate-950/80 backdrop-blur-lg rounded-b-2xl border-b border-slate-800">
-                                <h1 className="text-xl font-semibold text-white px-2 sm:px-4">Movie Explorer</h1>
+                                <h1 className="text-xl font-semibold text-white px-2 sm:px-4">Movie Hub</h1>
                                 <NotificationBell />
                             </div>
                             <div className="mt-4">
@@ -94,28 +94,6 @@ function SidebarContent({ handleThemeToggle, setLoginOpen, setRegisterOpen }) {
                 className="w-10 h-6 theme-controller toggle toggle-success border-accent rounded-2xl ml-[-12px] "
                 style={{ backgroundColor: 'bisque' }}
             />
-            <div className="flex flex-col items-center justify-center min-h-[64px] mb-2 w-full">
-                <motion.span
-                    initial={false}
-                    animate={{ opacity: open ? 1 : 0, width: open ? 'auto' : 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="text-2xl font-bold text-primary tracking-tight origin-left"
-                    style={{ display: open ? 'inline-block' : 'none', cursor: 'pointer' }}
-                    onClick={() => navigate('/')}
-                >
-                    MovieHub
-                </motion.span>
-                {!open && (
-                    <motion.span
-                        initial={false}
-                        animate={{ opacity: !open ? 1 : 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="text-2xl font-bold text-primary tracking-tight"
-                    >
-                        M
-                    </motion.span>
-                )}
-            </div>
             <div className="flex flex-col justify-between flex-1 gap-2 w-full">
                 <ul className="menu menu-border w-full pr-0">
                     <li
