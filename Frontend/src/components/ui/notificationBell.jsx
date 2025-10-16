@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
+  const [timetick, setTimeTick] = useState(0); // For re-rendering time ago
   const [notifications, setNotifications] = useState([]);
   const { user, token } = useAuthen();
   const navigate = useNavigate();
@@ -21,6 +22,15 @@ export default function NotificationBell() {
   // const { mutate: markAsRead } = useMarkNotificationAsRead();
   // const { mutate: deleteNotification } = useDeleteNotification();
   // const { mutate: markAllAsRead } = useMarkAllAsRead();
+
+  // Update time ago every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimeTick((prev) => prev + 1);
+    }, 60000); // 60 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (!user || !token) return;
