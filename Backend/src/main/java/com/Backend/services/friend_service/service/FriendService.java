@@ -85,7 +85,7 @@ public class FriendService {
             throw new FriendRequestAlreadyExistsException("Friend request already exists in opposite direction");
         }
 
-        notificationService.createNotification(user2, "friendRequest", user1.getId(), user1.getUsername() + " has sent you a friend request");
+        notificationService.createNotification(user2, "friendRequest", user1.getId(), user1.getRealUsername() + " has sent you a friend request");
 
         Friend friendReq = Friend.builder()
                 .user1(user1)
