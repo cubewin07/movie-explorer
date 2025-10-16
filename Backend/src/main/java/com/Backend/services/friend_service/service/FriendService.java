@@ -17,6 +17,8 @@ import com.Backend.exception.NotAuthorizedToModifyFriendshipException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -34,6 +36,7 @@ public class FriendService {
     private final FriendRepo friendRepo;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
+    private final CacheManager cacheManager;
 
     @Cacheable(value = "friendRequests", key = "'from-' + #id")
     public Set<FriendRequestDTO> getRequestsFromThisUser(Long id) {
@@ -63,11 +66,9 @@ public class FriendService {
     @Caching(evict = {
             @CacheEvict(value = "friendRequests", key = "'from-' + #user1.id"),
             @CacheEvict(value = "friendRequests", key = "'to-' + #user1.id"),
-            @CacheEvict(value = "friendRequests", key = "'to-' + #user2.id"), // ADD THIS
             @CacheEvict(value = "friends", key = "#user1.id"),
             @CacheEvict(value = "friendStatus", allEntries = true),
             @CacheEvict(value = "userMeDTO", key = "#user1.email"),
-            @CacheEvict(value = "userMeDTO", key = "#user2.email"), // ADD THIS
             @CacheEvict(value = "isFriend", allEntries = true)
     })
     public void sendRequest(User user1, String friendEmail) {
@@ -92,8 +93,10 @@ public class FriendService {
                 .status(Status.PENDING)
                 .build();
         friendRepo.save(friendReq);
-        
-        // Evict user2's caches as well since they received a request
+
+        // Manually evict user2's caches since they received a request
+        evictCacheForUser(user2, "to");
+
         log.debug("Friend request sent from user={} to user={}", user1.getId(), user2.getId());
     }
 
@@ -133,19 +136,14 @@ public class FriendService {
         return friendRepo.existsFriendshipBetween(user1, user2);
     }
 
-
     @Transactional
     @Caching(evict = {
             @CacheEvict(value = "friendRequests", key = "'from-' + #user1.id"),
             @CacheEvict(value = "friendRequests", key = "'to-' + #user1.id"),
-            @CacheEvict(value = "friendRequests", key = "'from-' + #user2.id"),
-            @CacheEvict(value = "friendRequests", key = "'to-' + #user2.id"), // ADD THIS
             @CacheEvict(value = "friends", key = "#user1.id"),
-            @CacheEvict(value = "friends", key = "#user2.id"), // ADD THIS
             @CacheEvict(value = "friendStatus", allEntries = true),
             @CacheEvict(value = "isFriend", allEntries = true),
-            @CacheEvict(value = "userMeDTO", key = "#user1.email"),
-            @CacheEvict(value = "userMeDTO", key = "#user2.email") // ADD THIS
+            @CacheEvict(value = "userMeDTO", key = "#user1.email")
     })
     public void updateFriend(User user1, Long senderEmail, Status status) {
         User user2 = userRepository.findById(senderEmail).orElseThrow(() -> new FriendNotFoundException("Friend user not found"));
@@ -162,6 +160,10 @@ public class FriendService {
         if (status != Status.PENDING && friend.getUser2().getId().equals(user1.getId())) {
             friend.setStatus(status);
             friendRepo.save(friend);
+
+            // Manually evict user2's caches
+            evictAllCachesForUser(user2);
+
             log.debug("Friend request updated: user={} to status={}", user1.getId(), status);
         } else {
             throw new NotAuthorizedToModifyFriendshipException("Only the request recipient can update the status");
@@ -174,17 +176,17 @@ public class FriendService {
         List<Friend> friends = friendRepo.findAllFriendshipsByUserAndStatus(user, Status.ACCEPTED);
         return friends.stream()
                 .map(f -> {
-                        if(f.getUser1().getId().equals(user.getId())) 
-                            return new FriendDTO(
-                                new FriendUserDTO(f.getUser2().getId(), f.getUser2().getEmail(), f.getUser2().getRealUsername()),
-                                f.getStatus()
-                            );
-                        else
-                            return new FriendDTO(
-                                new FriendUserDTO(f.getUser1().getId(), f.getUser1().getEmail(), f.getUser1().getUsername()),
-                                f.getStatus()
-                            );
-                    }
+                            if(f.getUser1().getId().equals(user.getId()))
+                                return new FriendDTO(
+                                        new FriendUserDTO(f.getUser2().getId(), f.getUser2().getEmail(), f.getUser2().getRealUsername()),
+                                        f.getStatus()
+                                );
+                            else
+                                return new FriendDTO(
+                                        new FriendUserDTO(f.getUser1().getId(), f.getUser1().getEmail(), f.getUser1().getUsername()),
+                                        f.getStatus()
+                                );
+                        }
                 )
                 .collect(Collectors.toSet());
     }
@@ -193,14 +195,10 @@ public class FriendService {
     @Caching(evict = {
             @CacheEvict(value = "friendRequests", key = "'from-' + #user1.id"),
             @CacheEvict(value = "friendRequests", key = "'to-' + #user1.id"),
-            @CacheEvict(value = "friendRequests", key = "'from-' + #user2.id"), // ADD THIS
-            @CacheEvict(value = "friendRequests", key = "'to-' + #user2.id"),
             @CacheEvict(value = "friends", key = "#user1.id"),
-            @CacheEvict(value = "friends", key = "#user2.id"), // ADD THIS
             @CacheEvict(value = "friendStatus", allEntries = true),
-            @CacheEvict(value = "isFriend", allEntries = true), // ADD THIS
-            @CacheEvict(value = "userMeDTO", key = "#user1.email"),
-            @CacheEvict(value = "userMeDTO", key = "#user2.email") // ADD THIS
+            @CacheEvict(value = "isFriend", allEntries = true),
+            @CacheEvict(value = "userMeDTO", key = "#user1.email")
     })
     public void deleteFriend(User user1, Long friendEmail) {
         User user2 = userRepository.findById(friendEmail).orElseThrow(() -> new FriendNotFoundException("Friend user not found"));
@@ -213,9 +211,44 @@ public class FriendService {
         if (friend.getUser1().getId().equals(user1.getId()) ||
                 friend.getUser2().getId().equals(user1.getId())) {
             friendRepo.delete(friend);
-            log.debug("Friend relationship deleted between user={} and friend={}", user1.getId(), user2.getId());
+
+            // Manually evict user2's caches
+            evictAllCachesForUser(user2);
+
+            log.info("Friend relationship deleted between user={} and friend={}", user1.getId(), user2.getId());
         } else {
             throw new NotAuthorizedToModifyFriendshipException("Not authorized to delete this relationship");
+        }
+    }
+
+    // Helper methods for manual cache eviction
+    private void evictCacheForUser(User user, String requestType) {
+        Cache friendRequestsCache = cacheManager.getCache("friendRequests");
+        if (friendRequestsCache != null) {
+            friendRequestsCache.evict(requestType + "-" + user.getId());
+        }
+
+        Cache userMeDTOCache = cacheManager.getCache("userMeDTO");
+        if (userMeDTOCache != null) {
+            userMeDTOCache.evict(user.getEmail());
+        }
+    }
+
+    private void evictAllCachesForUser(User user) {
+        Cache friendRequestsCache = cacheManager.getCache("friendRequests");
+        if (friendRequestsCache != null) {
+            friendRequestsCache.evict("from-" + user.getId());
+            friendRequestsCache.evict("to-" + user.getId());
+        }
+
+        Cache friendsCache = cacheManager.getCache("friends");
+        if (friendsCache != null) {
+            friendsCache.evict(user.getId());
+        }
+
+        Cache userMeDTOCache = cacheManager.getCache("userMeDTO");
+        if (userMeDTOCache != null) {
+            userMeDTOCache.evict(user.getEmail());
         }
     }
 }
