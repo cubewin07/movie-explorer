@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -8,8 +8,10 @@ import { useFriendActions } from '@/hooks/friend/useFriendActions';
 import ErrorState from '@/components/ui/ErrorState';
 import LoadingState from '@/components/ui/LoadingState';
 
-const RequestCard = ({ request, actions, isPending }) => (
-  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 shadow-lg">
+const RequestCard = ({ request, actions, isPending }) => {
+  const navigate = useNavigate();
+  return (
+    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800 shadow-lg cursor-pointer" onClick={() => navigate(`/user/${request.id}`)}>
     <div className="flex items-center gap-3 mb-3">
       <Avatar>
         <AvatarImage src={request.avatarUrl || `https://avatar.vercel.sh/${request.id}.png`} />
@@ -49,7 +51,8 @@ const RequestCard = ({ request, actions, isPending }) => (
       </div>
     )}
   </div>
-);
+  )
+}
 
 const RequestsList = ({ data, isLoading, error, errorMessage, emptyMessage, renderActions, isPending }) => {
   if (isLoading) return <LoadingState />;
