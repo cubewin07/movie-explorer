@@ -62,7 +62,8 @@ export default function NotificationsPage() {
     if (notification.type === 'friendRequest') {
       navigate(`/user/${notification.relatedId}`);
     } else if (notification.type === 'chat') {
-      navigate(`/messages/${notification.relatedId}`);
+    //   navigate(`/messages/${notification.relatedId}`);
+        console.log("navigate to chat with id" + notification.relatedId);
     }
   };
 
