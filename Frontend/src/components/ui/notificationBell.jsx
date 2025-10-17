@@ -82,7 +82,7 @@ export default function NotificationBell() {
 
   const handleNotificationClick = (notification) => {
     // TODO: Mark as read via API
-    markAsRead.mutate(notification.id);
+    markAsRead.mutate(notification.id, token);
     
     // Mark as read locally for now
     setNotifications(prev => 
@@ -105,7 +105,7 @@ export default function NotificationBell() {
     e.stopPropagation();
     
     // TODO: Delete via API
-    deleteNotification.mutate(notificationId);
+    deleteNotification.mutate(notificationId, token);
     
     // Delete locally for now
     setNotifications(prev => prev.filter(n => n.id !== notificationId));
@@ -113,7 +113,7 @@ export default function NotificationBell() {
 
   const handleMarkAllAsRead = () => {
     // TODO: Mark all as read via API
-    markAllAsRead.mutate();
+    markAllAsRead.mutate(token);
     
     // Mark all as read locally for now
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));

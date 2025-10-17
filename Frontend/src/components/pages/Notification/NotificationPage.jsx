@@ -13,7 +13,7 @@ export default function NotificationsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   
   const { data, isLoading, error } = useNotification();
-  const { user } = useAuthen();
+  const { user, token } = useAuthen();
   const { markAsRead, markAllAsRead, deleteNotification } = useNotificationActions();
   const navigate = useNavigate();
 
@@ -52,7 +52,7 @@ export default function NotificationsPage() {
   };
 
   const handleNotificationClick = (notification) => {
-    markAsRead.mutate(notification.id);
+    markAsRead.mutate(notification.id, token);
 
     if (notification.type === 'friendRequest') {
       navigate(`/user/${notification.relatedId}`);
@@ -65,11 +65,11 @@ export default function NotificationsPage() {
 
   const handleDeleteNotification = (e, notificationId) => {
     e.stopPropagation();
-    deleteNotification.mutate(notificationId);
+    deleteNotification.mutate(notificationId, token);
   };
 
   const handleMarkAllAsRead = () => {
-    markAllAsRead.mutate();
+    markAllAsRead.mutate(token);
   };
 
   const getTimeAgo = (timestamp) => {
