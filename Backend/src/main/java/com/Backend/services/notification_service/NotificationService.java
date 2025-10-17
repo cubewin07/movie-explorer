@@ -3,6 +3,7 @@ package com.Backend.services.notification_service;
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.Backend.services.chat_service.message.model.Message;
@@ -278,7 +279,7 @@ public class NotificationService {
 
     @Transactional( readOnly = true)
     @Cacheable(value = "notifications", key = "#user.id")
-    public List<NotificationDTO> getNotifications(User user) {
+    public Set<NotificationDTO> getNotifications(User user) {
         log.debug("Fetching notifications for user id={} from database", user.getId());
         List<Notification> notifications = notificationRepo.findByUser(user);
         return notifications.stream().map(n -> NotificationDTO.builder()
@@ -288,6 +289,6 @@ public class NotificationService {
                 .message(n.getMessage())
                 .isRead(n.isRead())
                 .createdAt(n.getCreatedAt())
-                .build()).collect(Collectors.toList());
+                .build()).collect(Collectors.toSet());
     }
 }

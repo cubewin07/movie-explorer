@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/notifications")
@@ -38,5 +39,10 @@ public class NotificationController {
     public ResponseEntity<Map<String, String>> deleteNotification(@AuthenticationPrincipal User user, @PathVariable("id") Long id) throws AccessDeniedException {
         notificationService.deleteNotification(user, id);
         return ResponseEntity.ok(Map.of("message", "Deleted notification"));
+    }
+
+    @GetMapping("/notifications")
+    public ResponseEntity<Set<NotificationDTO>> getNotifications(@AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(notificationService.getNotifications(user));
     }
 }
