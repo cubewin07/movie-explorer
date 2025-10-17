@@ -229,6 +229,33 @@ public class NotificationService {
         log.debug("Marked {} out of {} notifications as read for user id={}",
                 updatedCount, uniqueIds.size(), user.getId());
     }
+
+    @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "chatNotifications", key = "#user.id"),
+            @CacheEvict(value = "userMeDTO", key = "#user.email")
+    })
+    public void markAllNotificationAsRead(User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("User cannot be null");
+        }
+
+        if (user.getId() == null) {
+            throw new IllegalArgumentException("User ID cannot be null");
+        }
+
+        log.debug("Attempting to mark all notifications as read for user id={}", user.getId());
+
+        int updatedCount = notificationRepo.updateAllNotificationReadStatus(user.getId());
+
+        if (updatedCount == 0) {
+            log.debug("No unread notifications found for user id={}", user.getId());
+        } else {
+            log.info("Marked {} notifications as read for user id={}", updatedCount, user.getId());
+        }
+    }
+
+    @Transactional
     @Caching(evict = {
         @CacheEvict(value = "chatNotifications", key = "#user.id"),
         @CacheEvict(value = "userMeDTO", key = "#user.email")
