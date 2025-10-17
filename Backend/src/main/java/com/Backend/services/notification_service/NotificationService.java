@@ -33,8 +33,9 @@ public class NotificationService {
     private final STOMPEventListener stompEventListener;
     
     @Caching(evict = {
-        @CacheEvict(value = "chatNotifications", key = "#user.id"),
-        @CacheEvict(value = "userMeDTO", key = "#user.email")
+            @CacheEvict(value = "chatNotifications", key = "#user.id"),
+            @CacheEvict(value = "userMeDTO", key = "#user.email"),
+            @CacheEvict(value = "notifications", key = "#user.id")
     })
     public void createNotification(User user, String type, Long relatedId, String message) {
         Notification notification = Notification.builder()
@@ -60,8 +61,9 @@ public class NotificationService {
     }
     
     @Caching(evict = {
-        @CacheEvict(value = "chatNotifications", key = "#user.id"),
-        @CacheEvict(value = "userMeDTO", key = "#user.email")
+            @CacheEvict(value = "chatNotifications", key = "#user.id"),
+            @CacheEvict(value = "userMeDTO", key = "#user.email"),
+            @CacheEvict(value = "notifications", key = "#user.id")
     })
     public void createNotification(User user, String type, Long relatedId, Message message) {
 
@@ -94,8 +96,9 @@ public class NotificationService {
     }
 
     @Caching(evict = {
-        @CacheEvict(value = "chatNotifications", key = "#user.id"),
-        @CacheEvict(value = "userMeDTO", key = "#user.email")
+            @CacheEvict(value = "chatNotifications", key = "#user.id"),
+            @CacheEvict(value = "userMeDTO", key = "#user.email"),
+            @CacheEvict(value = "notifications", key = "#user.id")
     })
     public void createNotificationWithoutSending(User user, String type, Long relatedId, Message message) {
 
@@ -116,8 +119,9 @@ public class NotificationService {
     }
 
     @Caching(evict = {
-        @CacheEvict(value = "chatNotifications", key = "#user.id"),
-        @CacheEvict(value = "userMeDTO", key = "#user.email")
+            @CacheEvict(value = "chatNotifications", key = "#user.id"),
+            @CacheEvict(value = "userMeDTO", key = "#user.email"),
+            @CacheEvict(value = "notifications", key = "#user.id")
     })
     public void createNotificationWithoutSending(SimpleUserDTO userDTO, String type, Long relatedId, Message message) {
 
@@ -140,8 +144,9 @@ public class NotificationService {
     }
     
     @Caching(evict = {
-        @CacheEvict(value = "chatNotifications", key = "#user.id"),
-        @CacheEvict(value = "userMeDTO", key = "#user.email")
+            @CacheEvict(value = "chatNotifications", key = "#user.id"),
+            @CacheEvict(value = "userMeDTO", key = "#user.email"),
+            @CacheEvict(value = "notifications", key = "#user.id")
     })
     public void createNotificationWithoutSending(User user, String type, Long relatedId, String message) {
         Notification notification = Notification.builder()
@@ -173,7 +178,8 @@ public class NotificationService {
     @Transactional
     @Caching(evict = {
             @CacheEvict(value = "chatNotifications", key = "#user.id"),
-            @CacheEvict(value = "userMeDTO", key = "#user.email")
+            @CacheEvict(value = "userMeDTO", key = "#user.email"),
+            @CacheEvict(value = "notifications", key = "#user.id")
     })
     public void markNotificationAsRead(User user, Long notificationId) throws AccessDeniedException {
         Notification notification = notificationRepo.findById(notificationId)
@@ -198,7 +204,8 @@ public class NotificationService {
     @Transactional
     @Caching(evict = {
             @CacheEvict(value = "chatNotifications", key = "#user.id"),
-            @CacheEvict(value = "userMeDTO", key = "#user.email")
+            @CacheEvict(value = "userMeDTO", key = "#user.email"),
+            @CacheEvict(value = "notifications", key = "#user.id")
     })
     public void markNotificationAsRead(User user, List<Long> notificationIds) throws AccessDeniedException {
         if (notificationIds == null || notificationIds.isEmpty()) {
@@ -232,7 +239,8 @@ public class NotificationService {
     @Transactional
     @Caching(evict = {
             @CacheEvict(value = "chatNotifications", key = "#user.id"),
-            @CacheEvict(value = "userMeDTO", key = "#user.email")
+            @CacheEvict(value = "userMeDTO", key = "#user.email"),
+            @CacheEvict(value = "notifications", key = "#user.id")
     })
     public void markAllNotificationAsRead(User user) {
         if (user == null) {
@@ -256,8 +264,9 @@ public class NotificationService {
 
     @Transactional
     @Caching(evict = {
-        @CacheEvict(value = "chatNotifications", key = "#user.id"),
-        @CacheEvict(value = "userMeDTO", key = "#user.email")
+            @CacheEvict(value = "chatNotifications", key = "#user.id"),
+            @CacheEvict(value = "userMeDTO", key = "#user.email"),
+            @CacheEvict(value = "notifications", key = "#user.id")
     })
     public void deleteNotification(User user, Long notificationId) {
         Notification notification = notificationRepo.findById(notificationId).orElse(null);
@@ -265,5 +274,20 @@ public class NotificationService {
             notificationRepo.delete(notification);
             log.debug("Notification id={} deleted for user id={}", notificationId, user.getId());
         }
+    }
+
+    @Transactional( readOnly = true)
+    @Cacheable(value = "notifications", key = "#user.id")
+    public List<NotificationDTO> getNotifications(User user) {
+        log.debug("Fetching notifications for user id={} from database", user.getId());
+        List<Notification> notifications = notificationRepo.findByUser(user);
+        return notifications.stream().map(n -> NotificationDTO.builder()
+                .id(n.getId())
+                .type(n.getType())
+                .relatedId(n.getRelatedId())
+                .message(n.getMessage())
+                .isRead(n.isRead())
+                .createdAt(n.getCreatedAt())
+                .build()).collect(Collectors.toList());
     }
 }
