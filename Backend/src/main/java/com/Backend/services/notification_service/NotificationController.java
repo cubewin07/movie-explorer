@@ -15,8 +15,8 @@ import java.util.Map;
 public class NotificationController {
     private final NotificationService notificationService;
 
-    @PutMapping("/allRead")
-    public ResponseEntity<Map<String, String>> markAllAsRead(@AuthenticationPrincipal User user, @RequestBody AllReadRecord listOfIds) throws AccessDeniedException {
+    @PutMapping("/read")
+    public ResponseEntity<Map<String, String>> markSpecificAsRead(@AuthenticationPrincipal User user, @RequestBody AllReadRecord listOfIds) throws AccessDeniedException {
         notificationService.markNotificationAsRead(user, listOfIds.ids());
         return ResponseEntity.ok(Map.of("message", "Marked all notifications as read"));
     }

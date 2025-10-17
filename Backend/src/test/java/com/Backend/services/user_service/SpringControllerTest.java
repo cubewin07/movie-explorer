@@ -403,7 +403,7 @@ class SpringControllerTest {
 
         Map<String, Object> requestBody = Map.of("ids", ids);
 
-        mockMvc.perform(put("/notifications/allRead")
+        mockMvc.perform(put("/notifications/read")
                         .header("Authorization", bearer(token))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestBody)))
