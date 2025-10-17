@@ -290,13 +290,13 @@ export default function NotificationBell() {
               </ul>
 
               {/* Footer - TODO: Add "View All" link when you have a notifications page */}
-              {/* {notifications.length > 0 && (
+              {notifications.length > 0 && (
                 <div className="p-3 border-t border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50">
                   <button className="w-full text-center text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">
                     View all notifications
                   </button>
                 </div>
-              )} */}
+              )}
             </motion.div>
           </>
         )}
