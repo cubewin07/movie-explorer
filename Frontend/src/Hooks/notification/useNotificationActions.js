@@ -22,9 +22,7 @@ export const useNotificationActions = () => {
 //   Delete notification
   const deleteNotification = useMutation({
     mutationFn: async (notificationId) => {
-      const response = await instance.delete('/notifications/delete', {
-        params: { id: notificationId }
-      });
+      const response = await instance.delete(`/notifications/delete/${notificationId}`);
       return response.data;
     },
     onSuccess: () => {
