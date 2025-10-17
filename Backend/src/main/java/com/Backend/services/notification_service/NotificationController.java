@@ -41,7 +41,7 @@ public class NotificationController {
         return ResponseEntity.ok(Map.of("message", "Deleted notification"));
     }
 
-    @GetMapping("/notifications")
+    @GetMapping()
     public ResponseEntity<Set<NotificationDTO>> getNotifications(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(notificationService.getNotifications(user));
     }
