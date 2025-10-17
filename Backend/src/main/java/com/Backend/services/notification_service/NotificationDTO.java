@@ -13,7 +13,6 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public class NotificationDTO {
     private Long id;
-    private Long userId;
     private String type;
     private Long relatedId;
     private String message;

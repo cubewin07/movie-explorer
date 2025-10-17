@@ -161,7 +161,6 @@ public class NotificationService {
         List<Notification> notifications = notificationRepo.findByUserAndType(user, "chat");
         return notifications.stream().map(n -> NotificationDTO.builder()
                 .id(n.getId())
-                .userId(n.getUser() != null ? n.getUser().getId() : null)
                 .type(n.getType())
                 .relatedId(n.getRelatedId())
                 .message(n.getMessage())
