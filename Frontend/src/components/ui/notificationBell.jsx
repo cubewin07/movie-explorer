@@ -10,8 +10,8 @@ import { useNotificationActions } from "@/hooks/notification/useNotificationActi
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
   const [timetick, setTimeTick] = useState(0); // For re-rendering time ago
-  const [notifications, setNotifications] = useState([]);
   const { user, token } = useAuthen();
+  const [notifications, setNotifications] = useState(user?.notifications || []);
   const { markAsRead, markAllAsRead, deleteNotification } = useNotificationActions();
   const navigate = useNavigate();
 
