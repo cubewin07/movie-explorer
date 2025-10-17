@@ -252,40 +252,52 @@ export default function NotificationsPage() {
                     transition={{ delay: index * 0.03 }}
                     onClick={() => handleNotificationClick(notification)}
                     className={`
-                      group relative px-6 py-4 border-l-4 cursor-pointer transition-colors
+                      group relative px-6 py-4 border-l-4 cursor-pointer transition-all duration-200
                       ${notification.read 
-                        ? 'bg-white dark:bg-slate-900/50 hover:bg-gray-50 dark:hover:bg-slate-800/70' 
-                        : 'bg-blue-50/80 dark:bg-slate-800/90 hover:bg-blue-100/80 dark:hover:bg-slate-800'
+                        ? 'bg-transparent dark:bg-transparent hover:bg-gray-50/80 dark:hover:bg-slate-800/50' 
+                        : 'bg-blue-50/60 dark:bg-blue-950/20 hover:bg-blue-100/70 dark:hover:bg-blue-950/30'
                       }
                       ${getNotificationColor(notification.type)}
-                      border-b border-gray-100 dark:border-slate-800 last:border-b-0
+                      border-b border-gray-100 dark:border-slate-800/50 last:border-b-0
                     `}
                   >
                     <div className="flex gap-4">
                       {/* Icon */}
                       <div className="flex-shrink-0 mt-0.5">
-                        <div className="w-10 h-10 rounded-full bg-gray-100 dark:bg-slate-800 flex items-center justify-center">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                          notification.read
+                            ? 'bg-gray-100/50 dark:bg-slate-800/50 group-hover:bg-gray-100 dark:group-hover:bg-slate-800'
+                            : 'bg-blue-100/80 dark:bg-blue-900/30 group-hover:bg-blue-100 dark:group-hover:bg-blue-900/40'
+                        }`}>
                           {getNotificationIcon(notification.type)}
                         </div>
                       </div>
 
                       {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <p className={`text-base leading-relaxed ${
+                        <p className={`text-base leading-relaxed transition-colors ${
                           notification.read 
-                            ? 'text-gray-700 dark:text-gray-300' 
-                            : 'text-gray-900 dark:text-white font-medium'
+                            ? 'text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200' 
+                            : 'text-gray-900 dark:text-white font-semibold'
                         }`}>
                           {notification.message}
                         </p>
                         <div className="flex items-center gap-2 mt-2">
-                          <span className="text-sm text-gray-500 dark:text-gray-500">
+                          <span className={`text-sm transition-colors ${
+                            notification.read
+                              ? 'text-gray-400 dark:text-gray-600 group-hover:text-gray-500 dark:group-hover:text-gray-500'
+                              : 'text-gray-500 dark:text-gray-400'
+                          }`}>
                             {getTimeAgo(notification.createdAt)}
                           </span>
                           {!notification.read && (
-                            <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                            <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></span>
                           )}
-                          <span className="text-xs text-gray-400 dark:text-gray-600">
+                          <span className={`text-xs transition-colors ${
+                            notification.read
+                              ? 'text-gray-400 dark:text-gray-600 group-hover:text-gray-500 dark:group-hover:text-gray-500'
+                              : 'text-gray-500 dark:text-gray-400'
+                          }`}>
                             • {notification.type === 'friendRequest' ? 'Friend Request' : 'Message'}
                           </span>
                         </div>
@@ -294,9 +306,9 @@ export default function NotificationsPage() {
                       {/* Delete button */}
                       <button
                         onClick={(e) => handleDeleteNotification(e, notification.id)}
-                        className="flex-shrink-0 opacity-0 group-hover:opacity-100 p-2 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-all"
+                        className="flex-shrink-0 opacity-0 group-hover:opacity-100 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 hover:scale-110"
                       >
-                        <Trash2 className="w-5 h-5 text-red-500 dark:text-red-400" />
+                        <Trash2 className="w-4 h-4 text-red-500 dark:text-red-400" />
                       </button>
                     </div>
                   </motion.li>
