@@ -52,15 +52,16 @@ export default function NotificationsPage() {
   };
 
   const handleNotificationClick = (notification) => {
-    markAsRead.mutate({id: notification.id, token});
-
-    if (notification.type === 'friendRequest') {
-      navigate(`/user/${notification.relatedId}`);
-    } else if (notification.type === 'chat') {
-      // TODO: Navigate to chat when messages feature is ready
-      // navigate(`/messages/${notification.relatedId}`);
-      console.log("Navigate to chat with id: " + notification.relatedId);
-    }
+    markAsRead.mutate({id: notification.id, token}, onSuccess = () => {
+      notification.read = true;
+      if (notification.type === 'friendRequest') {
+        navigate(`/user/${notification.relatedId}`);
+      } else if (notification.type === 'chat') {
+        // TODO: Navigate to chat when messages feature is ready
+        // navigate(`/messages/${notification.relatedId}`);
+        console.log("Navigate to chat with id: " + notification.relatedId);
+      }
+    });
   };
 
   const handleDeleteNotification = (e, notificationId) => {
