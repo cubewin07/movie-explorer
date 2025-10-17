@@ -3,6 +3,7 @@ package com.Backend.services.user_service.service;
 import com.Backend.services.friend_service.model.Friend;
 import com.Backend.services.friend_service.model.Status;
 import com.Backend.services.friend_service.service.FriendService;
+import com.Backend.services.notification_service.NotificationDTO;
 import com.Backend.services.user_service.model.*;
 import com.Backend.services.user_service.model.DTO.*;
 import com.Backend.services.chat_service.message.service.MessageService;

@@ -2,6 +2,7 @@ package com.Backend.services.user_service.model.DTO;
 
 import java.util.List;
 
+import com.Backend.services.notification_service.NotificationDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
