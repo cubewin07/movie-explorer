@@ -373,7 +373,7 @@ class SpringControllerTest {
         List<NotificationDTO> created = notificationService.getChatNotifications(user);
         Long notificationId = created.getFirst().getId();
 
-        mockMvc.perform(post("/notifications/read/{id}", notificationId)
+        mockMvc.perform(put("/notifications/read/{id}", notificationId)
                         .header("Authorization", bearer(token))
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -403,7 +403,7 @@ class SpringControllerTest {
 
         Map<String, Object> requestBody = Map.of("ids", ids);
 
-        mockMvc.perform(post("/notifications/allRead")
+        mockMvc.perform(put("/notifications/allRead")
                         .header("Authorization", bearer(token))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestBody)))

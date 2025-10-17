@@ -15,13 +15,13 @@ import java.util.Map;
 public class NotificationController {
     private final NotificationService notificationService;
 
-    @PostMapping("/allRead")
+    @PutMapping("/allRead")
     public ResponseEntity<Map<String, String>> markAllAsRead(@AuthenticationPrincipal User user, @RequestBody AllReadRecord listOfIds) throws AccessDeniedException {
         notificationService.markNotificationAsRead(user, listOfIds.ids());
         return ResponseEntity.ok(Map.of("message", "Marked all notifications as read"));
     }
 
-    @PostMapping("/read/{id}")
+    @PutMapping("/read/{id}")
     public ResponseEntity<Map<String, String>> markAsRead(@AuthenticationPrincipal User user, @PathVariable("id") Long id) throws AccessDeniedException {
         notificationService.markNotificationAsRead(user, id);
         return ResponseEntity.ok(Map.of("message", "Marked notification as read"));
