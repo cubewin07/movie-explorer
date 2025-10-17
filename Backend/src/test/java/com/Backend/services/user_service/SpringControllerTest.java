@@ -358,7 +358,7 @@ class SpringControllerTest {
     // Notification tests
     @Test
     @Order(10)
-    @DisplayName("POST /notifications/read/{id} marks single notification as read")
+    @DisplayName("PUT /notifications/read/{id} marks single notification as read")
     void markSingleNotificationAsRead() throws Exception {
         String token = registerAndAuth("notif_user1", "notif1@example.com");
         Long userId = getUserId(token);
@@ -382,7 +382,7 @@ class SpringControllerTest {
 
     @Test
     @Order(11)
-    @DisplayName("POST /notifications/allRead marks multiple notifications as read")
+    @DisplayName("PUT /notifications/allRead marks multiple notifications as read")
     void markAllNotificationsAsRead() throws Exception {
         String token = registerAndAuth("notif_user2", "notif2@example.com");
         Long userId = getUserId(token);
@@ -407,6 +407,28 @@ class SpringControllerTest {
                         .header("Authorization", bearer(token))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestBody)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is("Marked your specific notifications as read")));
+    }
+
+    @Test
+    @Order(12)
+    @DisplayName("PUT /notifications/allRead marks all user notifications as read")
+    void markAllUserNotificationsAsRead() throws Exception {
+        String token = registerAndAuth("notif_user3", "notif3@example.com");
+        Long userId = getUserId(token);
+        User user = new User();
+        user.setId(userId);
+        user.setEmail("notif3@example.com");
+
+        // Create multiple notifications of different types
+        notificationService.createNotification(user, "chat", 400L, "Chat message 1");
+        notificationService.createNotification(user, "chat", 500L, "Chat message 2");
+        notificationService.createNotification(user, "updates", 600L, "System update");
+
+        mockMvc.perform(put("/notifications/allRead")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is("Marked all notifications as read")));
     }
