@@ -238,8 +238,8 @@ export default function NotificationBell() {
                         className={`
                           group relative px-4 py-3 border-l-4 cursor-pointer transition-colors
                           ${notification.read 
-                            ? 'bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800/50' 
-                            : 'bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-100 dark:hover:bg-blue-950/50'
+                            ? 'bg-white dark:bg-slate-900/50 hover:bg-gray-50 dark:hover:bg-slate-800/70' 
+                            : 'bg-blue-50/80 dark:bg-slate-800/90 hover:bg-blue-100/80 dark:hover:bg-slate-800'
                           }
                           ${getNotificationColor(notification.type)}
                           border-b border-gray-100 dark:border-slate-800
