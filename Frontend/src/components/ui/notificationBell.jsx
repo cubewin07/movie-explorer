@@ -5,23 +5,16 @@ import { useNavigate } from "react-router-dom";
 import { useAuthen } from '@/context/AuthenProvider';
 import { Client } from "@stomp/stompjs";
 import { Button } from "@/components/ui/button";
-
-// TODO: Create API hooks for these operations
-// import { useMarkNotificationAsRead } from '@/hooks/notifications/useMarkNotificationAsRead';
-// import { useDeleteNotification } from '@/hooks/notifications/useDeleteNotification';
-// import { useMarkAllAsRead } from '@/hooks/notifications/useMarkAllAsRead';
+import { useNotificationActions } from "@/hooks/notification/useNotificationActions";
 
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
   const [timetick, setTimeTick] = useState(0); // For re-rendering time ago
   const [notifications, setNotifications] = useState([]);
   const { user, token } = useAuthen();
+  const { markAsRead, markAllAsRead, deleteNotification } = useNotificationActions();
   const navigate = useNavigate();
 
-  // TODO: Replace with actual API calls
-  // const { mutate: markAsRead } = useMarkNotificationAsRead();
-  // const { mutate: deleteNotification } = useDeleteNotification();
-  // const { mutate: markAllAsRead } = useMarkAllAsRead();
 
   // Update time ago every minute
   useEffect(() => {
@@ -89,7 +82,7 @@ export default function NotificationBell() {
 
   const handleNotificationClick = (notification) => {
     // TODO: Mark as read via API
-    // markAsRead(notification.id);
+    markAsRead.mutate(notification.id);
     
     // Mark as read locally for now
     setNotifications(prev => 
@@ -112,7 +105,7 @@ export default function NotificationBell() {
     e.stopPropagation();
     
     // TODO: Delete via API
-    // deleteNotification(notificationId);
+    deleteNotification.mutate(notificationId);
     
     // Delete locally for now
     setNotifications(prev => prev.filter(n => n.id !== notificationId));
@@ -120,7 +113,7 @@ export default function NotificationBell() {
 
   const handleMarkAllAsRead = () => {
     // TODO: Mark all as read via API
-    // markAllAsRead();
+    markAllAsRead.mutate();
     
     // Mark all as read locally for now
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
