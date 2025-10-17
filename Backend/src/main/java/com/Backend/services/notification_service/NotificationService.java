@@ -3,6 +3,7 @@ package com.Backend.services.notification_service;
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.user_service.model.User;
@@ -19,6 +20,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -159,16 +161,25 @@ public class NotificationService {
         return notificationRepo.findByUserAndType(user, "chat");
     }
 
+
+    @Transactional
     @Caching(evict = {
-        @CacheEvict(value = "chatNotifications", key = "#user.id"),
-        @CacheEvict(value = "userMeDTO", key = "#user.email")
+            @CacheEvict(value = "chatNotifications", key = "#user.id"),
+            @CacheEvict(value = "userMeDTO", key = "#user.email")
     })
     public void markNotificationAsRead(User user, Long notificationId) throws AccessDeniedException {
         Notification notification = notificationRepo.findById(notificationId)
-                .orElseThrow(() -> new EntityNotFoundException("Notification not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Notification not found with id: " + notificationId));
 
-        if (!notification.getUser().equals(user)) {
+        if (!notification.getUser().getId().equals(user.getId())) {
+            log.warn("User id={} attempted to mark notification id={} belonging to user id={}",
+                    user.getId(), notificationId, notification.getUser().getId());
             throw new AccessDeniedException("You cannot mark others' notifications as read");
+        }
+
+        if (notification.isRead()) {
+            log.debug("Notification id={} is already marked as read for user id={}", notificationId, user.getId());
+            return; // Idempotent operation
         }
 
         log.debug("Marking notification id={} as read for user id={}", notificationId, user.getId());
@@ -176,23 +187,39 @@ public class NotificationService {
         notificationRepo.save(notification);
     }
 
+    @Transactional
     @Caching(evict = {
             @CacheEvict(value = "chatNotifications", key = "#user.id"),
             @CacheEvict(value = "userMeDTO", key = "#user.email")
     })
-    public void markNotificationAsRead(User user, List<Long> notificationIds) {
-        int updatedNotification = notificationRepo.updateNotificationReadStatus(notificationIds, true);
-
-        if (updatedNotification == 0) {
-            throw new EntityNotFoundException("No notifications updated");
-        } else if (updatedNotification < notificationIds.size()) {
-            throw new EntityNotFoundException("Some notifications not updated");
+    public void markNotificationAsRead(User user, List<Long> notificationIds) throws AccessDeniedException {
+        if (notificationIds == null || notificationIds.isEmpty()) {
+            log.debug("Empty notification list provided for user id={}", user.getId());
+            return;
         }
-        log.debug("Marking {} notifications as read for user id={}", updatedNotification, user.getId());
+
+        // Remove duplicates
+        List<Long> uniqueIds = notificationIds.stream().distinct().collect(Collectors.toList());
+
+        // Verify all notifications belong to the user before updating
+        long userNotificationCount = notificationRepo.countByUserIdAndIdIn(user.getId(), uniqueIds);
+
+        if (userNotificationCount == 0) {
+            throw new EntityNotFoundException("No notifications found for the current user");
+        }
+
+        if (userNotificationCount < uniqueIds.size()) {
+            log.warn("User id={} attempted to mark {} notifications but only {} belong to them",
+                    user.getId(), uniqueIds.size(), userNotificationCount);
+            throw new AccessDeniedException("Some notifications do not belong to you");
+        }
+
+        // Update only unread notifications to avoid unnecessary database operations
+        int updatedCount = notificationRepo.updateNotificationReadStatus(user.getId(), uniqueIds, true);
+
+        log.debug("Marked {} out of {} notifications as read for user id={}",
+                updatedCount, uniqueIds.size(), user.getId());
     }
-
-
-    
     @Caching(evict = {
         @CacheEvict(value = "chatNotifications", key = "#user.id"),
         @CacheEvict(value = "userMeDTO", key = "#user.email")
