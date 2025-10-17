@@ -167,11 +167,23 @@ public class NotificationService {
             notification.setRead(true);
             notificationRepo.save(notification);
             log.debug("Notification id={} marked as read for user id={}", notificationId, user.getId());
-            if(stompEventListener.isUserOnline(user.getUsername())) {
-                template.convertAndSend("/topic/notifications/" + user.getId(), notification);
-            }
         }
     }
+
+    @Caching(evict = {
+            @CacheEvict(value = "chatNotifications", key = "#user.id"),
+            @CacheEvict(value = "userMeDTO", key = "#user.email")
+    })
+    public void markNotificationAsRead(User user, List<Long> notificationId) {
+        int updatedNotification = notificationRepo.updateNotificationReadStatus(notificationId, true);
+        if(updatedNotification > 0) {
+            log.debug("Marked {} notifications as read for user id={}", updatedNotification, user.getId());
+        } else {
+            log.debug("No notifications marked as read for user id={}", user.getId());
+        }
+    }
+
+
     
     @Caching(evict = {
         @CacheEvict(value = "chatNotifications", key = "#user.id"),

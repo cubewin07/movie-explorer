@@ -20,6 +20,6 @@ public interface NotificationRepo extends JpaRepository<Notification, Long> {
     @Transactional
     @Modifying( clearAutomatically = true)
     @Query("UPDATE Notification n SET n.isRead = :status WHERE n.id IN :id")
-    int updateNotificationReadStatus(List<Long> id, String status);
+    int updateNotificationReadStatus(List<Long> id, Boolean status);
     
 }
