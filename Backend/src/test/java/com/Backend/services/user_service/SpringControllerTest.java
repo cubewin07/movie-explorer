@@ -77,6 +77,16 @@ class SpringControllerTest {
         return "Bearer " + token;
     }
     
+    private Long getUserId(String token) throws Exception {
+        MvcResult result = mockMvc.perform(get("/user/me")
+                .header("Authorization", bearer(token)))
+                .andExpect(status().isOk())
+                .andReturn();
+        String body = result.getResponse().getContentAsString();
+        Map<?,?> map = objectMapper.readValue(body, Map.class);
+        return Long.valueOf(((Integer) map.get("id")).longValue());
+    }
+
     // Watchlist helpers
     private void addMovie(String token, long id) throws Exception {
         WatchlistPosting posting = new WatchlistPosting(WatchlistType.MOVIE, id);
@@ -269,13 +279,15 @@ class SpringControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new EmailBody("bob@example.com"))))
                 .andExpect(status().isOk());
+
+        Long AliceId = getUserId(tokenA);
     
         // B authenticates and accepts
         authenticate("bob@example.com", "password123");
         mockMvc.perform(put("/friends/update")
                         .header("Authorization", bearer(tokenB))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new FriendUpdatingBody("alice@example.com", Status.ACCEPTED))))
+                        .content(objectMapper.writeValueAsString(new FriendUpdatingBody(AliceId, Status.ACCEPTED))))
                 .andExpect(status().isOk());
     
         // Both should see each other in friends list
@@ -333,6 +345,40 @@ class SpringControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", hasSize(0)))
                 .andExpect(jsonPath("$.totalElements", is(0)));
+    }
+
+    // Notification tests
+    @Test
+    @Order(10)
+    @DisplayName("POST /notifications/read/{id} marks single notification as read")
+    void markSingleNotificationAsRead() throws Exception {
+        String token = registerAndAuth("notif_user1", "notif1@example.com");
+
+        // Mock notification ID for testing
+        Long notificationId = 1L;
+
+        mockMvc.perform(post("/notifications/read/{id}", notificationId)
+                .header("Authorization", bearer(token))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is("Marked notification as read")));
+    }
+
+    @Test
+    @Order(11)
+    @DisplayName("POST /notifications/allRead marks multiple notifications as read")
+    void markAllNotificationsAsRead() throws Exception {
+        String token = registerAndAuth("notif_user2", "notif2@example.com");
+
+        // Create request body with list of notification IDs
+        Map<String, Object> requestBody = Map.of("ids", java.util.Arrays.asList(1L, 2L, 3L));
+
+        mockMvc.perform(post("/notifications/allRead")
+                .header("Authorization", bearer(token))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(requestBody)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is("Marked all notifications as read")));
     }
 
 }
