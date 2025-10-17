@@ -18,9 +18,14 @@ public interface NotificationRepo extends JpaRepository<Notification, Long> {
 
     List<Notification> findByUserAndType(User user, String type);
 
+    long countByUserIdAndIdIn(Long userId, List<Long> ids);
+
+
     @Transactional
     @Modifying( clearAutomatically = true)
-    @Query("UPDATE Notification n SET n.isRead = :status WHERE n.id IN :ids")
-    int updateNotificationReadStatus(@Param("ids") List<Long> id, @Param("status") Boolean status);
+    @Query("UPDATE Notification n SET n.isRead = :status WHERE n.id IN :ids AND n.user.id = :userId AND n.isRead = false")
+    int updateNotificationReadStatus(@Param("userId") Long userId,
+                                     @Param("ids") List<Long> ids,
+                                     @Param("status") Boolean status);
     
 }
