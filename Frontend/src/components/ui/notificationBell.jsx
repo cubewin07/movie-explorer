@@ -83,45 +83,53 @@ export default function NotificationBell() {
   };
 
   const handleNotificationClick = (notification) => {
-    // TODO: Mark as read via API
-    markAsRead.mutate({id: notification.id, token}, 
-      onSuccess = () => { 
-      // Mark as read locally for now
-      setNotifications(prev => 
-        prev.map(n => n.id === notification.id ? { ...n, read: true } : n)
-      );
+  markAsRead.mutate(
+    { id: notification.id, token },
+    {
+      onSuccess: () => {
+        // Mark as read locally
+        setNotifications(prev =>
+          prev.map(n => n.id === notification.id ? { ...n, read: true } : n)
+        );
 
-      // Navigate based on notification type
-      if (notification.type === 'friendRequest') {
-        navigate(`/user/${notification.relatedId}`);
-      } else if (notification.type === 'chat') {
-        // TODO: Navigate to chat with the specific chat ID
-        // navigate(`/messages/${notification.relatedId}`);
-        console.log('Navigate to chat:', notification.relatedId);
-      }
+        // Navigate based on notification type
+        if (notification.type === 'friendRequest') {
+          navigate(`/user/${notification.relatedId}`);
+        } else if (notification.type === 'chat') {
+          // TODO: Navigate to chat with the specific chat ID
+          console.log('Navigate to chat:', notification.relatedId);
+          // navigate(`/messages/${notification.relatedId}`);
+        }
 
         setOpen(false);
-      });
-  };
+      },
+    }
+  );
+};
 
-  const handleDeleteNotification = (e, notificationId) => {
-    e.stopPropagation();
-    
-    // TODO: Delete via API
-    deleteNotification.mutate({id: notificationId, token}, onSuccess = () => {
-      // Remove locally for now
-      setNotifications(prev => prev.filter(n => n.id !== notificationId));
-    });
-  };
+const handleDeleteNotification = (e, notificationId) => {
+  e.stopPropagation();
 
-  const handleMarkAllAsRead = () => {
-    // TODO: Mark all as read via API
-    markAllAsRead.mutate(token, onSuccess = () => {
-      // Mark all as read locally for now
+  deleteNotification.mutate(
+    { id: notificationId, token },
+    {
+      onSuccess: () => {
+        // Remove locally
+        setNotifications(prev => prev.filter(n => n.id !== notificationId));
+      },
+    }
+  );
+};
+
+const handleMarkAllAsRead = () => {
+  markAllAsRead.mutate(token, {
+    onSuccess: () => {
+      // Mark all as read locally
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-    });
-    
-  };
+    },
+  });
+};
+
 
   const getTimeAgo = (timestamp) => {
     const now = new Date();

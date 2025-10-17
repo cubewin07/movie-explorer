@@ -10,10 +10,10 @@ export const useNotificationActions = () => {
       const response = await instance.put(`/notifications/read/${id}`);
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['userInfo', token] });
+      queryClient.invalidateQueries({ queryKey: ['userInfo', variables.token] });
     },
     onError: (error) => {
       console.error('Error marking notification as read:', error);
@@ -26,10 +26,10 @@ export const useNotificationActions = () => {
             const response = await instance.delete(`/notifications/delete/${id}`);
             return response.data;
         },
-        onSuccess: () => {
+        onSuccess: (data, variables) => {
             // Invalidate relevant queries
             queryClient.invalidateQueries({ queryKey: ['notifications'] });
-            queryClient.invalidateQueries({ queryKey: ['userInfo', token] });
+            queryClient.invalidateQueries({ queryKey: ['userInfo', variables.token] });
         },
         onError: (error) => {
             console.error('Error deleting notification:', error);
@@ -41,10 +41,10 @@ export const useNotificationActions = () => {
             const response = await instance.put('/notifications/allRead');
         return response.data;
         },
-        onSuccess: () => {
+        onSuccess: (data, variables) => {
         // Invalidate relevant queries
             queryClient.invalidateQueries({ queryKey: ['notifications'] });
-            queryClient.invalidateQueries({ queryKey: ['userInfo', token] });
+            queryClient.invalidateQueries({ queryKey: ['userInfo', variables.token] });
         },
         onError: (error) => {
             console.error('Error marking all notifications as read:', error);
