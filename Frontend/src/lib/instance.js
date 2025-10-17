@@ -16,7 +16,6 @@ instance.interceptors.request.use(
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log('🔑 Request with token:', token.slice(0, 20) + '...');
     } else {
       // Remove authorization header if no token
       delete config.headers.Authorization;
