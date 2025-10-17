@@ -432,4 +432,28 @@ class SpringControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is("Marked all notifications as read")));
     }
+
+    @Test
+    @Order(13)
+    @DisplayName("DELETE /notifications/delete/{id} deletes a specific notification")
+    void deleteSpecificNotification() throws Exception {
+        String token = registerAndAuth("notif_user4", "notif4@example.com");
+        Long userId = getUserId(token);
+        User user = new User();
+        user.setId(userId);
+        user.setEmail("notif4@example.com");
+
+        // Create a notification using the service
+        notificationService.createNotification(user, "chat", 700L, "Notification to delete");
+
+        // Fetch the created notification ID
+        List<NotificationDTO> created = notificationService.getChatNotifications(user);
+        Long notificationId = created.getFirst().getId();
+
+        mockMvc.perform(delete("/notifications/delete/{id}", notificationId)
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is("Deleted notification")));
+    }
 }
