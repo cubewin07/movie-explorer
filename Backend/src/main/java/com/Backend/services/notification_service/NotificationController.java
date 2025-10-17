@@ -30,7 +30,7 @@ public class NotificationController {
 
     @PutMapping("/allRead")
     public ResponseEntity<Map<String, String>> markAllAsRead(@AuthenticationPrincipal User user) {
-        notificationService.markAllNotificationAsRead(User user);
+        notificationService.markAllNotificationAsRead(user);
         return ResponseEntity.ok(Map.of("message", "Marked all notifications as read"));
     }
 }
