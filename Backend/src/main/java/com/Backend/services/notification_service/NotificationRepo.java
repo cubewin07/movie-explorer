@@ -7,6 +7,7 @@ import com.Backend.services.user_service.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 public interface NotificationRepo extends JpaRepository<Notification, Long> {
@@ -19,7 +20,7 @@ public interface NotificationRepo extends JpaRepository<Notification, Long> {
 
     @Transactional
     @Modifying( clearAutomatically = true)
-    @Query("UPDATE Notification n SET n.isRead = :status WHERE n.id IN :id")
-    int updateNotificationReadStatus(List<Long> id, Boolean status);
+    @Query("UPDATE Notification n SET n.isRead = :status WHERE n.id IN :ids")
+    int updateNotificationReadStatus(@Param("ids") List<Long> id, @Param("status") Boolean status);
     
 }
