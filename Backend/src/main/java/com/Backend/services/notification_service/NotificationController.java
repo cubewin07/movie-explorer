@@ -33,4 +33,10 @@ public class NotificationController {
         notificationService.markAllNotificationAsRead(user);
         return ResponseEntity.ok(Map.of("message", "Marked all notifications as read"));
     }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<Map<String, String>> deleteNotification(@AuthenticationPrincipal User user, @PathVariable("id") Long id) throws AccessDeniedException {
+        notificationService.deleteNotification(user, id);
+        return ResponseEntity.ok(Map.of("message", "Deleted notification"));
+    }
 }
