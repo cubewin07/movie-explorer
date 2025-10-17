@@ -156,9 +156,18 @@ public class NotificationService {
     }
 
     @Cacheable(value = "chatNotifications", key = "#user.id")
-    public List<Notification> getChatNotifications(User user) {
+    public List<NotificationDTO> getChatNotifications(User user) {
         log.debug("Fetching chat notifications for user id={} from database", user.getId());
-        return notificationRepo.findByUserAndType(user, "chat");
+        List<Notification> notifications = notificationRepo.findByUserAndType(user, "chat");
+        return notifications.stream().map(n -> NotificationDTO.builder()
+                .id(n.getId())
+                .userId(n.getUser() != null ? n.getUser().getId() : null)
+                .type(n.getType())
+                .relatedId(n.getRelatedId())
+                .message(n.getMessage())
+                .isRead(n.isRead())
+                .createdAt(n.getCreatedAt())
+                .build()).collect(Collectors.toList());
     }
 
 

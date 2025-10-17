@@ -1,6 +1,7 @@
 package com.Backend.services.user_service;
 
 import com.Backend.services.notification_service.Notification;
+import com.Backend.services.notification_service.NotificationDTO;
 import com.Backend.services.notification_service.NotificationService;
 import com.Backend.services.user_service.model.DTO.AuthenticateDTO;
 import com.Backend.services.user_service.model.DTO.RegisterDTO;
@@ -369,7 +370,7 @@ class SpringControllerTest {
         notificationService.createNotification(user, "chat", 123L, "Test message");
 
         // Fetch the created notification ID from repo
-        List<Notification> created = notificationService.getChatNotifications(user);
+        List<NotificationDTO> created = notificationService.getChatNotifications(user);
         Long notificationId = created.getFirst().getId();
 
         mockMvc.perform(post("/notifications/read/{id}", notificationId)
@@ -397,7 +398,7 @@ class SpringControllerTest {
         // Fetch notification IDs
         List<Long> ids = notificationService.getChatNotifications(user)
                 .stream()
-                .map(Notification::getId)
+                .map(NotificationDTO::getId)
                 .toList();
 
         Map<String, Object> requestBody = Map.of("ids", ids);
