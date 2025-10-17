@@ -281,6 +281,7 @@ class SpringControllerTest {
                 .andExpect(status().isOk());
 
         Long AliceId = getUserId(tokenA);
+        Long BobId = getUserId(tokenB);
     
         // B authenticates and accepts
         authenticate("bob@example.com", "password123");
@@ -306,8 +307,7 @@ class SpringControllerTest {
         // A deletes friendship
         mockMvc.perform(delete("/friends/delete")
                         .header("Authorization", bearer(tokenA))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new EmailBody("bob@example.com"))))
+                        .param("id", String.valueOf(BobId)))
                 .andExpect(status().isOk());
     }
 
