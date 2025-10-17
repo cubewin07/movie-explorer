@@ -5,15 +5,20 @@ import { useNavigate } from "react-router-dom";
 import { useAuthen } from '@/context/AuthenProvider';
 import { Button } from "@/components/ui/button";
 import { useNotificationActions } from "@/hooks/notification/useNotificationActions";
+import { useNotification } from "@/hooks/notification/useNotification";
 
 export default function NotificationsPage() {
   const [timetick, setTimeTick] = useState(0);
-  const [notifications, setNotifications] = useState([]);
   const [filter, setFilter] = useState('all'); // 'all', 'unread', 'friendRequest', 'chat'
   const [searchQuery, setSearchQuery] = useState('');
+  
+  const { data, isLoading, error } = useNotification();
   const { user } = useAuthen();
   const { markAsRead, markAllAsRead, deleteNotification } = useNotificationActions();
   const navigate = useNavigate();
+
+  // Get notifications from the query
+  const notifications = data || [];
 
   // Update time ago every minute
   useEffect(() => {
@@ -22,12 +27,6 @@ export default function NotificationsPage() {
     }, 60000);
 
     return () => clearInterval(interval);
-  }, []);
-
-  // TODO: Fetch notifications from API
-  useEffect(() => {
-    // Mock data - replace with actual API call
-    // fetchNotifications();
   }, []);
 
   const getNotificationIcon = (type) => {
@@ -54,28 +53,23 @@ export default function NotificationsPage() {
 
   const handleNotificationClick = (notification) => {
     markAsRead.mutate(notification.id);
-    
-    setNotifications(prev => 
-      prev.map(n => n.id === notification.id ? { ...n, read: true } : n)
-    );
 
     if (notification.type === 'friendRequest') {
       navigate(`/user/${notification.relatedId}`);
     } else if (notification.type === 'chat') {
-    //   navigate(`/messages/${notification.relatedId}`);
-        console.log("navigate to chat with id" + notification.relatedId);
+      // TODO: Navigate to chat when messages feature is ready
+      // navigate(`/messages/${notification.relatedId}`);
+      console.log("Navigate to chat with id: " + notification.relatedId);
     }
   };
 
   const handleDeleteNotification = (e, notificationId) => {
     e.stopPropagation();
     deleteNotification.mutate(notificationId);
-    setNotifications(prev => prev.filter(n => n.id !== notificationId));
   };
 
   const handleMarkAllAsRead = () => {
     markAllAsRead.mutate();
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
   const getTimeAgo = (timestamp) => {
@@ -109,7 +103,33 @@ export default function NotificationsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
-      {/* Header */}
+      {/* Loading State */}
+      {isLoading && (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-500 dark:text-gray-400">Loading notifications...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && (
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Bell className="w-8 h-8 text-red-500" />
+            </div>
+            <p className="text-red-500 dark:text-red-400 font-medium">Failed to load notifications</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">Please try again later</p>
+          </div>
+        </div>
+      )}
+
+      {/* Main Content */}
+      {!isLoading && !error && (
+        <>
+          {/* Header */}
       <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between mb-6">
@@ -295,6 +315,8 @@ export default function NotificationsPage() {
           </div>
         )}
       </div>
+        </>
+      )}
     </div>
   );
 }

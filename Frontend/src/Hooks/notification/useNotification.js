@@ -1,8 +1,7 @@
 import instance from "@/lib/instance";
 import { useQuery } from "@tanstack/react-query";
 
-export const useNotification = () => {
-  const fetchNotifications = useQuery({
+export const useNotification = () => useQuery({
     queryKey: ['notifications'],
     queryFn: async () => {
       const response = await instance.get('/notifications');
@@ -14,6 +13,3 @@ export const useNotification = () => {
       console.error('Error fetching notifications:', error);
     }
   });   
-
-  return { fetchNotifications };
-}
