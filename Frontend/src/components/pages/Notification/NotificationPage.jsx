@@ -52,7 +52,7 @@ export default function NotificationsPage() {
   };
 
   const handleNotificationClick = (notification) => {
-    markAsRead.mutate(notification.id, token);
+    markAsRead.mutate({id: notification.id, token});
 
     if (notification.type === 'friendRequest') {
       navigate(`/user/${notification.relatedId}`);
@@ -65,7 +65,7 @@ export default function NotificationsPage() {
 
   const handleDeleteNotification = (e, notificationId) => {
     e.stopPropagation();
-    deleteNotification.mutate(notificationId, token);
+    deleteNotification.mutate({id: notificationId, token});
   };
 
   const handleMarkAllAsRead = () => {

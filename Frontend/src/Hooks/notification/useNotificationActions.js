@@ -6,8 +6,8 @@ export const useNotificationActions = () => {
 
   // Mark notification as read
   const markAsRead = useMutation({
-    mutationFn: async (notificationId, token) => {
-      const response = await instance.put(`/notifications/read/${notificationId}`);
+    mutationFn: async ({id, token}) => {
+      const response = await instance.put(`/notifications/read/${id}`);
       return response.data;
     },
     onSuccess: () => {
@@ -22,8 +22,8 @@ export const useNotificationActions = () => {
 
 //   Delete notification
     const deleteNotification = useMutation({
-        mutationFn: async (notificationId, token) => {
-            const response = await instance.delete(`/notifications/delete/${notificationId}`);
+        mutationFn: async ({id, token}) => {
+            const response = await instance.delete(`/notifications/delete/${id}`);
             return response.data;
         },
         onSuccess: () => {

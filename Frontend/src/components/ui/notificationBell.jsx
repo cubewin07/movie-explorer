@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Bell, X, UserPlus, MessageCircle, Check, Trash2, CheckCheck } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -11,6 +11,7 @@ export default function NotificationBell() {
   const [open, setOpen] = useState(false);
   const [timetick, setTimeTick] = useState(0); // For re-rendering time ago
   const { user, token } = useAuthen();
+  const stompClientRef = useRef(null);
   const [notifications, setNotifications] = useState(user?.notifications || []);
   const { markAsRead, markAllAsRead, deleteNotification } = useNotificationActions();
   const navigate = useNavigate();
@@ -26,7 +27,7 @@ export default function NotificationBell() {
   }, []);
 
   useEffect(() => {
-    if (!user || !token) return;
+    if (!user || !token || stompClientRef.current) return;
     
     const stompClient = new Client({
       brokerURL: "ws://localhost:8080/ws?userId=" + user?.id,
@@ -51,6 +52,7 @@ export default function NotificationBell() {
       },
     });
 
+    stompClientRef.current = stompClient;
     stompClient.activate();
 
     return () => {
@@ -82,41 +84,43 @@ export default function NotificationBell() {
 
   const handleNotificationClick = (notification) => {
     // TODO: Mark as read via API
-    markAsRead.mutate(notification.id, token);
-    
-    // Mark as read locally for now
-    setNotifications(prev => 
-      prev.map(n => n.id === notification.id ? { ...n, read: true } : n)
-    );
+    markAsRead.mutate({id: notification.id, token}, 
+      onSuccess = () => { 
+      // Mark as read locally for now
+      setNotifications(prev => 
+        prev.map(n => n.id === notification.id ? { ...n, read: true } : n)
+      );
 
-    // Navigate based on notification type
-    if (notification.type === 'friendRequest') {
-      navigate(`/user/${notification.relatedId}`);
-    } else if (notification.type === 'chat') {
-      // TODO: Navigate to chat with the specific chat ID
-      // navigate(`/messages/${notification.relatedId}`);
-      console.log('Navigate to chat:', notification.relatedId);
-    }
+      // Navigate based on notification type
+      if (notification.type === 'friendRequest') {
+        navigate(`/user/${notification.relatedId}`);
+      } else if (notification.type === 'chat') {
+        // TODO: Navigate to chat with the specific chat ID
+        // navigate(`/messages/${notification.relatedId}`);
+        console.log('Navigate to chat:', notification.relatedId);
+      }
 
-    setOpen(false);
+        setOpen(false);
+      });
   };
 
   const handleDeleteNotification = (e, notificationId) => {
     e.stopPropagation();
     
     // TODO: Delete via API
-    deleteNotification.mutate(notificationId, token);
-    
-    // Delete locally for now
-    setNotifications(prev => prev.filter(n => n.id !== notificationId));
+    deleteNotification.mutate({id: notificationId, token}, onSuccess = () => {
+      // Remove locally for now
+      setNotifications(prev => prev.filter(n => n.id !== notificationId));
+    });
   };
 
   const handleMarkAllAsRead = () => {
     // TODO: Mark all as read via API
-    markAllAsRead.mutate(token);
+    markAllAsRead.mutate(token, onSuccess = () => {
+      // Mark all as read locally for now
+      setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    });
     
-    // Mark all as read locally for now
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
   };
 
   const getTimeAgo = (timestamp) => {
