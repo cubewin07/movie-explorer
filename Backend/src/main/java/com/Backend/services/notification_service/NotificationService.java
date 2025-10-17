@@ -1,5 +1,6 @@
 package com.Backend.services.notification_service;
 
+import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -10,6 +11,7 @@ import com.Backend.websocket.eventListener.STOMPEventListener;
 import com.Backend.services.user_service.repository.UserRepository;
 import com.Backend.exception.UserNotFoundException;
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -161,26 +163,32 @@ public class NotificationService {
         @CacheEvict(value = "chatNotifications", key = "#user.id"),
         @CacheEvict(value = "userMeDTO", key = "#user.email")
     })
-    public void markNotificationAsRead(User user, Long notificationId) {
-        Notification notification = notificationRepo.findById(notificationId).orElse(null);
-        if(notification != null && notification.getUser().equals(user)) {
-            notification.setRead(true);
-            notificationRepo.save(notification);
-            log.debug("Notification id={} marked as read for user id={}", notificationId, user.getId());
+    public void markNotificationAsRead(User user, Long notificationId) throws AccessDeniedException {
+        Notification notification = notificationRepo.findById(notificationId)
+                .orElseThrow(() -> new EntityNotFoundException("Notification not found"));
+
+        if (!notification.getUser().equals(user)) {
+            throw new AccessDeniedException("You cannot mark others' notifications as read");
         }
+
+        log.debug("Marking notification id={} as read for user id={}", notificationId, user.getId());
+        notification.setRead(true);
+        notificationRepo.save(notification);
     }
 
     @Caching(evict = {
             @CacheEvict(value = "chatNotifications", key = "#user.id"),
             @CacheEvict(value = "userMeDTO", key = "#user.email")
     })
-    public void markNotificationAsRead(User user, List<Long> notificationId) {
-        int updatedNotification = notificationRepo.updateNotificationReadStatus(notificationId, true);
-        if(updatedNotification > 0) {
-            log.debug("Marked {} notifications as read for user id={}", updatedNotification, user.getId());
-        } else {
-            log.debug("No notifications marked as read for user id={}", user.getId());
+    public void markNotificationAsRead(User user, List<Long> notificationIds) {
+        int updatedNotification = notificationRepo.updateNotificationReadStatus(notificationIds, true);
+
+        if (updatedNotification == 0) {
+            throw new EntityNotFoundException("No notifications updated");
+        } else if (updatedNotification < notificationIds.size()) {
+            throw new EntityNotFoundException("Some notifications not updated");
         }
+        log.debug("Marking {} notifications as read for user id={}", updatedNotification, user.getId());
     }
 
 

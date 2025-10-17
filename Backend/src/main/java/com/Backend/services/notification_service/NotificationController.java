@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
 import java.util.Map;
 
 @RestController
@@ -21,7 +22,7 @@ public class NotificationController {
     }
 
     @PostMapping("/read/{id}")
-    public ResponseEntity<Map<String, String>> markAsRead(@AuthenticationPrincipal User user, @PathVariable("id") Long id) {
+    public ResponseEntity<Map<String, String>> markAsRead(@AuthenticationPrincipal User user, @PathVariable("id") Long id) throws AccessDeniedException {
         notificationService.markNotificationAsRead(user, id);
         return ResponseEntity.ok(Map.of("message", "Marked notification as read"));
     }

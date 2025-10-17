@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import java.util.List;
+
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -151,5 +153,15 @@ public class GlobalExceptionHandler {
                 Instant.now().toString()
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ErrorRes> handleEntityNotFound(EntityNotFoundException ex) {
+        ErrorRes errorRes = new ErrorRes(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(),
+                "Entity not found",
+                Instant.now().toString());
+        return new ResponseEntity<>(errorRes, HttpStatus.NOT_FOUND);
     }
 }
