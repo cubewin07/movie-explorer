@@ -1,8 +1,11 @@
 package com.Backend.services.user_service;
 
+import com.Backend.services.notification_service.Notification;
+import com.Backend.services.notification_service.NotificationService;
 import com.Backend.services.user_service.model.DTO.AuthenticateDTO;
 import com.Backend.services.user_service.model.DTO.RegisterDTO;
 import com.Backend.services.user_service.model.DTO.UpdateUserDTO;
+import com.Backend.services.user_service.model.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.Backend.services.watchlist_service.model.WatchlistPosting;
 import com.Backend.services.watchlist_service.model.WatchlistType;
@@ -24,6 +27,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.hamcrest.Matchers.*;
@@ -40,6 +44,9 @@ class SpringControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private NotificationService notificationService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -353,13 +360,21 @@ class SpringControllerTest {
     @DisplayName("POST /notifications/read/{id} marks single notification as read")
     void markSingleNotificationAsRead() throws Exception {
         String token = registerAndAuth("notif_user1", "notif1@example.com");
+        Long userId = getUserId(token);
+        User user = new User();
+        user.setId(userId);
+        user.setEmail("notif1@example.com");
 
-        // Mock notification ID for testing
-        Long notificationId = 1L;
+        // Create a notification using the service
+        notificationService.createNotification(user, "chat", 123L, "Test message");
+
+        // Fetch the created notification ID from repo
+        List<Notification> created = notificationService.getChatNotifications(user);
+        Long notificationId = created.getFirst().getId();
 
         mockMvc.perform(post("/notifications/read/{id}", notificationId)
-                .header("Authorization", bearer(token))
-                .contentType(MediaType.APPLICATION_JSON))
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is("Marked notification as read")));
     }
@@ -369,16 +384,29 @@ class SpringControllerTest {
     @DisplayName("POST /notifications/allRead marks multiple notifications as read")
     void markAllNotificationsAsRead() throws Exception {
         String token = registerAndAuth("notif_user2", "notif2@example.com");
+        Long userId = getUserId(token);
+        User user = new User();
+        user.setId(userId);
+        user.setEmail("notif2@example.com");
 
-        // Create request body with list of notification IDs
-        Map<String, Object> requestBody = Map.of("ids", java.util.Arrays.asList(1L, 2L, 3L));
+        // Create multiple notifications
+        notificationService.createNotification(user, "chat", 100L, "Message 1");
+        notificationService.createNotification(user, "chat", 200L, "Message 2");
+        notificationService.createNotification(user, "chat", 300L, "Message 3");
+
+        // Fetch notification IDs
+        List<Long> ids = notificationService.getChatNotifications(user)
+                .stream()
+                .map(Notification::getId)
+                .toList();
+
+        Map<String, Object> requestBody = Map.of("ids", ids);
 
         mockMvc.perform(post("/notifications/allRead")
-                .header("Authorization", bearer(token))
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(requestBody)))
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestBody)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is("Marked all notifications as read")));
     }
-
 }
