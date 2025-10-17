@@ -18,26 +18,26 @@ export const useNotificationActions = () => {
     }
   });
 
-  // Delete notification
-//   const deleteNotification = useMutation({
-//     mutationFn: async (notificationId) => {
-//       const response = await instance.delete('/notifications/delete', {
-//         params: { id: notificationId }
-//       });
-//       return response.data;
-//     },
-//     onSuccess: () => {
-//       // Invalidate relevant queries
-//       queryClient.invalidateQueries({ queryKey: ['notifications'] });
-//     },
-//     onError: (error) => {
-//       console.error('Error deleting notification:', error);
-//     }
-//   });
+//   Delete notification
+  const deleteNotification = useMutation({
+    mutationFn: async (notificationId) => {
+      const response = await instance.delete('/notifications/delete', {
+        params: { id: notificationId }
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      // Invalidate relevant queries
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    },
+    onError: (error) => {
+      console.error('Error deleting notification:', error);
+    }
+  });
 
     const markAllAsRead = useMutation({
-    mutationFn: async (listOfIds) => {
-      const response = await instance.put('/notifications/allRead', { ids: listOfIds });
+    mutationFn: async () => {
+      const response = await instance.put('/notifications/allRead');
       return response.data;
     },
     onSuccess: () => {
@@ -51,6 +51,7 @@ export const useNotificationActions = () => {
 
   return {
     markAsRead,
+    markAllAsRead,
     deleteNotification
   };
 }
