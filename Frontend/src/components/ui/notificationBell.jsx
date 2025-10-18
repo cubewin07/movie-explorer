@@ -6,15 +6,21 @@ import { useAuthen } from '@/context/AuthenProvider';
 import { Client } from "@stomp/stompjs";
 import { Button } from "@/components/ui/button";
 import { useNotificationActions } from "@/hooks/notification/useNotificationActions";
+import { useThemeToggle } from "@/hooks/useThemeToggle";
 
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
+  const [isDark, setIsDark] = useThemeToggle();
   const [timetick, setTimeTick] = useState(0); // For re-rendering time ago
   const { user, token } = useAuthen();
   const stompClientRef = useRef(null);
   const [notifications, setNotifications] = useState(user?.notifications || []);
   const { markAsRead, markAllAsRead, deleteNotification } = useNotificationActions();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setNotifications(user?.notifications || []);
+  }, [user?.notifications]);
 
 
   // Update time ago every minute
@@ -243,19 +249,27 @@ const handleMarkAllAsRead = () => {
                       <motion.li
                         key={notification.id}
                         initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 20 }}
-                        transition={{ delay: index * 0.05 }}
+                        animate={{
+                          opacity: 1,
+                          x: 0,
+                          backgroundColor: notification.read
+                            ? (isDark ? 'rgba(15, 23, 42, 0)' : 'rgba(255, 255, 255, 1)')
+                            : (isDark ? 'rgba(30, 58, 138, 0.15)' : 'rgba(239, 246, 255, 1)'), 
+                        }}
+                        whileHover={{
+                          backgroundColor: notification.read
+                            ? (isDark ? 'rgba(51, 65, 85, 0.5)' : 'rgba(243, 244, 246, 1)')
+                            : (isDark ? 'rgba(30, 58, 138, 0.3)' : 'rgba(219, 234, 254, 1)'), 
+                        }}
+                        transition={{
+                          duration: 0.2,
+                          ease: "easeInOut",
+                        }}
                         onClick={() => handleNotificationClick(notification)}
-                        className={`
-                          group relative px-4 py-3 border-l-4 cursor-pointer transition-colors
-                          ${notification.read 
-                            ? 'bg-white dark:bg-slate-900/50 hover:bg-gray-50 dark:hover:bg-slate-800/70' 
-                            : 'bg-blue-50/80 dark:bg-slate-800/90 hover:bg-blue-100/80 dark:hover:bg-slate-800'
-                          }
-                          ${getNotificationColor(notification.type)}
+                        className="
+                          group relative px-4 py-3 border-l-4 cursor-pointer
                           border-b border-gray-100 dark:border-slate-800
-                        `}
+                        "
                       >
                         <div className="flex gap-3">
                           {/* Icon */}
