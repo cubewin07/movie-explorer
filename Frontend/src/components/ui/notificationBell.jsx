@@ -254,12 +254,13 @@ const handleMarkAllAsRead = () => {
                           x: 0,
                           backgroundColor: notification.read
                             ? (isDark ? 'rgba(15, 23, 42, 0)' : 'rgba(255, 255, 255, 1)')
-                            : (isDark ? 'rgba(30, 58, 138, 0.15)' : 'rgba(239, 246, 255, 1)'), 
+                            : (isDark ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 246, 255, 1)'), 
                         }}
                         whileHover={{
                           backgroundColor: notification.read
-                            ? (isDark ? 'rgba(51, 65, 85, 0.5)' : 'rgba(243, 244, 246, 1)')
-                            : (isDark ? 'rgba(30, 58, 138, 0.3)' : 'rgba(219, 234, 254, 1)'), 
+                            ? (isDark ? 'rgba(51, 65, 85, 0.4)' : 'rgba(249, 250, 251, 1)')
+                            : (isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(219, 234, 254, 1)'),
+                          scale: 1.005,
                         }}
                         transition={{
                           duration: 0.2,
