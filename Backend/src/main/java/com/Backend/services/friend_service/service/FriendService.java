@@ -23,6 +23,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
+import com.Backend.websocket.eventListener.STOMPEventListener;
 
 import java.util.List;
 import java.util.Optional;
@@ -37,6 +38,7 @@ public class FriendService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final CacheManager cacheManager;
+    private final STOMPEventListener eventListener;
 
     @Cacheable(value = "friendRequests", key = "'from-' + #id")
     public Set<FriendRequestDTO> getRequestsFromThisUser(Long id) {
@@ -176,18 +178,31 @@ public class FriendService {
         List<Friend> friends = friendRepo.findAllFriendshipsByUserAndStatus(user, Status.ACCEPTED);
         return friends.stream()
                 .map(f -> {
-                            if(f.getUser1().getId().equals(user.getId()))
-                                return new FriendDTO(
-                                        new FriendUserDTO(f.getUser2().getId(), f.getUser2().getEmail(), f.getUser2().getRealUsername()),
-                                        f.getStatus()
-                                );
-                            else
-                                return new FriendDTO(
-                                        new FriendUserDTO(f.getUser1().getId(), f.getUser1().getEmail(), f.getUser1().getRealUsername()),
-                                        f.getStatus()
-                                );
-                        }
-                )
+                    if (f.getUser1().getId().equals(user.getId())) {
+                        Boolean isOnline = eventListener.isUserOnline(f.getUser2().getEmail());
+                        log.info("isOnline: {}", isOnline);
+                        return new FriendDTO(
+                                new FriendUserDTO(
+                                        f.getUser2().getId(),
+                                        f.getUser2().getEmail(),
+                                        f.getUser2().getRealUsername()
+                                ),
+                                isOnline
+                        );
+                    } else {
+                        Boolean isOnline = eventListener.isUserOnline(f.getUser1().getEmail());
+                        log.info("isOnline: {}", isOnline);
+                        return new FriendDTO(
+                                new FriendUserDTO(
+                                        f.getUser1().getId(),
+                                        f.getUser1().getEmail(),
+                                        f.getUser1().getRealUsername()
+                                ),
+                                isOnline
+                        );
+                    }
+                })
+
                 .collect(Collectors.toSet());
     }
 

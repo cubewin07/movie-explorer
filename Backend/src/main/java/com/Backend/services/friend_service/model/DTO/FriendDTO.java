@@ -4,6 +4,5 @@ import com.Backend.services.friend_service.model.Status;
 
 public record FriendDTO(
     FriendUserDTO user,
-    Status status,
-    Boolean isOnline
+    Boolean status
 ) {}
