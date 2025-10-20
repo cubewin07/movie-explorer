@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
@@ -52,6 +53,13 @@ public class STOMPEventListener {
                 sessions.remove(sessionId);
                 if(sessions.isEmpty()) {
                     userSessionMap.remove(username);
+                    scheduler.schedule(() -> {
+                        if(!isUserOnline(username)) {
+                            friendService.getAllFriendsReturnASetOfIds(username).forEach(friendId -> {
+                                messagingTemplate.convertAndSend("topic/status/" + friendId, new StatusNoti(username, "offline") );
+                            });
+                        }
+                    }, 30, TimeUnit.SECONDS);
                 }
             }
         }
