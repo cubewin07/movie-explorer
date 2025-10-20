@@ -1,5 +1,8 @@
 package com.Backend.websocket.eventListener;
 
+import com.Backend.services.friend_service.service.FriendService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.context.event.EventListener;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
@@ -10,10 +13,18 @@ import java.security.Principal;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 @Component
+@RequiredArgsConstructor
 public class STOMPEventListener {
     private final Map<String, Set<String>> userSessionMap = new ConcurrentHashMap<>();
+
+    private final SimpMessagingTemplate messagingTemplate;
+    private final FriendService friendService;
+
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @EventListener
     public void handleWebSocketConnect(SessionConnectedEvent event) {
