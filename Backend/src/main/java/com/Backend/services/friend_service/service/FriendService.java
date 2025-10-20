@@ -206,6 +206,21 @@ public class FriendService {
                 .collect(Collectors.toSet());
     }
 
+    @Cacheable(value = "friends", key = "#id")
+    public Set<Long> getAllFriendsReturnASetOfIds(Long id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
+        List<Friend> friends = friendRepo.findAllFriendshipsByUserAndStatus(user, Status.ACCEPTED);
+        return friends.stream()
+                .map(f -> {
+                    if(f.getUser1().getId().equals(user.getId())) {
+                        return f.getUser2().getId();
+                    } else {
+                        return f.getUser1().getId();
+                    }
+                }).collect(Collectors.toSet());
+
+    }
+
     @Transactional
     @Caching(evict = {
             @CacheEvict(value = "friendRequests", key = "'from-' + #user1.id"),
