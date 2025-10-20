@@ -21,18 +21,18 @@ const FriendItem = ({
   showActions = true 
 }) => {
   const getStatusColor = (status) => {
-    switch(status?.toLowerCase()) {
-      case 'online': return 'ring-2 ring-green-500';
-      case 'away': return 'ring-2 ring-yellow-500';
+    switch(status) {
+      case true: return 'ring-2 ring-green-500';
+      case false: return 'ring-2 ring-yellow-500';
       case 'busy': return 'ring-2 ring-red-500';
       default: return 'ring-2 ring-slate-300';
     }
   };
 
   const getStatusBadge = (status) => {
-    const statusLower = status?.toLowerCase();
-    if (statusLower === 'online') return <Badge variant="default" className="bg-green-500">Online</Badge>;
-    if (statusLower === 'away') return <Badge variant="secondary">Away</Badge>;
+    const statusLower = status;
+    if (statusLower === true) return <Badge variant="default" className="bg-green-500">Online</Badge>;
+    if (statusLower === false) return <Badge variant="secondary">offline</Badge>;
     if (statusLower === 'busy') return <Badge variant="destructive">Busy</Badge>;
     return <Badge variant="outline">Offline</Badge>;
   };

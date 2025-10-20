@@ -77,18 +77,21 @@ export default function FriendsView({ onFriendSelect, compact = false }) {
             {error && <ErrorState message="Failed to load friends" />}
             {friends && (
               <div className="space-y-2">
-                {filteredFriends.map((friend) => (
-                  <FriendItem 
-                    key={friend.id}
-                    friend={friend.user}
-                    compact={compact}
-                    onFriendSelect={onFriendSelect}
-                    onViewProfile={onViewProfile}
-                    onMessage={onMessage}
-                    onRemoveFriend={onRemoveFriend}
-                    onBlock={onBlock}
-                  />
-                ))}
+                {filteredFriends.map((friend) => {
+                  const friendData = { ...friend.user, status: friend.status };
+                  return (
+                    <FriendItem 
+                      key={friend.id}
+                      friend={friendData}
+                      compact={compact}
+                      onFriendSelect={onFriendSelect}
+                      onViewProfile={onViewProfile}
+                      onMessage={onMessage}
+                      onRemoveFriend={onRemoveFriend}
+                      onBlock={onBlock}
+                    />
+                  );
+                })}
                 {filteredFriends.length === 0 && (
                   <div className="text-center text-slate-500 dark:text-slate-400 py-8">
                     {search ? 'No friends found' : 'No friends yet'}
