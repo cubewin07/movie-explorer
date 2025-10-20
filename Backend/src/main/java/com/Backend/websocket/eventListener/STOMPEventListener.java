@@ -34,6 +34,9 @@ public class STOMPEventListener {
             String username = principal.getName();
             String sessionId = accessor.getSessionId();
             userSessionMap.computeIfAbsent(username, k -> ConcurrentHashMap.newKeySet()).add(sessionId);
+            friendService.getAllFriendsReturnASetOfIds(username).forEach(friendId -> {
+                messagingTemplate.convertAndSend("topic/status/" + friendId, new StatusNoti(username, "online") );
+            });
         }
     }
 
