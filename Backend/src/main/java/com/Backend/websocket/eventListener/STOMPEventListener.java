@@ -56,7 +56,7 @@ public class STOMPEventListener {
                     scheduler.schedule(() -> {
                         if(!isUserOnline(username)) {
                             friendService.getAllFriendsReturnASetOfIds(username).forEach(friendId -> {
-                                messagingTemplate.convertAndSend("topic/status/" + friendId, new StatusNoti(username, "offline") );
+                                messagingTemplate.convertAndSend("topic/friend/status/" + friendId, new StatusNoti(username, "offline") );
                             });
                         }
                     }, 30, TimeUnit.SECONDS);
