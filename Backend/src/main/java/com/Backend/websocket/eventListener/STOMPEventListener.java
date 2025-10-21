@@ -32,6 +32,10 @@ public class STOMPEventListener {
         if(principal != null) {
             String username = principal.getName();
             String sessionId = accessor.getSessionId();
+
+            ScheduledFuture<?> task = offlineTasks.get(username);
+            if(task != null) task.cancel(false);
+
             userSessionMap.computeIfAbsent(username, k -> ConcurrentHashMap.newKeySet()).add(sessionId);
             if(userSessionMap.get(username).size() == 1) {
                 publisher.publishEvent(new UserStatusEvent(username, true));
@@ -51,11 +55,13 @@ public class STOMPEventListener {
                 sessions.remove(sessionId);
                 if(sessions.isEmpty()) {
                     userSessionMap.remove(username);
-                    scheduler.schedule(() -> {
+                    ScheduledFuture<?> future = scheduler.schedule(() -> {
                         if(!isUserOnline(username)) {
                             publisher.publishEvent(new UserStatusEvent(username, false));
                         }
+                        offlineTasks.remove(username);
                     }, 30, TimeUnit.SECONDS);
+                    offlineTasks.put(username, future);
                 }
             }
         }
