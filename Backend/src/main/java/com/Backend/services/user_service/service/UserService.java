@@ -107,9 +107,10 @@ public class UserService {
     @Caching(
         put = @CachePut(value = "users", key = "#result.id"),
         evict = {
-            @CacheEvict(value = "users", key = "'all'"),
-            @CacheEvict(value = "userMeDTO", key = "#userFromContext.email"),
-            @CacheEvict(value = "userSearch", allEntries = true)
+                @CacheEvict(value = "users", key = "'all'"),
+                @CacheEvict(value = "userMeDTO", key = "#userFromContext.email"),
+                @CacheEvict(value = "userSearch", allEntries = true),
+                @CacheEvict(value = "userId", key = "#userFromContext.getEmail()")
         }
     )
     public User updateUser(UpdateUserDTO update, User userFromContext) {
@@ -119,6 +120,14 @@ public class UserService {
         managedUser.setEmail(update.email());
         log.info("User updated: id={}", managedUser.getId());
         return managedUser;
+    }
+
+    @Cacheable(value = "userId", key = "#email")
+    public Long getUserIdByEmail(String email) {
+        log.debug("Fetching user id by email={} from database", email);
+        return userRepository.findByEmail(email)
+                .map(User::getId)
+                .orElseThrow(() -> new UserNotFoundException("User with email " + email + " not found"));
     }
 
     @Transactional
