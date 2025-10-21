@@ -1,7 +1,7 @@
 package com.Backend.websocket.eventListener;
 
-import com.Backend.services.friend_service.service.FriendService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.context.event.EventListener;
@@ -23,7 +23,7 @@ public class STOMPEventListener {
     private final Map<String, Set<String>> userSessionMap = new ConcurrentHashMap<>();
 
     private final SimpMessagingTemplate messagingTemplate;
-    private final FriendService friendService;
+    private final ApplicationEventPublisher publisher;
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
@@ -35,9 +35,7 @@ public class STOMPEventListener {
             String username = principal.getName();
             String sessionId = accessor.getSessionId();
             userSessionMap.computeIfAbsent(username, k -> ConcurrentHashMap.newKeySet()).add(sessionId);
-            friendService.getAllFriendsReturnASetOfIds(username).forEach(friendId -> {
-                messagingTemplate.convertAndSend("topic/status/" + friendId, new StatusNoti(username, "online") );
-            });
+            publisher.publishEvent(new UserStatusEvent(username, true));
         }
     }
 
@@ -55,9 +53,7 @@ public class STOMPEventListener {
                     userSessionMap.remove(username);
                     scheduler.schedule(() -> {
                         if(!isUserOnline(username)) {
-                            friendService.getAllFriendsReturnASetOfIds(username).forEach(friendId -> {
-                                messagingTemplate.convertAndSend("topic/friend/status/" + friendId, new StatusNoti(username, "offline") );
-                            });
+                            publisher.publishEvent(new UserStatusEvent(username, false));
                         }
                     }, 30, TimeUnit.SECONDS);
                 }
