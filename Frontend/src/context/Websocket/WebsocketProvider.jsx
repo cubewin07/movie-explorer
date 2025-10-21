@@ -28,21 +28,13 @@ const WebSocketContext = createContext();
         onConnect: () => {
             console.log("Connected to WebSocket");
             stompClient.subscribe("/topic/notifications/" + user?.id, (message) => {
-                console.log(message.body);
-                const notification = JSON.parse(message.body);
-                setNotifications((prev) => [notification, ...prev]); // Add new notifications to top
+                handleWsNotification(message, setNotifications);
             });
 
             stompClient.subscribe("/topic/friends/status/" + user?.id, (message) => {
-            console.log("Friend status update:", message.body);
-            const friendStatus = JSON.parse(message.body);
-            setFriends((prevFriends) =>
-              prevFriends.map((friend) =>
-                friend.email === friendStatus.email ? { ...friend, status: friendStatus.status } : friend
-              )
-            );
-          });
-          
+                handleWsFriendStatus(message, setFriends);
+            });
+
         },
         onStompError: (frame) => {
           console.error('Broker reported error: ' + frame.headers['message']);
@@ -62,6 +54,22 @@ const WebSocketContext = createContext();
         <WebSocketContext.Provider value={{notifications, friends, setFriends, setNotifications}}>
             {children}
         </WebSocketContext.Provider>
+    );
+}
+
+const handleWsNotification = (message, setNotifications) => {
+    console.log(message.body);
+    const notification = JSON.parse(message.body);
+    setNotifications((prev) => [notification, ...prev]); // Add new notifications to top
+}
+
+const handleWsFriendStatus = (message, setFriends) => {
+    console.log("Friend status update:", message.body);
+    const friendStatus = JSON.parse(message.body);
+    setFriends((prevFriends) =>
+      prevFriends.map((friend) =>
+        friend.email === friendStatus.email ? { ...friend, status: friendStatus.status } : friend
+      )
     );
 }
 export const useWebsocket = () => {
