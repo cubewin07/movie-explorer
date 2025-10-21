@@ -37,6 +37,7 @@ public class STOMPEventListener {
             if(task != null) task.cancel(false);
 
             userSessionMap.computeIfAbsent(username, k -> ConcurrentHashMap.newKeySet()).add(sessionId);
+            System.out.println(userSessionMap);
             if(userSessionMap.get(username).size() == 1) {
                 publisher.publishEvent(new UserStatusEvent(username, true));
             }
@@ -60,6 +61,7 @@ public class STOMPEventListener {
                             publisher.publishEvent(new UserStatusEvent(username, false));
                         }
                         offlineTasks.remove(username);
+                        System.out.println(userSessionMap);
                     }, 30, TimeUnit.SECONDS);
                     offlineTasks.put(username, future);
                 }
