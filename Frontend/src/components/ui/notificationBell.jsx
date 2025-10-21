@@ -7,6 +7,7 @@ import { Client } from "@stomp/stompjs";
 import { Button } from "@/components/ui/button";
 import { useNotificationActions } from "@/hooks/notification/useNotificationActions";
 import { useThemeToggle } from "@/hooks/useThemeToggle";
+import { useWebsocket } from "@/context/Websocket/WebsocketProvider";
 
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
@@ -14,7 +15,7 @@ export default function NotificationBell() {
   const [timetick, setTimeTick] = useState(0); // For re-rendering time ago
   const { user, token } = useAuthen();
   const stompClientRef = useRef(null);
-  const [notifications, setNotifications] = useState(user?.notifications || []);
+  const { notifications, setNotifications } = useWebsocket();
   const { markAsRead, markAllAsRead, deleteNotification } = useNotificationActions();
   const navigate = useNavigate();
 
@@ -32,39 +33,6 @@ export default function NotificationBell() {
     return () => clearInterval(interval);
   }, []);
 
-  useEffect(() => {
-    if (!user || !token || stompClientRef.current) return;
-    
-    const stompClient = new Client({
-      brokerURL: "ws://localhost:8080/ws?userId=" + user?.id,
-      debug: (str) => {
-        console.log(str);
-      },
-      reconnectDelay: 5000,
-      connectHeaders: {
-        Authorization: "Bearer " + token,
-      },
-      onConnect: () => {
-        console.log("Connected to WebSocket");
-        stompClient.subscribe("/topic/notifications/" + user?.id, (message) => {
-          console.log(message.body);
-          const notification = JSON.parse(message.body);
-          setNotifications((prev) => [notification, ...prev]); // Add new notifications to top
-        });
-      },
-      onStompError: (frame) => {
-        console.error('Broker reported error: ' + frame.headers['message']);
-        console.error('Additional details: ' + frame.body);
-      },
-    });
-
-    stompClientRef.current = stompClient;
-    stompClient.activate();
-
-    return () => {
-      stompClient.deactivate();
-    };
-  }, [user, token]);
 
   const getNotificationIcon = (type) => {
     switch (type) {

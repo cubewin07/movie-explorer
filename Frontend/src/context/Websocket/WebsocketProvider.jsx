@@ -12,6 +12,7 @@ const WebSocketContext = createContext();
     const { user, token } = useAuthen();
     const [notifications, setNotifications] = useState([]);
     const [friends, setFriends] = useState([]);
+    const [timeTick, setTimeTick] = useState(0);
 
   useEffect(() => {
       if (!user || !token || stompClientRef.current) return;
@@ -56,6 +57,14 @@ const WebSocketContext = createContext();
         </WebSocketContext.Provider>
     );
 }
+
+useEffect(() => {
+    const interval = setInterval(() => {
+        setTimeTick((prev) => prev + 1);
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+}, []);
 
 const handleWsNotification = (message, setNotifications) => {
     console.log(message.body);
