@@ -20,6 +20,10 @@ function WebsocketProvider({ children }) {
         return () => clearInterval(interval);
     }, []);
 
+    useEffect(() => {
+        setNotifications(user?.notifications || []);
+    }, [user?.notifications]);
+
 
     useEffect(() => {
       if (!user || !token || stompClientRef.current) return;

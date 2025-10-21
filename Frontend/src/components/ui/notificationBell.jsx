@@ -12,27 +12,10 @@ import { useWebsocket } from "@/context/Websocket/WebsocketProvider";
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
   const [isDark, setIsDark] = useThemeToggle();
-  const [timetick, setTimeTick] = useState(0); // For re-rendering time ago
   const { user, token } = useAuthen();
-  const stompClientRef = useRef(null);
   const { notifications, setNotifications } = useWebsocket();
   const { markAsRead, markAllAsRead, deleteNotification } = useNotificationActions();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    setNotifications(user?.notifications || []);
-  }, [user?.notifications]);
-
-
-  // Update time ago every minute
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTimeTick((prev) => prev + 1);
-    }, 60000); // 60 seconds
-
-    return () => clearInterval(interval);
-  }, []);
-
 
   const getNotificationIcon = (type) => {
     switch (type) {
