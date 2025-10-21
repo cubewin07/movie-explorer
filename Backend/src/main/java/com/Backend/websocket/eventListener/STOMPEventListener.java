@@ -12,15 +12,13 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import java.security.Principal;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 @Component
 @RequiredArgsConstructor
 public class STOMPEventListener {
     private final Map<String, Set<String>> userSessionMap = new ConcurrentHashMap<>();
+    private final Map<String, ScheduledFuture<?>> offlineTasks = new ConcurrentHashMap<>();
 
     private final SimpMessagingTemplate messagingTemplate;
     private final ApplicationEventPublisher publisher;
@@ -35,7 +33,9 @@ public class STOMPEventListener {
             String username = principal.getName();
             String sessionId = accessor.getSessionId();
             userSessionMap.computeIfAbsent(username, k -> ConcurrentHashMap.newKeySet()).add(sessionId);
-            publisher.publishEvent(new UserStatusEvent(username, true));
+            if(userSessionMap.get(username).size() == 1) {
+                publisher.publishEvent(new UserStatusEvent(username, true));
+            }
         }
     }
 
