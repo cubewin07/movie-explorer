@@ -39,7 +39,6 @@ export default function Profile() {
         recent: authUser?.recent || defaultUserData.recent
     });
 
-    console.log(user);
     const [editOpen, setEditOpen] = useState(false);
     const [editData, setEditData] = useState({ ...defaultUserData });
     const [avatarPreview, setAvatarPreview] = useState('');
