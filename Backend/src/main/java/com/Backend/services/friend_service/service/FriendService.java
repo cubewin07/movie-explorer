@@ -69,6 +69,7 @@ public class FriendService {
             @CacheEvict(value = "friendRequests", key = "'from-' + #user1.id"),
             @CacheEvict(value = "friendRequests", key = "'to-' + #user1.id"),
             @CacheEvict(value = "friends", key = "#user1.id"),
+            @CacheEvict(value = "friends", key = "#user1.email"),
             @CacheEvict(value = "friendStatus", allEntries = true),
             @CacheEvict(value = "userMeDTO", key = "#user1.email"),
             @CacheEvict(value = "isFriend", allEntries = true)
@@ -143,6 +144,7 @@ public class FriendService {
             @CacheEvict(value = "friendRequests", key = "'from-' + #user1.id"),
             @CacheEvict(value = "friendRequests", key = "'to-' + #user1.id"),
             @CacheEvict(value = "friends", key = "#user1.id"),
+            @CacheEvict(value = "friends", key = "#user1.email"),
             @CacheEvict(value = "friendStatus", allEntries = true),
             @CacheEvict(value = "isFriend", allEntries = true),
             @CacheEvict(value = "userMeDTO", key = "#user1.email")
@@ -206,7 +208,7 @@ public class FriendService {
                 .collect(Collectors.toSet());
     }
 
-    @Cacheable(value = "friends", key = "#id")
+    @Cacheable(value = "friends", key = "#email")
     public Set<Long> getAllFriendsReturnASetOfIds(String email) {
         User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User with email " + email + " not found"));
         List<Friend> friends = friendRepo.findAllFriendshipsByUserAndStatus(user, Status.ACCEPTED);
@@ -226,6 +228,7 @@ public class FriendService {
             @CacheEvict(value = "friendRequests", key = "'from-' + #user1.id"),
             @CacheEvict(value = "friendRequests", key = "'to-' + #user1.id"),
             @CacheEvict(value = "friends", key = "#user1.id"),
+            @CacheEvict(value = "friends", key = "#user1.email"),
             @CacheEvict(value = "friendStatus", allEntries = true),
             @CacheEvict(value = "isFriend", allEntries = true),
             @CacheEvict(value = "userMeDTO", key = "#user1.email")
@@ -274,6 +277,7 @@ public class FriendService {
         Cache friendsCache = cacheManager.getCache("friends");
         if (friendsCache != null) {
             friendsCache.evict(user.getId());
+            friendsCache.evict(user.getEmail());
         }
 
         Cache userMeDTOCache = cacheManager.getCache("userMeDTO");
