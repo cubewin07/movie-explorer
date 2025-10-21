@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { Client } from '@stomp/stompjs';
 import { useAuthen } from "@/context/AuthenProvider";
+import { useQueryClient, QueryClient } from "@tanstack/react-query";
 
 const WebSocketContext = createContext();
 
@@ -11,6 +12,7 @@ function WebsocketProvider({ children }) {
     const [notifications, setNotifications] = useState(user?.notifications || []);
     const [friends, setFriends] = useState([]);
     const [timeTick, setTimeTick] = useState(0);
+    const queryClient = useQueryClient();
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -27,6 +29,7 @@ function WebsocketProvider({ children }) {
 
     useEffect(() => {
       if (!user || !token || stompClientRef.current) return;
+      console.log("WebSocket effect running", user, token, stompClientRef.current);
       
       const stompClient = new Client({
         brokerURL: "ws://localhost:8080/ws?userId=" + user?.id,
@@ -41,10 +44,12 @@ function WebsocketProvider({ children }) {
             console.log("Connected to WebSocket");
             stompClient.subscribe("/topic/notifications/" + user?.id, (message) => {
                 handleWsNotification(message, setNotifications);
+                queryClient.invalidateQueries({ queryKey: ['notifications'] });
             });
 
             stompClient.subscribe("/topic/friends/status/" + user?.id, (message) => {
                 handleWsFriendStatus(message, setFriends);
+                queryClient.invalidateQueries({ queryKey: ['friends'] });
             });
 
         },
