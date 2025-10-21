@@ -27,10 +27,15 @@ public class UserStatusEventListener {
             friends.evict(userId);
         };
         friendService.getAllFriendsReturnASetOfIds(event.email()).forEach(friendId -> {
+            if(friends != null && friends.get(friendId) != null) {
+                friends.evict(friendId);
+            }
+
             messagingTemplate.convertAndSend(
                     "/topic/friends/status/" + friendId,
                     new StatusNoti(event.email(), event.isOnline())
             );
+
         });
     }
 }
