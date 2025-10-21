@@ -208,7 +208,7 @@ public class FriendService {
 
     @Cacheable(value = "friends", key = "#id")
     public Set<Long> getAllFriendsReturnASetOfIds(String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User with email " + email + " not found"));
         List<Friend> friends = friendRepo.findAllFriendshipsByUserAndStatus(user, Status.ACCEPTED);
         return friends.stream()
                 .map(f -> {
