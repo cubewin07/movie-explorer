@@ -19,7 +19,7 @@ function WebsocketProvider({ children }) {
     
         return () => clearInterval(interval);
     }, []);
-
+    
     useEffect(() => {
         setNotifications(user?.notifications || []);
     }, [user?.notifications]);
@@ -88,3 +88,5 @@ const handleWsFriendStatus = (message, setFriends) => {
 export const useWebsocket = () => {
     return useContext(WebSocketContext);
 }
+
+export default WebsocketProvider;
