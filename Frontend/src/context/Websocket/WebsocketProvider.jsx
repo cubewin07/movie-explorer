@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { Client } from '@stomp/stompjs';
 import { useAuthen } from "@/context/AuthenProvider";
-import { useQueryClient, QueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import queryClient from "@/lib/queryClient";
 
 const WebSocketContext = createContext();
 
@@ -49,7 +50,6 @@ function WebsocketProvider({ children }) {
 
             stompClient.subscribe("/topic/friends/status/" + user?.id, (message) => {
                 handleWsFriendStatus(message, setFriends);
-                queryClient.invalidateQueries({ queryKey: ['friends'] });
             });
 
         },
@@ -89,6 +89,20 @@ const handleWsFriendStatus = (message, setFriends) => {
         friend.email === friendStatus.email ? { ...friend, status: friendStatus.status } : friend
       )
     );
+
+    queryClient.setQueryData(['friends'], (oldData) => {
+    if (!oldData) return oldData; // nothing cached yet
+    return oldData.map((friend) => {
+      if (friend.user.email === friendStatus.email) {
+        return {
+          ...friend,
+          status: friendStatus.status,
+        };
+      }
+      return friend;
+    });
+  });
+
 }
 export const useWebsocket = () => {
     return useContext(WebSocketContext);
