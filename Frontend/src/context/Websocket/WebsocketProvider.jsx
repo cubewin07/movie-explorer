@@ -2,13 +2,13 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { Client } from '@stomp/stompjs';
 import { useAuthen } from "@/context/AuthenProvider";
 
+const WebSocketContext = createContext();
 
 function WebsocketProvider({ children }) {
 
-const WebSocketContext = createContext();
     const stompClientRef = useRef(null);
     const { user, token } = useAuthen();
-    const [notifications, setNotifications] = useState([]);
+    const [notifications, setNotifications] = useState(user?.notifications || []);
     const [friends, setFriends] = useState([]);
     const [timeTick, setTimeTick] = useState(0);
 
