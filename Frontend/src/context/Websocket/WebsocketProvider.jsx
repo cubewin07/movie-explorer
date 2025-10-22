@@ -3,6 +3,7 @@ import { Client } from '@stomp/stompjs';
 import { useAuthen } from "@/context/AuthenProvider";
 import { useQueryClient } from "@tanstack/react-query";
 import queryClient from "@/lib/queryClient";
+import { useFriends } from "@/hooks/friend/useFriends";
 
 const WebSocketContext = createContext();
 
@@ -11,7 +12,7 @@ function WebsocketProvider({ children }) {
     const stompClientRef = useRef(null);
     const { user, token } = useAuthen();
     const [notifications, setNotifications] = useState(user?.notifications || []);
-    const [friends, setFriends] = useState([]);
+    const { data: friends, isLoading: isLoadingFriends, error } = useFriends();
     const [timeTick, setTimeTick] = useState(0);
     const queryClient = useQueryClient();
 
@@ -49,7 +50,7 @@ function WebsocketProvider({ children }) {
             });
 
             stompClient.subscribe("/topic/friends/status/" + user?.id, (message) => {
-                handleWsFriendStatus(message, setFriends);
+                handleWsFriendStatus(message);
             });
 
         },
@@ -68,7 +69,7 @@ function WebsocketProvider({ children }) {
     }, [user, token]);
 
     return (
-        <WebSocketContext.Provider value={{notifications, friends, setFriends, setNotifications}}>
+        <WebSocketContext.Provider value={{notifications, friends, setNotifications}}>
             {children}
         </WebSocketContext.Provider>
     );
@@ -81,14 +82,17 @@ const handleWsNotification = (message, setNotifications) => {
     setNotifications((prev) => [notification, ...prev]); // Add new notifications to top
 }
 
-const handleWsFriendStatus = (message, setFriends) => {
-    console.log("Friend status update:", message.body);
-    const friendStatus = JSON.parse(message.body);
-    setFriends((prevFriends) =>
-      prevFriends.map((friend) =>
-        friend.email === friendStatus.email ? { ...friend, status: friendStatus.status } : friend
-      )
-    );
+const handleWsFriendStatus = (message) => {
+      console.log("Friend status update:", message.body);
+      const friendStatus = JSON.parse(message.body);
+      friends.map((friend) => {
+        if (friend.user.email === friendStatus.email) {
+          return {
+            ...friend,
+            status: friendStatus.status,
+          }
+        }
+      });
 
     queryClient.setQueryData(['friends'], (oldData) => {
     if (!oldData) return oldData; // nothing cached yet
