@@ -1,4 +1,4 @@
-import { useState, useContext, useRef } from 'react';
+import { useState, useContext, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Plus, ArrowRight, Flame, CalendarDays, Star as StarIcon, Tv } from 'lucide-react';
@@ -38,6 +38,13 @@ function Home() {
     const { data: trendingData, isLoading: isTrendingLoading } = usePaginatedFetch('trending/movie/week', 1);
     const { MovieGenres, isGenresLoading } = useMovieGenres();
     const { mutate: addToWatchlist } = useAddToWatchlist(token);
+
+    // Check if all data is still loading
+    const isAnyLoading = useMemo(() => {
+        return isFeaturedLoading || isNewReleasesLoading || isTopRatedLoading || 
+               isPopularTVLoading || isTrendingLoading || isGenresLoading;
+    }, [isFeaturedLoading, isNewReleasesLoading, isTopRatedLoading, 
+        isPopularTVLoading, isTrendingLoading, isGenresLoading]);
 
     const genreMap =
         MovieGenres?.data?.genres?.reduce((acc, g) => {
@@ -227,10 +234,58 @@ function Home() {
         );
     };
 
+    // Show loading state for all sections if any is loading
+    if (isAnyLoading) {
+        return (
+            <div className="w-full max-w-screen-xl mx-auto flex flex-col gap-8 px-2 sm:px-4 md:px-8">
+                {/* Featured Hero Skeleton */}
+                <section className="relative h-96 sm:h-[500px] rounded-2xl overflow-hidden mb-8 shadow-xl bg-gray-200 dark:bg-slate-800 animate-pulse">
+                    <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
+                        <div className="max-w-2xl space-y-4">
+                            <div className="h-10 bg-gray-300 dark:bg-slate-700 rounded w-3/4"></div>
+                            <div className="h-4 bg-gray-300 dark:bg-slate-700 rounded w-full"></div>
+                            <div className="h-4 bg-gray-300 dark:bg-slate-700 rounded w-5/6"></div>
+                            <div className="flex gap-3 mt-6">
+                                <div className="h-12 bg-gray-300 dark:bg-slate-700 rounded w-32"></div>
+                                <div className="h-12 bg-gray-300 dark:bg-slate-700 rounded w-40"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* Trending Carousel Skeleton */}
+                <section className="mb-8">
+                    <div className="h-64 bg-gray-200 dark:bg-slate-800 rounded-2xl animate-pulse"></div>
+                </section>
+
+                {/* Section Skeletons */}
+                {['New Releases', 'Top Rated', 'Popular TV Shows'].map((title) => (
+                    <section key={title} className="mb-12">
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="h-8 bg-gray-200 dark:bg-slate-800 rounded w-48 animate-pulse"></div>
+                            <div className="h-6 bg-gray-200 dark:bg-slate-800 rounded w-24 animate-pulse"></div>
+                        </div>
+                        <div className="flex gap-x-4">
+                            {Array.from({ length: 6 }).map((_, i) => (
+                                <SkeletonCard
+                                    key={i}
+                                    delay={i}
+                                    variant="movie"
+                                    animation="shimmer"
+                                    className="w-[180px] md:w-[200px] h-80 flex-shrink-0"
+                                />
+                            ))}
+                        </div>
+                    </section>
+                ))}
+            </div>
+        );
+    }
+
     return (
         <div className="w-full max-w-screen-xl mx-auto flex flex-col gap-8 px-2 sm:px-4 md:px-8 ">
             {/* Featured Hero Banner */}
-            {featuredContent && !isFeaturedLoading && (
+            {featuredContent && (
                 <section className="relative h-96 sm:h-[500px] rounded-2xl overflow-hidden mb-8 shadow-xl">
                     <div className="absolute inset-0">
                         <img
@@ -300,7 +355,7 @@ function Home() {
             )}
 
             {/* Trending Carousel */}
-            {carouselItems.length > 0 && !isTrendingLoading && (
+            {carouselItems.length > 0 && (
                 <section className="mb-8">
                     <AnimatePresence>
                         <TrendingCarousel items={carouselItems} />
@@ -312,7 +367,7 @@ function Home() {
             {renderSection(
                 'New Releases',
                 newReleases,
-                isNewReleasesLoading,
+                false, // Always false since we've waited for all loading
                 <CalendarDays className="w-6 h-6 text-blue-500 dark:text-blue-400" />,
                 'movie',
                 'popularity.desc',
@@ -322,7 +377,7 @@ function Home() {
             {renderSection(
                 'Top Rated',
                 topRatedMovies,
-                isTopRatedLoading,
+                false, // Always false since we've waited for all loading
                 <StarIcon className="w-6 h-6 text-yellow-500 dark:text-yellow-400" />,
                 'movie',
                 'vote_average.desc',
@@ -332,7 +387,7 @@ function Home() {
             {renderSection(
                 'Popular TV Shows',
                 popularTVShows,
-                isPopularTVLoading,
+                false, // Always false since we've waited for all loading
                 <Tv className="w-6 h-6 text-purple-500 dark:text-purple-400" />,
                 'tv',
                 'popularity.desc',
