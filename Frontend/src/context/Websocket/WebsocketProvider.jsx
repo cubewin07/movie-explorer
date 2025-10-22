@@ -30,7 +30,7 @@ function WebsocketProvider({ children }) {
 
 
     useEffect(() => {
-      if (!user || !token || stompClientRef.current) return;
+      if (!user || !token || stompClientRef.current || isLoadingFriends) return;
       console.log("WebSocket effect running", user, token, stompClientRef.current);
       
       const stompClient = new Client({
