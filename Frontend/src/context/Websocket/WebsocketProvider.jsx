@@ -69,7 +69,7 @@ function WebsocketProvider({ children }) {
     }, [user, token]);
 
     return (
-        <WebSocketContext.Provider value={{notifications, friends, setNotifications}}>
+        <WebSocketContext.Provider value={{notifications, friends, isLoadingFriends, error, setNotifications}}>
             {children}
         </WebSocketContext.Provider>
     );
@@ -83,16 +83,8 @@ const handleWsNotification = (message, setNotifications) => {
 }
 
 const handleWsFriendStatus = (message) => {
-      console.log("Friend status update:", message.body);
-      const friendStatus = JSON.parse(message.body);
-      friends.map((friend) => {
-        if (friend.user.email === friendStatus.email) {
-          return {
-            ...friend,
-            status: friendStatus.status,
-          }
-        }
-      });
+    console.log("Friend status update:", message.body);
+    const friendStatus = JSON.parse(message.body);
 
     queryClient.setQueryData(['friends'], (oldData) => {
     if (!oldData) return oldData; // nothing cached yet

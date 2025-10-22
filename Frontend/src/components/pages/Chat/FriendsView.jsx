@@ -11,14 +11,14 @@ import LoadingState from '@/components/ui/LoadingState';
 import FriendItem from "./FriendItem";
 import AddFriendTab from "./AddFriendTab";
 import { useFriendActions } from '@/hooks/friend/useFriendActions';
+import { useWebsocket } from '@/context/Websocket/WebsocketProvider';
 
 export default function FriendsView({ onFriendSelect, compact = false }) {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('friends');
-
-  const { data: friends, isLoading, error } = useFriends();
   const { deleteFriend, updateFriendStatus } = useFriendActions();
   const navigate = useNavigate();
+  const { friends, isLoadingFriends, error } = useWebsocket();
 
   const filteredFriends = friends?.filter(friend => 
     friend?.user?.username.toLowerCase().includes(search.toLowerCase()) ||
@@ -73,7 +73,7 @@ export default function FriendsView({ onFriendSelect, compact = false }) {
           </div>
           
           <ScrollArea className={compact ? 'h-[calc(100vh-16rem)]' : 'h-[calc(100%-8rem)]'}>
-            {isLoading && <LoadingState />}
+            {isLoadingFriends && <LoadingState />}
             {error && <ErrorState message="Failed to load friends" />}
             {friends && (
               <div className="space-y-2">
