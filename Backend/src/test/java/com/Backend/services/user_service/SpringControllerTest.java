@@ -304,13 +304,13 @@ class SpringControllerTest {
                         .header("Authorization", bearer(tokenA)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[*].user.email", hasItem("bob@example.com")))
-                .andExpect(jsonPath("$[*].status", hasItem("false")));
+                .andExpect(jsonPath("$[*].status", hasItem(false)));
     
         mockMvc.perform(get("/friends/friend")
                         .header("Authorization", bearer(tokenB)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[*].user.email", hasItem("alice@example.com")))
-                .andExpect(jsonPath("$[*].status", hasItem("false")));
+                .andExpect(jsonPath("$[*].status", hasItem(false)));
     
         // A deletes friendship
         mockMvc.perform(delete("/friends/delete")
