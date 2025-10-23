@@ -3,6 +3,7 @@ package com.Backend.services.chat_service.service;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.Backend.services.friend_service.service.FriendService;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -28,7 +29,8 @@ import lombok.extern.slf4j.Slf4j;
 public class ChatService {
     
     private static final int MIN_GROUP_CHAT_PARTICIPANTS = 3;
-    
+
+    private final FriendService friendService;
     private final ChatRepository chatRepository;
     private final UserRepository userRepository;
     
@@ -63,6 +65,11 @@ public class ChatService {
         
         User user1 = findUserById(user1Id);
         User user2 = findUserById(user2Id);
+
+        boolean isFriend = friendService.isFriend(user1, user2Id);
+        if(!isFriend) {
+            throw new IllegalArgumentException("Must be friend to send message");
+        }
         
         return createChat(user1, user2);
     }
