@@ -126,17 +126,15 @@ public class MessageService {
         }
     }
     
-    private int normalizePage(int page) {
+    private void normalizePage(int page) {
         if (page < MIN_PAGE_NUMBER) {
             throw new MessageValidationException("Page number cannot be less than " + MIN_PAGE_NUMBER);
         }
-        return page;
     }
     
-    private int normalizePageSize(int size) {
+    private void normalizePageSize(int size) {
         if (size < MIN_PAGE_SIZE) {
             throw new MessageValidationException("Page size must be at least " + MIN_PAGE_SIZE);
         }
-        return size;
     }
 }
