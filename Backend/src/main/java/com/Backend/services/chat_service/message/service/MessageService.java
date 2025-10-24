@@ -68,9 +68,9 @@ public class MessageService {
     public Page<Message> getMessages(Long chatId, int page, int size) {
         validateNotNull(chatId, "Chat ID");
         
-        page = normalizePage(page);
-        size = normalizePageSize(size);
-        
+        normalizePage(page);
+        normalizePageSize(size);
+
         log.debug("Fetching messages for chat: {}, page: {}, size: {} from database", chatId, page, size);
         
         verifyChatExists(chatId);
