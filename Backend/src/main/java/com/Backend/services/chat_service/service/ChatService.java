@@ -66,11 +66,6 @@ public class ChatService {
         User user1 = findUserById(user1Id);
         User user2 = findUserById(user2Id);
 
-        boolean isFriend = friendService.isFriend(user1, user2Id);
-        if(!isFriend) {
-            throw new IllegalArgumentException("Must be friend to send message");
-        }
-        
         return createChat(user1, user2);
     }
 
