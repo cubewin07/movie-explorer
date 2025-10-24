@@ -4,6 +4,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.Backend.services.friend_service.service.FriendService;
+import com.Backend.services.notification_service.NotificationService;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -33,6 +34,7 @@ public class ChatService {
     private final FriendService friendService;
     private final ChatRepository chatRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
     
     // ==================== Create Chat Methods ====================
     
