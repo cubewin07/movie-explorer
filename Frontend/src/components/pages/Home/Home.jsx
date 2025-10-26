@@ -19,7 +19,6 @@ import { useAuthen } from '@/context/AuthenProvider';
 import { LoginNotificationModal } from '@/components/react_components/Modal/LoginNotificationModal';
 import useAddToWatchlist from '@/hooks/watchList/useAddtoWatchList';
 import SkeletonCard from '@/components/ui/skeletonCard';
-import MovieCard from './HomeMovieCard';
 
 
 function Home() {
