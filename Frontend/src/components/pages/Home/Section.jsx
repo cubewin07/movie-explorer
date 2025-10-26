@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
-import MovieCard from '@/components/ui/MovieCard';
+import MovieCard from './HomeMovieCard';
 import SkeletonCard from '@/components/ui/SkeletonCard';
 
 // ✅ New Component: Section (moved from renderSection)
