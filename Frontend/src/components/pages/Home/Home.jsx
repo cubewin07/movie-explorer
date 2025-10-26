@@ -1,8 +1,7 @@
-import { useState, useContext, useRef, useMemo } from 'react';
+import { useState, useContext, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, Plus, ArrowRight, Flame, CalendarDays, Star as StarIcon, Tv } from 'lucide-react';
-import NotificationBell from '@/components/ui/notificationBell';
+import { Play, Plus, CalendarDays, Star as StarIcon, Tv } from 'lucide-react';
 import Section from './Section';
 
 import { Button } from '@/components/ui/button';
