@@ -28,6 +28,13 @@ function WebsocketProvider({ children }) {
         setNotifications(user?.notifications || []);
     }, [user?.notifications]);
 
+    const subscribeToNewChat = (chatId) => {
+        if (stompClientRef.current && stompClientRef.current.connected) {
+            stompClientRef.current.subscribe("/topic/chat/" + chatId, (message) => {
+                handleWsNewChatMessage(chatId, message);
+            });
+        }
+    }
 
     useEffect(() => {
       if (!user || !token || stompClientRef.current || isLoadingFriends) return;
@@ -75,13 +82,6 @@ function WebsocketProvider({ children }) {
     );
 }
 
-const subscribeToNewChat = (chatId) => {
-    if (stompClientRef.current && stompClientRef.current.connected) {
-        stompClientRef.current.subscribe("/topic/chat/" + chatId, (message) => {
-            handleWsNewChatMessage(chatId, message);
-        });
-    }
-}
 
 
 const handleWsNotification = (message, setNotifications) => {
