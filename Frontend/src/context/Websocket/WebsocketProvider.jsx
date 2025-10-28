@@ -75,6 +75,14 @@ function WebsocketProvider({ children }) {
     );
 }
 
+const subscribeToNewChat = (chatId) => {
+    if (stompClientRef.current && stompClientRef.current.connected) {
+        stompClientRef.current.subscribe("/topic/chat/" + chatId, (message) => {
+            handleWsNewChatMessage(chatId, message);
+        });
+    }
+}
+
 
 const handleWsNotification = (message, setNotifications) => {
     console.log(message.body);
