@@ -313,9 +313,10 @@ public class NotificationService {
 
         String destination = "/topic/notifications/" + id;
         Chat chat = chatService.getChatById(chatId);
+        Set<SimpleUserDTO> participantsDTO = chatService.convertToSimpleUserDTOs(chat.getParticipants());
         ChatResponseDTO dto = new ChatResponseDTO(
                 chat.getId(),
-                chat.getParticipants(),
+                participantsDTO,
                 null,
                 null,
                 LocalDateTime.now()
