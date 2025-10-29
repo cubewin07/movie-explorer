@@ -1,6 +1,8 @@
 package com.Backend.websocket.eventListener;
 
 import com.Backend.services.friend_service.service.FriendService;
+import com.Backend.services.notification_service.model.SimpleNotificationDTO;
+import com.Backend.services.notification_service.service.NotificationService;
 import com.Backend.services.user_service.repository.UserRepository;
 import com.Backend.services.user_service.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,7 @@ public class GlobalEventListener {
     private final SimpMessagingTemplate messagingTemplate;
     private final CacheManager cacheManager;
     private final UserService userService;
+    private final NotificationService notificationService;
 
     @EventListener
     public void onUserStatusChange(UserStatusEvent event) {
@@ -37,5 +40,15 @@ public class GlobalEventListener {
             );
 
         });
+    }
+
+    @EventListener
+    public void onCreatingNotification(SimpleNotificationDTO notification) {
+        notificationService.createNotification(
+                notification.getUser(),
+                notification.getType(),
+                notification.getId(),
+                notification.getMessage()
+        );
     }
 }
