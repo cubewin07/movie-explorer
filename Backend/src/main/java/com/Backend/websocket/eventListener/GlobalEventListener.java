@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class UserStatusEventListener {
+public class GlobalEventListener {
     private final FriendService friendService;
     private final SimpMessagingTemplate messagingTemplate;
     private final CacheManager cacheManager;
