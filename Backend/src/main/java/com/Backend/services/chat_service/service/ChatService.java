@@ -3,6 +3,7 @@ package com.Backend.services.chat_service.service;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.Backend.services.notification_service.model.UserIdAndChatId;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -54,8 +55,18 @@ public class ChatService {
         chat.addParticipant(user2);
         
         Chat savedChat = chatRepository.save(chat);
+        Long chatId = savedChat.getId();
         log.info("Successfully created chat with id: {}", savedChat.getId());
-        
+
+        savedChat.getParticipants().forEach(user -> {
+            UserIdAndChatId userAndChatId = UserIdAndChatId.builder()
+                    .userId(user.getId())
+                    .chatId(chatId)
+                    .build();
+            publisher.publishEvent(userAndChatId);
+
+        });
+
         return savedChat;
     }
 
