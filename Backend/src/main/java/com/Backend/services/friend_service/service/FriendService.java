@@ -22,6 +22,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import com.Backend.websocket.eventListener.STOMPEventListener;
 
@@ -39,6 +40,7 @@ public class FriendService {
     private final NotificationService notificationService;
     private final CacheManager cacheManager;
     private final STOMPEventListener eventListener;
+    private final ApplicationEventPublisher publisher;
 
     @Cacheable(value = "friendRequests", key = "'from-' + #id")
     public Set<FriendRequestDTO> getRequestsFromThisUser(Long id) {
