@@ -2,6 +2,7 @@ package com.Backend.websocket.eventListener;
 
 import com.Backend.services.friend_service.service.FriendService;
 import com.Backend.services.notification_service.model.SimpleNotificationDTO;
+import com.Backend.services.notification_service.model.UserIdAndChatId;
 import com.Backend.services.notification_service.service.NotificationService;
 import com.Backend.services.user_service.repository.UserRepository;
 import com.Backend.services.user_service.service.UserService;
@@ -50,5 +51,10 @@ public class GlobalEventListener {
                 notification.getId(),
                 notification.getMessage()
         );
+    }
+
+    @EventListener
+    public void onCreatingNewChat(UserIdAndChatId ids) {
+        notificationService.sendNewChatNotification(ids.getUserId(), ids.getChatId());
     }
 }
