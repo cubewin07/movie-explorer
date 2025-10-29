@@ -32,6 +32,7 @@ import org.springframework.web.socket.WebSocketHttpHeaders;
 import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.springframework.web.socket.messaging.WebSocketStompClient;
 
+import com.Backend.services.chat_service.model.DTO.SimpleChatDTO;
 
 import java.lang.reflect.Type;
 import java.util.List;
@@ -108,7 +109,8 @@ class WebSocketChatIntegrationTest {
         HttpEntity<String> entity = new HttpEntity<>(objectMapper.writeValueAsString(payload), bearerHeaders(token));
         ResponseEntity<String> response = restTemplate.exchange(baseUrl("/chats/private"), HttpMethod.POST, entity, String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        return Long.parseLong(Objects.requireNonNull(response.getBody()));
+        SimpleChatDTO chatDTO = objectMapper.readValue(Objects.requireNonNull(response.getBody()), SimpleChatDTO.class);
+        return chatDTO.id();
     }
 
     private WebSocketStompClient buildStompClient() {
