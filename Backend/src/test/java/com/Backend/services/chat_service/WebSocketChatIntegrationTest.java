@@ -1,6 +1,7 @@
 package com.Backend.services.chat_service;
 
 import com.Backend.services.chat_service.message.dto.MessageWebSocketDTO;
+import com.Backend.services.notification_service.model.NewChatNotification;
 import com.Backend.services.notification_service.model.Notification;
 import com.Backend.services.notification_service.repository.NotificationRepo;
 import com.Backend.services.user_service.model.DTO.AuthenticateDTO;
@@ -209,6 +210,97 @@ class WebSocketChatIntegrationTest {
         assertThat(notification).isNotNull();
         assertThat(notification.getType()).isEqualTo("chat");
         assertThat(notification.getRelatedId()).isEqualTo(chatId);
+
+        aliceSession.disconnect();
+        bobSession.disconnect();
+        stompClient.stop();
+    }
+
+    @Test
+    @DisplayName("Creating new chat sends NewChatNotification to both users")
+    void creating_new_chat_sends_notification_to_both_users() throws Exception {
+        String aliceToken = register("newChatAlice", "newChatAlice@example.com", "password123");
+        String bobToken = register("newChatBob", "newChatBob@example.com", "password123");
+
+        bobToken = authenticate("newChatBob@example.com", "password123");
+
+        long aliceId = getUserId(aliceToken);
+        long bobId = getUserId(bobToken);
+
+        WebSocketStompClient stompClient = buildStompClient();
+
+        CompletableFuture<NewChatNotification> aliceNotificationFuture = new CompletableFuture<>();
+        CompletableFuture<NewChatNotification> bobNotificationFuture = new CompletableFuture<>();
+
+        // Connect both users to WebSocket
+        StompSession aliceSession = connectStomp(stompClient, aliceToken, aliceId);
+        StompSession bobSession = connectStomp(stompClient, bobToken, bobId);
+
+        // Subscribe Alice to her notification topic
+        String aliceDestination = "/topic/notifications/" + aliceId;
+        log.info("Creating notification subscription for Alice (userId={}) on destination {}", aliceId, aliceDestination);
+        aliceSession.subscribe(aliceDestination, new StompFrameHandler() {
+            @Override
+            public @NonNull Type getPayloadType(@NonNull StompHeaders headers) {
+                return NewChatNotification.class;
+            }
+
+            @Override
+            public void handleFrame(@NonNull StompHeaders headers, @Nullable Object payload) {
+                log.debug("Alice received notification payload in handleFrame: {}", payload);
+                if (payload instanceof NewChatNotification) {
+                    NewChatNotification notification = (NewChatNotification) payload;
+                    log.debug("Alice received NewChatNotification: type={}, chatId={}", 
+                             notification.type(), notification.chat().id());
+                    aliceNotificationFuture.complete(notification);
+                }
+            }
+        });
+
+        // Subscribe Bob to his notification topic
+        String bobDestination = "/topic/notifications/" + bobId;
+        log.info("Creating notification subscription for Bob (userId={}) on destination {}", bobId, bobDestination);
+        bobSession.subscribe(bobDestination, new StompFrameHandler() {
+            @Override
+            public @NonNull Type getPayloadType(@NonNull StompHeaders headers) {
+                return NewChatNotification.class;
+            }
+
+            @Override
+            public void handleFrame(@NonNull StompHeaders headers, @Nullable Object payload) {
+                log.debug("Bob received notification payload in handleFrame: {}", payload);
+                if (payload instanceof NewChatNotification) {
+                    NewChatNotification notification = (NewChatNotification) payload;
+                    log.debug("Bob received NewChatNotification: type={}, chatId={}", 
+                             notification.type(), notification.chat().id());
+                    bobNotificationFuture.complete(notification);
+                }
+            }
+        });
+
+        Thread.sleep(250); // Allow subscriptions to be established
+
+        // Create private chat between Alice and Bob
+        log.info("Creating private chat between Alice (userId={}) and Bob (userId={})", aliceId, bobId);
+        long chatId = createPrivateChat(aliceToken, aliceId, bobId);
+
+        // Verify both users receive NewChatNotification messages
+        NewChatNotification aliceNotification = aliceNotificationFuture.get(5, TimeUnit.SECONDS);
+        NewChatNotification bobNotification = bobNotificationFuture.get(5, TimeUnit.SECONDS);
+
+        // Assert Alice received correct notification
+        assertThat(aliceNotification).isNotNull();
+        assertThat(aliceNotification.type()).isEqualTo("New_Chat");
+        assertThat(aliceNotification.chat()).isNotNull();
+        assertThat(aliceNotification.chat().id()).isEqualTo(chatId);
+
+        // Assert Bob received correct notification
+        assertThat(bobNotification).isNotNull();
+        assertThat(bobNotification.type()).isEqualTo("New_Chat");
+        assertThat(bobNotification.chat()).isNotNull();
+        assertThat(bobNotification.chat().id()).isEqualTo(chatId);
+
+        log.info("Successfully verified both users received NewChatNotification with correct chat ID: {}", chatId);
 
         aliceSession.disconnect();
         bobSession.disconnect();
