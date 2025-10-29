@@ -16,6 +16,7 @@ import com.Backend.services.chat_service.service.ChatService;
 import com.Backend.services.chat_service.message.service.MessageService;
 import com.Backend.services.chat_service.model.Chat;
 import com.Backend.services.chat_service.message.model.Message;
+import com.Backend.services.chat_service.model.DTO.SimpleChatDTO;
 
 @RestController
 @RequestMapping("/chats")
@@ -26,9 +27,9 @@ public class ChatController {
     private final MessageService messageService;
 
     @PostMapping("/private")
-    public ResponseEntity<Long> createChat(@RequestBody ChatCreateDTOID chat) {
-        Long chatId = chatService.createChat(chat.user1Id(), chat.user2Id()).getId();
-        return ResponseEntity.ok(chatId);
+    public ResponseEntity<SimpleChatDTO> createChat(@RequestBody ChatCreateDTOID chat) {
+        SimpleChatDTO chatDTO = chatService.createChat(chat.user1Id(), chat.user2Id());
+        return ResponseEntity.ok(chatDTO);
     }
 
     @PostMapping("/group")

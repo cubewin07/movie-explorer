@@ -44,7 +44,7 @@ public class ChatService {
         @CacheEvict(value = "userMeDTO", key = "#user1.email"),
         @CacheEvict(value = "userMeDTO", key = "#user2.email")
     })
-    public Chat createChat(User user1, User user2) {
+    public SimpleChatDTO createChat(User user1, User user2) {
         validateNotNull(user1, "User 1");
         validateNotNull(user2, "User 2");
         
@@ -67,11 +67,11 @@ public class ChatService {
 
         });
 
-        return savedChat;
+        return new SimpleChatDTO(savedChat.getId(), convertToSimpleUserDTOs(savedChat.getParticipants()));
     }
 
     @Transactional
-    public Chat createChat(Long user1Id, Long user2Id) {
+    public SimpleChatDTO createChat(Long user1Id, Long user2Id) {
         log.debug("Creating chat between user IDs: {} and {}", user1Id, user2Id);
         
         User user1 = findUserById(user1Id);
@@ -81,7 +81,7 @@ public class ChatService {
     }
 
     @Transactional
-    public Chat createChat(String username1, String username2) {
+    public SimpleChatDTO createChat(String username1, String username2) {
         log.debug("Creating chat between usernames: {} and {}", username1, username2);
         
         User user1 = findUserByUsername(username1);
