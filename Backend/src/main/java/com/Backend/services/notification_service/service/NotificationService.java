@@ -7,11 +7,16 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.Backend.services.chat_service.message.model.Message;
+import com.Backend.services.chat_service.model.Chat;
+import com.Backend.services.chat_service.model.DTO.ChatResponseDTO;
+import com.Backend.services.chat_service.service.ChatService;
+import com.Backend.services.notification_service.model.NewChatNotification;
 import com.Backend.services.notification_service.model.Notification;
 import com.Backend.services.notification_service.model.NotificationDTO;
 import com.Backend.services.notification_service.repository.NotificationRepo;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.model.DTO.SimpleUserDTO;
+import com.Backend.services.user_service.service.UserService;
 import com.Backend.websocket.eventListener.STOMPEventListener;
 import com.Backend.services.user_service.repository.UserRepository;
 import com.Backend.exception.UserNotFoundException;
@@ -35,6 +40,8 @@ public class NotificationService {
     private final UserRepository userRepository;
     private final SimpMessagingTemplate template;
     private final STOMPEventListener stompEventListener;
+    private final ChatService chatService;
+    private final UserService userService;
     
     @Caching(evict = {
             @CacheEvict(value = "chatNotifications", key = "#user.id"),
@@ -295,8 +302,15 @@ public class NotificationService {
                 .build()).collect(Collectors.toSet());
     }
 
-    public void sendNewChatNotification(Long Id) {
+    public void sendNewChatNotification(Long Id, Long chatId) {
+        User user = userService.getUserById(Id);
+        if(!stompEventListener.isUserOnline(user.getUsername()))
+            return;
         String destination = "topic/notifications" + Id;
+        Chat chat = chatService.getChatById(chatId);
+        ChatResponseDTO dto = new ChatResponseDTO(chat.getId(), chat.getParticipants(), null, null, LocalDateTime.now());
+        NewChatNotification ChatNotification = new NewChatNotification("New_Chat", dto);
+        template.convertAndSend(destination, ChatNotification);
 
     }
 }
