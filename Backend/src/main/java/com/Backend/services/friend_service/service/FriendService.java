@@ -6,7 +6,7 @@ import com.Backend.services.friend_service.model.DTO.FriendDTO;
 import com.Backend.services.friend_service.model.DTO.FriendRequestDTO;
 import com.Backend.services.friend_service.model.DTO.FriendUserDTO;
 import com.Backend.services.friend_service.repository.FriendRepo;
-import com.Backend.services.notification_service.service.NotificationService;
+import com.Backend.services.notification_service.model.SimpleNotificationDTO;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.repository.UserRepository;
 import com.Backend.exception.UserNotFoundException;
@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 public class FriendService {
     private final FriendRepo friendRepo;
     private final UserRepository userRepository;
-    private final NotificationService notificationService;
     private final CacheManager cacheManager;
     private final STOMPEventListener eventListener;
     private final ApplicationEventPublisher publisher;
@@ -90,7 +89,13 @@ public class FriendService {
             throw new FriendRequestAlreadyExistsException("Friend request already exists in opposite direction");
         }
 
-        notificationService.createNotification(user2, "friendRequest", user1.getId(), user1.getRealUsername() + " has sent you a friend request");
+        SimpleNotificationDTO simpleNotificationDTO =   SimpleNotificationDTO.builder()
+                        .user(user2)
+                        .type("friendRequest")
+                        .id(user1.getId())
+                        .message(user1.getRealUsername() + " has sent you a friend request")
+                        .build();
+        publisher.publishEvent(simpleNotificationDTO);
 
         Friend friendReq = Friend.builder()
                 .user1(user1)
