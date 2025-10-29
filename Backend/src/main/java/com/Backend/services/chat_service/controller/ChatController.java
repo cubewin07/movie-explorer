@@ -1,5 +1,6 @@
 package com.Backend.services.chat_service.controller;
 
+import com.Backend.services.user_service.model.DTO.SimpleUserDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +18,8 @@ import com.Backend.services.chat_service.message.service.MessageService;
 import com.Backend.services.chat_service.model.Chat;
 import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.chat_service.model.DTO.SimpleChatDTO;
+
+import java.util.Set;
 
 @RestController
 @RequestMapping("/chats")
@@ -42,7 +45,8 @@ public class ChatController {
     public ResponseEntity<ChatResponseDTO> getChat(@RequestParam("chatId") Long chatId) {
         Chat chat = chatService.getChatById(chatId);
         Message latestMessage = messageService.getLatestMessage(chatId);
-        ChatResponseDTO chatResponseDTO = new ChatResponseDTO(chatId, chat.getParticipants(), latestMessage.getContent(), latestMessage.getSender().getUsername(), latestMessage.getCreatedAt());
+        Set<SimpleUserDTO> participantsDTO = chatService.convertToSimpleUserDTOs(chat.getParticipants());
+        ChatResponseDTO chatResponseDTO = new ChatResponseDTO(chatId, participantsDTO, latestMessage.getContent(), latestMessage.getSender().getUsername(), latestMessage.getCreatedAt());
         return ResponseEntity.ok(chatResponseDTO);
     
     }
