@@ -3,7 +3,7 @@ package com.Backend.services.user_service.model;
 import com.Backend.services.chat_service.model.Chat;
 import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.friend_service.model.Friend;
-import com.Backend.services.notification_service.Notification;
+import com.Backend.services.notification_service.model.Notification;
 import com.Backend.services.watchlist_service.model.Watchlist;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;

@@ -1,8 +1,7 @@
 package com.Backend.services.user_service;
 
-import com.Backend.services.notification_service.Notification;
-import com.Backend.services.notification_service.NotificationDTO;
-import com.Backend.services.notification_service.NotificationService;
+import com.Backend.services.notification_service.model.NotificationDTO;
+import com.Backend.services.notification_service.service.NotificationService;
 import com.Backend.services.user_service.model.DTO.AuthenticateDTO;
 import com.Backend.services.user_service.model.DTO.RegisterDTO;
 import com.Backend.services.user_service.model.DTO.UpdateUserDTO;

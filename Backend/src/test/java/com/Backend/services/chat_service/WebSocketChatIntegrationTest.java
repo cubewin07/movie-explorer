@@ -1,8 +1,8 @@
 package com.Backend.services.chat_service;
 
 import com.Backend.services.chat_service.message.dto.MessageWebSocketDTO;
-import com.Backend.services.notification_service.Notification;
-import com.Backend.services.notification_service.NotificationRepo;
+import com.Backend.services.notification_service.model.Notification;
+import com.Backend.services.notification_service.repository.NotificationRepo;
 import com.Backend.services.user_service.model.DTO.AuthenticateDTO;
 import com.Backend.services.user_service.model.DTO.RegisterDTO;
 import com.Backend.services.user_service.repository.UserRepository;

@@ -1,4 +1,4 @@
-package com.Backend.services.notification_service;
+package com.Backend.services.notification_service.service;
 
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
@@ -7,6 +7,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.Backend.services.chat_service.message.model.Message;
+import com.Backend.services.notification_service.model.Notification;
+import com.Backend.services.notification_service.model.NotificationDTO;
+import com.Backend.services.notification_service.repository.NotificationRepo;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.model.DTO.SimpleUserDTO;
 import com.Backend.websocket.eventListener.STOMPEventListener;

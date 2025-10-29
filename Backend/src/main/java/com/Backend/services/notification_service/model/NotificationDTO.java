@@ -1,4 +1,4 @@
-package com.Backend.services.notification_service;
+package com.Backend.services.notification_service.model;
 
 import java.time.LocalDateTime;
 

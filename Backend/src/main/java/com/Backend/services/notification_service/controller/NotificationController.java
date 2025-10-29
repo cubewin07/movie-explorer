@@ -1,5 +1,8 @@
-package com.Backend.services.notification_service;
+package com.Backend.services.notification_service.controller;
 
+import com.Backend.services.notification_service.model.AllReadRecord;
+import com.Backend.services.notification_service.model.NotificationDTO;
+import com.Backend.services.notification_service.service.NotificationService;
 import com.Backend.services.user_service.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

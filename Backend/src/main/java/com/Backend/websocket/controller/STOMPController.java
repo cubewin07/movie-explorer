@@ -8,7 +8,7 @@ import com.Backend.services.chat_service.message.service.MessageService;
 import com.Backend.services.chat_service.service.ChatService;
 import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.chat_service.message.dto.MessageWebSocketDTO;
-import com.Backend.services.notification_service.NotificationService;
+import com.Backend.services.notification_service.service.NotificationService;
 import com.Backend.services.user_service.model.DTO.SimpleUserDTO;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.repository.UserRepository;

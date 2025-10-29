@@ -6,7 +6,7 @@ import com.Backend.services.friend_service.model.DTO.FriendDTO;
 import com.Backend.services.friend_service.model.DTO.FriendRequestDTO;
 import com.Backend.services.friend_service.model.DTO.FriendUserDTO;
 import com.Backend.services.friend_service.repository.FriendRepo;
-import com.Backend.services.notification_service.NotificationService;
+import com.Backend.services.notification_service.service.NotificationService;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.repository.UserRepository;
 import com.Backend.exception.UserNotFoundException;

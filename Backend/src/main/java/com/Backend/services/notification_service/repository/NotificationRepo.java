@@ -1,7 +1,8 @@
-package com.Backend.services.notification_service;
+package com.Backend.services.notification_service.repository;
 
 import java.util.List;
 
+import com.Backend.services.notification_service.model.Notification;
 import com.Backend.services.user_service.model.User;
 
 import org.springframework.data.jpa.repository.JpaRepository;
