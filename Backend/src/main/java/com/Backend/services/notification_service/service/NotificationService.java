@@ -303,15 +303,14 @@ public class NotificationService {
     }
 
     @Caching(evict = {
-            @CacheEvict(value = "chatNotifications", key = "#Id"),
-            @CacheEvict(value = "userMeDTO", key = "#user.email"),
-            @CacheEvict(value = "notifications", key = "#Id")
+            @CacheEvict(value = "chatNotifications", key = "#id"),
+            @CacheEvict(value = "notifications", key = "#id")
     })
-    public void sendNewChatNotification(Long Id, Long chatId) {
-        User user = userService.getUserById(Id);
+    public void sendNewChatNotification(Long id, Long chatId) {
+        User user = userService.getUserById(id);
         if(!stompEventListener.isUserOnline(user.getUsername()))
             return;
-        String destination = "topic/notifications/" + Id;
+        String destination = "topic/notifications/" + id;
         Chat chat = chatService.getChatById(chatId);
         ChatResponseDTO dto = new ChatResponseDTO(chat.getId(), chat.getParticipants(), null, null, LocalDateTime.now());
         NewChatNotification ChatNotification = new NewChatNotification("New_Chat", dto);
