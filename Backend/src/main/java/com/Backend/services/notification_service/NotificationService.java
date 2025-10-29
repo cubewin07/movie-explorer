@@ -291,4 +291,9 @@ public class NotificationService {
                 .createdAt(n.getCreatedAt())
                 .build()).collect(Collectors.toSet());
     }
+
+    public void sendNewChatNotification(Long Id) {
+        String destination = "topic/notifications" + Id;
+
+    }
 }
