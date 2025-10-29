@@ -276,7 +276,9 @@ public class ChatService {
         }
     }
 
-    private Set<SimpleUserDTO> convertToSimpleUserDTOs(Set<User> users) {
+
+    // ==================== Public Helper Methods ====================
+    public Set<SimpleUserDTO> convertToSimpleUserDTOs(Set<User> users) {
         return users.stream()
             .map(user -> {
                 SimpleUserDTO dto = new SimpleUserDTO();
