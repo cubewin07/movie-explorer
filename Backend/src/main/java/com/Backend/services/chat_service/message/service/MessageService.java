@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.Backend.exception.ChatNotFoundException;
 import com.Backend.exception.MessageValidationException;
 import com.Backend.services.chat_service.message.model.Message;
+import com.Backend.services.chat_service.message.dto.MessageDTO;
 import com.Backend.services.chat_service.message.repository.MessageRepository;
 import com.Backend.services.chat_service.model.Chat;
 import com.Backend.services.chat_service.repository.ChatRepository;
