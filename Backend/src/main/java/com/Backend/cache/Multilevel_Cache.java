@@ -61,25 +61,29 @@ public class Multilevel_Cache implements Cache {
     @Override
     public <T> T get(@NonNull Object key, @NonNull Callable<T> valueLoader) {
         try {
-            // Try local cache first
-            @SuppressWarnings("unchecked")
-            T localValue = (T) local.get(key, valueLoader.getClass());
-            if (localValue != null) {
-                return localValue;
+            // First try local cache without forcing a type
+            ValueWrapper localWrapper = local.get(key);
+            if (localWrapper != null) {
+                @SuppressWarnings("unchecked")
+                T value = (T) localWrapper.get();
+                return value;
             }
 
-            // Try remote cache
-            T remoteValue = remote.get(key, valueLoader);
-            if (remoteValue != null) {
-                // Store in local cache
-                local.put(key, remoteValue);
-                return remoteValue;
+            // Next try remote cache
+            ValueWrapper remoteWrapper = remote.get(key);
+            if (remoteWrapper != null) {
+                @SuppressWarnings("unchecked")
+                T value = (T) remoteWrapper.get();
+                // Populate local cache for faster subsequent access
+                local.put(key, value);
+                return value;
             }
 
-            // If not found in either cache, load the value
-            T newValue = valueLoader.call();
-            put(key, newValue);
-            return newValue;
+            // Not found in either cache -> load
+            T loaded = valueLoader.call();
+            // Populate both caches
+            put(key, loaded);
+            return loaded;
         } catch (Exception e) {
             throw new ValueRetrievalException(key, valueLoader, e);
         }

@@ -47,6 +47,14 @@ public class ChatService {
     public SimpleChatDTO createChat(User user1, User user2) {
         validateNotNull(user1, "User 1");
         validateNotNull(user2, "User 2");
+
+        if (user1.getId().equals(user2.getId())) {
+            throw new ChatValidationException("Cannot create a chat with the same user");
+        }
+
+        chatRepository.findPrivateChat(user1, user2).ifPresent(existing -> {
+            throw new ChatValidationException("A private chat between these users already exists (id=" + existing.getId() + ")");
+        });
         
         log.debug("Creating chat between users: {} and {}", user1.getId(), user2.getId());
         
