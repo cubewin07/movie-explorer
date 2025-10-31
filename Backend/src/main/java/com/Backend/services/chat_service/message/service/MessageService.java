@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.Backend.exception.ChatNotFoundException;
-import com.Backend.exception.MessageNotFoundException;
 import com.Backend.exception.MessageValidationException;
 import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.chat_service.message.repository.MessageRepository;
@@ -98,7 +97,15 @@ public class MessageService {
         verifyChatExists(chatId);
         
         return messageRepository.findTopByChatIdOrderByCreatedAtDesc(chatId)
-            .orElseThrow(() -> new MessageNotFoundException("No messages found for chat: " + chatId));
+            .orElse(null);
+    }   
+
+    public MessageDTO getLatestMessageDTO(Long chatId) {
+        Message message = getLatestMessage(chatId);
+        if (message == null) {
+            return null;
+        }
+        return new MessageDTO(message.getId(), message.getContent(), message.getSender().getId(), message.getSender().getUsername(), message.getCreatedAt());
     }
     
     // ==================== Private Helper Methods ====================
