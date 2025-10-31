@@ -152,6 +152,14 @@ public class ChatService {
     }
 
     @Transactional(readOnly = true)
+    public Chat getChatByIdNoCache(Long id) {
+        validateNotNull(id, "Chat ID");
+        log.debug("Fetching chat (no cache) with id: {} from database", id);
+        return chatRepository.findById(id)
+            .orElseThrow(() -> new ChatNotFoundException("Chat not found with id: " + id));
+    }
+
+    @Transactional(readOnly = true)
     @Cacheable(value = "chats", key = "#user.id")
     public Set<SimpleChatDTO> getChats(User user) {
         validateNotNull(user, "User");

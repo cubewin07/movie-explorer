@@ -60,6 +60,14 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
     }
 
+    @Cacheable(value = "users", key = "#id")
+    public SimpleUserDTO getSimpleUserByIdCached(Long id) {
+        log.debug("Fetching simple user DTO by id={} from database", id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
+        return new SimpleUserDTO(user.getId(), user.getEmail(), user.getUsername());
+    }
+
     @Transactional
     @Caching(evict = {
         @CacheEvict(value = "users", key = "'all'"),

@@ -3,7 +3,6 @@ package com.Backend.services.notification_service.service;
 import java.nio.file.AccessDeniedException;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -25,8 +24,6 @@ import com.Backend.exception.UserNotFoundException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.Cache;
-import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -306,13 +303,13 @@ public class NotificationService {
     }
 
     public void sendNewChatNotification(Long id, Long chatId) {
-        User user = userService.getUserById(id);
+        SimpleUserDTO userDto = userService.getSimpleUserByIdCached(id);
 
-        if(!stompEventListener.isUserOnline(user.getUsername()))
+        if(!stompEventListener.isUserOnline(userDto.getUsername()))
             return;
 
         String destination = "/topic/notifications/" + id;
-        Chat chat = chatService.getChatById(chatId);
+        Chat chat = chatService.getChatByIdNoCache(chatId);
         Set<SimpleUserDTO> participantsDTO = chatService.convertToSimpleUserDTOs(chat.getParticipants());
         ChatResponseDTO dto = new ChatResponseDTO(
                 chat.getId(),
