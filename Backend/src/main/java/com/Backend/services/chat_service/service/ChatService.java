@@ -13,14 +13,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.Backend.exception.ChatNotFoundException;
 import com.Backend.exception.ChatValidationException;
-import com.Backend.exception.UserNotFoundException;
 import com.Backend.services.chat_service.model.Chat;
 import com.Backend.services.chat_service.model.DTO.SimpleChatDTO;
 import com.Backend.services.chat_service.model.DTO.ChatDTO;
 import com.Backend.services.chat_service.repository.ChatRepository;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.model.DTO.SimpleUserDTO;
-import com.Backend.services.user_service.repository.UserRepository;
+import com.Backend.services.user_service.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +32,7 @@ public class ChatService {
     private static final int MIN_GROUP_CHAT_PARTICIPANTS = 3;
 
     private final ChatRepository chatRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final ApplicationEventPublisher publisher;
     
     // ==================== Create Chat Methods ====================
@@ -188,6 +187,25 @@ public class ChatService {
         return chatResponseDTO.participants();
         
     }
+
+    // Removed @Cacheable - was caching JPA entities which causes Kryo serialization issues
+    // This method is provided for other services (like MessageService) to use instead of direct repository access
+    @Transactional(readOnly = true)
+    public Chat getChatById(Long id) {
+        validateNotNull(id, "Chat ID");
+        log.debug("Fetching chat entity with id: {} from database", id);
+        return chatRepository.findById(id)
+            .orElseThrow(() -> new ChatNotFoundException("Chat not found with id: " + id));
+    }
+
+    // Helper method to check chat existence
+    // Note: Using repository directly here is acceptable as it's a simple existence check
+    // and avoids unnecessary DTO conversion for existence validation
+    @Transactional(readOnly = true)
+    public boolean chatExists(Long chatId) {
+        validateNotNull(chatId, "Chat ID");
+        return chatRepository.existsById(chatId);
+    }
     
     // ==================== Modify Chat Methods ====================
 
@@ -251,13 +269,11 @@ public class ChatService {
     // ==================== Private Helper Methods ====================
     
     private User findUserById(Long userId) {
-        return userRepository.findById(userId)
-            .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+        return userService.getUserById(userId);
     }
     
     private User findUserByUsername(String username) {
-        return userRepository.findByUsername(username)
-            .orElseThrow(() -> new UserNotFoundException("User not found with username: " + username));
+        return userService.getUserByUsername(username);
     }
     
     private Set<User> fetchUsersByIds(Set<Long> userIds) {

@@ -18,8 +18,6 @@ import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.model.DTO.SimpleUserDTO;
 import com.Backend.services.user_service.service.UserService;
 import com.Backend.websocket.eventListener.STOMPEventListener;
-import com.Backend.services.user_service.repository.UserRepository;
-import com.Backend.exception.UserNotFoundException;
 
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +35,6 @@ import org.springframework.transaction.annotation.Transactional;
 public class NotificationService {
     
     private final NotificationRepo notificationRepo;
-    private final UserRepository userRepository;
     private final SimpMessagingTemplate template;
     private final STOMPEventListener stompEventListener;
     private final ChatService chatService;
@@ -137,8 +134,7 @@ public class NotificationService {
     public void createNotificationWithoutSending(SimpleUserDTO userDTO, String type, Long relatedId, Message message) {
 
         String messageContent = message.getContent();
-        User user = userRepository.findById(userDTO.getId())
-            .orElseThrow(() -> new UserNotFoundException("User not found"));
+        User user = userService.getUserById(userDTO.getId());
 
         if(type.equals("chat")) {
             messageContent = message.getSender().getUsername() + ": " + message.getContent();

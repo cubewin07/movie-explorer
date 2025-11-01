@@ -8,10 +8,8 @@ import com.Backend.services.friend_service.model.DTO.FriendUserDTO;
 import com.Backend.services.friend_service.repository.FriendRepo;
 import com.Backend.services.notification_service.model.SimpleNotificationDTO;
 import com.Backend.services.user_service.model.User;
-import com.Backend.services.user_service.repository.UserRepository;
-import com.Backend.exception.UserNotFoundException;
+import com.Backend.services.user_service.service.UserService;
 import com.Backend.exception.FriendshipNotFoundException;
-import com.Backend.exception.FriendNotFoundException;
 import com.Backend.exception.FriendRequestAlreadyExistsException;
 import com.Backend.exception.NotAuthorizedToModifyFriendshipException;
 import jakarta.transaction.Transactional;
@@ -36,7 +34,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FriendService {
     private final FriendRepo friendRepo;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final CacheManager cacheManager;
     private final STOMPEventListener eventListener;
     private final ApplicationEventPublisher publisher;
@@ -44,8 +42,8 @@ public class FriendService {
     @Cacheable(value = "friendRequests", key = "'from-' + #id")
     public Set<FriendRequestDTO> getRequestsFromThisUser(Long id) {
         log.debug("Fetching requests from user id={} from database", id);
-        User user = userRepository.findWithRequestsFrom(id).orElse(null);
-        if (user == null) {
+        User user = userService.getUserWithRequestsFrom(id);
+        if (user.getRequestsFrom() == null || user.getRequestsFrom().isEmpty()) {
             return Set.of();
         }
         return user.getRequestsFrom().stream()
@@ -56,8 +54,8 @@ public class FriendService {
     @Cacheable(value = "friendRequests", key = "'to-' + #id")
     public Set<FriendRequestDTO> getRequestsToThisUser(Long id) {
         log.debug("Fetching requests to user id={} from database", id);
-        User user = userRepository.findWithRequestsToById(id).orElse(null);
-        if (user == null) {
+        User user = userService.getUserWithRequestsTo(id);
+        if (user.getRequestsTo() == null || user.getRequestsTo().isEmpty()) {
             return Set.of();
         }
         return user.getRequestsTo().stream()
@@ -76,7 +74,7 @@ public class FriendService {
             @CacheEvict(value = "isFriend", allEntries = true)
     })
     public void sendRequest(User user1, String friendEmail) {
-        User user2 = userRepository.findByEmail(friendEmail).orElseThrow(() -> new FriendNotFoundException("Friend user not found"));
+        User user2 = userService.getUserByEmail(friendEmail);
 
         // Check if a request already exists in either direction
         Optional<Friend> existingRequest = friendRepo.findByUser1AndUser2(user1, user2);
@@ -113,8 +111,7 @@ public class FriendService {
     @Cacheable(value = "friendStatus", key = "#user1.id + '-' + #friendEmail")
     public Status getFriendStatus(User user1, String friendEmail) {
         log.debug("Fetching friend status for user={} and friend={} from database", user1.getId(), friendEmail);
-        User user2 = userRepository.findByEmail(friendEmail)
-                .orElseThrow(() -> new UserNotFoundException("User with email " + friendEmail + " not found"));
+        User user2 = userService.getUserByEmail(friendEmail);
         return friendRepo.findFriendshipBetween(user1, user2)
                 .map(Friend::getStatus)
                 .orElseThrow(() -> new FriendshipNotFoundException("No friend relationship found"));
@@ -123,8 +120,7 @@ public class FriendService {
     @Cacheable(value = "friendStatus", key = "#user1.id + '-' + #friendId")
     public Status getFriendStatus(User user1, Long friendId) {
         log.debug("Fetching friend status for user={} and friendId={} from database", user1.getId(), friendId);
-        User user2 = userRepository.findById(friendId)
-                .orElseThrow(() -> new UserNotFoundException("User with id " + friendId + " not found"));
+        User user2 = userService.getUserById(friendId);
         return friendRepo.findFriendshipBetween(user1, user2)
                 .map(Friend::getStatus)
                 .orElseThrow(() -> new FriendshipNotFoundException("No friend relationship found"));
@@ -133,16 +129,14 @@ public class FriendService {
     @Cacheable(value = "isFriend", key = "#user1.id + '-' + #friendEmail" )
     public boolean isFriend(User user1, String friendEmail) {
         log.info("Checking if user={} is a friend of user with email={}", user1.getId(), friendEmail);
-        User user2 = userRepository.findByEmail(friendEmail)
-                .orElseThrow(() -> new UserNotFoundException("User with email " + friendEmail + " not found"));
+        User user2 = userService.getUserByEmail(friendEmail);
         return friendRepo.existsFriendshipBetween(user1, user2);
     }
 
     @Cacheable(value = "isFriend", key = "#user1.id + '-' + #friendId" )
     public boolean isFriend(User user1, Long friendId) {
         log.info("Checking if user={} is a friend of user with id={}", user1.getId(), friendId);
-        User user2 = userRepository.findById(friendId)
-                .orElseThrow(() -> new UserNotFoundException("User with email " + friendId + " not found"));
+        User user2 = userService.getUserById(friendId);
         return friendRepo.existsFriendshipBetween(user1, user2);
     }
 
@@ -157,7 +151,7 @@ public class FriendService {
             @CacheEvict(value = "userMeDTO", key = "#user1.email")
     })
     public void updateFriend(User user1, Long senderEmail, Status status) {
-        User user2 = userRepository.findById(senderEmail).orElseThrow(() -> new FriendNotFoundException("Friend user not found"));
+        User user2 = userService.getUserById(senderEmail);
 
         // Check both directions
         Optional<Friend> friendReq = friendRepo.findByUser1AndUser2(user1, user2);
@@ -217,7 +211,7 @@ public class FriendService {
 
     @Cacheable(value = "friends", key = "#email")
     public Set<Long> getAllFriendsReturnASetOfIds(String email) {
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException("User with email " + email + " not found"));
+        User user = userService.getUserByEmail(email);
         List<Friend> friends = friendRepo.findAllFriendshipsByUserAndStatus(user, Status.ACCEPTED);
         return friends.stream()
                 .map(f -> {
@@ -241,7 +235,7 @@ public class FriendService {
             @CacheEvict(value = "userMeDTO", key = "#user1.email")
     })
     public void deleteFriend(User user1, Long friendEmail) {
-        User user2 = userRepository.findById(friendEmail).orElseThrow(() -> new FriendNotFoundException("Friend user not found"));
+        User user2 = userService.getUserById(friendEmail);
 
         // Check both directions
         Friend friend = friendRepo.findFriendshipBetween(user1, user2)

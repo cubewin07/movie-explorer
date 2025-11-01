@@ -15,7 +15,7 @@ import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.chat_service.message.dto.MessageDTO;
 import com.Backend.services.chat_service.message.repository.MessageRepository;
 import com.Backend.services.chat_service.model.Chat;
-import com.Backend.services.chat_service.repository.ChatRepository;
+import com.Backend.services.chat_service.service.ChatService;
 import com.Backend.services.user_service.model.User;
 
 import lombok.RequiredArgsConstructor;
@@ -31,7 +31,7 @@ public class MessageService {
     private static final int MIN_PAGE_SIZE = 1;
     
     private final MessageRepository messageRepository;
-    private final ChatRepository chatRepository;
+    private final ChatService chatService;
 
     // ==================== Send Message ====================
 
@@ -62,26 +62,6 @@ public class MessageService {
     }
 
     // ==================== Retrieve Messages ====================
-
-    // Removed @Cacheable - was caching JPA entities (Page<Message>) which causes Kryo serialization issues
-    @Transactional(readOnly = true)
-    public Page<Message> getMessages(Long chatId, int page, int size) {
-        validateNotNull(chatId, "Chat ID");
-        
-        normalizePage(page);
-        normalizePageSize(size);
-
-        log.debug("Fetching messages for chat: {}, page: {}, size: {} from database", chatId, page, size);
-        
-        verifyChatExists(chatId);
-        
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Message> messages = messageRepository.findByChatIdOrderByCreatedAtDesc(chatId, pageable);
-        
-        log.info("Found {} messages for chat: {}", messages.getTotalElements(), chatId);
-        
-        return messages;
-    }
 
     @Transactional(readOnly = true)
     @Cacheable(value = "messagesDTO", key = "#chatId + '-' + #page + '-' + #size")
@@ -119,11 +99,6 @@ public class MessageService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Message> getMessages(Long chatId, int page) {
-        return getMessages(chatId, page, DEFAULT_PAGE_SIZE);
-    }
-
-    @Transactional(readOnly = true)
     @Cacheable(value = "latestMessageDTO", key = "#chatId")
     public MessageDTO getLatestMessageDTO(Long chatId) {
         validateNotNull(chatId, "Chat ID");
@@ -151,12 +126,11 @@ public class MessageService {
     // ==================== Private Helper Methods ====================
     
     private Chat findChatById(Long chatId) {
-        return chatRepository.findById(chatId)
-            .orElseThrow(() -> new ChatNotFoundException("Chat not found with id: " + chatId));
+        return chatService.getChatById(chatId);
     }
     
     private void verifyChatExists(Long chatId) {
-        if (!chatRepository.existsById(chatId)) {
+        if (!chatService.chatExists(chatId)) {
             throw new ChatNotFoundException("Chat not found with id: " + chatId);
         }
     }
