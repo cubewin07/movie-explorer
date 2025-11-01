@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 
 import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.chat_service.model.Chat;
+import com.Backend.services.chat_service.model.DTO.ChatDTO;
 import com.Backend.services.chat_service.model.DTO.ChatResponseDTO;
 import com.Backend.services.chat_service.service.ChatService;
 import com.Backend.services.notification_service.model.NewChatNotification;
@@ -309,10 +310,10 @@ public class NotificationService {
             return;
 
         String destination = "/topic/notifications/" + id;
-        Chat chat = chatService.getChatByIdNoCache(chatId);
-        Set<SimpleUserDTO> participantsDTO = chatService.convertToSimpleUserDTOs(chat.getParticipants());
+        ChatDTO chat = chatService.getChatByIdDTO(chatId);
+        Set<SimpleUserDTO> participantsDTO = chat.participants();
         ChatResponseDTO dto = new ChatResponseDTO(
-                chat.getId(),
+                chat.id(),
                 participantsDTO,
                 null,
                 null,
