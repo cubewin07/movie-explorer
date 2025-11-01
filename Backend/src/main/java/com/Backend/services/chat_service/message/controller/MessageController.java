@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.Backend.services.chat_service.message.model.Message;
+import com.Backend.services.chat_service.message.dto.MessageDTO;
 import com.Backend.services.chat_service.message.service.MessageService;
 
 import lombok.RequiredArgsConstructor;
@@ -21,11 +22,11 @@ public class MessageController {
     private final MessageService messageService;
 
     @GetMapping
-    public ResponseEntity<Page<Message>> getMessages(
+    public ResponseEntity<Page<MessageDTO>> getMessages(
         @RequestParam("chatId") Long chatId, 
         @RequestParam("page") int page, 
         @RequestParam(defaultValue = "20", name = "size") int size) {
         // Note: This endpoint returns entities. For cached performance, consider using getMessagesDTO endpoint
-        return ResponseEntity.ok(messageService.getMessages(chatId, page, size));
+        return ResponseEntity.ok(messageService.getMessagesDTO(chatId, page, size));
     }
 }
