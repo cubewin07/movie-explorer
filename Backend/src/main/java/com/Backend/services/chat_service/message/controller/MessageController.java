@@ -25,6 +25,7 @@ public class MessageController {
         @RequestParam("chatId") Long chatId, 
         @RequestParam("page") int page, 
         @RequestParam(defaultValue = "20", name = "size") int size) {
+        // Note: This endpoint returns entities. For cached performance, consider using getMessagesDTO endpoint
         return ResponseEntity.ok(messageService.getMessages(chatId, page, size));
     }
 }

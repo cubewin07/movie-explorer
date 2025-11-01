@@ -16,6 +16,7 @@ import com.Backend.exception.ChatValidationException;
 import com.Backend.exception.UserNotFoundException;
 import com.Backend.services.chat_service.model.Chat;
 import com.Backend.services.chat_service.model.DTO.SimpleChatDTO;
+import com.Backend.services.chat_service.model.DTO.ChatDTO;
 import com.Backend.services.chat_service.repository.ChatRepository;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.model.DTO.SimpleUserDTO;
@@ -101,7 +102,10 @@ public class ChatService {
     // ==================== Create Group Chat Methods ====================
 
     @Transactional
-    @CacheEvict(value = "chats", allEntries = true)
+    @Caching(evict = {
+        @CacheEvict(value = "chats", allEntries = true),
+        @CacheEvict(value = "userMeDTO", allEntries = true)
+    })
     public Chat createGroupChat(Set<User> users) {
         validateNotNull(users, "Users set");
         
@@ -140,8 +144,9 @@ public class ChatService {
     
     // ==================== Retrieve Chat Methods ====================
     
+    // Removed @Cacheable - was caching JPA entities which causes Kryo serialization issues
+    // Use getChatByIdNoCache() for non-cached access or getChatByIdDTO() for cached DTO
     @Transactional(readOnly = true)
-    @Cacheable(value = "chatById", key = "#id")
     public Chat getChatById(Long id) {
         validateNotNull(id, "Chat ID");
         
@@ -149,6 +154,22 @@ public class ChatService {
         
         return chatRepository.findById(id)
             .orElseThrow(() -> new ChatNotFoundException("Chat not found with id: " + id));
+    }
+
+    @Transactional(readOnly = true)
+    @Cacheable(value = "chatByIdDTO", key = "#id")
+    public ChatDTO getChatByIdDTO(Long id) {
+        validateNotNull(id, "Chat ID");
+        
+        log.debug("Fetching chat DTO with id: {} from database", id);
+        
+        Chat chat = chatRepository.findById(id)
+            .orElseThrow(() -> new ChatNotFoundException("Chat not found with id: " + id));
+        
+        return new ChatDTO(
+            chat.getId(),
+            convertToSimpleUserDTOs(chat.getParticipants())
+        );
     }
 
     @Transactional(readOnly = true)
@@ -184,7 +205,7 @@ public class ChatService {
         log.debug("Fetching participants for chat: {} from database", chatId);
         
         Chat chat = getChatById(chatId);
-        // Map participants to SimpleUserDTO
+        // Map participants to SimpleUserDTO (safe to cache DTOs)
         return chat.getParticipants().stream().map(user -> {
             SimpleUserDTO dto = new SimpleUserDTO();
             dto.setId(user.getId());
@@ -199,7 +220,7 @@ public class ChatService {
 
     @Transactional
     @Caching(evict = {
-        @CacheEvict(value = "chatById", key = "#chat.id"),
+        @CacheEvict(value = "chatByIdDTO", key = "#chat.id"),
         @CacheEvict(value = "chatParticipants", key = "#chat.id"),
         @CacheEvict(value = "chats", key = "#user.id"),
         @CacheEvict(value = "userMeDTO", key = "#user.email")
@@ -218,7 +239,7 @@ public class ChatService {
 
     @Transactional
     @Caching(evict = {
-        @CacheEvict(value = "chatById", key = "#chat.id"),
+        @CacheEvict(value = "chatByIdDTO", key = "#chat.id"),
         @CacheEvict(value = "chatParticipants", key = "#chat.id"),
         @CacheEvict(value = "chats", key = "#user.id"),
         @CacheEvict(value = "userMeDTO", key = "#user.email")
@@ -237,10 +258,12 @@ public class ChatService {
 
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = "chatById", key = "#chat.id"),
+            @CacheEvict(value = "chatByIdDTO", key = "#chat.id"),
             @CacheEvict(value = "chatParticipants", key = "#chat.id"),
-            @CacheEvict(value = "chats", allEntries = true), // Changed to allEntries
-            @CacheEvict(value = "userMeDTO", allEntries = true) // Changed to allEntries
+            @CacheEvict(value = "chats", allEntries = true),
+            @CacheEvict(value = "messagesDTO", allEntries = true),
+            @CacheEvict(value = "latestMessageDTO", key = "#chat.id"),
+            @CacheEvict(value = "userMeDTO", allEntries = true)
     })
     public void deleteChat(Chat chat) {
         validateNotNull(chat, "Chat");

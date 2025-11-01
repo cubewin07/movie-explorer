@@ -37,8 +37,8 @@ public class MessageService {
 
     @Transactional
     @Caching(evict = {
-        @CacheEvict(value = "messages", key = "#chatId"),
-        @CacheEvict(value = "latestMessage", key = "#chatId"),
+        @CacheEvict(value = "messagesDTO", allEntries = true),
+        @CacheEvict(value = "latestMessageDTO", key = "#chatId"),
         @CacheEvict(value = "userMeDTO", allEntries = true)
     })
     public Message sendMessage(String text, Long chatId, User sender) {
@@ -63,8 +63,8 @@ public class MessageService {
 
     // ==================== Retrieve Messages ====================
 
+    // Removed @Cacheable - was caching JPA entities (Page<Message>) which causes Kryo serialization issues
     @Transactional(readOnly = true)
-    @Cacheable(value = "messages", key = "#chatId + '-' + #page + '-' + #size")
     public Page<Message> getMessages(Long chatId, int page, int size) {
         validateNotNull(chatId, "Chat ID");
         
@@ -84,12 +84,47 @@ public class MessageService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "messagesDTO", key = "#chatId + '-' + #page + '-' + #size")
+    public Page<MessageDTO> getMessagesDTO(Long chatId, int page, int size) {
+        validateNotNull(chatId, "Chat ID");
+        
+        normalizePage(page);
+        normalizePageSize(size);
+
+        log.debug("Fetching message DTOs for chat: {}, page: {}, size: {} from database", chatId, page, size);
+        
+        verifyChatExists(chatId);
+        
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Message> messages = messageRepository.findByChatIdOrderByCreatedAtDesc(chatId, pageable);
+        
+        Page<MessageDTO> messageDTOs = messages.map(message -> 
+            new MessageDTO(
+                message.getId(),
+                message.getContent(),
+                message.getSender().getId(),
+                message.getSender().getRealUsername(),
+                message.getCreatedAt()
+            )
+        );
+        
+        log.info("Found {} message DTOs for chat: {}", messageDTOs.getTotalElements(), chatId);
+        
+        return messageDTOs;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<MessageDTO> getMessagesDTO(Long chatId, int page) {
+        return getMessagesDTO(chatId, page, DEFAULT_PAGE_SIZE);
+    }
+
+    @Transactional(readOnly = true)
     public Page<Message> getMessages(Long chatId, int page) {
         return getMessages(chatId, page, DEFAULT_PAGE_SIZE);
     }
 
+    // Removed @Cacheable - was caching JPA entities which causes Kryo serialization issues
     @Transactional(readOnly = true)
-    @Cacheable(value = "latestMessage", key = "#chatId")
     public Message getLatestMessage(Long chatId) {
         validateNotNull(chatId, "Chat ID");
         
@@ -101,12 +136,29 @@ public class MessageService {
             .orElse(null);
     }   
 
+    @Transactional(readOnly = true)
+    @Cacheable(value = "latestMessageDTO", key = "#chatId")
     public MessageDTO getLatestMessageDTO(Long chatId) {
-        Message message = getLatestMessage(chatId);
+        validateNotNull(chatId, "Chat ID");
+        
+        log.debug("Fetching latest message DTO for chat: {} from database", chatId);
+        
+        verifyChatExists(chatId);
+        
+        Message message = messageRepository.findTopByChatIdOrderByCreatedAtDesc(chatId)
+            .orElse(null);
+        
         if (message == null) {
             return null;
         }
-        return new MessageDTO(message.getId(), message.getContent(), message.getSender().getId(), message.getSender().getUsername(), message.getCreatedAt());
+        
+        return new MessageDTO(
+            message.getId(),
+            message.getContent(),
+            message.getSender().getId(),
+            message.getSender().getRealUsername(),
+            message.getCreatedAt()
+        );
     }
     
     // ==================== Private Helper Methods ====================

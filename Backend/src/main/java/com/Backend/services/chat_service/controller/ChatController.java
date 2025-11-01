@@ -1,6 +1,5 @@
 package com.Backend.services.chat_service.controller;
 
-import com.Backend.services.user_service.model.DTO.SimpleUserDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,13 +12,11 @@ import org.springframework.web.bind.annotation.RestController;
 import com.Backend.services.chat_service.model.DTO.ChatCreateDTOID;
 import com.Backend.services.chat_service.model.DTO.ChatCreateGroupID;
 import com.Backend.services.chat_service.model.DTO.ChatResponseDTO;
+import com.Backend.services.chat_service.model.DTO.ChatDTO;
+import com.Backend.services.chat_service.model.DTO.SimpleChatDTO;
 import com.Backend.services.chat_service.service.ChatService;
 import com.Backend.services.chat_service.message.service.MessageService;
-import com.Backend.services.chat_service.model.Chat;
-import com.Backend.services.chat_service.message.model.Message;
-import com.Backend.services.chat_service.model.DTO.SimpleChatDTO;
-
-import java.util.Set;
+import com.Backend.services.chat_service.message.dto.MessageDTO;
 
 @RestController
 @RequestMapping("/chats")
@@ -43,11 +40,17 @@ public class ChatController {
 
     @GetMapping()
     public ResponseEntity<ChatResponseDTO> getChat(@RequestParam("chatId") Long chatId) {
-        Chat chat = chatService.getChatById(chatId);
-        Message latestMessage = messageService.getLatestMessage(chatId);
-        Set<SimpleUserDTO> participantsDTO = chatService.convertToSimpleUserDTOs(chat.getParticipants());
-        ChatResponseDTO chatResponseDTO = new ChatResponseDTO(chatId, participantsDTO, latestMessage.getContent(), latestMessage.getSender().getUsername(), latestMessage.getCreatedAt());
+        // Using cached DTO methods for better performance
+        ChatDTO chatDTO = chatService.getChatByIdDTO(chatId);
+        MessageDTO latestMessageDTO = messageService.getLatestMessageDTO(chatId);
+        
+        ChatResponseDTO chatResponseDTO = new ChatResponseDTO(
+            chatId, 
+            chatDTO.participants(),
+            latestMessageDTO != null ? latestMessageDTO.content() : null,
+            latestMessageDTO != null ? latestMessageDTO.senderUsername() : null,
+            latestMessageDTO != null ? latestMessageDTO.createdAt() : null
+        );
         return ResponseEntity.ok(chatResponseDTO);
-    
     }
 }

@@ -6,7 +6,6 @@ import com.Backend.services.notification_service.model.NotificationDTO;
 import com.Backend.services.user_service.model.*;
 import com.Backend.services.user_service.model.DTO.*;
 import com.Backend.services.chat_service.message.service.MessageService;
-import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.user_service.repository.UserRepository;
 import com.Backend.services.watchlist_service.model.Watchlist;
 import com.Backend.services.watchlist_service.model.WatchlistDTO;
@@ -14,7 +13,6 @@ import com.Backend.springSecurity.jwtAuthentication.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
@@ -47,13 +45,22 @@ public class UserService {
     private final MessageService messageService;
     private final FriendService friendService;
 
-    @Cacheable(value = "users", key = "'all'")
+    // Removed @Cacheable - was caching JPA entities which causes Kryo serialization issues
     public List<User> getAllUsers() {
         log.debug("Fetching all users from database");
         return userRepository.findAll();
     }
 
-    @Cacheable(value = "users", key = "#id")
+    @Cacheable(value = "allUsersDTO", key = "'all'")
+    public List<SimpleUserDTO> getAllUsersDTO() {
+        log.debug("Fetching all users as DTOs from database");
+        return userRepository.findAll().stream()
+                .map(u -> new SimpleUserDTO(u.getId(), u.getEmail(), u.getRealUsername()))
+                .collect(Collectors.toList());
+    }
+
+    // Removed @Cacheable - was caching JPA entities which causes Kryo serialization issues
+    // Use getSimpleUserByIdCached() if you need a cached DTO version
     public User getUserById(Long id) {
         log.debug("Fetching user by id={} from database", id);
         return userRepository.findById(id)
@@ -70,8 +77,8 @@ public class UserService {
 
     @Transactional
     @Caching(evict = {
-        @CacheEvict(value = "users", key = "'all'"),
-        @CacheEvict(value = "userSearch", allEntries = true)
+        @CacheEvict(value = "userSearch", allEntries = true),
+        @CacheEvict(value = "allUsersDTO", key = "'all'")
     })
     public JwtToken registerUser(RegisterDTO registerDTO) {
         String encryptedPassword = passwordEncoder.encode(registerDTO.password());
@@ -111,10 +118,7 @@ public class UserService {
     }
 
     @Transactional
-    @Caching(
-        put = @CachePut(value = "users", key = "#result.id"),
-        evict = {
-                @CacheEvict(value = "users", key = "'all'"),
+    @Caching(evict = {
                 @CacheEvict(value = "userMeDTO", key = "#userFromContext.email"),
                 @CacheEvict(value = "userSearch", allEntries = true),
                 @CacheEvict(value = "userId", key = "#userFromContext.getEmail()")
@@ -139,10 +143,10 @@ public class UserService {
 
     @Transactional
     @Caching(evict = {
-        @CacheEvict(value = "users", key = "#id"),
-        @CacheEvict(value = "users", key = "'all'"),
         @CacheEvict(value = "userMeDTO", allEntries = true),
-        @CacheEvict(value = "userSearch", allEntries = true)
+        @CacheEvict(value = "userSearch", allEntries = true),
+        @CacheEvict(value = "userId", allEntries = true),
+        @CacheEvict(value = "allUsersDTO", key = "'all'")
     })
     public void deleteUserById(Long id) {
         if (!userRepository.existsById(id)) {
@@ -260,19 +264,17 @@ public class UserService {
                         c.setParticipants(chat.getParticipants().stream()
                                 .map(u -> new SimpleUserDTO(u.getId(), u.getEmail(), u.getRealUsername()))
                                 .toList());
-                        // latest message via MessageService
-                        Message latest = messageService.getLatestMessage(chat.getId());
-                        if (latest != null) {
+                        // latest message via MessageService (using cached DTO)
+                        com.Backend.services.chat_service.message.dto.MessageDTO latestDTO = messageService.getLatestMessageDTO(chat.getId());
+                        if (latestDTO != null) {
+                            // Convert to user_service MessageDTO format
+                            SimpleUserDTO senderDTO = getSimpleUserByIdCached(latestDTO.senderId());
                             c.setLatestMessage(new MessageDTO(
-                                    latest.getId(),
-                                    latest.getContent(),
-                                    new SimpleUserDTO(
-                                            latest.getSender().getId(),
-                                            latest.getSender().getEmail(),
-                                            latest.getSender().getRealUsername()
-                                    ),
-                                    latest.isRead(),
-                                    latest.getCreatedAt()
+                                    latestDTO.id(),
+                                    latestDTO.content(),
+                                    senderDTO,
+                                    false, // Note: read status not available in message service DTO
+                                    latestDTO.createdAt()
                             ));
                         }
                         return c;
