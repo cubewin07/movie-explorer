@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.Backend.services.chat_service.message.model.Message;
-import com.Backend.services.chat_service.model.Chat;
 import com.Backend.services.chat_service.model.DTO.ChatDTO;
 import com.Backend.services.chat_service.model.DTO.ChatResponseDTO;
 import com.Backend.services.chat_service.service.ChatService;
