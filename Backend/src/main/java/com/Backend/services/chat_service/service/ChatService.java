@@ -3,7 +3,6 @@ package com.Backend.services.chat_service.service;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.Backend.services.chat_service.model.DTO.ChatResponseDTO;
 import com.Backend.services.notification_service.model.UserIdAndChatId;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
