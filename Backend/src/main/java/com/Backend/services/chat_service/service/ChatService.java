@@ -3,6 +3,7 @@ package com.Backend.services.chat_service.service;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.Backend.services.chat_service.model.DTO.ChatResponseDTO;
 import com.Backend.services.notification_service.model.UserIdAndChatId;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -143,18 +144,6 @@ public class ChatService {
     }
     
     // ==================== Retrieve Chat Methods ====================
-    
-    // Removed @Cacheable - was caching JPA entities which causes Kryo serialization issues
-    // Use getChatByIdNoCache() for non-cached access or getChatByIdDTO() for cached DTO
-    @Transactional(readOnly = true)
-    public Chat getChatById(Long id) {
-        validateNotNull(id, "Chat ID");
-        
-        log.debug("Fetching chat with id: {} from database", id);
-        
-        return chatRepository.findById(id)
-            .orElseThrow(() -> new ChatNotFoundException("Chat not found with id: " + id));
-    }
 
     @Transactional(readOnly = true)
     @Cacheable(value = "chatByIdDTO", key = "#id")
@@ -203,16 +192,9 @@ public class ChatService {
     @Cacheable(value = "chatParticipants", key = "#chatId")
     public Set<SimpleUserDTO> getParticipants(Long chatId) {
         log.debug("Fetching participants for chat: {} from database", chatId);
-        
-        Chat chat = getChatById(chatId);
-        // Map participants to SimpleUserDTO (safe to cache DTOs)
-        return chat.getParticipants().stream().map(user -> {
-            SimpleUserDTO dto = new SimpleUserDTO();
-            dto.setId(user.getId());
-            dto.setEmail(user.getEmail());
-            dto.setUsername(user.getUsername());
-            return dto;
-        }).collect(Collectors.toSet());
+
+        ChatDTO chatResponseDTO = getChatByIdDTO(chatId);
+        return chatResponseDTO.participants();
         
     }
     
