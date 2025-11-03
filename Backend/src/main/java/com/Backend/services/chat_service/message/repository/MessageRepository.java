@@ -1,6 +1,7 @@
 package com.Backend.services.chat_service.message.repository;
 
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -11,6 +12,8 @@ import org.springframework.data.domain.Pageable;
 
 public interface MessageRepository extends JpaRepository<Message, Long>{
     Page<Message> findByChatIdOrderByCreatedAtDesc(Long chatId, Pageable pageable);
+
+    Set<Message> findByChatIdAndSenderIdAndReadFalse(Long chatId, Long senderId);
     
     /**
      * Find the most recent message in a chat
