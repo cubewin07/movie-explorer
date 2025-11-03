@@ -144,10 +144,12 @@ public class MessageService {
         log.info("Found {} un-read messages for chat: {}", unReadMessages.size(), chatId);
 
         if (!unReadMessages.isEmpty()) {
+            //  Mark as read in database
             unReadMessages.forEach(message -> message.setRead(true));
             messageRepository.saveAll(unReadMessages);
             log.info("Successfully marked {} messages as read for chat: {}", unReadMessages.size(), chatId);
 
+            //  Send STOMP message to other participants in chat
             chat.getParticipants().forEach(participant -> {
                 if(!participant.getId().equals(userId)) {
                     if(eventListener.isUserOnline(participant.getEmail())) {
