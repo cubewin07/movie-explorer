@@ -21,6 +21,8 @@ import com.Backend.services.user_service.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.Set;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -127,7 +129,21 @@ public class MessageService {
 
     @Transactional
     public void markMessagesAsRead(Long chatId, User user) {
+        validateNotNull(chatId, "Chat ID");
+        validateNotNull(user, "User");
 
+        Long userId = user.getId();
+
+        Set<Message> unReadMessages = messageRepository.findByChatIdAndSenderIdNotAndReadFalse(chatId, userId);
+        log.info("Found {} un-read messages for chat: {}", unReadMessages.size(), chatId);
+
+        if (!unReadMessages.isEmpty()) {
+            unReadMessages.forEach(message -> message.setRead(true));
+            messageRepository.saveAll(unReadMessages);
+            log.info("Successfully marked {} messages as read for chat: {}", unReadMessages.size(), chatId);
+        } else {
+            log.info("No un-read messages found for chat: {}", chatId);
+        }
     }
 
     
