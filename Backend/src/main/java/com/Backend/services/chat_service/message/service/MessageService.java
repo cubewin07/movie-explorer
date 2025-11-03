@@ -125,6 +125,11 @@ public class MessageService {
 
     // ==================== Mark message(s) as read ====================
 
+    @Transactional
+    public void markMessagesAsRead(Long chatId, User user) {
+
+    }
+
     
     // ==================== Private Helper Methods ====================
     
