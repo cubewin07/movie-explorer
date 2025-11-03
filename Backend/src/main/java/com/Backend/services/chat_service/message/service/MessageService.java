@@ -122,6 +122,9 @@ public class MessageService {
             message.getCreatedAt()
         );
     }
+
+    // ==================== Mark message(s) as read ====================
+
     
     // ==================== Private Helper Methods ====================
     
