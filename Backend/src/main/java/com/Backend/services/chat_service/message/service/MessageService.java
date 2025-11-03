@@ -7,6 +7,7 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +36,7 @@ public class MessageService {
     
     private final MessageRepository messageRepository;
     private final ChatService chatService;
+    private final SimpMessagingTemplate template;
 
     private final STOMPEventListener eventListener;
 
@@ -147,8 +149,15 @@ public class MessageService {
             log.info("Successfully marked {} messages as read for chat: {}", unReadMessages.size(), chatId);
 
             chat.getParticipants().forEach(participant -> {
-                if(eventListener.isUserOnline(participant.getUsername()))
-            })
+                if(!participant.getId().equals(userId)) {
+                    if(eventListener.isUserOnline(participant.getEmail())) {
+                        template.convertAndSend("topic/chat/" + chatId, user.getEmail() + " has marked all messages in chat as read" );
+                    }
+                }
+            });
+            log.info("Successfully sent notification to all participants of chat: {}", chatId);
+
+
         } else {
             log.info("No un-read messages found for chat: {}", chatId);
         }
