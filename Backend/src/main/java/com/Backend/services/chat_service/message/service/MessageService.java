@@ -1,5 +1,6 @@
 package com.Backend.services.chat_service.message.service;
 
+import com.Backend.websocket.eventListener.STOMPEventListener;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -34,6 +35,8 @@ public class MessageService {
     
     private final MessageRepository messageRepository;
     private final ChatService chatService;
+
+    private final STOMPEventListener eventListener;
 
     // ==================== Send Message ====================
 
@@ -133,6 +136,7 @@ public class MessageService {
         validateNotNull(user, "User");
 
         Long userId = user.getId();
+        Chat chat = findChatById(chatId);
 
         Set<Message> unReadMessages = messageRepository.findByChatIdAndSenderIdNotAndReadFalse(chatId, userId);
         log.info("Found {} un-read messages for chat: {}", unReadMessages.size(), chatId);
@@ -141,6 +145,10 @@ public class MessageService {
             unReadMessages.forEach(message -> message.setRead(true));
             messageRepository.saveAll(unReadMessages);
             log.info("Successfully marked {} messages as read for chat: {}", unReadMessages.size(), chatId);
+
+            chat.getParticipants().forEach(participant -> {
+                if(eventListener.isUserOnline(participant.getUsername()))
+            })
         } else {
             log.info("No un-read messages found for chat: {}", chatId);
         }
