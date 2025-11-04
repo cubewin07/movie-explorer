@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class MarkAsReadNotification {
+public class MarkAsReadNotificationDTO {
     private Long chatId;
     private Long userId;
     private String senderName;
