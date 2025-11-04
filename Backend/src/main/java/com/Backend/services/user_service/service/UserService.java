@@ -305,9 +305,9 @@ public class UserService {
                                 .map(u -> new SimpleUserDTO(u.getId(), u.getEmail(), u.getRealUsername()))
                                 .toList());
                         // latest message via MessageService (using cached DTO)
-                        com.Backend.services.chat_service.message.dto.MessageDTO latestDTO = publisher.publishEvent(ChatIdOnLyDTO);
+                        MessageDTO latestDTO = publisher.publishEvent(ChatIdOnLyDTO);
                         if (latestDTO != null) {
-                            // Convert to user_service MessageDTO format
+                            // Convert to user_service UserMessageDTO format
                             SimpleUserDTO senderDTO = getSimpleUserByIdCached(latestDTO.senderId());
                             c.setLatestMessage(new UserMessageDTO(
                                     latestDTO.id(),
