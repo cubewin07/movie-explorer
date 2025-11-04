@@ -46,7 +46,6 @@ public class UserService {
     private final AuthenticationManager authenticationManager;
     private final ChatMessageHelper chatMessageHelper;
     private final FriendService friendService;
-    private final ApplicationEventPublisher publisher;
 
     // Removed @Cacheable - was caching JPA entities which causes Kryo serialization issues
     public List<User> getAllUsers() {
