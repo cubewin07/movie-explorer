@@ -2,12 +2,10 @@ package com.Backend.websocket.eventListener;
 
 import com.Backend.services.chat_service.message.dto.MessageDTO;
 import com.Backend.services.chat_service.message.service.MessageService;
-import com.Backend.services.chat_service.model.DTO.ChatIdOnlyDTO;
 import com.Backend.services.friend_service.service.FriendService;
 import com.Backend.services.notification_service.model.SimpleNotificationDTO;
 import com.Backend.services.notification_service.model.UserIdAndChatId;
 import com.Backend.services.notification_service.service.NotificationService;
-import com.Backend.services.user_service.repository.UserRepository;
 import com.Backend.services.user_service.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.Cache;
@@ -60,10 +58,5 @@ public class GlobalEventListener {
     @EventListener
     public void onCreatingNewChat(UserIdAndChatId ids) {
         notificationService.sendNewChatNotification(ids.getUserId(), ids.getChatId());
-    }
-
-    @EventListener
-    public MessageDTO giveMessageDTO(ChatIdOnlyDTO dto) {
-        return messageService.getLatestMessageDTO(dto.getChatId());
     }
 }

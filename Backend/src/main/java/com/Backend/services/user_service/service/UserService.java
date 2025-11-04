@@ -1,19 +1,16 @@
 package com.Backend.services.user_service.service;
 
 import com.Backend.services.chat_service.message.dto.MessageDTO;
-import com.Backend.services.chat_service.model.Chat;
 import com.Backend.services.chat_service.model.ChatMessageHelper;
 import com.Backend.services.friend_service.model.Status;
 import com.Backend.services.friend_service.service.FriendService;
 import com.Backend.services.notification_service.model.NotificationDTO;
 import com.Backend.services.user_service.model.*;
 import com.Backend.services.user_service.model.DTO.*;
-import com.Backend.services.chat_service.message.service.MessageService;
 import com.Backend.services.user_service.repository.UserRepository;
 import com.Backend.services.watchlist_service.model.Watchlist;
 import com.Backend.services.watchlist_service.model.WatchlistDTO;
 import com.Backend.springSecurity.jwtAuthentication.JwtService;
-import com.Backend.services.chat_service.model.DTO.ChatIdOnlyDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
@@ -307,8 +304,7 @@ public class UserService {
                         c.setParticipants(chat.getParticipants().stream()
                                 .map(u -> new SimpleUserDTO(u.getId(), u.getEmail(), u.getRealUsername()))
                                 .toList());
-                        // Publish event to get latestDTO
-                        ChatIdOnlyDTO chatIdDTO = ChatIdOnlyDTO.builder().chatId(chat.getId()).build();
+                        // Using helper to prevent cycle
                         MessageDTO latestDTO = chatMessageHelper.getLatestMessageDTO(chat.getId());
                         if (latestDTO != null) {
                             // Convert to user_service UserMessageDTO format
