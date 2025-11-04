@@ -1,14 +1,11 @@
 package com.Backend.services.chat_service.service;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.Backend.services.chat_service.message.dto.MessageDTO;
 import com.Backend.services.chat_service.message.service.MessageService;
 import com.Backend.services.notification_service.model.UserIdAndChatId;
-import com.Backend.services.user_service.model.DTO.ChatSummaryDTO;
-import com.Backend.services.user_service.model.DTO.UserMessageDTO;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;

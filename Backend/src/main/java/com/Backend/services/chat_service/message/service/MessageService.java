@@ -39,8 +39,6 @@ public class MessageService {
     private final ChatService chatService;
     private final SimpMessagingTemplate template;
 
-    private final STOMPEventListener eventListener;
-
     // ==================== Send Message ====================
 
     @Transactional
