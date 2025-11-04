@@ -147,7 +147,7 @@ public class MessageService {
         Long userId = user.getId();
         Chat chat = findChatById(chatId);
 
-        Set<Message> unReadMessages = messageRepository.findByChatIdAndSenderIdNotAndReadFalse(chatId, userId);
+        Set<Message> unReadMessages = messageRepository.findByChat_IdAndSender_IdNotAndIsReadFalse(chatId, userId);
         log.info("Found {} un-read messages for chat: {}", unReadMessages.size(), chatId);
 
         if (!unReadMessages.isEmpty()) {
@@ -156,23 +156,16 @@ public class MessageService {
             messageRepository.saveAll(unReadMessages);
             log.info("Successfully marked {} messages as read for chat: {}", unReadMessages.size(), chatId);
 
-            //  Send STOMP message to other participants in chat
-            chat.getParticipants().forEach(participant -> {
-                if(!participant.getId().equals(userId)) {
-                    if(eventListener.isUserOnline(participant.getEmail())) {
-                        MarkAsReadNotificationDTO markAsReadDTO = MarkAsReadNotificationDTO.builder()
-                                .type("markAsRead")
-                                .chatId(chatId)
-                                .userId(userId)
-                                .senderName(user.getRealUsername())
-                                .message(user.getRealUsername() + " has marked all messages in chat as read")
-                                .build();
-                        // Convert and send
-                        template.convertAndSend("topic/chat/" + chatId, markAsReadDTO);
-                    }
-                }
-            });
-            log.info("Successfully sent notification to all participants of chat: {}", chatId);
+            // Broadcast STOMP event to all subscribers of the chat topic (including the sender)
+            MarkAsReadNotificationDTO markAsReadDTO = MarkAsReadNotificationDTO.builder()
+                    .type("markAsRead")
+                    .chatId(chatId)
+                    .userId(userId)
+                    .senderName(user.getRealUsername())
+                    .message(user.getRealUsername() + " has marked all messages in chat as read")
+                    .build();
+            template.convertAndSend("/topic/chat/" + chatId, markAsReadDTO);
+            log.info("Successfully broadcast mark-as-read notification for chat: {}", chatId);
 
 
         } else {
