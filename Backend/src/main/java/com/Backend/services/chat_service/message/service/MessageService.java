@@ -134,6 +134,12 @@ public class MessageService {
     // ==================== Mark message(s) as read ====================
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "chatNotifications", key = "#user.id"),
+        @CacheEvict(value = "notifications", key = "#user.id"),
+        @CacheEvict(value = "userMeDTO", key = "#user.email"),
+        @CacheEvict(value = "chats", key = "#user.id")
+    })
     public void markMessagesAsRead(Long chatId, User user) {
         validateNotNull(chatId, "Chat ID");
         validateNotNull(user, "User");
