@@ -12,7 +12,6 @@ import com.Backend.services.notification_service.service.NotificationService;
 import com.Backend.services.user_service.model.DTO.SimpleUserDTO;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.repository.UserRepository;
-import com.Backend.websocket.eventListener.STOMPEventListener;
 import com.Backend.exception.UserNotFoundException;
 
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -32,7 +31,6 @@ public class STOMPController {
     private final SimpMessagingTemplate template;
     private final ChatService chatService;
     private final MessageService messageService;
-    private final STOMPEventListener stompEventListener;
     private final NotificationService notificationService;
     private final UserRepository userRepository;
     
