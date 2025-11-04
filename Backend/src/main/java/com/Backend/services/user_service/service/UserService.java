@@ -2,6 +2,7 @@ package com.Backend.services.user_service.service;
 
 import com.Backend.services.chat_service.message.dto.MessageDTO;
 import com.Backend.services.chat_service.model.ChatMessageHelper;
+import com.Backend.services.chat_service.service.ChatService;
 import com.Backend.services.friend_service.model.Status;
 import com.Backend.services.friend_service.service.FriendService;
 import com.Backend.services.notification_service.model.NotificationDTO;
@@ -44,7 +45,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
-    private final ChatMessageHelper chatMessageHelper;
+    private final ChatService chatService;
     private final FriendService friendService;
 
     // Removed @Cacheable - was caching JPA entities which causes Kryo serialization issues
@@ -304,7 +305,7 @@ public class UserService {
                                 .map(u -> new SimpleUserDTO(u.getId(), u.getEmail(), u.getRealUsername()))
                                 .toList());
                         // Using helper to prevent cycle
-                        MessageDTO latestDTO = chatMessageHelper.getLatestMessageDTO(chat.getId());
+                        MessageDTO latestDTO = chatService.getChatSummaryDTO(chat.getId());
                         if (latestDTO != null) {
                             // Convert to user_service UserMessageDTO format
                             SimpleUserDTO senderDTO = getSimpleUserByIdCached(latestDTO.senderId());
