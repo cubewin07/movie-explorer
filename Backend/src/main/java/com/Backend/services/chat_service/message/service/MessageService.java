@@ -1,5 +1,6 @@
 package com.Backend.services.chat_service.message.service;
 
+import com.Backend.services.chat_service.message.dto.MarkAsReadNotificationDTO;
 import com.Backend.websocket.eventListener.STOMPEventListener;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -153,7 +154,15 @@ public class MessageService {
             chat.getParticipants().forEach(participant -> {
                 if(!participant.getId().equals(userId)) {
                     if(eventListener.isUserOnline(participant.getEmail())) {
-                        template.convertAndSend("topic/chat/" + chatId, user.getRealUsername() + " has marked all messages in chat as read" );
+                        MarkAsReadNotificationDTO markAsReadDTO = MarkAsReadNotificationDTO.builder()
+                                .type("markAsRead")
+                                .chatId(chatId)
+                                .userId(userId)
+                                .senderName(user.getRealUsername())
+                                .message(user.getRealUsername() + " has marked all messages in chat as read")
+                                .build();
+                        // Convert and send
+                        template.convertAndSend("topic/chat/" + chatId, markAsReadDTO);
                     }
                 }
             });
