@@ -1,5 +1,6 @@
 package com.Backend.services.user_service.service;
 
+import com.Backend.services.chat_service.message.dto.MessageDTO;
 import com.Backend.services.friend_service.model.Status;
 import com.Backend.services.friend_service.service.FriendService;
 import com.Backend.services.notification_service.model.NotificationDTO;
@@ -308,7 +309,7 @@ public class UserService {
                         if (latestDTO != null) {
                             // Convert to user_service MessageDTO format
                             SimpleUserDTO senderDTO = getSimpleUserByIdCached(latestDTO.senderId());
-                            c.setLatestMessage(new MessageDTO(
+                            c.setLatestMessage(new UserMessageDTO(
                                     latestDTO.id(),
                                     latestDTO.content(),
                                     senderDTO,

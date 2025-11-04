@@ -1,6 +1,6 @@
 package com.Backend.services.user_service.model.DTO;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -9,8 +9,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChatSummaryDTO {
+public class UserMessageDTO {
     private Long id;
-    private List<SimpleUserDTO> participants;
-    private UserMessageDTO latestMessage;
+    private String content;
+    private SimpleUserDTO sender;
+    private boolean read;
+    private LocalDateTime createdAt;
 }
