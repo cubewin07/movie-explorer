@@ -1,5 +1,8 @@
 package com.Backend.websocket.eventListener;
 
+import com.Backend.services.chat_service.message.dto.MessageDTO;
+import com.Backend.services.chat_service.message.service.MessageService;
+import com.Backend.services.chat_service.model.DTO.ChatIdOnlyDTO;
 import com.Backend.services.friend_service.service.FriendService;
 import com.Backend.services.notification_service.model.SimpleNotificationDTO;
 import com.Backend.services.notification_service.model.UserIdAndChatId;
@@ -21,6 +24,7 @@ public class GlobalEventListener {
     private final CacheManager cacheManager;
     private final UserService userService;
     private final NotificationService notificationService;
+    private final MessageService messageService;
 
     @EventListener
     public void onUserStatusChange(UserStatusEvent event) {
@@ -56,5 +60,10 @@ public class GlobalEventListener {
     @EventListener
     public void onCreatingNewChat(UserIdAndChatId ids) {
         notificationService.sendNewChatNotification(ids.getUserId(), ids.getChatId());
+    }
+
+    @EventListener
+    public MessageDTO giveMessageDTO(ChatIdOnlyDTO dto) {
+        return messageService.getLatestMessageDTO(dto.getChatId());
     }
 }
