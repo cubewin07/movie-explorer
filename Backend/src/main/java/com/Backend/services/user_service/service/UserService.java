@@ -1,7 +1,6 @@
 package com.Backend.services.user_service.service;
 
 import com.Backend.services.chat_service.message.dto.MessageDTO;
-import com.Backend.services.chat_service.model.ChatMessageHelper;
 import com.Backend.services.chat_service.service.ChatService;
 import com.Backend.services.friend_service.model.Status;
 import com.Backend.services.friend_service.service.FriendService;
@@ -17,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
