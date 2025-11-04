@@ -1,6 +1,7 @@
 package com.Backend.services.chat_service;
 
 import com.Backend.services.chat_service.message.dto.MessageWebSocketDTO;
+import com.Backend.services.chat_service.message.dto.MarkAsReadNotificationDTO;
 import com.Backend.services.notification_service.model.NewChatNotification;
 import com.Backend.services.notification_service.model.Notification;
 import com.Backend.services.notification_service.repository.NotificationRepo;
@@ -212,6 +213,35 @@ class WebSocketChatIntegrationTest {
         assertThat(notification).isNotNull();
         assertThat(notification.getType()).isEqualTo("chat");
         assertThat(notification.getRelatedId()).isEqualTo(chatId);
+
+        // Subscribe Bob to mark-as-read notifications on the same destination
+        CompletableFuture<MarkAsReadNotificationDTO> markAsReadFuture = new CompletableFuture<>();
+        bobSession.subscribe(destination, new StompFrameHandler() {
+            @Override
+            public @NonNull Type getPayloadType(@NonNull StompHeaders headers) {
+                return MarkAsReadNotificationDTO.class;
+            }
+
+            @Override
+            public void handleFrame(@NonNull StompHeaders headers, @Nullable Object payload) {
+                if (payload instanceof MarkAsReadNotificationDTO) {
+                    markAsReadFuture.complete((MarkAsReadNotificationDTO) payload);
+                }
+            }
+        });
+
+        // Trigger mark-as-read via REST for Bob
+        HttpEntity<Void> markReq = new HttpEntity<>(bearerHeaders(bobToken));
+        ResponseEntity<Void> markRes = restTemplate.exchange(
+                baseUrl("/messages/mark-as-read?chatId=" + chatId), HttpMethod.POST, markReq, Void.class);
+        assertThat(markRes.getStatusCode()).isEqualTo(HttpStatus.OK);
+
+        // Verify mark-as-read STOMP event
+        MarkAsReadNotificationDTO markEvent = markAsReadFuture.get(5, TimeUnit.SECONDS);
+        assertThat(markEvent).isNotNull();
+        assertThat(markEvent.getType()).isEqualTo("markAsRead");
+        assertThat(markEvent.getChatId()).isEqualTo(chatId);
+        assertThat(markEvent.getUserId()).isEqualTo(bobId);
 
         aliceSession.disconnect();
         bobSession.disconnect();
