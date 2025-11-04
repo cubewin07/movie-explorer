@@ -153,7 +153,7 @@ public class MessageService {
             chat.getParticipants().forEach(participant -> {
                 if(!participant.getId().equals(userId)) {
                     if(eventListener.isUserOnline(participant.getEmail())) {
-                        template.convertAndSend("topic/chat/" + chatId, user.getEmail() + " has marked all messages in chat as read" );
+                        template.convertAndSend("topic/chat/" + chatId, user.getRealUsername() + " has marked all messages in chat as read" );
                     }
                 }
             });
