@@ -304,7 +304,7 @@ public class UserService {
                         c.setParticipants(chat.getParticipants().stream()
                                 .map(u -> new SimpleUserDTO(u.getId(), u.getEmail(), u.getRealUsername()))
                                 .toList());
-                        // latest message via MessageService (using cached DTO)
+                        // Publish event to get latestDTO
                         MessageDTO latestDTO = publisher.publishEvent(ChatIdOnLyDTO);
                         if (latestDTO != null) {
                             // Convert to user_service UserMessageDTO format
