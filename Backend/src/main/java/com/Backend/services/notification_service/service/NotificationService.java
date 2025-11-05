@@ -16,6 +16,7 @@ import com.Backend.services.notification_service.model.NotificationDTO;
 import com.Backend.services.notification_service.repository.NotificationRepo;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.model.DTO.SimpleUserDTO;
+import com.Backend.services.user_service.model.UserLookUpHelper;
 import com.Backend.services.user_service.service.UserService;
 import com.Backend.websocket.eventListener.STOMPEventListener;
 
@@ -39,6 +40,7 @@ public class NotificationService {
     private final STOMPEventListener stompEventListener;
     private final ChatService chatService;
     private final UserService userService;
+    private final UserLookUpHelper userLookUpHelper;
     
     @Caching(evict = {
             @CacheEvict(value = "chatNotifications", key = "#user.id"),
@@ -134,7 +136,7 @@ public class NotificationService {
     public void createNotificationWithoutSending(SimpleUserDTO userDTO, String type, Long relatedId, Message message) {
 
         String messageContent = message.getContent();
-        User user = userService.getUserById(userDTO.getId());
+        User user = userLookUpHelper.getUserById(userDTO.getId());
 
         if(type.equals("chat")) {
             messageContent = message.getSender().getUsername() + ": " + message.getContent();
