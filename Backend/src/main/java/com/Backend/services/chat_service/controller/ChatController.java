@@ -40,17 +40,6 @@ public class ChatController {
 
     @GetMapping()
     public ResponseEntity<ChatResponseDTO> getChat(@RequestParam("chatId") Long chatId) {
-        // Using cached DTO methods for better performance
-        ChatDTO chatDTO = chatService.getChatByIdDTO(chatId);
-        MessageDTO latestMessageDTO = messageService.getLatestMessageDTO(chatId);
-        
-        ChatResponseDTO chatResponseDTO = new ChatResponseDTO(
-            chatId, 
-            chatDTO.participants(),
-            latestMessageDTO != null ? latestMessageDTO.content() : null,
-            latestMessageDTO != null ? latestMessageDTO.senderUsername() : null,
-            latestMessageDTO != null ? latestMessageDTO.createdAt() : null
-        );
-        return ResponseEntity.ok(chatResponseDTO);
+        return ResponseEntity.ok(chatService.gettingChatDTO(chatId));
     }
 }

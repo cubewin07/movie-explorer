@@ -5,6 +5,8 @@ import java.util.stream.Collectors;
 
 import com.Backend.services.chat_service.message.dto.MessageDTO;
 import com.Backend.services.chat_service.message.service.MessageService;
+import com.Backend.services.chat_service.model.ChatLookUpHelper;
+import com.Backend.services.chat_service.model.DTO.ChatResponseDTO;
 import com.Backend.services.notification_service.model.UserIdAndChatId;
 import com.Backend.services.user_service.model.UserLookUpHelper;
 import org.springframework.cache.annotation.CacheEvict;
@@ -34,6 +36,7 @@ public class ChatService {
     private static final int MIN_GROUP_CHAT_PARTICIPANTS = 3;
 
     private final ChatRepository chatRepository;
+    private final ChatLookUpHelper chatLookUpHelper;
     private final UserLookUpHelper userLookUpHelper;
     private final ApplicationEventPublisher publisher;
     private final MessageService messageService;
@@ -143,6 +146,22 @@ public class ChatService {
         
         return createGroupChat(users);
     }
+
+    // ==================== Getting chat (ChatResponseDTO) ====================
+    public ChatResponseDTO gettingChatDTO(Long chatId) {
+        // Using cached DTO methods for better performance
+        ChatDTO chatDTO = chatLookUpHelper.getChatByIdDTO(chatId);
+        MessageDTO latestMessageDTO = messageService.getLatestMessageDTO(chatId);
+
+        return new ChatResponseDTO(
+                chatId,
+                chatDTO.participants(),
+                latestMessageDTO != null ? latestMessageDTO.content() : null,
+                latestMessageDTO != null ? latestMessageDTO.senderUsername() : null,
+                latestMessageDTO != null ? latestMessageDTO.createdAt() : null
+        );
+    }
+
 
     // ==================== Modify Chat Methods ====================
 
