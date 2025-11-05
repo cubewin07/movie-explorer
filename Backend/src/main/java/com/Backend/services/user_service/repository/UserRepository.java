@@ -6,10 +6,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import com.Backend.services.friend_service.model.Status;
 
 import java.util.Optional;
-import java.util.Set;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 

@@ -7,7 +7,6 @@ import com.Backend.services.chat_service.model.DTO.SimpleChatDTO;
 import com.Backend.services.chat_service.repository.ChatRepository;
 import com.Backend.services.user_service.model.DTO.SimpleUserDTO;
 import com.Backend.services.user_service.model.User;
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;

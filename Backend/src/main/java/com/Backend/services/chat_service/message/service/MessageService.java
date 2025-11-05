@@ -1,7 +1,6 @@
 package com.Backend.services.chat_service.message.service;
 
 import com.Backend.services.chat_service.message.dto.MarkAsReadNotificationDTO;
-import com.Backend.websocket.eventListener.STOMPEventListener;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -17,9 +16,7 @@ import com.Backend.exception.MessageValidationException;
 import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.chat_service.message.dto.MessageDTO;
 import com.Backend.services.chat_service.message.repository.MessageRepository;
-import com.Backend.services.chat_service.model.Chat;
 import com.Backend.services.chat_service.model.ChatLookUpHelper;
-import com.Backend.services.chat_service.service.ChatService;
 import com.Backend.services.user_service.model.User;
 
 import lombok.RequiredArgsConstructor;
@@ -144,7 +141,6 @@ public class MessageService {
         validateNotNull(user, "User");
 
         Long userId = user.getId();
-        Chat chat = findChatById(chatId);
 
         Set<Message> unReadMessages = messageRepository.findByChat_IdAndSender_IdNotAndIsReadFalse(chatId, userId);
         log.info("Found {} un-read messages for chat: {}", unReadMessages.size(), chatId);
@@ -174,10 +170,6 @@ public class MessageService {
 
     
     // ==================== Private Helper Methods ====================
-    
-    private Chat findChatById(Long chatId) {
-        return chatLookUpHelper.getChatById(chatId);
-    }
     
     private void verifyChatExists(Long chatId) {
         if (!chatLookUpHelper.chatExists(chatId)) {

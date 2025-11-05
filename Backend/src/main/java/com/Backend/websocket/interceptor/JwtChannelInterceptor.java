@@ -10,14 +10,12 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
-import com.Backend.springSecurity.jwtAuthentication.JwtService;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class JwtChannelInterceptor implements ChannelInterceptor {
 
-    private final JwtService jwtService;
     
     @Override
     public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {

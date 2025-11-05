@@ -12,11 +12,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.Backend.services.chat_service.model.DTO.ChatCreateDTOID;
 import com.Backend.services.chat_service.model.DTO.ChatCreateGroupID;
 import com.Backend.services.chat_service.model.DTO.ChatResponseDTO;
-import com.Backend.services.chat_service.model.DTO.ChatDTO;
 import com.Backend.services.chat_service.model.DTO.SimpleChatDTO;
 import com.Backend.services.chat_service.service.ChatService;
-import com.Backend.services.chat_service.message.service.MessageService;
-import com.Backend.services.chat_service.message.dto.MessageDTO;
 
 @RestController
 @RequestMapping("/chats")
@@ -24,7 +21,6 @@ import com.Backend.services.chat_service.message.dto.MessageDTO;
 public class ChatController {
 
     private final ChatService chatService;
-    private final MessageService messageService;
 
     @PostMapping("/private")
     public ResponseEntity<SimpleChatDTO> createChat(@RequestBody ChatCreateDTOID chat) {

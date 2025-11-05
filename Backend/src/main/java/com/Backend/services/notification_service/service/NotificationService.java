@@ -10,7 +10,6 @@ import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.chat_service.model.DTO.ChatDTO;
 import com.Backend.services.chat_service.model.DTO.ChatResponseDTO;
 import com.Backend.services.chat_service.model.ChatLookUpHelper;
-import com.Backend.services.chat_service.service.ChatService;
 import com.Backend.services.notification_service.model.NewChatNotification;
 import com.Backend.services.notification_service.model.Notification;
 import com.Backend.services.notification_service.model.NotificationDTO;

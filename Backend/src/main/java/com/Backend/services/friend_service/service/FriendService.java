@@ -9,7 +9,6 @@ import com.Backend.services.friend_service.repository.FriendRepo;
 import com.Backend.services.notification_service.model.SimpleNotificationDTO;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.model.UserLookUpHelper;
-import com.Backend.services.user_service.service.UserService;
 import com.Backend.exception.FriendshipNotFoundException;
 import com.Backend.exception.FriendRequestAlreadyExistsException;
 import com.Backend.exception.NotAuthorizedToModifyFriendshipException;

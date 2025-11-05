@@ -2,7 +2,6 @@ package com.Backend.websocket.eventListener;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.context.event.EventListener;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
@@ -20,7 +19,6 @@ public class STOMPEventListener {
     private final Map<String, Set<String>> userSessionMap = new ConcurrentHashMap<>();
     private final Map<String, ScheduledFuture<?>> offlineTasks = new ConcurrentHashMap<>();
 
-    private final SimpMessagingTemplate messagingTemplate;
     private final ApplicationEventPublisher publisher;
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);

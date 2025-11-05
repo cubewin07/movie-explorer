@@ -10,13 +10,11 @@ import com.Backend.services.chat_service.model.DTO.ChatResponseDTO;
 import com.Backend.services.notification_service.model.UserIdAndChatId;
 import com.Backend.services.user_service.model.UserLookUpHelper;
 import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.Backend.exception.ChatNotFoundException;
 import com.Backend.exception.ChatValidationException;
 import com.Backend.services.chat_service.model.Chat;
 import com.Backend.services.chat_service.model.DTO.SimpleChatDTO;
