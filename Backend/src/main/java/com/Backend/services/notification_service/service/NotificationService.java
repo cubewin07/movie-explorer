@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.chat_service.model.DTO.ChatDTO;
 import com.Backend.services.chat_service.model.DTO.ChatResponseDTO;
+import com.Backend.services.chat_service.model.ChatLookUpHelper;
 import com.Backend.services.chat_service.service.ChatService;
 import com.Backend.services.notification_service.model.NewChatNotification;
 import com.Backend.services.notification_service.model.Notification;
@@ -38,7 +39,7 @@ public class NotificationService {
     private final NotificationRepo notificationRepo;
     private final SimpMessagingTemplate template;
     private final STOMPEventListener stompEventListener;
-    private final ChatService chatService;
+    private final ChatLookUpHelper chatLookUpHelper;
     private final UserService userService;
     private final UserLookUpHelper userLookUpHelper;
     
@@ -307,7 +308,7 @@ public class NotificationService {
             return;
 
         String destination = "/topic/notifications/" + id;
-        ChatDTO chat = chatService.getChatByIdDTO(chatId);
+        ChatDTO chat = chatLookUpHelper.getChatByIdDTO(chatId);
         Set<SimpleUserDTO> participantsDTO = chat.participants();
         ChatResponseDTO dto = new ChatResponseDTO(
                 chat.id(),

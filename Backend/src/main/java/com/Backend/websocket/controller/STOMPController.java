@@ -5,6 +5,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import com.Backend.services.chat_service.message.service.MessageService;
+import com.Backend.services.chat_service.model.ChatLookUpHelper;
 import com.Backend.services.chat_service.service.ChatService;
 import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.chat_service.message.dto.MessageWebSocketDTO;
@@ -29,7 +30,7 @@ import lombok.RequiredArgsConstructor;
 @Slf4j
 public class STOMPController {
     private final SimpMessagingTemplate template;
-    private final ChatService chatService;
+    private final ChatLookUpHelper chatLookUpHelper;
     private final MessageService messageService;
     private final NotificationService notificationService;
     private final UserRepository userRepository;
@@ -45,7 +46,7 @@ public class STOMPController {
         User sender = userRepository.findByEmail(email)
             .orElseThrow(() -> new UserNotFoundException("User not found"));
         Message sentMessage = messageService.sendMessage(message, chatId, sender);
-        Set<SimpleUserDTO> participants = chatService.getParticipants(chatId);
+        Set<SimpleUserDTO> participants = chatLookUpHelper.getParticipants(chatId);
         String destination = "/topic/chat/" + chatId;
         MessageWebSocketDTO messageDto = MessageWebSocketDTO.fromMessage(sentMessage);
         log.info("Sending WebSocket message to destination: {} with DTO: {}", destination, messageDto);

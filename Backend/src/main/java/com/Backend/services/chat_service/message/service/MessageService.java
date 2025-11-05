@@ -18,6 +18,7 @@ import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.chat_service.message.dto.MessageDTO;
 import com.Backend.services.chat_service.message.repository.MessageRepository;
 import com.Backend.services.chat_service.model.Chat;
+import com.Backend.services.chat_service.model.ChatLookUpHelper;
 import com.Backend.services.chat_service.service.ChatService;
 import com.Backend.services.user_service.model.User;
 
@@ -36,7 +37,7 @@ public class MessageService {
     private static final int MIN_PAGE_SIZE = 1;
     
     private final MessageRepository messageRepository;
-    private final ChatService chatService;
+    private final ChatLookUpHelper chatLookUpHelper;
     private final SimpMessagingTemplate template;
 
     // ==================== Send Message ====================
@@ -53,7 +54,7 @@ public class MessageService {
         
         log.debug("Sending message to chat: {}", chatId);
         
-        Chat chat = findChatById(chatId);
+        Chat chat = chatLookUpHelper.getChatById(chatId);
         
         Message message = Message.builder()
             .content(text)
@@ -175,11 +176,11 @@ public class MessageService {
     // ==================== Private Helper Methods ====================
     
     private Chat findChatById(Long chatId) {
-        return chatService.getChatById(chatId);
+        return chatLookUpHelper.getChatById(chatId);
     }
     
     private void verifyChatExists(Long chatId) {
-        if (!chatService.chatExists(chatId)) {
+        if (!chatLookUpHelper.chatExists(chatId)) {
             throw new ChatNotFoundException("Chat not found with id: " + chatId);
         }
     }
