@@ -1,12 +1,10 @@
 package com.Backend.websocket.eventListener;
 
-import com.Backend.services.chat_service.message.dto.MessageDTO;
-import com.Backend.services.chat_service.message.service.MessageService;
 import com.Backend.services.friend_service.service.FriendService;
 import com.Backend.services.notification_service.model.SimpleNotificationDTO;
 import com.Backend.services.notification_service.model.UserIdAndChatId;
 import com.Backend.services.notification_service.service.NotificationService;
-import com.Backend.services.user_service.service.UserService;
+import com.Backend.services.user_service.model.UserLookUpHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -20,14 +18,13 @@ public class GlobalEventListener {
     private final FriendService friendService;
     private final SimpMessagingTemplate messagingTemplate;
     private final CacheManager cacheManager;
-    private final UserService userService;
     private final NotificationService notificationService;
-    private final MessageService messageService;
+    private final UserLookUpHelper userLookUpHelper;
 
     @EventListener
     public void onUserStatusChange(UserStatusEvent event) {
         Cache friends = cacheManager.getCache("friends");
-        Long userId = userService.getUserIdByEmail(event.email());
+        Long userId = userLookUpHelper.getUserIdByEmail(event.email());
         if(friends != null) {
             friends.evict(event.email());
             friends.evict(userId);
