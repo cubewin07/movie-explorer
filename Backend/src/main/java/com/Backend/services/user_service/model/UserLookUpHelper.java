@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 @RequiredArgsConstructor
@@ -41,6 +42,20 @@ public class UserLookUpHelper {
         log.debug("Fetching user by username={} from database", username);
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UserNotFoundException("User with username " + username + " not found"));
+    }
+
+    @Transactional(readOnly = true)
+    public User getUserWithRequestsTo(Long id) {
+        log.debug("Fetching user with requestsTo by id={} from database", id);
+        return userRepository.findWithRequestsToById(id)
+                .orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
+    }
+
+    @Transactional(readOnly = true)
+    public User getUserWithRequestsFrom(Long id) {
+        log.debug("Fetching user with requestsFrom by id={} from database", id);
+        return userRepository.findWithRequestsFrom(id)
+                .orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
     }
 
 }

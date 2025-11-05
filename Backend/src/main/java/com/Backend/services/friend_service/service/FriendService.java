@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class FriendService {
     private final FriendRepo friendRepo;
-    private final UserService userService;
     private final CacheManager cacheManager;
     private final STOMPEventListener eventListener;
     private final ApplicationEventPublisher publisher;
@@ -45,7 +44,7 @@ public class FriendService {
     @Cacheable(value = "friendRequests", key = "'from-' + #id")
     public Set<FriendRequestDTO> getRequestsFromThisUser(Long id) {
         log.debug("Fetching requests from user id={} from database", id);
-        User user = userService.getUserWithRequestsFrom(id);
+        User user = getUserWithRequestsFrom(id);
         if (user.getRequestsFrom() == null || user.getRequestsFrom().isEmpty()) {
             return Set.of();
         }
@@ -57,7 +56,7 @@ public class FriendService {
     @Cacheable(value = "friendRequests", key = "'to-' + #id")
     public Set<FriendRequestDTO> getRequestsToThisUser(Long id) {
         log.debug("Fetching requests to user id={} from database", id);
-        User user = userService.getUserWithRequestsTo(id);
+        User user = getUserWithRequestsTo(id);
         if (user.getRequestsTo() == null || user.getRequestsTo().isEmpty()) {
             return Set.of();
         }
@@ -288,5 +287,17 @@ public class FriendService {
         if (userMeDTOCache != null) {
             userMeDTOCache.evict(user.getEmail());
         }
+    }
+
+    // ==================== Private Helper Methods ====================
+
+    public User getUserWithRequestsTo(Long id) {
+        log.debug("Fetching user with requestsTo by id={} from database", id);
+        return userLookUpHelper.getUserWithRequestsTo(id);
+    }
+
+    public User getUserWithRequestsFrom(Long id) {
+        log.debug("Fetching user with requestsFrom by id={} from database", id);
+        return userLookUpHelper.getUserWithRequestsFrom(id);
     }
 }
