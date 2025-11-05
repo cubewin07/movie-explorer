@@ -46,6 +46,8 @@ public class UserService {
     private final ChatService chatService;
     private final FriendService friendService;
 
+    private final UserLookUpHelper lookUpHelper;
+
     // Removed @Cacheable - was caching JPA entities which causes Kryo serialization issues
     public List<User> getAllUsers() {
         log.debug("Fetching all users from database");
@@ -59,14 +61,6 @@ public class UserService {
                 // Align username field with test expectations (username equals email here)
                 .map(u -> new SimpleUserDTO(u.getId(), u.getEmail(), u.getEmail()))
                 .collect(Collectors.toList());
-    }
-
-    // Removed @Cacheable - was caching JPA entities which causes Kryo serialization issues
-    // Use getSimpleUserByIdCached() if you need a cached DTO version
-    public User getUserById(Long id) {
-        log.debug("Fetching user by id={} from database", id);
-        return userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
     }
 
     @Cacheable(value = "users", key = "#id")
@@ -133,30 +127,6 @@ public class UserService {
         managedUser.setEmail(update.email());
         log.info("User updated: id={}", managedUser.getId());
         return managedUser;
-    }
-
-    @Cacheable(value = "userId", key = "#email")
-    public Long getUserIdByEmail(String email) {
-        log.debug("Fetching user id by email={} from database", email);
-        return userRepository.findByEmail(email)
-                .map(User::getId)
-                .orElseThrow(() -> new UserNotFoundException("User with email " + email + " not found"));
-    }
-
-    // Removed @Cacheable - was caching JPA entities which causes Kryo serialization issues
-    // This method is provided for other services to use instead of direct repository access
-    public User getUserByEmail(String email) {
-        log.debug("Fetching user by email={} from database", email);
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User with email " + email + " not found"));
-    }
-
-    // Removed @Cacheable - was caching JPA entities which causes Kryo serialization issues
-    // This method is provided for other services to use instead of direct repository access
-    public User getUserByUsername(String username) {
-        log.debug("Fetching user by username={} from database", username);
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new UserNotFoundException("User with username " + username + " not found"));
     }
 
     // Removed @Cacheable - was caching JPA entities which causes Kryo serialization issues
@@ -326,7 +296,7 @@ public class UserService {
         if(friendService.isFriend(principal, id)) {
             log.info("Fetching info for friend id={} from database", id);
             Status status = friendService.getFriendStatus(principal, id);
-            User info = getUserById(id);
+            User info = lookUpHelper.getUserById(id);
             Set<Long> moviesId= info.getWatchlist().getMoviesId();
             Set<Long> seriesId= info.getWatchlist().getSeriesId();
             return GetInfoDTO.builder()
@@ -338,7 +308,7 @@ public class UserService {
                     .build();
         } else {
             log.info("No friend ship found for user id={} and friend id={}", principal.getId(), id);
-            User info = getUserById(id);
+            User info = lookUpHelper.getUserById(id);
             Set<Long> moviesId= info.getWatchlist().getMoviesId();
             Set<Long> seriesId= info.getWatchlist().getSeriesId();
             return GetInfoDTO.builder()
