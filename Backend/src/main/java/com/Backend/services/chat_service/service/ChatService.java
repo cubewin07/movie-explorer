@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import com.Backend.services.chat_service.message.dto.MessageDTO;
 import com.Backend.services.chat_service.message.service.MessageService;
 import com.Backend.services.notification_service.model.UserIdAndChatId;
+import com.Backend.services.user_service.model.UserLookUpHelper;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -21,7 +22,6 @@ import com.Backend.services.chat_service.model.DTO.ChatDTO;
 import com.Backend.services.chat_service.repository.ChatRepository;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.model.DTO.SimpleUserDTO;
-import com.Backend.services.user_service.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +34,7 @@ public class ChatService {
     private static final int MIN_GROUP_CHAT_PARTICIPANTS = 3;
 
     private final ChatRepository chatRepository;
-    private final UserService userService;
+    private final UserLookUpHelper userLookUpHelper;
     private final ApplicationEventPublisher publisher;
     private final MessageService messageService;
     
@@ -272,11 +272,11 @@ public class ChatService {
     // ==================== Private Helper Methods ====================
     
     private User findUserById(Long userId) {
-        return userService.getUserById(userId);
+        return userLookUpHelper.getUserById(userId);
     }
     
     private User findUserByUsername(String username) {
-        return userService.getUserByUsername(username);
+        return userLookUpHelper.getUserByUsername(username);
     }
     
     private Set<User> fetchUsersByIds(Set<Long> userIds) {
