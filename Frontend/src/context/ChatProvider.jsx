@@ -1,6 +1,8 @@
-import { createContext, useState, useContext } from 'react';
+import { createContext, useState, useContext, use } from 'react';
 import { useWebsocket } from '@/context/Websocket/WebsocketProvider';
 import useCreateChat from '@/hooks/chat/useCreateChat';
+import { useAuthen } from './AuthenProvider';
+import { c } from 'vite/dist/node/moduleRunnerTransport.d-DJ_mE5sf';
 
 
 const ChatContext = createContext();
@@ -9,9 +11,17 @@ function ChatProvider({ children }) {
     
 
   const [activeChat, setActiveChat] = useState(null);
+  const [chats, setChats] = useState([]);
   const { stompClientRef } = useWebsocket();
   const {mutate: createChatMutation} = useCreateChat();
+  const { user } = useAuthen();
 
+  useEffect(() => {
+    if (user) {
+        // Logic to handle when user data changes, if needed
+        setChats(user.chats || []);
+    }
+  }, [user]);
 
   const createChat = (participants) => {
     // Logic to create a new chat via WebSocket or API
