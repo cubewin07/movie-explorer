@@ -1,5 +1,6 @@
 import { createContext, useState, useContext } from 'react';
 import { useWebsocket } from '@/context/Websocket/WebsocketProvider';
+import useCreateChat from '@/hooks/chat/useCreateChat';
 
 
 const ChatContext = createContext();
@@ -9,6 +10,7 @@ function ChatProvider({ children }) {
 
   const [activeChat, setActiveChat] = useState(null);
   const { stompClientRef } = useWebsocket();
+  const {mutate: createChatMutation} = useCreateChat();
 
 
   const createChat = (participants) => {
@@ -20,6 +22,15 @@ function ChatProvider({ children }) {
             const id = i + 1;
             payload['user' + id + 'Id'] = participants[i];
         }
+        createChatMutation(payload, {
+            onSuccess: (data) => {
+                setActiveChat(data.id);
+                return data;
+            },
+            onError: (error) => {
+                console.error("Failed to create chat:", error);
+            }
+        });
     }
   }
 
