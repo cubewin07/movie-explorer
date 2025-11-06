@@ -10,9 +10,10 @@ import RequestTabs from './RequestTabs';
 
 export default function ChatLayout() {
   const [showMobileContent, setShowMobileContent] = useState(false);
+  const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth < 768); // Track screen size
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // Initialize activeTab based on current path
   const getInitialTab = () => {
     if (location.pathname.includes('/friend/chat')) return 'chats';
@@ -22,7 +23,7 @@ export default function ChatLayout() {
   };
 
   const [activeTab, setActiveTab] = useState(getInitialTab);
-  
+
   const handleTabChange = (value) => {
     setActiveTab(value);
     // Set default paths for each tab
@@ -32,7 +33,7 @@ export default function ChatLayout() {
       requests: '/friend/requests'
     };
     navigate(paths[value]);
-    setShowMobileContent(false);
+    setShowMobileContent(true); // Show content area on small screens
   };
 
   const getSidebarContent = () => {
@@ -53,11 +54,18 @@ export default function ChatLayout() {
     setActiveTab(getInitialTab());
   }, [location.pathname]);
 
+  // Update screen size state on window resize
+  useEffect(() => {
+    const handleResize = () => setIsSmallScreen(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
     <div className="h-[calc(100vh-9.5rem)] flex rounded-md">
       {/* Sidebar with Tabs */}
       <div className={`w-full md:w-80 bg-slate-100 dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col rounded-tl-md rounded-bl-md
-        ${showMobileContent ? 'hidden md:flex' : 'flex'}`}>
+        ${showMobileContent && isSmallScreen ? 'hidden md:flex' : 'flex'}`}>
         {/* "Friend" text */}
         <div className="p-4 text-lg font-semibold text-slate-900 dark:text-slate-100">
           Friend
@@ -94,27 +102,34 @@ export default function ChatLayout() {
               transition={{ duration: 0.3, ease: 'easeInOut' }}
               className="h-full"
             >
-              {getSidebarContent()}
+              {isSmallScreen && showMobileContent ? (
+                <Outlet context={{ setShowMobileContent }} />
+              ) : (
+                getSidebarContent()
+              )}
             </motion.div>
           </AnimatePresence>
         </div>
       </div>
 
       {/* Content Area */}
-      <div className={`flex-1 bg-white dark:bg-slate-900 rounded-tr-md rounded-br-md  
-        ${!showMobileContent ? 'hidden md:block' : 'block'}`}>
-        {showMobileContent && (
-          <Button 
-            variant="ghost" 
-            className="md:hidden m-2"
-            onClick={() => setShowMobileContent(false)}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-        )}
-        <Outlet context={{ setShowMobileContent }} />
-      </div>
+      {!isSmallScreen && (
+        <div className={`flex-1 bg-white dark:bg-slate-900 rounded-tr-md rounded-br-md`}>
+          <Outlet context={{ setShowMobileContent }} />
+        </div>
+      )}
+
+      {/* Back Button for Small Screens */}
+      {isSmallScreen && showMobileContent && (
+        <Button 
+          variant="ghost" 
+          className="md:hidden m-2"
+          onClick={() => setShowMobileContent(false)}
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+      )}
     </div>
   );
 }
