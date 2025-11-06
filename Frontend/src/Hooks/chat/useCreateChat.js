@@ -1,13 +1,20 @@
 import instance from "@/lib/instance";
 import { useMutation } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 
-const useCreateChat = (participants) => {
+const useCreateChat = (token) => {
+    const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: async () => {
+        mutationFn: async (participants) => {
             const response = await instance.post('/chats/private', participants );
             return response.data;
         },
         enabled: !!participants && Object.keys(participants).length > 0, // Only run if participants are provided
+        onSuccess: (data, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['chats'] });
+            queryClient.invalidateQueries({ queryKey: ['userInfo', variables.token] });
+
+        }
     });
 }
 
