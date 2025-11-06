@@ -28,14 +28,6 @@ function WebsocketProvider({ children }) {
         setNotifications(user?.notifications || []);
     }, [user?.notifications]);
 
-    const subscribeToNewChat = (chatId) => {
-        if (stompClientRef.current && stompClientRef.current.connected) {
-            stompClientRef.current.subscribe("/topic/chat/" + chatId, (message) => {
-                handleWsNewChatMessage(chatId, message);
-            });
-        }
-    }
-
     useEffect(() => {
       if (!user || !token || stompClientRef.current || isLoadingFriends) return;
       console.log("WebSocket effect running", user, token, stompClientRef.current);
@@ -76,7 +68,7 @@ function WebsocketProvider({ children }) {
     }, [user, token]);
 
     return (
-        <WebSocketContext.Provider value={{notifications, friends, isLoadingFriends, error, setNotifications}}>
+        <WebSocketContext.Provider value={{notifications, friends, isLoadingFriends, error, setNotifications, stompClientRef}}>
             {children}
         </WebSocketContext.Provider>
     );
