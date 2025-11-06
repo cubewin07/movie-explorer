@@ -58,7 +58,7 @@ function WebsocketProvider({ children }) {
           console.error('Additional details: ' + frame.body);
         },
       });
-  
+      
       stompClientRef.current = stompClient;
       stompClient.activate();
   

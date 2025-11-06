@@ -44,6 +44,15 @@ function ChatProvider({ children }) {
     }
   }
 
+  const sendMessage = (chatId, message) => {
+    if (stompClientRef.current && stompClientRef.current.connected) {
+        stompClientRef.current.publish({
+            destination: "/app/chat/" + chatId + "/send",
+            body: message,
+        });
+    }
+  }
+
   return (
     <ChatContext.Provider value={{ activeChat, setActiveChat }}>
       {children}
