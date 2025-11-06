@@ -12,8 +12,8 @@ function ChatProvider({ children }) {
   const [activeChat, setActiveChat] = useState(null);
   const [chats, setChats] = useState([]);
   const { stompClientRef } = useWebsocket();
-  const { user } = useAuthen();
-  const {mutate: createChatMutation} = useCreateChat(user.token);
+  const { user, token } = useAuthen();
+  const {mutate: createChatMutation} = useCreateChat(token);
 
   useEffect(() => {
     if (user) {
