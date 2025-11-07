@@ -10,9 +10,9 @@ const useCreateChat = (token) => {
             return response.data;
         },
         enabled: !!participants && Object.keys(participants).length > 0, // Only run if participants are provided
-        onSuccess: (data, variables) => {
+        onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['chats'] });
-            queryClient.invalidateQueries({ queryKey: ['userInfo', variables.token] });
+            queryClient.invalidateQueries({ queryKey: ['userInfo', token] });
 
         }
     });
