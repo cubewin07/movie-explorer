@@ -1,6 +1,6 @@
 package com.Backend.services.chat_service;
 
-import com.Backend.services.chat_service.message.dto.MessageWebSocketDTO;
+import com.Backend.services.chat_service.message.dto.MessageDTO;
 import com.Backend.services.chat_service.message.dto.MarkAsReadNotificationDTO;
 import com.Backend.services.notification_service.model.NewChatNotification;
 import com.Backend.services.notification_service.model.Notification;
@@ -168,7 +168,7 @@ class WebSocketChatIntegrationTest {
 
         WebSocketStompClient stompClient = buildStompClient();
 
-        CompletableFuture<MessageWebSocketDTO> payloadFuture = new CompletableFuture<>();
+        CompletableFuture<MessageDTO> payloadFuture = new CompletableFuture<>();
 
         StompSession bobSession = connectStomp(stompClient, bobToken, bobId);
         String destination = "/topic/chat/" + chatId;
@@ -176,7 +176,7 @@ class WebSocketChatIntegrationTest {
         bobSession.subscribe(destination, new StompFrameHandler() {
             @Override
             public @NonNull Type getPayloadType(@NonNull StompHeaders headers) {
-                return MessageWebSocketDTO.class;
+                return MessageDTO.class;
             }
 
             @Override
@@ -187,13 +187,13 @@ class WebSocketChatIntegrationTest {
                     payloadFuture.completeExceptionally(new IllegalArgumentException("Received null payload"));
                     return;
                 }
-                if (!(payload instanceof MessageWebSocketDTO)) {
-                    log.error("Payload is not an instance of MessageWebSocketDTO. Type: {}, Headers: {}", payload.getClass(), headers);
-                    payloadFuture.completeExceptionally(new IllegalArgumentException("Payload is not a MessageWebSocketDTO instance"));
+                if (!(payload instanceof MessageDTO)) {
+                    log.error("Payload is not an instance of MessageDTO. Type: {}, Headers: {}", payload.getClass(), headers);
+                    payloadFuture.completeExceptionally(new IllegalArgumentException("Payload is not a MessageDTO instance"));
                     return;
                 }
-                MessageWebSocketDTO msg = (MessageWebSocketDTO) payload;
-                log.debug("Deserialized MessageWebSocketDTO payload: {}", msg);
+                MessageDTO msg = (MessageDTO) payload;
+                log.debug("Deserialized MessageDTO payload: {}", msg);
                 payloadFuture.complete(msg);
             }
         });
@@ -206,8 +206,8 @@ class WebSocketChatIntegrationTest {
         log.info("Sending message from Alice (userId={}) to destination {}: {}", aliceId, sendDestination, messageContent);
         aliceSession.send(sendDestination, messageContent);
 
-        MessageWebSocketDTO payload = payloadFuture.get(5, TimeUnit.SECONDS);
-        assertThat(payload.getContent()).isEqualTo(messageContent);
+        MessageDTO payload = payloadFuture.get(5, TimeUnit.SECONDS);
+        assertThat(payload.content()).isEqualTo(messageContent);
 
         Notification notification = awaitNotification(bobId, messageContent);
         assertThat(notification).isNotNull();
