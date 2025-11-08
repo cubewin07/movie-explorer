@@ -2,6 +2,7 @@ import { createContext, useState, useContext } from 'react';
 import { useWebsocket } from '@/context/Websocket/WebsocketProvider';
 import useCreateChat from '@/hooks/chat/useCreateChat';
 import { useAuthen } from './AuthenProvider';
+import queryClient from '@/lib/queryClient';
 
 
 const ChatContext = createContext();
@@ -50,6 +51,26 @@ function ChatProvider({ children }) {
             body: message,
         });
     }
+  }
+
+  const automaticallySubscribeToChat = (chatIds) => {
+    if (stompClientRef.current && stompClientRef.current.connected) {
+        chatIds.forEach((chatId) => {
+            stompClientRef.current.subscribe(
+                "topic/chat/" + chatId,
+                (message) => {
+                    queryClient.setQueryData([chatId, "chat", "messages"], (oldData) => {
+                        const newMessage = JSON.parse(message.body);
+                        const updatedPages = [...oldData.pages];
+                        updatedPages[0].content = [newMessage, ...updatedPages[0].content];
+                        return {
+                            ...oldData,
+                            pages: updatedPages,
+                        };
+                    }
+              )}
+            );
+        });
   }
 
   return (
