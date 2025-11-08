@@ -7,6 +7,7 @@ public record MessageDTO(
     String content,
     Long senderId,
     String senderUsername,
+    Boolean isRead,
     LocalDateTime createdAt
 ) {}
 
