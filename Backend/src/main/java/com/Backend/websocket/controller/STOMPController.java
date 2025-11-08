@@ -1,5 +1,6 @@
 package com.Backend.websocket.controller;
 
+import com.Backend.services.chat_service.message.dto.MessageDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
@@ -47,7 +48,7 @@ public class STOMPController {
         Message sentMessage = messageService.sendMessage(message, chatId, sender);
         Set<SimpleUserDTO> participants = chatLookUpHelper.getParticipants(chatId);
         String destination = "/topic/chat/" + chatId;
-        MessageWebSocketDTO messageDto = MessageWebSocketDTO.fromMessage(sentMessage);
+        MessageDTO messageDto = MessageDTO.fromMessage(sentMessage);
         log.info("Sending WebSocket message to destination: {} with DTO: {}", destination, messageDto);
         template.convertAndSend(destination, messageDto);
         log.info("WebSocket message sent successfully");
