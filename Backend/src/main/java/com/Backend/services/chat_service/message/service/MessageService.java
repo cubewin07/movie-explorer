@@ -89,6 +89,7 @@ public class MessageService {
                 message.getContent(),
                 message.getSender().getId(),
                 message.getSender().getRealUsername(),
+                message.isRead(),
                 message.getCreatedAt()
             )
         );
@@ -124,6 +125,7 @@ public class MessageService {
             message.getContent(),
             message.getSender().getId(),
             message.getSender().getRealUsername(),
+            message.isRead(),
             message.getCreatedAt()
         );
     }

@@ -255,14 +255,13 @@ public class UserService {
                         // Using helper to prevent cycle
                         MessageDTO latestDTO = chatService.getChatSummaryDTO(chat.getId());
                         if (latestDTO != null) {
-                            // Convert to user_service UserMessageDTO format
                             SimpleUserDTO senderDTO = getSimpleUserByIdCached(latestDTO.senderId());
                             c.setLatestMessage(new UserMessageDTO(
                                     latestDTO.id(),
                                     latestDTO.content(),
                                     senderDTO,
-                                    false, // Note: read status not available in message service DTO
-                                    latestDTO.createdAt()
+                                    latestDTO.isRead(), 
+                                    latestDTO.createdAt() 
                             ));
                         }
                         return c;
