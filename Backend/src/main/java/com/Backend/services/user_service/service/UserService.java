@@ -253,7 +253,7 @@ public class UserService {
                                 .map(u -> new SimpleUserDTO(u.getId(), u.getEmail(), u.getRealUsername()))
                                 .toList());
                         // Using helper to prevent cycle
-                        MessageDTO latestDTO = chatService.getChatSummaryDTO(chat.getId());
+                        MessageDTO latestDTO = chatService.getLatestMessageDTO(chat.getId());
                         if (latestDTO != null) {
                             SimpleUserDTO senderDTO = getSimpleUserByIdCached(latestDTO.senderId());
                             c.setLatestMessage(new UserMessageDTO(

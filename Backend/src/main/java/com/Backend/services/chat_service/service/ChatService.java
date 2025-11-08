@@ -272,7 +272,7 @@ public class ChatService {
             .collect(Collectors.toSet());
     }
 
-    public MessageDTO getChatSummaryDTO(Long chatId) {
+    public MessageDTO getLatestMessageDTO(Long chatId) {
         return messageService.getLatestMessageDTO(chatId);
     }
 }
