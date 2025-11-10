@@ -6,8 +6,9 @@ function useInfiniteMessages(chatId) {
     return useInfiniteQuery({
         queryKey: ['chat', chatId, 'messages'],
         queryFn: async ({ pageParam = 0 }) => {
-            const response = await instance.get(`/chats/${chatId}/messages`, {
+            const response = await instance.get(`/messages`, {
                 params: {
+                    chatId: chatId,
                     page: pageParam,
                     size: 20,
                 }
