@@ -9,7 +9,6 @@ const useCreateChat = (token) => {
             const response = await instance.post('/chats/private', participants );
             return response.data;
         },
-        enabled: !!participants && Object.keys(participants).length > 0, // Only run if participants are provided
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['chats'] });
             queryClient.invalidateQueries({ queryKey: ['userInfo', token] });
