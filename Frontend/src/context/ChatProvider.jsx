@@ -36,6 +36,7 @@ function ChatProvider({ children }) {
         createChatMutation(payload, {
             onSuccess: (data) => {
               queryClient.invalidateQueries({ queryKey: ['userInfo', token] });
+              data.latestMessage = null;
               setChats((prevChats) => [data,...prevChats]);
               subscribeToChat(data.id);
               setActiveChat(data.id);
