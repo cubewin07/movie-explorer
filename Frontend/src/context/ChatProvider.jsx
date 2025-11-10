@@ -1,9 +1,8 @@
-import { createContext, useState, useContext } from 'react';
+import { createContext, useState, useContext, useEffect } from 'react';
 import { useWebsocket } from '@/context/Websocket/WebsocketProvider';
 import useCreateChat from '@/hooks/chat/useCreateChat';
 import { useAuthen } from './AuthenProvider';
 import queryClient from '@/lib/queryClient';
-import { set } from 'react-hook-form';
 
 
 const ChatContext = createContext();
