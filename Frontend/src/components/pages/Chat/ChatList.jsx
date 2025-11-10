@@ -12,7 +12,7 @@ export default function ChatList() {
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
-  const { chats } = useChat();
+  const { chats, newChatIds } = useChat();
   const { user } = useAuthen();
 
   // Extract the active chatId from the current path
@@ -41,6 +41,13 @@ export default function ChatList() {
   // Sort chats by latest message timestamp (if available)
   const sortedChats = useMemo(() => {
     return [...filteredChats].sort((a, b) => {
+      const aIsNew = newChatIds.has(a.id);
+      const bIsNew = newChatIds.has(b.id);
+
+      if (aIsNew && !bIsNew) return -1;
+      if (!aIsNew && bIsNew) return 1;
+      if (aIsNew && bIsNew) return b.id - a.id;
+      
       if (!a.latestMessage && !b.latestMessage) return 0;
       if (!a.latestMessage) return 1;
       if (!b.latestMessage) return -1;
