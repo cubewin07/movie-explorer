@@ -53,26 +53,6 @@ export default function ChatList() {
     });
   }, [filteredChats]);
 
-  // Get display info for a chat
-  const getChatDisplayInfo = (chat, currentUser) => {
-  // Group chat case
-  if (chat.isGroup) {
-    return {
-      name: chat.name || 'Unnamed Group',
-      avatarSeed: chat.name || 'group-chat',
-      isGroup: true,
-    };
-  }
-
-  // Private chat case
-  const otherParticipant = chat.participants.find(p => p.id !== currentUser?.id);
-
-  return {
-    name: otherParticipant?.fullName || otherParticipant?.email || 'Unknown User',
-    avatarSeed: otherParticipant?.email || 'user',
-    isGroup: false,
-  };
-};
 
   // Format timestamp to relative time
   const getRelativeTime = (timestamp) => {
