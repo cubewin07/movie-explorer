@@ -4,37 +4,80 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send } from 'lucide-react';
+import { Send, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-
-const SAMPLE_MESSAGES = [
-	{ id: 1, sender: 'other', text: 'Hey there!', time: '10:00' },
-	{ id: 2, sender: 'me', text: 'Hi! How are you?', time: '10:01' },
-	{ id: 3, sender: 'other', text: 'I\'m good, thanks! Did you watch the new movie?', time: '10:02' }
-];
+import useInfiniteMessages from '@/hooks/chat/useInfiniteMessages';
 
 export default function ChatConversation() {
 	const { chatId } = useParams();
 	const [newMessage, setNewMessage] = useState('');
-	const [messages, setMessages] = useState(SAMPLE_MESSAGES);
 	const scrollRef = useRef(null);
+	const observerTarget = useRef(null);
 
-	// Scroll to the bottom when a new message is added
+	const {
+		data,
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
+		isLoading,
+		isError
+	} = useInfiniteMessages(chatId);
+
+	// Flatten all pages into a single messages array
+	const messages = data?.pages.flatMap(page => page.content) || [];
+
+	// Scroll to the bottom when messages first load
 	useEffect(() => {
-		if (scrollRef.current) {
+		if (messages.length > 0 && scrollRef.current) {
 			scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
 		}
-	}, [messages]);
+	}, [messages.length]);
+
+	// Intersection Observer for infinite scroll (load more when scrolling up)
+	useEffect(() => {
+		const observer = new IntersectionObserver(
+			entries => {
+				if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+					fetchNextPage();
+				}
+			},
+			{ threshold: 1 }
+		);
+
+		if (observerTarget.current) {
+			observer.observe(observerTarget.current);
+		}
+
+		return () => {
+			if (observerTarget.current) {
+				observer.unobserve(observerTarget.current);
+			}
+		};
+	}, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
 	const handleSendMessage = () => {
 		if (newMessage.trim()) {
-			setMessages((prev) => [
-				...prev,
-				{ id: Date.now(), sender: 'me', text: newMessage, time: 'Now' }
-			]);
+			// TODO: Implement send message mutation
+			// For now, just clear the input
 			setNewMessage('');
 		}
 	};
+
+	if (isLoading) {
+		return (
+			<div className="h-full flex items-center justify-center">
+				<Loader2 className="h-8 w-8 animate-spin text-slate-500" />
+			</div>
+		);
+	}
+
+	if (isError) {
+		return (
+			<div className="h-full flex items-center justify-center">
+				<p className="text-red-500">Failed to load messages</p>
+			</div>
+		);
+	}
 
 	return (
 		<div className="h-full flex flex-col">
@@ -55,6 +98,15 @@ export default function ChatConversation() {
 			{/* Messages */}
 			<ScrollArea className="flex-1 p-4" ref={scrollRef}>
 				<div className="space-y-4">
+					{/* Load more indicator at the top */}
+					{hasNextPage && (
+						<div ref={observerTarget} className="flex justify-center py-2">
+							{isFetchingNextPage && (
+								<Loader2 className="h-5 w-5 animate-spin text-slate-500" />
+							)}
+						</div>
+					)}
+
 					{messages.map((message) => (
 						<motion.div
 							key={message.id}
@@ -71,8 +123,13 @@ export default function ChatConversation() {
 										: 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100'
 								}`}
 							>
-								<p>{message.text}</p>
-								<span className="text-xs opacity-70">{message.time}</span>
+								<p>{message.text || message.content}</p>
+								<span className="text-xs opacity-70">
+									{message.time || new Date(message.createdAt).toLocaleTimeString([], { 
+										hour: '2-digit', 
+										minute: '2-digit' 
+									})}
+								</span>
 							</motion.div>
 						</motion.div>
 					))}
