@@ -18,11 +18,6 @@ export default function ChatList() {
   // Extract the active chatId from the current path
   const activeChatId = location.pathname.split('/').pop();
 
-  // Get the other participant in the chat (not the current user)
-  const getOtherParticipant = (chat) => {
-    return chat.participants.find(p => p.id !== user?.id);
-  };
-
   // Filter chats based on search
   const filteredChats = useMemo(() => {
     if (!search.trim()) return chats;
