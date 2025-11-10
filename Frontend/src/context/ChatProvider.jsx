@@ -1,8 +1,10 @@
-import { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useState, useContext, useEffect, useRef } from 'react';
 import { useWebsocket } from '@/context/Websocket/WebsocketProvider';
 import useCreateChat from '@/hooks/chat/useCreateChat';
 import { useAuthen } from './AuthenProvider';
 import queryClient from '@/lib/queryClient';
+import { set } from 'react-hook-form';
+import { c } from 'vite/dist/node/moduleRunnerTransport.d-DJ_mE5sf';
 
 
 const ChatContext = createContext();
@@ -11,6 +13,8 @@ function ChatProvider({ children }) {
     
 
   const [activeChat, setActiveChat] = useState(null);
+  const [newChatIds, setNewChatIds] = useState(new Set());
+  const newChatIdTimeoutsRef = useRef(null);
   const [chats, setChats] = useState([]);
   const { stompClientRef } = useWebsocket();
   const { user, token } = useAuthen();
@@ -22,6 +26,21 @@ function ChatProvider({ children }) {
         setChats(user.chats || []);
     }
   }, [user]);
+
+  useEffect(() => {
+    if (newChatIds.size === 0) return;
+    if (newChatIdTimeoutsRef.current) {
+        clearTimeout(newChatIdTimeoutsRef.current);
+    }
+    newChatIdTimeoutsRef.current = setTimeout(() => {
+        setNewChatIds(new Set());
+    }, 3600000);
+    return () => {
+        if (newChatIdTimeoutsRef.current) {
+            clearTimeout(newChatIdTimeoutsRef.current);
+        }
+    }
+  }, [newChatIds]);
 
   const createChat = (participants) => {
     // Logic to create a new chat via WebSocket or API
@@ -39,6 +58,7 @@ function ChatProvider({ children }) {
               setChats((prevChats) => [data,...prevChats]);
               subscribeToChat(data.id);
               setActiveChat(data.id);
+              setNewChatIds((prev) => new Set(prev).add(data.id));
               return data;
             },
             onError: (error) => {
