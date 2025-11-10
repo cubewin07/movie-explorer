@@ -14,7 +14,6 @@ export default function useMarkMessageAsRead(token) {
         },
         onSuccess: (data, variables) => {
             queryClient.invalidateQueries({ queryKey: ['chat', variables.chatId, 'messages'] });
-            queryClient.invalidateQueries({ queryKey: ['chats'] });
             queryClient.invalidateQueries({ queryKey: ['userInfo', token] });
         }
     })

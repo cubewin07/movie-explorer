@@ -10,7 +10,6 @@ const useCreateChat = (token) => {
             return response.data;
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['chats'] });
             queryClient.invalidateQueries({ queryKey: ['userInfo', token] });
 
         }
