@@ -20,3 +20,5 @@ function useInfiniteMessages(chatId) {
         enabled: !!chatId,
     });
 }
+
+export default useInfiniteMessages;
