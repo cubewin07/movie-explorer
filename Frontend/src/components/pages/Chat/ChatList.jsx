@@ -6,20 +6,21 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useChat } from '@/context/ChatProvider';
-
+import { useAuthen } from '@/context/AuthenProvider';
 
 export default function ChatList() {
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
-  const { chats, currentUser } = useChat();
+  const { chats } = useChat();
+  const { user } = useAuthen();
 
   // Extract the active chatId from the current path
   const activeChatId = location.pathname.split('/').pop();
 
   // Get the other participant in the chat (not the current user)
   const getOtherParticipant = (chat) => {
-    return chat.participants.find(p => p.id !== currentUser?.id);
+    return chat.participants.find(p => p.id !== user?.id);
   };
 
   // Filter chats based on search
@@ -27,11 +28,20 @@ export default function ChatList() {
     if (!search.trim()) return chats;
     
     return chats.filter(chat => {
-      const otherParticipant = getOtherParticipant(chat);
-      return otherParticipant?.username?.toLowerCase().includes(search.toLowerCase()) ||
-             otherParticipant?.email?.toLowerCase().includes(search.toLowerCase());
+      const displayInfo = getChatDisplayInfo(chat, user);
+      const searchLower = search.toLowerCase();
+      
+      // Search in display name
+      if (displayInfo.name.toLowerCase().includes(searchLower)) {
+        return true;
+      }
+      
+      // Also search in participant emails
+      return chat.participants.some(p => 
+        p.id !== user?.id && p.email?.toLowerCase().includes(searchLower)
+      );
     });
-  }, [chats, search, currentUser]);
+  }, [chats, search, user]);
 
   // Sort chats by latest message timestamp (if available)
   const sortedChats = useMemo(() => {
@@ -42,6 +52,27 @@ export default function ChatList() {
       return new Date(b.latestMessage.timestamp) - new Date(a.latestMessage.timestamp);
     });
   }, [filteredChats]);
+
+  // Get display info for a chat
+  const getChatDisplayInfo = (chat, currentUser) => {
+  // Group chat case
+  if (chat.isGroup) {
+    return {
+      name: chat.name || 'Unnamed Group',
+      avatarSeed: chat.name || 'group-chat',
+      isGroup: true,
+    };
+  }
+
+  // Private chat case
+  const otherParticipant = chat.participants.find(p => p.id !== currentUser?.id);
+
+  return {
+    name: otherParticipant?.fullName || otherParticipant?.email || 'Unknown User',
+    avatarSeed: otherParticipant?.email || 'user',
+    isGroup: false,
+  };
+};
 
   // Format timestamp to relative time
   const getRelativeTime = (timestamp) => {
@@ -90,8 +121,7 @@ export default function ChatList() {
             </p>
           ) : (
             sortedChats.map((chat) => {
-              const otherParticipant = getOtherParticipant(chat);
-              if (!otherParticipant) return null;
+              const displayInfo = getChatDisplayInfo(chat, user);
 
               return (
                 <motion.div
@@ -110,16 +140,16 @@ export default function ChatList() {
                   onClick={() => navigate(`/friend/chat/${chat.id}`)}
                 >
                   <Avatar>
-                    <AvatarImage src={`https://avatar.vercel.sh/${otherParticipant.username}.png`} />
+                    <AvatarImage src={`https://avatar.vercel.sh/${displayInfo.avatarSeed}.png`} />
                     <AvatarFallback>
-                      {otherParticipant.username?.[0]?.toUpperCase() || 'U'}
+                      {displayInfo.isGroup ? '👥' : displayInfo.name?.[0]?.toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-center">
                       <p className="font-medium text-slate-900 dark:text-slate-100">
-                        {otherParticipant.username}
+                        {displayInfo.name}
                       </p>
                       {chat.latestMessage && (
                         <span className="text-sm text-slate-500 dark:text-slate-400">
@@ -146,3 +176,21 @@ export default function ChatList() {
     </div>
   );
 }
+
+const getChatDisplayInfo = (chat, currentUser) => {
+  if (chat.isGroup) {
+    return {
+      name: chat.name || 'Unnamed Group',
+      avatarSeed: chat.name || 'group-chat',
+      isGroup: true,
+    };
+  }
+
+  const otherParticipant = chat.participants.find(p => p.id !== currentUser?.id);
+
+  return {
+    name: otherParticipant?.username || otherParticipant?.email || 'Unknown User',
+    avatarSeed: otherParticipant?.email || otherParticipant?.username || 'user',
+    isGroup: false,
+  };
+};
