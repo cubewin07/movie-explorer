@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -24,7 +24,7 @@ export default function ChatConversation() {
 	} = useInfiniteMessages(chatId);
 
 	// Flatten all pages into a single messages array
-	const messages = data?.pages.flatMap(page => page.content) || [];
+	const messages = useMemo(() => data?.pages.flatMap(page => page.content) || [], [data]);
 
 	// Scroll to the bottom when messages first load
 	useEffect(() => {
