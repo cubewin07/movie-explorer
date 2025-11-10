@@ -3,6 +3,7 @@ import { useWebsocket } from '@/context/Websocket/WebsocketProvider';
 import useCreateChat from '@/hooks/chat/useCreateChat';
 import { useAuthen } from './AuthenProvider';
 import queryClient from '@/lib/queryClient';
+import { set } from 'react-hook-form';
 
 
 const ChatContext = createContext();
@@ -34,8 +35,12 @@ function ChatProvider({ children }) {
         }
         createChatMutation(payload, {
             onSuccess: (data) => {
-                setActiveChat(data.id);
-                return data;
+              queryClient.invalidateQueries({ queryKey: ['chats'] });
+              queryClient.invalidateQueries({ queryKey: ['userInfo', token] });
+              setChats((prevChats) => [data,...prevChats]);
+              subscribeToChat(data.id);
+              setActiveChat(data.id);
+              return data;
             },
             onError: (error) => {
                 console.error("Failed to create chat:", error);
