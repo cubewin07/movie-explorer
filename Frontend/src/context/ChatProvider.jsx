@@ -83,7 +83,7 @@ function ChatProvider({ children }) {
   } 
 
   return (
-    <ChatContext.Provider value={{ activeChat, setActiveChat }}>
+    <ChatContext.Provider value={{ activeChat, setActiveChat, chats, setChats, createChat, sendMessage, subscribeToChat }}>
       {children}
     </ChatContext.Provider>
   );
