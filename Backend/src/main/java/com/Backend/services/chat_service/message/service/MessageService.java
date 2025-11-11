@@ -1,6 +1,7 @@
 package com.Backend.services.chat_service.message.service;
 
 import com.Backend.services.chat_service.message.dto.MarkAsReadNotificationDTO;
+import com.Backend.services.chat_service.message.dto.MessageDTOPage;
 import com.Backend.services.chat_service.model.Chat;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -70,7 +71,7 @@ public class MessageService {
 
     @Transactional(readOnly = true)
     @Cacheable(value = "messagesDTO", key = "#chatId + '-' + #page + '-' + #size")
-    public Page<MessageDTO> getMessagesDTO(Long chatId, int page, int size) {
+    public MessageDTOPage getMessagesDTO(Long chatId, int page, int size) {
         validateNotNull(chatId, "Chat ID");
         
         normalizePage(page);
@@ -93,14 +94,20 @@ public class MessageService {
                 message.getCreatedAt()
             )
         );
-        
+
         log.info("Found {} message DTOs for chat: {}", messageDTOs.getTotalElements(), chatId);
-        
-        return messageDTOs;
+
+        MessageDTOPage res = MessageDTOPage.builder()
+                .messages(messageDTOs.getContent())
+                .totalMessagesAcrossAllPage(messageDTOs.getTotalPages())
+                .build();
+
+
+        return res;
     }
 
     @Transactional(readOnly = true)
-    public Page<MessageDTO> getMessagesDTO(Long chatId, int page) {
+    public MessageDTOPage getMessagesDTO(Long chatId, int page) {
         return getMessagesDTO(chatId, page, DEFAULT_PAGE_SIZE);
     }
 
