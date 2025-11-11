@@ -24,6 +24,7 @@ import com.Backend.services.user_service.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
 import java.util.Set;
 
 @Slf4j
@@ -99,7 +100,7 @@ public class MessageService {
 
 
         return MessageDTOPage.builder()
-                .messages(messageDTOs.getContent())
+                .messages(new ArrayList<>(messageDTOs.getContent()))
                 .totalMessagesAcrossAllPage(messageDTOs.getTotalElements())
                 .build();
     }
