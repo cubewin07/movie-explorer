@@ -154,9 +154,9 @@ public class ChatService {
         return new ChatResponseDTO(
                 chatId,
                 chatDTO.participants(),
-                latestMessageDTO != null ? latestMessageDTO.content() : null,
-                latestMessageDTO != null ? latestMessageDTO.senderUsername() : null,
-                latestMessageDTO != null ? latestMessageDTO.createdAt() : null
+                latestMessageDTO != null ? latestMessageDTO.getContent() : null,
+                latestMessageDTO != null ? latestMessageDTO.getSenderUsername() : null,
+                latestMessageDTO != null ? latestMessageDTO.getCreatedAt() : null
         );
     }
 

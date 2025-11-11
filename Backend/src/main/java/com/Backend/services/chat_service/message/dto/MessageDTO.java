@@ -4,14 +4,21 @@ import com.Backend.services.chat_service.message.model.Message;
 
 import java.time.LocalDateTime;
 
-public record MessageDTO(
-    Long id,
-    String content,
-    Long senderId,
-    String senderUsername,
-    Boolean isRead,
-    LocalDateTime createdAt
-) {
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class MessageDTO {
+    private Long id;
+    private String content;
+    private Long senderId;
+    private String senderUsername;
+    private Boolean isRead;
+    private LocalDateTime createdAt;
+
     public static MessageDTO fromMessage(Message message) {
         Long id = message.getSender().getId();
         String username = message.getSender().getRealUsername();

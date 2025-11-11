@@ -207,7 +207,7 @@ class WebSocketChatIntegrationTest {
         aliceSession.send(sendDestination, messageContent);
 
         MessageDTO payload = payloadFuture.get(5, TimeUnit.SECONDS);
-        assertThat(payload.content()).isEqualTo(messageContent);
+        assertThat(payload.getContent()).isEqualTo(messageContent);
 
         Notification notification = awaitNotification(bobId, messageContent);
         assertThat(notification).isNotNull();
