@@ -39,7 +39,7 @@ public class MessageController {
 
         MessageDTOPage messageDTOPage = messageService.getMessagesDTO(chatId, page, size);
 
-        int totalMessages = messageDTOPage.getTotalMessagesAcrossAllPage();
+        Long totalMessages = messageDTOPage.getTotalMessagesAcrossAllPage();
         List<MessageDTO> messageDTOList = messageDTOPage.getMessages();
 
         Page<MessageDTO> messagePage = new PageImpl<>(messageDTOList, pageable, totalMessages);

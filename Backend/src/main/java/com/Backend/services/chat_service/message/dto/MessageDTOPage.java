@@ -9,5 +9,5 @@ import java.util.List;
 @Builder
 public class MessageDTOPage {
     private final List<MessageDTO> messages;
-    private final int totalMessagesAcrossAllPage;
+    private final Long totalMessagesAcrossAllPage;
 }

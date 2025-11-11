@@ -97,13 +97,11 @@ public class MessageService {
 
         log.info("Found {} message DTOs for chat: {}", messageDTOs.getTotalElements(), chatId);
 
-        MessageDTOPage res = MessageDTOPage.builder()
+
+        return MessageDTOPage.builder()
                 .messages(messageDTOs.getContent())
-                .totalMessagesAcrossAllPage(messageDTOs.getTotalPages())
+                .totalMessagesAcrossAllPage(messageDTOs.getTotalElements())
                 .build();
-
-
-        return res;
     }
 
     @Transactional(readOnly = true)
