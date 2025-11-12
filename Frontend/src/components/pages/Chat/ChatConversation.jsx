@@ -62,10 +62,19 @@ export default function ChatConversation() {
 
 	// Observer for last message visibility
 	useEffect(() => {
+		// Don't show button during initial load
+		if (isInitialLoad.current) {
+			setShowScrollButton(false);
+			return;
+		}
+
 		const observer = new IntersectionObserver(
 			([entry]) => {
 				// Show scroll button when last message is not visible
-				setShowScrollButton(!entry.isIntersecting);
+				// But not during initial load or when switching chats
+				if (!isInitialLoad.current) {
+					setShowScrollButton(!entry.isIntersecting);
+				}
 			},
 			{ threshold: 0.1 }
 		);
@@ -118,6 +127,7 @@ export default function ChatConversation() {
 			isInitialLoad.current = true;
 			isUserScrolling.current = false;
 			prevMessagesLength.current = 0;
+			setShowScrollButton(false); // Hide button when switching chats
 			prevChatId.current = chatId;
 		}
 	}, [chatId]);
@@ -128,9 +138,15 @@ export default function ChatConversation() {
 
 		// On initial load, scroll to bottom instantly
 		if (isInitialLoad.current && messages.length > 0) {
-			setTimeout(() => scrollToBottom('auto'), 100);
+			setShowScrollButton(false); // Ensure button is hidden
+			setTimeout(() => {
+				scrollToBottom('auto');
+				// Keep button hidden for a bit after scrolling to prevent flicker
+				setTimeout(() => {
+					isInitialLoad.current = false;
+				}, 200);
+			}, 100);
 			prevMessagesLength.current = messages.length;
-			isInitialLoad.current = false;
 			return;
 		}
 
