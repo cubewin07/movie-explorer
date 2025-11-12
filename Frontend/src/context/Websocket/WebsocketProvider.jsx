@@ -52,6 +52,18 @@ function WebsocketProvider({ children }) {
                 handleWsFriendStatus(message);
             });
 
+            stompClient.subscribe("/topic/user/" + user?.id, (message) => {
+                const newMessage = JSON.parse(message.body);
+                queryClient.setQueriesData(['chat', newMessage?.chatId, 'messages'], (oldData) => {
+                    const updatedPages = [...oldData.pages];
+                      updatedPages[0].content = [newMessage, ...updatedPages[0].content];
+                      return {
+                          ...oldData,
+                          pages: updatedPages,
+                      };
+                });
+            });
+
         },
         onStompError: (frame) => {
           console.error('Broker reported error: ' + frame.headers['message']);
