@@ -97,43 +97,66 @@ export default function ChatConversation() {
 
 			{/* Messages */}
 			<ScrollArea className="flex-1 p-4" ref={scrollRef}>
-				<div className="space-y-4">
-					{/* Load more indicator at the top */}
-					{hasNextPage && (
-						<div ref={observerTarget} className="flex justify-center py-2">
-							{isFetchingNextPage && (
-								<Loader2 className="h-5 w-5 animate-spin text-slate-500" />
-							)}
-						</div>
-					)}
-
-					{messages.map((message) => (
+				{messages.length === 0 ? (
+					<div className="h-full flex items-center justify-center">
 						<motion.div
-							key={message.id}
-							initial={{ opacity: 0, y: 20 }}
-							animate={{ opacity: 1, y: 0 }}
-							transition={{ duration: 0.3 }}
-							className={`flex ${message.sender === 'me' ? 'justify-end' : 'justify-start'}`}
+							initial={{ opacity: 0, scale: 0.9 }}
+							animate={{ opacity: 1, scale: 1 }}
+							transition={{ duration: 0.5 }}
+							className="text-center space-y-4 max-w-md"
 						>
-							<motion.div
-								layout
-								className={`max-w-[80%] rounded-2xl px-4 py-2 transition-transform duration-300 ${
-									message.sender === 'me'
-										? 'bg-blue-500 dark:bg-blue-600 text-white'
-										: 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100'
-								}`}
-							>
-								<p>{message.text || message.content}</p>
-								<span className="text-xs opacity-70">
-									{message.time || new Date(message.createdAt).toLocaleTimeString([], { 
-										hour: '2-digit', 
-										minute: '2-digit' 
-									})}
-								</span>
-							</motion.div>
+							<div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 flex items-center justify-center">
+								<Send className="h-12 w-12 text-blue-500 dark:text-blue-400" />
+							</div>
+							<div>
+								<h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
+									Start the conversation
+								</h3>
+								<p className="text-slate-500 dark:text-slate-400">
+									Send a message to begin chatting
+								</p>
+							</div>
 						</motion.div>
-					))}
-				</div>
+					</div>
+				) : (
+					<div className="space-y-4">
+						{/* Load more indicator at the top */}
+						{hasNextPage && (
+							<div ref={observerTarget} className="flex justify-center py-2">
+								{isFetchingNextPage && (
+									<Loader2 className="h-5 w-5 animate-spin text-slate-500" />
+								)}
+							</div>
+						)}
+
+						{messages.map((message) => (
+							<motion.div
+								key={message.id}
+								initial={{ opacity: 0, y: 20 }}
+								animate={{ opacity: 1, y: 0 }}
+								transition={{ duration: 0.3 }}
+								className={`flex ${message.sender === 'me' ? 'justify-end' : 'justify-start'}`}
+							>
+								<motion.div
+									layout
+									className={`max-w-[80%] rounded-2xl px-4 py-2 transition-transform duration-300 ${
+										message.sender === 'me'
+											? 'bg-blue-500 dark:bg-blue-600 text-white'
+											: 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100'
+									}`}
+								>
+									<p>{message.text || message.content}</p>
+									<span className="text-xs opacity-70">
+										{message.time || new Date(message.createdAt).toLocaleTimeString([], { 
+											hour: '2-digit', 
+											minute: '2-digit' 
+										})}
+									</span>
+								</motion.div>
+							</motion.div>
+						))}
+					</div>
+				)}
 			</ScrollArea>
 
 			{/* Input */}
