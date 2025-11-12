@@ -6,13 +6,17 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Send, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
+
 import useInfiniteMessages from '@/hooks/chat/useInfiniteMessages';
+import { useChat } from '@/context/ChatProvider';
 
 export default function ChatConversation() {
 	const { chatId } = useParams();
 	const [newMessage, setNewMessage] = useState('');
 	const scrollRef = useRef(null);
 	const observerTarget = useRef(null);
+
+	const { sendMessage } = useChat();
 
 	const {
 		data,
@@ -56,10 +60,11 @@ export default function ChatConversation() {
 	}, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
 	const handleSendMessage = () => {
-		if (newMessage.trim()) {
-			// TODO: Implement send message mutation
-			// For now, just clear the input
+		if (newMessage.trim() && chatId) {
+			console.log(newMessage);
+			sendMessage(chatId, newMessage);
 			setNewMessage('');
+			console.log("sent");
 		}
 	};
 
