@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 import useInfiniteMessages from '@/hooks/chat/useInfiniteMessages';
 import { useChat } from '@/context/ChatProvider';
+import useMarkMessageAsRead from '@/hooks/chat/useMarkMessageAsRead';
 
 export default function ChatConversation() {
 	const { chatId } = useParams();
@@ -24,6 +25,7 @@ export default function ChatConversation() {
 	const prevChatId = useRef(chatId);
 
 	const { sendMessage } = useChat();
+	const { mutate: markMessageAsRead } = useMarkMessageAsRead(token);
 
 	const {
 		data,
@@ -46,6 +48,12 @@ export default function ChatConversation() {
 		console.log(data);
 		console.log(messages);
 	}, [data, messages]);
+
+	useEffect(() => {
+		if (chatId) {
+			markMessageAsRead(chatId);
+		}
+	}, [chatId]);
 
 	// Smooth scroll to bottom function
 	const scrollToBottom = (behavior = 'smooth') => {
