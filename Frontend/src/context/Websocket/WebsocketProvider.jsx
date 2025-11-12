@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { Client } from '@stomp/stompjs';
 import { useAuthen } from "@/context/AuthenProvider";
 import { useQueryClient } from "@tanstack/react-query";
-import queryClient from "@/lib/queryClient";
+// import queryClient from "@/lib/queryClient";
 import { useFriends } from "@/hooks/friend/useFriends";
 
 const WebSocketContext = createContext();
@@ -60,6 +60,7 @@ function WebsocketProvider({ children }) {
                     const updatedPages = [...oldData.pages];
                     console.log(updatedPages);
                       updatedPages[0].content = [newMessage, ...updatedPages[0].content];
+                      console.log(updatedPages);
                       return {
                           ...oldData,
                           pages: updatedPages,
@@ -101,18 +102,18 @@ const handleWsFriendStatus = (message) => {
     console.log("Friend status update:", message.body);
     const friendStatus = JSON.parse(message.body);
 
-    queryClient.setQueryData(['friends'], (oldData) => {
-    if (!oldData) return oldData; // nothing cached yet
-    return oldData.map((friend) => {
-      if (friend.user.email === friendStatus.email) {
-        return {
-          ...friend,
-          status: friendStatus.status,
-        };
-      }
-      return friend;
-    });
-  });
+  //   queryClient.setQueryData(['friends'], (oldData) => {
+  //   if (!oldData) return oldData; // nothing cached yet
+  //   return oldData.map((friend) => {
+  //     if (friend.user.email === friendStatus.email) {
+  //       return {
+  //         ...friend,
+  //         status: friendStatus.status,
+  //       };
+  //     }
+  //     return friend;
+  //   });
+  // });
 
 }
 export const useWebsocket = () => {

@@ -27,8 +27,13 @@ export default function ChatConversation() {
 		isError
 	} = useInfiniteMessages(chatId);
 
+	
 	// Flatten all pages into a single messages array
 	const messages = useMemo(() => data?.pages.flatMap(page => page.content) || [], [data]);
+	useEffect(() => {
+		console.log(data);
+		console.log(messages);
+	}, [data, messages]);
 
 	// Scroll to the bottom when messages first load
 	useEffect(() => {
