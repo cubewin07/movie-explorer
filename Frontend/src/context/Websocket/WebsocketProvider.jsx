@@ -55,16 +55,25 @@ function WebsocketProvider({ children }) {
             stompClient.subscribe("/topic/user/" + user?.id, (message) => {
                 const newMessage = JSON.parse(message.body);
                 console.log(newMessage);
+                
+                // Add this to ensure the component re-renders
                 queryClient.setQueryData(['chat', newMessage?.chatId, 'messages'], (oldData) => {
-                  console.log(oldData);
-                    const updatedPages = [...oldData.pages];
-                    console.log(updatedPages);
-                      updatedPages[0].content = [newMessage, ...updatedPages[0].content];
-                      console.log(updatedPages);
+                  if (!oldData) return oldData; // Guard against undefined data
+                  
+                  const updatedPages = oldData.pages.map((page, index) => {
+                    if (index === 0) {
                       return {
-                          ...oldData,
-                          pages: updatedPages,
+                        ...page,
+                        content: [newMessage, ...page.content],
                       };
+                    }
+                    return page;
+                  });
+                  
+                  return {
+                    ...oldData,
+                    pages: updatedPages,
+                  };
                 });
             });
 
