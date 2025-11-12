@@ -4,7 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, Loader2 } from 'lucide-react';
+import { Send, Loader2, ArrowDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import useInfiniteMessages from '@/hooks/chat/useInfiniteMessages';
@@ -13,12 +13,15 @@ import { useChat } from '@/context/ChatProvider';
 export default function ChatConversation() {
 	const { chatId } = useParams();
 	const [newMessage, setNewMessage] = useState('');
+	const [showScrollButton, setShowScrollButton] = useState(false);
 	const scrollRef = useRef(null);
 	const observerTarget = useRef(null);
 	const prevMessagesLength = useRef(0);
 	const isInitialLoad = useRef(true);
 	const isUserScrolling = useRef(false);
 	const scrollTimeout = useRef(null);
+	const lastMessageRef = useRef(null);
+	const prevChatId = useRef(chatId);
 
 	const { sendMessage } = useChat();
 
@@ -57,6 +60,27 @@ export default function ChatConversation() {
 		}
 	};
 
+	// Observer for last message visibility
+	useEffect(() => {
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				// Show scroll button when last message is not visible
+				setShowScrollButton(!entry.isIntersecting);
+			},
+			{ threshold: 0.1 }
+		);
+
+		if (lastMessageRef.current) {
+			observer.observe(lastMessageRef.current);
+		}
+
+		return () => {
+			if (lastMessageRef.current) {
+				observer.unobserve(lastMessageRef.current);
+			}
+		};
+	}, [messages.length]);
+
 	// Handle scroll detection to know if user is reading old messages
 	const handleScroll = () => {
 		const scrollElement = scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]');
@@ -88,13 +112,23 @@ export default function ChatConversation() {
 		}
 	}, []);
 
+	// Reset and scroll to bottom when chatId changes (switching chats)
+	useEffect(() => {
+		if (prevChatId.current !== chatId) {
+			isInitialLoad.current = true;
+			isUserScrolling.current = false;
+			prevMessagesLength.current = 0;
+			prevChatId.current = chatId;
+		}
+	}, [chatId]);
+
 	// Scroll to the bottom when messages first load or when new messages arrive
 	useEffect(() => {
 		if (!scrollRef.current) return;
 
 		// On initial load, scroll to bottom instantly
 		if (isInitialLoad.current && messages.length > 0) {
-			scrollToBottom('auto');
+			setTimeout(() => scrollToBottom('auto'), 100);
 			prevMessagesLength.current = messages.length;
 			isInitialLoad.current = false;
 			return;
@@ -157,6 +191,11 @@ export default function ChatConversation() {
 		}
 	};
 
+	const handleScrollToBottom = () => {
+		scrollToBottom('smooth');
+		isUserScrolling.current = false;
+	};
+
 	if (isLoading) {
 		return (
 			<div className="h-full flex items-center justify-center">
@@ -174,7 +213,7 @@ export default function ChatConversation() {
 	}
 
 	return (
-		<div className="h-full flex flex-col">
+		<div className="h-full flex flex-col relative">
 			{/* Header */}
 			<div className="p-4 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm bg-white/50 dark:bg-slate-900/50 rounded-md">
 				<div className="flex items-center gap-3">
@@ -227,6 +266,7 @@ export default function ChatConversation() {
 							{messages.map((message, index) => (
 								<motion.div
 									key={message.id}
+									ref={index === messages.length - 1 ? lastMessageRef : null}
 									initial={{ opacity: 0, y: 20, scale: 0.95 }}
 									animate={{ opacity: 1, y: 0, scale: 1 }}
 									exit={{ opacity: 0, scale: 0.95 }}
@@ -263,6 +303,27 @@ export default function ChatConversation() {
 					</div>
 				)}
 			</ScrollArea>
+
+			{/* Scroll to Bottom Button */}
+			<AnimatePresence>
+				{showScrollButton && messages.length > 0 && (
+					<motion.div
+						initial={{ opacity: 0, y: 20, scale: 0.8 }}
+						animate={{ opacity: 1, y: 0, scale: 1 }}
+						exit={{ opacity: 0, y: 20, scale: 0.8 }}
+						transition={{ duration: 0.2 }}
+						className="absolute bottom-20 right-8 z-10"
+					>
+						<Button
+							onClick={handleScrollToBottom}
+							size="icon"
+							className="h-12 w-12 rounded-full shadow-lg bg-blue-500 hover:bg-blue-600 text-white transition-all hover:scale-110 active:scale-95"
+						>
+							<ArrowDown className="h-5 w-5" />
+						</Button>
+					</motion.div>
+				)}
+			</AnimatePresence>
 
 			{/* Input */}
 			<div className="p-4 border-t border-slate-200 dark:border-slate-700">
