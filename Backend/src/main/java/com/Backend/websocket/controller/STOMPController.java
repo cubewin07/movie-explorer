@@ -1,6 +1,7 @@
 package com.Backend.websocket.controller;
 
 import com.Backend.services.chat_service.message.dto.MessageDTO;
+import com.Backend.services.chat_service.message.dto.WsMessageDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
@@ -44,10 +45,16 @@ public class STOMPController {
         log.info("User {} sent message: {}", email, message);
         User sender = userRepository.findByEmail(email)
             .orElseThrow(() -> new UserNotFoundException("User not found"));
-        Message sentMessage = messageService.sendMessage(message, chatId, sender);
-        Set<SimpleUserDTO> participants = chatLookUpHelper.getParticipants(chatId);
+
         String destination = "/topic/chat/" + chatId;
+
+        Message sentMessage = messageService.sendMessage(message, chatId, sender);
+        String notifySenderDestination = "/topic/user/" + sentMessage.getSender().getId();
+        WsMessageDTO wsMessageDTO = WsMessageDTO.fromMessage(sentMessage, chatId);
+        template.convertAndSend(notifySenderDestination, wsMessageDTO);
+
         MessageDTO messageDto = MessageDTO.fromMessage(sentMessage);
+        Set<SimpleUserDTO> participants = chatLookUpHelper.getParticipants(chatId);
         log.info("Sending WebSocket message to destination: {} with DTO: {}", destination, messageDto);
         template.convertAndSend(destination, messageDto);
         log.info("WebSocket message sent successfully");

@@ -54,8 +54,11 @@ function WebsocketProvider({ children }) {
 
             stompClient.subscribe("/topic/user/" + user?.id, (message) => {
                 const newMessage = JSON.parse(message.body);
-                queryClient.setQueriesData(['chat', newMessage?.chatId, 'messages'], (oldData) => {
+                console.log(newMessage);
+                queryClient.setQueryData(['chat', newMessage?.chatId, 'messages'], (oldData) => {
+                  console.log(oldData);
                     const updatedPages = [...oldData.pages];
+                    console.log(updatedPages);
                       updatedPages[0].content = [newMessage, ...updatedPages[0].content];
                       return {
                           ...oldData,
