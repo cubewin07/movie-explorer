@@ -141,7 +141,7 @@ export default function ChatConversation() {
 
 			}
 		}
-	}, [chatId, messages.length]);
+	}, [chatId]);
 
 	// Scroll to the bottom when messages load or when we need to scroll
 	useEffect(() => {
