@@ -172,7 +172,7 @@ export default function ChatConversation() {
 		}
 
 		prevMessagesLength.current = messages.length;
-	}, [messages, isFetchingNextPage]);
+	}, [messages.length, isFetchingNextPage]);
 
 	// Intersection Observer for infinite scroll (load more when scrolling up)
 	useEffect(() => {
