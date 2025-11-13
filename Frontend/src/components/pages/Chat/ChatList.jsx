@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useChat } from '@/context/ChatProvider';
+import useMarkMessageAsRead from '@/hooks/chat/useMarkMessageAsRead';
 import { useAuthen } from '@/context/AuthenProvider';
 
 export default function ChatList() {
@@ -13,7 +14,8 @@ export default function ChatList() {
   const navigate = useNavigate();
   const location = useLocation();
   const { chats, newChatIds } = useChat();
-  const { user } = useAuthen();
+  const { user, token } = useAuthen();
+  const { mutate: markMessageAsRead } = useMarkMessageAsRead(token);
 
   // Extract the active chatId from the current path
   const activeChatId = location.pathname.split('/').pop();
@@ -74,6 +76,11 @@ export default function ChatList() {
     return messageTime.toLocaleDateString();
   };
 
+  const handleClickChat = (chatId) => {
+    navigate(`/friend/chat/${chatId}`);
+    markMessageAsRead(chatId);
+  }
+
   if (!chats || chats.length === 0) {
     return (
       <div className="h-full flex flex-col items-center justify-center p-4">
@@ -119,7 +126,7 @@ export default function ChatList() {
                         ? 'bg-blue-200 dark:bg-blue-900 scale-[1.02] shadow-md'
                         : 'hover:bg-slate-100 dark:hover:bg-slate-700 hover:scale-[1.02] hover:shadow-md'
                     }`}
-                  onClick={() => navigate(`/friend/chat/${chat.id}`)}
+                  onClick={() => handleClickChat(chat.id)}
                 >
                   <Avatar>
                     <AvatarImage src={`https://avatar.vercel.sh/${displayInfo.avatarSeed}.png`} />

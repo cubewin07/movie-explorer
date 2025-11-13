@@ -24,6 +24,7 @@ export default function ChatConversation() {
 	const scrollButtonEnabled = useRef(false);
 	const shouldScrollToBottom = useRef(true); // New: tracks if we need to scroll
 
+
 	const { sendMessage } = useChat();
 
 	const {
