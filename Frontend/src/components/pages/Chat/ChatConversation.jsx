@@ -9,7 +9,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 import useInfiniteMessages from '@/hooks/chat/useInfiniteMessages';
 import { useChat } from '@/context/ChatProvider';
-import useMarkMessageAsRead from '@/hooks/chat/useMarkMessageAsRead';
 
 export default function ChatConversation() {
 	const { chatId } = useParams();
@@ -18,14 +17,14 @@ export default function ChatConversation() {
 	const scrollRef = useRef(null);
 	const observerTarget = useRef(null);
 	const prevMessagesLength = useRef(0);
-	const isInitialLoad = useRef(true);
 	const isUserScrolling = useRef(false);
 	const scrollTimeout = useRef(null);
 	const lastMessageRef = useRef(null);
 	const prevChatId = useRef(chatId);
+	const scrollButtonEnabled = useRef(false);
+	const shouldScrollToBottom = useRef(true); // New: tracks if we need to scroll
 
 	const { sendMessage } = useChat();
-	const { mutate: markMessageAsRead } = useMarkMessageAsRead(token);
 
 	const {
 		data,
@@ -49,12 +48,6 @@ export default function ChatConversation() {
 		console.log(messages);
 	}, [data, messages]);
 
-	useEffect(() => {
-		if (chatId) {
-			markMessageAsRead(chatId);
-		}
-	}, [chatId]);
-
 	// Smooth scroll to bottom function
 	const scrollToBottom = (behavior = 'smooth') => {
 		if (scrollRef.current) {
@@ -70,17 +63,10 @@ export default function ChatConversation() {
 
 	// Observer for last message visibility
 	useEffect(() => {
-		// Don't show button during initial load
-		if (isInitialLoad.current) {
-			setShowScrollButton(false);
-			return;
-		}
-
 		const observer = new IntersectionObserver(
 			([entry]) => {
-				// Show scroll button when last message is not visible
-				// But not during initial load or when switching chats
-				if (!isInitialLoad.current) {
+				// Only update button visibility if scrollButtonEnabled is true
+				if (scrollButtonEnabled.current) {
 					setShowScrollButton(!entry.isIntersecting);
 				}
 			},
@@ -132,29 +118,49 @@ export default function ChatConversation() {
 	// Reset and scroll to bottom when chatId changes (switching chats)
 	useEffect(() => {
 		if (prevChatId.current !== chatId) {
-			isInitialLoad.current = true;
 			isUserScrolling.current = false;
 			prevMessagesLength.current = 0;
-			setShowScrollButton(false); // Hide button when switching chats
+			setShowScrollButton(false);
+			scrollButtonEnabled.current = false;
+			shouldScrollToBottom.current = true;
 			prevChatId.current = chatId;
+			
+			// Immediately scroll to bottom when chat changes
+			// Don't wait for messages effect
+			if (messages.length > 0) {
+				setTimeout(() => {
+					scrollToBottom('auto');
+					
+					setTimeout(() => {
+						shouldScrollToBottom.current = false;
+						scrollButtonEnabled.current = true;
+						prevMessagesLength.current = messages.length;
+					}, 300);
+				}, 100);
+
+			}
 		}
-	}, [chatId]);
+	}, [chatId, messages.length]);
 
-	// Scroll to the bottom when messages first load or when new messages arrive
+	// Scroll to the bottom when messages load or when we need to scroll
 	useEffect(() => {
-		if (!scrollRef.current) return;
+		if (!scrollRef.current || messages.length === 0) return;
 
-		// On initial load, scroll to bottom instantly
-		if (isInitialLoad.current && messages.length > 0) {
-			setShowScrollButton(false); // Ensure button is hidden
+		// If we're marked to scroll to bottom (initial load when no messages were available before)
+		if (shouldScrollToBottom.current) {
+			setShowScrollButton(false);
+			scrollButtonEnabled.current = false;
+			
 			setTimeout(() => {
 				scrollToBottom('auto');
-				// Keep button hidden for a bit after scrolling to prevent flicker
+				
+				// Enable scroll button after scroll is complete
 				setTimeout(() => {
-					isInitialLoad.current = false;
-				}, 200);
+					shouldScrollToBottom.current = false;
+					scrollButtonEnabled.current = true;
+					prevMessagesLength.current = messages.length;
+				}, 300);
 			}, 100);
-			prevMessagesLength.current = messages.length;
 			return;
 		}
 
@@ -165,7 +171,7 @@ export default function ChatConversation() {
 		}
 
 		prevMessagesLength.current = messages.length;
-	}, [messages.length, isFetchingNextPage]);
+	}, [messages, isFetchingNextPage]);
 
 	// Intersection Observer for infinite scroll (load more when scrolling up)
 	useEffect(() => {
