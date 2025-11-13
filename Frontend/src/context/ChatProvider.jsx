@@ -14,7 +14,7 @@ function ChatProvider({ children }) {
   const [newChatIds, setNewChatIds] = useState(new Set());
   const newChatIdTimeoutsRef = useRef(null);
   const [chats, setChats] = useState([]);
-  const { stompClientRef } = useWebsocket();
+  const { stompClientRef, registerOnConnectCallback } = useWebsocket();
   const { user, token } = useAuthen();
   const {mutate: createChatMutation} = useCreateChat(token);
 
@@ -26,10 +26,9 @@ function ChatProvider({ children }) {
   }, [user]);
 
   useEffect(() => {
-    const client = stompClientRef.current;
-    if (!client || !client.connected || !user?.id) return;
-
-      client.subscribe("/topic/user/" + user?.id, (message) => {
+    
+    registerOnConnectCallback((stompClient) => {
+      stompClient.subscribe("/topic/user/" + user?.id, (message) => {
         const newMessage = JSON.parse(message.body);
         console.log(newMessage);
         
@@ -65,8 +64,9 @@ function ChatProvider({ children }) {
             return newChats;
         });
       });
+    });
 
-  }, [user, stompClientRef.current?.connected]);
+  }, [user]);
 
   useEffect(() => {
     if (newChatIds.size === 0) return;
