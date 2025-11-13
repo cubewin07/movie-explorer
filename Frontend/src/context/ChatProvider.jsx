@@ -52,9 +52,21 @@ function ChatProvider({ children }) {
             pages: updatedPages,
           };
         });
+
+        setChats((prevChats) => {
+            console.log(newMessage.chatId);
+            const newChats = prevChats.map(chat => {
+              if(chat.id === newMessage.chatId) {
+                console.log(chat.id);
+                return { ...chat, latestMessage: newMessage };
+              }
+              return chat;
+            })
+            return newChats;
+        });
       });
 
-  }, [user, stompClientRef.current]);
+  }, [user, stompClientRef.current?.connected]);
 
   useEffect(() => {
     if (newChatIds.size === 0) return;
