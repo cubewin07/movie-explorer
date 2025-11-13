@@ -15,6 +15,7 @@ function WebsocketProvider({ children }) {
     const { data: friends, isLoading: isLoadingFriends, error } = useFriends();
     const [timeTick, setTimeTick] = useState(0);
     const queryClient = useQueryClient();
+    const onConnectCallBackRef = useRef([]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -51,6 +52,11 @@ function WebsocketProvider({ children }) {
             stompClient.subscribe("/topic/friends/status/" + user?.id, (message) => {
                 handleWsFriendStatus(message);
             });
+            // Execute any registered onConnect callbacks
+            onConnectCallBackRef.current.forEach((callback) => {
+                callback(stompClient);
+            });
+            onConnectCallBackRef.current = [];
 
         },
         onStompError: (frame) => {
@@ -67,8 +73,16 @@ function WebsocketProvider({ children }) {
       };
     }, [user, token]);
 
+    const registerOnConnectCallback = (callback) => {
+        if (stompClientRef.current?.connected) {
+            callback(stompClientRef.current);
+        } else {
+            onConnectCallBackRef.current.push(callback);
+        }
+      }
+
     return (
-        <WebSocketContext.Provider value={{notifications, friends, isLoadingFriends, error, setNotifications, stompClientRef}}>
+        <WebSocketContext.Provider value={{notifications, friends, isLoadingFriends, error, setNotifications, stompClientRef, registerOnConnectCallback}}>
             {children}
         </WebSocketContext.Provider>
     );
