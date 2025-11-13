@@ -114,7 +114,7 @@ export default function ChatConversation() {
 			scrollElement.addEventListener('scroll', handleScroll);
 			return () => scrollElement.removeEventListener('scroll', handleScroll);
 		}
-	}, []);
+	}, [scrollRef.current]);
 
 	// Reset and scroll to bottom when chatId changes (switching chats)
 	useEffect(() => {
