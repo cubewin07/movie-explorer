@@ -53,15 +53,16 @@ function ChatProvider({ children }) {
         });
 
         setChats((prevChats) => {
-            console.log(newMessage.chatId);
-            const newChats = prevChats.map(chat => {
-              if(chat.id === newMessage.chatId) {
-                console.log(chat.id);
-                return { ...chat, latestMessage: newMessage };
-              }
-              return chat;
-            })
-            return newChats;
+            const chatIndex = prevChats.findIndex(chat => chat.id === newMessage.chatId);
+            if (chatIndex === -1) {
+                // If chat not found, return previous chats
+                return prevChats;
+            }
+            const updatedChat = prevChats[chatIndex];
+            updatedChat.latestMessage = newMessage;
+            const newChats = [...prevChats];
+            newChats.splice(chatIndex, 1);
+            return [updatedChat, ...newChats];
         });
       });
     });
