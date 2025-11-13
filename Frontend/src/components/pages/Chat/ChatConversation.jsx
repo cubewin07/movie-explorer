@@ -44,11 +44,6 @@ export default function ChatConversation() {
 		return allMessages.reverse();
 	}, [data]);
 
-	useEffect(() => {
-		console.log(data);
-		console.log(messages);
-	}, [data, messages]);
-
 	// Smooth scroll to bottom function
 	const scrollToBottom = (behavior = 'smooth') => {
 		if (scrollRef.current) {
