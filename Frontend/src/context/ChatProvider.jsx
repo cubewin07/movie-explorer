@@ -26,6 +26,37 @@ function ChatProvider({ children }) {
   }, [user]);
 
   useEffect(() => {
+    const client = stompClientRef.current;
+    if (!client || !client.connected || !user?.id) return;
+
+      client.subscribe("/topic/user/" + user?.id, (message) => {
+        const newMessage = JSON.parse(message.body);
+        console.log(newMessage);
+        
+        // Add this to ensure the component re-renders
+        queryClient.setQueryData(['chat', newMessage?.chatId, 'messages'], (oldData) => {
+          if (!oldData) return oldData; // Guard against undefined data
+          
+          const updatedPages = oldData.pages.map((page, index) => {
+            if (index === 0) {
+              return {
+                ...page,
+                content: [newMessage, ...page.content],
+              };
+            }
+            return page;
+          });
+          
+          return {
+            ...oldData,
+            pages: updatedPages,
+          };
+        });
+      });
+
+  }, [user, stompClientRef.current]);
+
+  useEffect(() => {
     if (newChatIds.size === 0) return;
     if (newChatIdTimeoutsRef.current) {
         clearTimeout(newChatIdTimeoutsRef.current);
