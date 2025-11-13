@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -16,11 +16,6 @@ export default function ChatList() {
   const { chats, newChatIds } = useChat();
   const { user, token } = useAuthen();
   const { mutate: markMessageAsRead } = useMarkMessageAsRead(token);
-
-  useEffect(() => {
-    // Clear new chat IDs when component mounts
-    console.log(chats);
-  }, [chats]);
 
   // Extract the active chatId from the current path
   const activeChatId = location.pathname.split('/').pop();
