@@ -9,11 +9,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 import useInfiniteMessages from '@/hooks/chat/useInfiniteMessages';
 import { useChat } from '@/context/ChatProvider';
+import { useAuthen } from '@/context/AuthenProvider';
 
 export default function ChatConversation() {
 	const { chatId } = useParams();
 	const [newMessage, setNewMessage] = useState('');
 	const [showScrollButton, setShowScrollButton] = useState(false);
+	const { user } = useAuthen();
 	const scrollRef = useRef(null);
 	const observerTarget = useRef(null);
 	const prevMessagesLength = useRef(0);
@@ -300,7 +302,7 @@ export default function ChatConversation() {
 										duration: 0.3,
 										ease: "easeOut"
 									}}
-									className={`flex ${message.sender === 'me' ? 'justify-end' : 'justify-start'}`}
+									className={`flex ${message.sender === "me" ? 'justify-end' : 'justify-start'}`}
 								>
 									<motion.div
 										whileHover={{ scale: 1.02 }}
