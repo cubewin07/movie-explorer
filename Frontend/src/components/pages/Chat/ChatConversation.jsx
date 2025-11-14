@@ -224,7 +224,7 @@ export default function ChatConversation() {
 		isUserScrolling.current = false;
 	};
 
-	if (isLoading) {
+	if (isLoading || !user) {
 		return (
 			<div className="h-full flex items-center justify-center">
 				<Loader2 className="h-8 w-8 animate-spin text-slate-500" />
