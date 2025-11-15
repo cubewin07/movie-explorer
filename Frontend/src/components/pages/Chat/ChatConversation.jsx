@@ -302,20 +302,20 @@ export default function ChatConversation() {
 										duration: 0.3,
 										ease: "easeOut"
 									}}
-									className={`flex ${message.sender === "me" ? 'justify-end' : 'justify-start'}`}
+									className={`flex ${message.senderId === user.id ? 'justify-end' : 'justify-start'}`}
 								>
 									<motion.div
 										whileHover={{ scale: 1.02 }}
 										transition={{ duration: 0.2 }}
 										className={`max-w-[80%] rounded-2xl px-4 py-2 shadow-sm ${
-											message.sender === 'me'
+											message.senderId === user.id
 												? 'bg-blue-500 dark:bg-blue-600 text-white rounded-br-sm'
 												: 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded-bl-sm'
 										}`}
 									>
 										<p className="text-sm leading-relaxed">{message.text || message.content}</p>
 										<span className={`text-xs mt-1 block ${
-											message.sender === 'me' 
+											message.senderId === user.id 
 												? 'text-blue-100' 
 												: 'text-slate-500 dark:text-slate-400 opacity-70'
 										}`}>
