@@ -48,14 +48,14 @@ public class UserLookUpHelper {
     public User getUserWithRequestsTo(Long id) {
         log.debug("Fetching user with requestsTo by id={} from database", id);
         return userRepository.findWithRequestsToById(id)
-                .orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
+                .orElse(null);
     }
 
     @Transactional(readOnly = true)
     public User getUserWithRequestsFrom(Long id) {
-        log.debug("Fetching user with requestsFrom by id={} from database", id);
+        log.info("Fetching user with requestsFrom by id={} from database", id);
         return userRepository.findWithRequestsFrom(id)
-                .orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
+                .orElse(null);
     }
 
 }

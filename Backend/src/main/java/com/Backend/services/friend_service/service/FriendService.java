@@ -44,6 +44,7 @@ public class FriendService {
     public Set<FriendRequestDTO> getRequestsFromThisUser(Long id) {
         log.debug("Fetching requests from user id={} from database", id);
         User user = getUserWithRequestsFrom(id);
+        if(user == null) return Set.of();
         if (user.getRequestsFrom() == null || user.getRequestsFrom().isEmpty()) {
             return Set.of();
         }
