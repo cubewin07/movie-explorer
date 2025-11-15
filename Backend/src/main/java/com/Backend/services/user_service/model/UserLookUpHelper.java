@@ -53,7 +53,7 @@ public class UserLookUpHelper {
 
     @Transactional(readOnly = true)
     public User getUserWithRequestsFrom(Long id) {
-        log.info("Fetching user with requestsFrom by id={} from database", id);
+        log.debug("Fetching user with requestsFrom by id={} from database", id);
         return userRepository.findWithRequestsFrom(id)
                 .orElse(null);
     }
