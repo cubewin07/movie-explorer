@@ -27,16 +27,17 @@ public class WatchlistService {
     private final WatchlistRepository watchlistRepository;
 
     @Cacheable(value = "watchlist", key = "#user.id")
+    @Transactional
     public WatchlistDTO getWatchlist(User user) {
         log.debug("Fetching watchlist for user id={} from database", user.getId());
         Watchlist watchlist = watchlistRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new WatchlistNotFoundException("Watchlist for user id " + user.getId() + " not found"));
-        Set<Long> seriesIds = user.getWatchlist().getSeriesId() != null
-                ? new HashSet<>(user.getWatchlist().getSeriesId())
+        Set<Long> seriesIds = watchlist.getSeriesId() != null
+                ? new HashSet<>(watchlist.getSeriesId())
                 : new HashSet<>();
 
-        Set<Long> moviesIds = user.getWatchlist().getMoviesId() != null
-                ? new HashSet<>(user.getWatchlist().getMoviesId())
+        Set<Long> moviesIds = watchlist.getMoviesId() != null
+                ? new HashSet<>(watchlist.getMoviesId())
                 : new HashSet<>();
 
         return new WatchlistDTO(moviesIds, seriesIds);
