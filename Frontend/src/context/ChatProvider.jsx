@@ -27,6 +27,8 @@ function ChatProvider({ children }) {
 
   useEffect(() => {
     
+    if(! user?.id) return
+
     registerOnConnectCallback((stompClient) => {
       stompClient.subscribe("/topic/user/" + user?.id, (message) => {
         const newMessage = JSON.parse(message.body);
