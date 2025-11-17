@@ -24,8 +24,7 @@ export default function ChatConversation() {
 	const lastMessageRef = useRef(null);
 	const prevChatId = useRef(chatId);
 	const scrollButtonEnabled = useRef(false);
-	const shouldScrollToBottom = useRef(true); // New: tracks if we need to scroll
-
+	const shouldScrollToBottom = useRef(true);
 
 	const { sendMessage } = useChat();
 
@@ -45,6 +44,55 @@ export default function ChatConversation() {
 		const allMessages = data?.pages.flatMap(page => page.content) || [];
 		return allMessages.reverse();
 	}, [data]);
+
+	// Group messages by date
+	const groupedMessages = useMemo(() => {
+		const groups = [];
+		let currentDate = null;
+		
+		messages.forEach((message) => {
+			const messageDate = new Date(message.createdAt);
+			const dateString = messageDate.toDateString();
+			
+			if (dateString !== currentDate) {
+				currentDate = dateString;
+				groups.push({
+					type: 'date',
+					date: messageDate,
+					dateString: dateString
+				});
+			}
+			
+			groups.push({
+				type: 'message',
+				data: message
+			});
+		});
+		
+		return groups;
+	}, [messages]);
+
+	// Format date for display
+	const formatDateHeader = (date) => {
+		const today = new Date();
+		const yesterday = new Date(today);
+		yesterday.setDate(yesterday.getDate() - 1);
+		
+		const messageDate = new Date(date);
+		
+		if (messageDate.toDateString() === today.toDateString()) {
+			return 'Today';
+		} else if (messageDate.toDateString() === yesterday.toDateString()) {
+			return 'Yesterday';
+		} else {
+			return messageDate.toLocaleDateString('en-US', { 
+				weekday: 'long', 
+				year: 'numeric', 
+				month: 'long', 
+				day: 'numeric' 
+			});
+		}
+	};
 
 	// Smooth scroll to bottom function
 	const scrollToBottom = (behavior = 'smooth') => {
@@ -80,7 +128,7 @@ export default function ChatConversation() {
 				observer.unobserve(lastMessageRef.current);
 			}
 		};
-	}, [messages.length]);
+	}, [groupedMessages.length]);
 
 	// Handle scroll detection to know if user is reading old messages
 	const handleScroll = () => {
@@ -142,7 +190,7 @@ export default function ChatConversation() {
 
 	// Scroll to the bottom when messages load or when we need to scroll
 	useEffect(() => {
-		if (!scrollRef.current || messages.length === 0) return;
+		if (!scrollRef.current || groupedMessages.length === 0) return;
 
 		// If we're marked to scroll to bottom (initial load when no messages were available before)
 		if (shouldScrollToBottom.current) {
@@ -169,7 +217,7 @@ export default function ChatConversation() {
 		}
 
 		prevMessagesLength.current = messages.length;
-	}, [messages.length, isFetchingNextPage]);
+	}, [messages.length, isFetchingNextPage, groupedMessages.length]);
 
 	// Intersection Observer for infinite scroll (load more when scrolling up)
 	useEffect(() => {
@@ -291,42 +339,65 @@ export default function ChatConversation() {
 						)}
 
 						<AnimatePresence initial={false}>
-							{messages.map((message, index) => (
-								<motion.div
-									key={message.id}
-									ref={index === messages.length - 1 ? lastMessageRef : null}
-									initial={{ opacity: 0, y: 20, scale: 0.95 }}
-									animate={{ opacity: 1, y: 0, scale: 1 }}
-									exit={{ opacity: 0, scale: 0.95 }}
-									transition={{ 
-										duration: 0.3,
-										ease: "easeOut"
-									}}
-									className={`flex ${message.senderId === user.id ? 'justify-end' : 'justify-start'}`}
-								>
+							{groupedMessages.map((item, index) => {
+								if (item.type === 'date') {
+									return (
+										<motion.div
+											key={`date-${item.dateString}`}
+											initial={{ opacity: 0, y: -10 }}
+											animate={{ opacity: 1, y: 0 }}
+											transition={{ duration: 0.3 }}
+											className="flex justify-center my-6"
+										>
+											<div className="px-4 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
+												<span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+													{formatDateHeader(item.date)}
+												</span>
+											</div>
+										</motion.div>
+									);
+								}
+
+								const message = item.data;
+								const isLastMessage = index === groupedMessages.length - 1;
+
+								return (
 									<motion.div
-										whileHover={{ scale: 1.02 }}
-										transition={{ duration: 0.2 }}
-										className={`max-w-[80%] rounded-2xl px-4 py-2 shadow-sm ${
-											message.senderId === user.id
-												? 'bg-blue-500 dark:bg-blue-600 text-white rounded-br-sm'
-												: 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded-bl-sm'
-										}`}
+										key={message.id}
+										ref={isLastMessage ? lastMessageRef : null}
+										initial={{ opacity: 0, y: 20, scale: 0.95 }}
+										animate={{ opacity: 1, y: 0, scale: 1 }}
+										exit={{ opacity: 0, scale: 0.95 }}
+										transition={{ 
+											duration: 0.3,
+											ease: "easeOut"
+										}}
+										className={`flex ${message.senderId === user.id ? 'justify-end' : 'justify-start'}`}
 									>
-										<p className="text-sm leading-relaxed">{message.text || message.content}</p>
-										<span className={`text-xs mt-1 block ${
-											message.senderId === user.id 
-												? 'text-blue-100' 
-												: 'text-slate-500 dark:text-slate-400 opacity-70'
-										}`}>
-											{message.time || new Date(message.createdAt).toLocaleTimeString([], { 
-												hour: '2-digit', 
-												minute: '2-digit' 
-											})}
-										</span>
+										<motion.div
+											whileHover={{ scale: 1.02 }}
+											transition={{ duration: 0.2 }}
+											className={`max-w-[80%] rounded-2xl px-4 py-2 shadow-sm ${
+												message.senderId === user.id
+													? 'bg-blue-500 dark:bg-blue-600 text-white rounded-br-sm'
+													: 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded-bl-sm'
+											}`}
+										>
+											<p className="text-sm leading-relaxed">{message.text || message.content}</p>
+											<span className={`text-xs mt-1 block ${
+												message.senderId === user.id 
+													? 'text-blue-100' 
+													: 'text-slate-500 dark:text-slate-400 opacity-70'
+											}`}>
+												{message.time || new Date(message.createdAt).toLocaleTimeString([], { 
+													hour: '2-digit', 
+													minute: '2-digit' 
+												})}
+											</span>
+										</motion.div>
 									</motion.div>
-								</motion.div>
-							))}
+								);
+							})}
 						</AnimatePresence>
 					</div>
 				)}
