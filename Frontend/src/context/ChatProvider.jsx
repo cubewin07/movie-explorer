@@ -69,6 +69,8 @@ function ChatProvider({ children }) {
       });
     });
 
+    registerOnConnectCallback((stompClient) => {
+
   }, [user]);
 
   useEffect(() => {
@@ -121,13 +123,13 @@ function ChatProvider({ children }) {
     }
   }
 
-  const subscribeToChat = (chatIds) => {
-    if (stompClientRef.current && stompClientRef.current.connected) {
+  const subscribeToChat = (stompClient = stompClientRef.current, chatIds) => {
+    if (stompClient && stompClient.connected) {
       if (!Array.isArray(chatIds)) {
         chatIds = [chatIds];
       }
       chatIds.forEach((chatId) => {
-          stompClientRef.current.subscribe(
+          stompClient.subscribe(
               "topic/chat/" + chatId,
               (message) => {
                   queryClient.setQueryData([chatId, "chat", "messages"], (oldData) => {
