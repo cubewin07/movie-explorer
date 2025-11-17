@@ -70,6 +70,8 @@ function ChatProvider({ children }) {
     });
 
     registerOnConnectCallback((stompClient) => {
+      subscribeToChat(stompClient, user.chats.flatMap(chat => chat.id));
+    })
 
   }, [user]);
 
