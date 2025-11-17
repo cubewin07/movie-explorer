@@ -11,7 +11,6 @@ import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    @EntityGraph(attributePaths = {"watchlist", "watchlist.seriesId", "watchlist.moviesId", "notifications", "chats", "chats.participants"})
     Optional<User> findByEmail(String email);
 
     @Query("""
