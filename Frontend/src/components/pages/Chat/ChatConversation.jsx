@@ -42,7 +42,6 @@ export default function ChatConversation() {
 	// so oldest messages are first and newest are last
 	const messages = useMemo(() => {
 		const allMessages = data?.pages.flatMap(page => page.content) || [];
-		console.log("data messages:", allMessages);
 		return allMessages.reverse();
 	}, [data]);
 
