@@ -46,6 +46,8 @@ function WebsocketProvider({ children }) {
             console.log("Connected to WebSocket");
             const notiSubId = "notifications-" + user?.id;
             const friendStatusSubId = "friends-status-" + user?.id;
+
+            // Subscribe to notifications
             if (stompClientRef.current?._stompHandler?._subscriptions[notiSubId]) {
                 console.log("Already subscribed to notifications");
             } else {
@@ -54,6 +56,8 @@ function WebsocketProvider({ children }) {
                     queryClient.invalidateQueries({ queryKey: ['notifications'] });
                 }, { id: notiSubId });
             }
+
+            // Subscribe to friend status updates
             if (stompClientRef.current?._stompHandler?._subscriptions[friendStatusSubId]) {
                 console.log("Already subscribed to friend status");
             } else {
@@ -61,6 +65,8 @@ function WebsocketProvider({ children }) {
                     handleWsFriendStatus(message);
                 }, { id: friendStatusSubId });
             }
+
+            
             // Execute any registered onConnect callbacks
             onConnectCallBackRef.current.forEach((callback) => {
                 callback(stompClient);
