@@ -34,38 +34,6 @@ function ChatProvider({ children }) {
         const newMessage = JSON.parse(message.body);
         console.log(newMessage);
         
-        // Add this to ensure the component re-renders
-        queryClient.setQueryData(['chat', newMessage?.chatId, 'messages'], (oldData) => {
-          if (!oldData) return oldData; // Guard against undefined data
-          
-          const updatedPages = oldData.pages.map((page, index) => {
-            if (index === 0) {
-              return {
-                ...page,
-                content: [newMessage, ...page.content],
-              };
-            }
-            return page;
-          });
-          
-          return {
-            ...oldData,
-            pages: updatedPages,
-          };
-        });
-
-        setChats((prevChats) => {
-            const chatIndex = prevChats.findIndex(chat => chat.id === newMessage.chatId);
-            if (chatIndex === -1) {
-                // If chat not found, return previous chats
-                return prevChats;
-            }
-            const updatedChat = prevChats[chatIndex];
-            updatedChat.latestMessage = newMessage;
-            const newChats = [...prevChats];
-            newChats.splice(chatIndex, 1);
-            return [updatedChat, ...newChats];
-        });
       });
     });
 
@@ -132,17 +100,28 @@ function ChatProvider({ children }) {
       }
       chatIds.forEach((chatId) => {
           stompClient.subscribe(
-              "topic/chat/" + chatId,
+              "/topic/chat/" + chatId,
               (message) => {
-                  queryClient.setQueryData([chatId, "chat", "messages"], (oldData) => {
-                      const newMessage = JSON.parse(message.body);
-                      const updatedPages = [...oldData.pages];
-                      updatedPages[0].content = [newMessage, ...updatedPages[0].content];
-                      return {
-                          ...oldData,
-                          pages: updatedPages,
-                      };
+                const newMessage = JSON.parse(message.body);
+                  queryClient.setQueryData(["chat", chatId, "messages"], (oldData) => {
+                    if (!oldData) return oldData; // Guard against undefined data
+          
+                    const updatedPages = oldData.pages.map((page, index) => {
+                      if (index === 0) {
+                        return {
+                          ...page,
+                          content: [newMessage, ...page.content],
+                        };
+                      }
+                      return page;
+                    });
+                    
+                    return {
+                      ...oldData,
+                      pages: updatedPages,
+                    };
                   });
+
               }
           );
       });
