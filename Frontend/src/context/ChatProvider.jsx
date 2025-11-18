@@ -14,7 +14,7 @@ function ChatProvider({ children }) {
   const [newChatIds, setNewChatIds] = useState(new Set());
   const newChatIdTimeoutsRef = useRef(null);
   const [chats, setChats] = useState([]);
-  const { stompClientRef, registerOnConnectCallback } = useWebsocket();
+  const { stompClientRef, registerOnConnectCallback, isSubscribedTo } = useWebsocket();
   const { user, token } = useAuthen();
   const {mutate: createChatMutation} = useCreateChat(token);
 
@@ -99,8 +99,13 @@ function ChatProvider({ children }) {
         chatIds = [chatIds];
       }
       chatIds.forEach((chatId) => {
+        const destination = "/topic/chat/" + chatId;
+        if (isSubscribedTo(destination)) {
+          console.log("Already subscribed to chat:", chatId);
+          return;
+        }
           stompClient.subscribe(
-              "/topic/chat/" + chatId,
+              destination ,
               (message) => {
                 const newMessage = JSON.parse(message.body);
                   queryClient.setQueryData(["chat", chatId, "messages"], (oldData) => {

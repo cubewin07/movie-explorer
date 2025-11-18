@@ -86,7 +86,7 @@ function WebsocketProvider({ children }) {
     }
 
     return (
-        <WebSocketContext.Provider value={{notifications, friends, isLoadingFriends, error, setNotifications, stompClientRef, registerOnConnectCallback}}>
+        <WebSocketContext.Provider value={{notifications, friends, isLoadingFriends, error, setNotifications, stompClientRef, registerOnConnectCallback, isSubscribedTo}}>
             {children}
         </WebSocketContext.Provider>
     );
