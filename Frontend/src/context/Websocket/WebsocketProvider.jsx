@@ -80,6 +80,10 @@ function WebsocketProvider({ children }) {
             onConnectCallBackRef.current.push(callback);
         }
       }
+    const isSubscribedTo = (destination) => {
+      if(!stompClientRef.current || !stompClientRef.current.subscriptions) return false;
+        return Object.values(stompClientRef.current.subscriptions).some(sub => sub.destination === destination);
+    }
 
     return (
         <WebSocketContext.Provider value={{notifications, friends, isLoadingFriends, error, setNotifications, stompClientRef, registerOnConnectCallback}}>
