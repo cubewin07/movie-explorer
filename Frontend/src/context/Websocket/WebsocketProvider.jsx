@@ -44,10 +44,16 @@ function WebsocketProvider({ children }) {
         },
         onConnect: () => {
             console.log("Connected to WebSocket");
-            stompClient.subscribe("/topic/notifications/" + user?.id, (message) => {
-                handleWsNotification(message, setNotifications);
-                queryClient.invalidateQueries({ queryKey: ['notifications'] });
-            });
+            const notiSubId = "notifications-" + user?.id;
+            const friendStatusSubId = "friends-status-" + user?.id;
+            if (stompClientRef.current?._stompHandler?._subscriptions[notiSubId]) {
+                console.log("Already subscribed to notifications");
+            } else {
+                stompClient.subscribe("/topic/notifications/" + user?.id, (message) => {
+                    handleWsNotification(message, setNotifications);
+                    queryClient.invalidateQueries({ queryKey: ['notifications'] });
+                }, { id: notiSubId });
+            }
 
             stompClient.subscribe("/topic/friends/status/" + user?.id, (message) => {
                 handleWsFriendStatus(message);
