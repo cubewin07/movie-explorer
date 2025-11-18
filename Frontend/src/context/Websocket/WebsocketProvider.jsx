@@ -54,10 +54,13 @@ function WebsocketProvider({ children }) {
                     queryClient.invalidateQueries({ queryKey: ['notifications'] });
                 }, { id: notiSubId });
             }
-
-            stompClient.subscribe("/topic/friends/status/" + user?.id, (message) => {
-                handleWsFriendStatus(message);
-            });
+            if (stompClientRef.current?._stompHandler?._subscriptions[friendStatusSubId]) {
+                console.log("Already subscribed to friend status");
+            } else {
+                stompClient.subscribe("/topic/friends/status/" + user?.id, (message) => {
+                    handleWsFriendStatus(message);
+                }, { id: friendStatusSubId });
+            }
             // Execute any registered onConnect callbacks
             onConnectCallBackRef.current.forEach((callback) => {
                 callback(stompClient);
