@@ -121,6 +121,19 @@ function ChatProvider({ children }) {
                       pages: updatedPages,
                     };
                   });
+                  // Update latest message in chats list
+                  setChats((prevChats) => {
+                    const chatIndex = prevChats.findIndex(chat => chat.id === chatId);
+                    if (chatIndex === -1) {
+                        // If chat not found, return previous chats
+                        return prevChats;
+                    }
+                    const updatedChat = prevChats[chatIndex];
+                    updatedChat.latestMessage = newMessage;
+                    const newChats = [...prevChats];
+                    newChats.splice(chatIndex, 1);
+                    return [updatedChat, ...newChats];
+                });
 
               }
           );
