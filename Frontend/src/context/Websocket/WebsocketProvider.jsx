@@ -80,9 +80,11 @@ function WebsocketProvider({ children }) {
             onConnectCallBackRef.current.push(callback);
         }
       }
-    const isSubscribedTo = (destination) => {
-      if(!stompClientRef.current || !stompClientRef.current.subscriptions) return false;
-        return Object.values(stompClientRef.current.subscriptions).some(sub => sub.destination === destination);
+    const isSubscribedTo = (subId) => {
+      console.log(subId);
+      console.log(stompClientRef.current?._stompHandler?._subscriptions[subId]);
+      if(!stompClientRef.current || !stompClientRef.current._stompHandler) return false;
+        return stompClientRef.current._stompHandler._subscriptions[subId] !== undefined;
     }
 
     return (

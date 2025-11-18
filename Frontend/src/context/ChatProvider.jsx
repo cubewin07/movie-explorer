@@ -100,8 +100,10 @@ function ChatProvider({ children }) {
       }
       chatIds.forEach((chatId) => {
         const destination = "/topic/chat/" + chatId;
-        if (isSubscribedTo(destination)) {
+        const subId = "chat-" + chatId;
+        if (isSubscribedTo(subId)) {
           console.log("Already subscribed to chat:", chatId);
+
           return;
         }
           stompClient.subscribe(
@@ -136,11 +138,13 @@ function ChatProvider({ children }) {
                     const updatedChat = prevChats[chatIndex];
                     updatedChat.latestMessage = newMessage;
                     const newChats = [...prevChats];
+
                     newChats.splice(chatIndex, 1);
                     return [updatedChat, ...newChats];
                 });
 
-              }
+              },
+              { id: subId }
           );
       });
     }
