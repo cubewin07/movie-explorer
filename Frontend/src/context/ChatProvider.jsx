@@ -26,15 +26,21 @@ function ChatProvider({ children }) {
   }, [user]);
 
   useEffect(() => {
-    
-    if(!user) return
+
+    if(!user) return;
+
+    const userWsSubId = "user-" + user?.id;
+    if (isSubscribedTo(userWsSubId)) {
+        console.log("Already subscribed to user updates");
+        return;
+    }
 
     registerOnConnectCallback((stompClient) => {
       stompClient.subscribe("/topic/user/" + user?.id, (message) => {
         const newMessage = JSON.parse(message.body);
         console.log(newMessage);
-        
-      });
+
+      }, { id: userWsSubId });
     });
 
     registerOnConnectCallback((stompClient) => {
