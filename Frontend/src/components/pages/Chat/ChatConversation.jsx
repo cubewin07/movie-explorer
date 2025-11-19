@@ -432,7 +432,7 @@ export default function ChatConversation() {
 													: 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-bl-sm'
 											}`}
 										>
-											<p className="text-[13px] leading-relaxed break-words">
+											<p className="text-[13px] leading-relaxed break-words whitespace-pre-wrap">
 												{message.text || message.content}
 											</p>
 											<span className={`text-[10px] mt-0.5 block ${
@@ -530,12 +530,28 @@ export default function ChatConversation() {
 					</Button>
 					
 					<div className="flex-1 relative">
-						<Input
+						<textarea
 							ref={inputRef}
 							value={newMessage}
 							onChange={(e) => setNewMessage(e.target.value)}
+							onKeyDown={(e) => {
+								if (e.key === 'Enter' && !e.shiftKey) {
+									e.preventDefault();
+									handleSendMessage();
+								}
+							}}
 							placeholder="Type a message..."
-							className="pr-12 py-6 rounded-2xl border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 shadow-sm bg-white dark:bg-slate-800 transition-all"
+							rows={1}
+							className="w-full resize-none overflow-hidden pr-12 px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:outline-none shadow-sm bg-white dark:bg-slate-800 transition-all text-sm"
+							style={{
+								minHeight: '48px',
+								maxHeight: '120px',
+								height: 'auto'
+							}}
+							onInput={(e) => {
+								e.target.style.height = 'auto';
+								e.target.style.height = Math.min(e.target.scrollHeight, 120) + 'px';
+							}}
 						/>
 						<Button 
 							type="button" 
