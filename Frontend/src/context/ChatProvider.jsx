@@ -18,12 +18,13 @@ function ChatProvider({ children }) {
   const { user, token } = useAuthen();
   const {mutate: createChatMutation} = useCreateChat(token);
 
+  // Update chats when user data changes
   useEffect(() => {
     if (user) {
         // Logic to handle when user data changes, if needed
         setChats(user.chats || []);
     }
-  }, [user]);
+  }, [user?.id, user?.chats]);
 
   useEffect(() => {
 
@@ -49,6 +50,7 @@ function ChatProvider({ children }) {
 
   }, [user?.id]);
 
+  // Clear newChatIds after 1 hour
   useEffect(() => {
     if (newChatIds.size === 0) return;
     if (newChatIdTimeoutsRef.current) {
@@ -64,6 +66,7 @@ function ChatProvider({ children }) {
     }
   }, [newChatIds]);
 
+  // Function to create a new chat
   const createChat = (participants) => {
     // Logic to create a new chat via WebSocket or API
     // For example, send a message to the server to create a new chat
@@ -76,6 +79,7 @@ function ChatProvider({ children }) {
         createChatMutation(payload, {
             onSuccess: (data) => {
               queryClient.invalidateQueries({ queryKey: ['userInfo', token] });
+              console.log(data);
               data.latestMessage = null;
               setChats((prevChats) => [data,...prevChats]);
               subscribeToChat(data.id);
@@ -90,6 +94,7 @@ function ChatProvider({ children }) {
     }
   }
 
+  // Function to send a message via WebSocket
   const sendMessage = (chatId, message) => {
     if (stompClientRef.current && stompClientRef.current.connected) {
         stompClientRef.current.publish({
@@ -99,11 +104,15 @@ function ChatProvider({ children }) {
     }
   }
 
+  // Function to subscribe to chat messages
   const subscribeToChat = (stompClient = stompClientRef.current, chatIds) => {
     if (stompClient && stompClient.connected) {
+      // Ensure chatIds is an array
       if (!Array.isArray(chatIds)) {
         chatIds = [chatIds];
       }
+
+      // Subscribe to each chat's topic
       chatIds.forEach((chatId) => {
         const destination = "/topic/chat/" + chatId;
         const subId = "chat-" + chatId;
@@ -135,6 +144,7 @@ function ChatProvider({ children }) {
                       pages: updatedPages,
                     };
                   });
+
                   // Update latest message in chats list
                   setChats((prevChats) => {
                     const chatIndex = prevChats.findIndex(chat => chat.id === chatId);
@@ -142,6 +152,7 @@ function ChatProvider({ children }) {
                         // If chat not found, return previous chats
                         return prevChats;
                     }
+                    // Update latest message and move chat to top
                     const updatedChat = prevChats[chatIndex];
                     updatedChat.latestMessage = newMessage;
                     const newChats = [...prevChats];
