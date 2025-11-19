@@ -4,7 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, Loader2, ArrowDown } from 'lucide-react';
+import { Send, Loader2, ArrowDown, Smile, Paperclip, MoreVertical, Phone, Video } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import useInfiniteMessages from '@/hooks/chat/useInfiniteMessages';
@@ -15,6 +15,7 @@ export default function ChatConversation() {
 	const { chatId } = useParams();
 	const [newMessage, setNewMessage] = useState('');
 	const [showScrollButton, setShowScrollButton] = useState(false);
+	const [isTyping, setIsTyping] = useState(false);
 	const { user } = useAuthen();
 	const scrollRef = useRef(null);
 	const observerTarget = useRef(null);
@@ -25,6 +26,7 @@ export default function ChatConversation() {
 	const prevChatId = useRef(chatId);
 	const scrollButtonEnabled = useRef(false);
 	const shouldScrollToBottom = useRef(true);
+	const inputRef = useRef(null);
 
 	const { sendMessage } = useChat();
 
@@ -39,7 +41,6 @@ export default function ChatConversation() {
 
 	
 	// Flatten all pages into a single messages array and reverse it
-	// so oldest messages are first and newest are last
 	const messages = useMemo(() => {
 		const allMessages = data?.pages.flatMap(page => page.content) || [];
 		return allMessages.reverse();
@@ -111,7 +112,6 @@ export default function ChatConversation() {
 	useEffect(() => {
 		const observer = new IntersectionObserver(
 			([entry]) => {
-				// Only update button visibility if scrollButtonEnabled is true
 				if (scrollButtonEnabled.current) {
 					setShowScrollButton(!entry.isIntersecting);
 				}
@@ -130,7 +130,7 @@ export default function ChatConversation() {
 		};
 	}, [groupedMessages.length]);
 
-	// Handle scroll detection to know if user is reading old messages
+	// Handle scroll detection
 	const handleScroll = () => {
 		const scrollElement = scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]');
 		if (!scrollElement) return;
@@ -138,13 +138,10 @@ export default function ChatConversation() {
 		const { scrollTop, scrollHeight, clientHeight } = scrollElement;
 		const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
 		
-		// User is scrolling up if they're more than 100px from bottom
 		isUserScrolling.current = distanceFromBottom > 100;
 		
-		// Clear existing timeout
 		if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
 		
-		// Reset after user stops scrolling and is near bottom
 		scrollTimeout.current = setTimeout(() => {
 			if (distanceFromBottom < 100) {
 				isUserScrolling.current = false;
@@ -161,7 +158,7 @@ export default function ChatConversation() {
 		}
 	}, [scrollRef.current]);
 
-	// Reset and scroll to bottom when chatId changes (switching chats)
+	// Reset when chatId changes
 	useEffect(() => {
 		if (prevChatId.current !== chatId) {
 			isUserScrolling.current = false;
@@ -171,8 +168,6 @@ export default function ChatConversation() {
 			shouldScrollToBottom.current = true;
 			prevChatId.current = chatId;
 			
-			// Immediately scroll to bottom when chat changes
-			// Don't wait for messages effect
 			if (messages.length > 0) {
 				setTimeout(() => {
 					scrollToBottom('auto');
@@ -183,16 +178,14 @@ export default function ChatConversation() {
 						prevMessagesLength.current = messages.length;
 					}, 300);
 				}, 100);
-
 			}
 		}
 	}, [chatId]);
 
-	// Scroll to the bottom when messages load or when we need to scroll
+	// Scroll to bottom on new messages
 	useEffect(() => {
 		if (!scrollRef.current || groupedMessages.length === 0) return;
 
-		// If we're marked to scroll to bottom (initial load when no messages were available before)
 		if (shouldScrollToBottom.current) {
 			setShowScrollButton(false);
 			scrollButtonEnabled.current = false;
@@ -200,7 +193,6 @@ export default function ChatConversation() {
 			setTimeout(() => {
 				scrollToBottom('auto');
 				
-				// Enable scroll button after scroll is complete
 				setTimeout(() => {
 					shouldScrollToBottom.current = false;
 					scrollButtonEnabled.current = true;
@@ -210,8 +202,6 @@ export default function ChatConversation() {
 			return;
 		}
 
-		// When new messages are added (not from pagination), scroll to bottom smoothly
-		// Only if user is not scrolling up reading old messages
 		if (messages.length > prevMessagesLength.current && !isFetchingNextPage && !isUserScrolling.current) {
 			scrollToBottom('smooth');
 		}
@@ -219,19 +209,17 @@ export default function ChatConversation() {
 		prevMessagesLength.current = messages.length;
 	}, [messages.length, isFetchingNextPage, groupedMessages.length]);
 
-	// Intersection Observer for infinite scroll (load more when scrolling up)
+	// Intersection Observer for infinite scroll
 	useEffect(() => {
 		const observer = new IntersectionObserver(
 			entries => {
 				if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-					// Store current scroll position before fetching
 					const scrollElement = scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]');
 					if (scrollElement) {
 						const previousScrollHeight = scrollElement.scrollHeight;
 						const previousScrollTop = scrollElement.scrollTop;
 
 						fetchNextPage().then(() => {
-							// Restore scroll position after new messages load at top
 							requestAnimationFrame(() => {
 								if (scrollElement) {
 									const newScrollHeight = scrollElement.scrollHeight;
@@ -258,12 +246,13 @@ export default function ChatConversation() {
 
 	const handleSendMessage = () => {
 		if (newMessage.trim() && chatId) {
-			console.log(newMessage);
 			sendMessage(chatId, newMessage);
 			setNewMessage('');
-			console.log("sent");
-			// Reset user scrolling flag when they send a message
 			isUserScrolling.current = false;
+			
+			// Show typing indicator briefly
+			setIsTyping(true);
+			setTimeout(() => setIsTyping(false), 2000);
 		}
 	};
 
@@ -274,66 +263,127 @@ export default function ChatConversation() {
 
 	if (isLoading || !user) {
 		return (
-			<div className="h-full flex items-center justify-center">
-				<Loader2 className="h-8 w-8 animate-spin text-slate-500" />
+			<div className="h-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950">
+				<motion.div
+					initial={{ opacity: 0, scale: 0.9 }}
+					animate={{ opacity: 1, scale: 1 }}
+					className="text-center"
+				>
+					<Loader2 className="h-10 w-10 animate-spin text-blue-500 mx-auto mb-4" />
+					<p className="text-slate-600 dark:text-slate-400">Loading conversation...</p>
+				</motion.div>
 			</div>
 		);
 	}
 
 	if (isError) {
 		return (
-			<div className="h-full flex items-center justify-center">
-				<p className="text-red-500">Failed to load messages</p>
+			<div className="h-full flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-950">
+				<motion.div
+					initial={{ opacity: 0, y: 20 }}
+					animate={{ opacity: 1, y: 0 }}
+					className="text-center space-y-3"
+				>
+					<div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto">
+						<span className="text-2xl">⚠️</span>
+					</div>
+					<p className="text-red-600 dark:text-red-400 font-medium">Failed to load messages</p>
+					<Button variant="outline" onClick={() => window.location.reload()}>
+						Try Again
+					</Button>
+				</motion.div>
 			</div>
 		);
 	}
 
 	return (
-		<div className="h-full flex flex-col relative">
-			{/* Header */}
-			<div className="p-4 border-b border-slate-200 dark:border-slate-700 backdrop-blur-sm bg-white/50 dark:bg-slate-900/50 rounded-md">
-				<div className="flex items-center gap-3">
-					<Avatar className="ring-2 ring-green-500">
-						<AvatarImage src={`https://avatar.vercel.sh/${chatId}.png`} />
-						<AvatarFallback>UK</AvatarFallback>
-					</Avatar>
-					<div>
-						<p className="font-medium text-slate-900 dark:text-slate-100">User Name</p>
-						<p className="text-sm text-slate-500 dark:text-slate-400">Online</p>
+		<div className="h-full flex flex-col relative bg-gradient-to-br from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+			{/* Enhanced Header */}
+			<motion.div 
+				initial={{ y: -20, opacity: 0 }}
+				animate={{ y: 0, opacity: 1 }}
+				className="p-4 border-b border-slate-200/50 dark:border-slate-800/50 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 shadow-sm"
+			>
+				<div className="flex items-center justify-between">
+					<div className="flex items-center gap-3">
+						<div className="relative">
+							<Avatar className="ring-2 ring-emerald-500 ring-offset-2 ring-offset-white dark:ring-offset-slate-900 transition-all hover:ring-4">
+								<AvatarImage src={`https://avatar.vercel.sh/${chatId}.png`} />
+								<AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">UN</AvatarFallback>
+							</Avatar>
+							<span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900 animate-pulse" />
+						</div>
+						<div>
+							<p className="font-semibold text-slate-900 dark:text-slate-100">User Name</p>
+							<p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+								<span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+								Online
+							</p>
+						</div>
+					</div>
+					
+					<div className="flex items-center gap-2">
+						<Button variant="ghost" size="icon" className="hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+							<Phone className="h-4 w-4" />
+						</Button>
+						<Button variant="ghost" size="icon" className="hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+							<Video className="h-4 w-4" />
+						</Button>
+						<Button variant="ghost" size="icon" className="hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+							<MoreVertical className="h-4 w-4" />
+						</Button>
 					</div>
 				</div>
-			</div>
+			</motion.div>
 
-			{/* Messages */}
+			{/* Messages Area */}
 			<ScrollArea className="flex-1 p-4" ref={scrollRef}>
 				{messages.length === 0 ? (
 					<div className="h-full flex items-center justify-center">
 						<motion.div
 							initial={{ opacity: 0, scale: 0.9 }}
 							animate={{ opacity: 1, scale: 1 }}
-							transition={{ duration: 0.5 }}
-							className="text-center space-y-4 max-w-md"
+							transition={{ duration: 0.5, ease: "easeOut" }}
+							className="text-center space-y-6 max-w-md"
 						>
-							<div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/30 dark:to-purple-900/30 flex items-center justify-center">
-								<Send className="h-12 w-12 text-blue-500 dark:text-blue-400" />
-							</div>
+							<motion.div 
+								className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-2xl"
+								animate={{ 
+									rotate: [0, 5, -5, 0],
+									scale: [1, 1.05, 1]
+								}}
+								transition={{ 
+									duration: 4,
+									repeat: Infinity,
+									ease: "easeInOut"
+								}}
+							>
+								<Send className="h-16 w-16 text-white" />
+							</motion.div>
 							<div>
-								<h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
+								<h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
 									Start the conversation
 								</h3>
-								<p className="text-slate-500 dark:text-slate-400">
-									Send a message to begin chatting
+								<p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+									Send a message to begin your chat journey
 								</p>
 							</div>
 						</motion.div>
 					</div>
 				) : (
-					<div className="space-y-3">
-						{/* Load more indicator at the top */}
+					<div className="space-y-2 pb-4">
+						{/* Load more indicator */}
 						{hasNextPage && (
-							<div ref={observerTarget} className="flex justify-center py-2">
+							<div ref={observerTarget} className="flex justify-center py-3">
 								{isFetchingNextPage && (
-									<Loader2 className="h-5 w-5 animate-spin text-slate-500" />
+									<motion.div
+										initial={{ opacity: 0 }}
+										animate={{ opacity: 1 }}
+										className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 dark:bg-slate-800 shadow-sm"
+									>
+										<Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+										<span className="text-xs text-slate-600 dark:text-slate-400">Loading messages...</span>
+									</motion.div>
 								)}
 							</div>
 						)}
@@ -347,10 +397,10 @@ export default function ChatConversation() {
 											initial={{ opacity: 0, y: -10 }}
 											animate={{ opacity: 1, y: 0 }}
 											transition={{ duration: 0.3 }}
-											className="flex justify-center my-6"
+											className="flex justify-center my-8"
 										>
-											<div className="px-4 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm">
-												<span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+											<div className="px-5 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md backdrop-blur-sm">
+												<span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
 													{formatDateHeader(item.date)}
 												</span>
 											</div>
@@ -360,44 +410,77 @@ export default function ChatConversation() {
 
 								const message = item.data;
 								const isLastMessage = index === groupedMessages.length - 1;
+								const isSentByUser = message.senderId === user.id;
 
 								return (
 									<motion.div
 										key={message.id}
 										ref={isLastMessage ? lastMessageRef : null}
-										initial={{ opacity: 0, y: 20, scale: 0.95 }}
-										animate={{ opacity: 1, y: 0, scale: 1 }}
+										initial={{ opacity: 0, y: 10 }}
+										animate={{ opacity: 1, y: 0 }}
 										exit={{ opacity: 0, scale: 0.95 }}
 										transition={{ 
-											duration: 0.3,
+											duration: 0.2,
 											ease: "easeOut"
 										}}
-										className={`flex ${message.senderId === user.id ? 'justify-end' : 'justify-start'}`}
+										className={`flex ${isSentByUser ? 'justify-end' : 'justify-start'}`}
 									>
-										<motion.div
-											whileHover={{ scale: 1.02 }}
-											transition={{ duration: 0.2 }}
-											className={`max-w-[80%] rounded-2xl px-4 py-2 shadow-sm ${
-												message.senderId === user.id
-													? 'bg-blue-500 dark:bg-blue-600 text-white rounded-br-sm'
-													: 'bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded-bl-sm'
+										<div
+											className={`max-w-[70%] rounded-lg px-3 py-2 ${
+												isSentByUser
+													? 'bg-blue-600 dark:bg-blue-500 text-white rounded-br-sm'
+													: 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-bl-sm'
 											}`}
 										>
-											<p className="text-sm leading-relaxed">{message.text || message.content}</p>
-											<span className={`text-xs mt-1 block ${
-												message.senderId === user.id 
-													? 'text-blue-100' 
-													: 'text-slate-500 dark:text-slate-400 opacity-70'
+											<p className="text-[13px] leading-relaxed break-words">
+												{message.text || message.content}
+											</p>
+											<span className={`text-[10px] mt-0.5 block ${
+												isSentByUser 
+													? 'text-blue-200 dark:text-blue-300' 
+													: 'text-slate-500 dark:text-slate-400'
 											}`}>
 												{message.time || new Date(message.createdAt).toLocaleTimeString([], { 
 													hour: '2-digit', 
 													minute: '2-digit' 
 												})}
 											</span>
-										</motion.div>
+										</div>
 									</motion.div>
 								);
 							})}
+						</AnimatePresence>
+
+						{/* Typing Indicator */}
+						<AnimatePresence>
+							{isTyping && (
+								<motion.div
+									initial={{ opacity: 0, y: 10 }}
+									animate={{ opacity: 1, y: 0 }}
+									exit={{ opacity: 0, y: 10 }}
+									className="flex justify-start"
+								>
+									<div className="bg-white dark:bg-slate-800 rounded-2xl rounded-bl-md px-5 py-3 shadow-lg border border-slate-200 dark:border-slate-700">
+										<div className="flex gap-1">
+											<motion.span
+												className="w-2 h-2 bg-slate-400 rounded-full"
+												animate={{ y: [0, -8, 0] }}
+												transition={{ duration: 0.6, repeat: Infinity, delay: 0 }}
+											/>
+											<motion.span
+												className="w-2 h-2 bg-slate-400 rounded-full"
+												animate={{ y: [0, -8, 0] }}
+												transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
+											/>
+											<motion.span
+												className="w-2 h-2 bg-slate-400 rounded-full"
+												animate={{ y: [0, -8, 0] }}
+												transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
+											/>
+										</div>
+									</div>
+								</motion.div>
+							)}
 						</AnimatePresence>
 					</div>
 				)}
@@ -407,16 +490,16 @@ export default function ChatConversation() {
 			<AnimatePresence>
 				{showScrollButton && messages.length > 0 && (
 					<motion.div
-						initial={{ opacity: 0, y: 20, scale: 0.8 }}
-						animate={{ opacity: 1, y: 0, scale: 1 }}
-						exit={{ opacity: 0, y: 20, scale: 0.8 }}
-						transition={{ duration: 0.2 }}
-						className="absolute bottom-20 right-8 z-10"
+						initial={{ opacity: 0, scale: 0.8, y: 20 }}
+						animate={{ opacity: 1, scale: 1, y: 0 }}
+						exit={{ opacity: 0, scale: 0.8, y: 20 }}
+						transition={{ duration: 0.2, ease: "easeOut" }}
+						className="absolute bottom-24 right-6 z-10"
 					>
 						<Button
 							onClick={handleScrollToBottom}
 							size="icon"
-							className="h-12 w-12 rounded-full shadow-lg bg-blue-500 hover:bg-blue-600 text-white transition-all hover:scale-110 active:scale-95"
+							className="h-12 w-12 rounded-full shadow-2xl bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-2 border-white dark:border-slate-900 transition-all hover:scale-110 active:scale-95"
 						>
 							<ArrowDown className="h-5 w-5" />
 						</Button>
@@ -424,26 +507,56 @@ export default function ChatConversation() {
 				)}
 			</AnimatePresence>
 
-			{/* Input */}
-			<div className="p-4 border-t border-slate-200 dark:border-slate-700">
+			{/* Enhanced Input Area */}
+			<motion.div 
+				initial={{ y: 20, opacity: 0 }}
+				animate={{ y: 0, opacity: 1 }}
+				className="p-4 border-t border-slate-200/50 dark:border-slate-800/50 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80"
+			>
 				<form
-					className="flex gap-2"
+					className="flex items-end gap-3"
 					onSubmit={(e) => {
 						e.preventDefault();
 						handleSendMessage();
 					}}
 				>
-					<Input
-						value={newMessage}
-						onChange={(e) => setNewMessage(e.target.value)}
-						placeholder="Type a message..."
-						className="flex-1"
-					/>
-					<Button type="submit" className="transition-transform active:scale-95">
-						<Send className="h-4 w-4" />
+					<Button 
+						type="button" 
+						variant="ghost" 
+						size="icon"
+						className="mb-1 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+					>
+						<Paperclip className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+					</Button>
+					
+					<div className="flex-1 relative">
+						<Input
+							ref={inputRef}
+							value={newMessage}
+							onChange={(e) => setNewMessage(e.target.value)}
+							placeholder="Type a message..."
+							className="pr-12 py-6 rounded-2xl border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 shadow-sm bg-white dark:bg-slate-800 transition-all"
+						/>
+						<Button 
+							type="button" 
+							variant="ghost" 
+							size="icon"
+							className="absolute right-2 top-1/2 -translate-y-1/2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+						>
+							<Smile className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+						</Button>
+					</div>
+					
+					<Button 
+						type="submit" 
+						size="icon"
+						disabled={!newMessage.trim()}
+						className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+					>
+						<Send className="h-5 w-5" />
 					</Button>
 				</form>
-			</div>
+			</motion.div>
 		</div>
 	);
 }
