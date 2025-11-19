@@ -17,6 +17,7 @@ function WebsocketProvider({ children }) {
     const queryClient = useQueryClient();
     const onConnectCallBackRef = useRef([]);
 
+    // Update timeTick every minute to trigger re-renders for time-based UI updates
     useEffect(() => {
         const interval = setInterval(() => {
             setTimeTick((prev) => prev + 1);
@@ -25,10 +26,12 @@ function WebsocketProvider({ children }) {
         return () => clearInterval(interval);
     }, []);
     
+    // Update notifications when user data changes
     useEffect(() => {
         setNotifications(user?.notifications || []);
     }, [user?.notifications]);
 
+    // WebSocket connection effect
     useEffect(() => {
       if (!user || !token || stompClientRef.current || isLoadingFriends) return;
       console.log("WebSocket effect running", user, token, stompClientRef.current);
@@ -88,6 +91,7 @@ function WebsocketProvider({ children }) {
       };
     }, [user?.id]);
 
+    // Register a callback to be called when the WebSocket connection is established
     const registerOnConnectCallback = (callback) => {
         if (stompClientRef.current?.connected) {
             callback(stompClientRef.current);
@@ -95,6 +99,8 @@ function WebsocketProvider({ children }) {
             onConnectCallBackRef.current.push(callback);
         }
       }
+
+    // Check if already subscribed to a topic
     const isSubscribedTo = (subId) => {
       console.log(subId);
       console.log(stompClientRef.current?._stompHandler?._subscriptions[subId]);
@@ -110,13 +116,14 @@ function WebsocketProvider({ children }) {
 }
 
 
-
+// Handlers for different WebSocket message types
 const handleWsNotification = (message, setNotifications) => {
     console.log(message.body);
     const notification = JSON.parse(message.body);
     setNotifications((prev) => [notification, ...prev]); // Add new notifications to top
 }
 
+// Handle friend status updates
 const handleWsFriendStatus = (message) => {
     console.log("Friend status update:", message.body);
     const friendStatus = JSON.parse(message.body);
