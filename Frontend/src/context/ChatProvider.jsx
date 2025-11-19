@@ -118,6 +118,7 @@ function ChatProvider({ children }) {
                 const newMessage = JSON.parse(message.body);
                   queryClient.setQueryData(["chat", chatId, "messages"], (oldData) => {
                     if (!oldData) return oldData; // Guard against undefined data
+                    console.log(newMessage);
           
                     const updatedPages = oldData.pages.map((page, index) => {
                       if (index === 0) {

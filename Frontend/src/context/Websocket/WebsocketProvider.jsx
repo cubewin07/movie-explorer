@@ -86,7 +86,7 @@ function WebsocketProvider({ children }) {
       return () => {
         stompClient.deactivate();
       };
-    }, [user, token]);
+    }, [user?.id]);
 
     const registerOnConnectCallback = (callback) => {
         if (stompClientRef.current?.connected) {
