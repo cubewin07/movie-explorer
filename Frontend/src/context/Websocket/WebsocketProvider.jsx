@@ -88,8 +88,10 @@ function WebsocketProvider({ children }) {
   
       return () => {
         stompClient.deactivate();
+        stompClientRef.current?.deactivate();
+        stompClientRef.current = null;
       };
-    }, [user?.id]);
+    }, [user?.id, isLoadingFriends]);
 
     // Register a callback to be called when the WebSocket connection is established
     const registerOnConnectCallback = (callback) => {
