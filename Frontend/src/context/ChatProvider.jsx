@@ -47,7 +47,7 @@ function ChatProvider({ children }) {
       subscribeToChat(stompClient, user.chats.flatMap(chat => chat.id));
     })
 
-  }, [user]);
+  }, [user?.id]);
 
   useEffect(() => {
     if (newChatIds.size === 0) return;
