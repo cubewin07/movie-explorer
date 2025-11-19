@@ -81,7 +81,7 @@ export default function FriendsView({ onFriendSelect, compact = false }) {
                   const friendData = { ...friend.user, status: friend.status };
                   return (
                     <FriendItem 
-                      key={friend.id}
+                      key={friendData.id}
                       friend={friendData}
                       compact={compact}
                       onFriendSelect={onFriendSelect}
