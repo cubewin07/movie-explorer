@@ -128,31 +128,31 @@ export default function ChatList() {
                     }`}
                   onClick={() => handleClickChat(chat.id)}
                 >
-                  <Avatar>
+                  <Avatar className="flex-shrink-0">
                     <AvatarImage src={`https://avatar.vercel.sh/${displayInfo.avatarSeed}.png`} />
                     <AvatarFallback>
                       {displayInfo.isGroup ? '👥' : displayInfo.name?.[0]?.toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   
-                  <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-center">
-                      <p className="font-medium text-slate-900 dark:text-slate-100">
+                  <div className="flex-1 min-w-0 overflow-hidden">
+                    <div className="flex justify-between items-center gap-2 mb-0.5">
+                      <p className="font-medium text-slate-900 dark:text-slate-100 truncate flex-1">
                         {displayInfo.name}
                       </p>
                       {chat.latestMessage && (
-                        <span className="text-sm text-slate-500 dark:text-slate-400">
+                        <span className="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0 whitespace-nowrap">
                           {getRelativeTime(chat.latestMessage.timestamp)}
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 truncate overflow-hidden text-ellipsis whitespace-nowrap">
                       {chat.latestMessage?.content || 'No messages yet'}
                     </p>
                   </div>
                   
                   {chat.unreadCount > 0 && (
-                    <Badge variant="default" className="bg-blue-500 dark:bg-blue-600">
+                    <Badge variant="default" className="bg-blue-500 dark:bg-blue-600 flex-shrink-0">
                       {chat.unreadCount}
                     </Badge>
                   )}
