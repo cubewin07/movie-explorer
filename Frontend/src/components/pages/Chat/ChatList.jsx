@@ -1,6 +1,5 @@
 import { useState, useMemo } from 'react';
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -102,7 +101,7 @@ export default function ChatList() {
         />
       </div>
       
-      <ScrollArea className="flex-1">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
         <div className="space-y-2 p-4">
           {sortedChats.length === 0 ? (
             <p className="text-center text-slate-500 dark:text-slate-400 py-4">
@@ -161,7 +160,7 @@ export default function ChatList() {
             })
           )}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 }
