@@ -423,16 +423,16 @@ export default function ChatConversation() {
 											duration: 0.2,
 											ease: "easeOut"
 										}}
-										className={`flex ${isSentByUser ? 'justify-end' : 'justify-start'}`}
+										className={`flex ${isSentByUser ? 'justify-end' : 'justify-start'} px-2`}
 									>
 										<div
-											className={`max-w-[70%] rounded-lg px-3 py-2 ${
+											className={`max-w-[70%] sm:max-w-[65%] md:max-w-[60%] rounded-lg px-3 py-2 ${
 												isSentByUser
 													? 'bg-blue-600 dark:bg-blue-500 text-white rounded-br-sm'
 													: 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-bl-sm'
 											}`}
 										>
-											<p className="text-[13px] leading-relaxed break-words whitespace-pre-wrap">
+											<p className="text-[13px] leading-relaxed break-words overflow-wrap-anywhere whitespace-pre-wrap [word-break:break-word] [overflow-wrap:anywhere]">
 												{message.text || message.content}
 											</p>
 											<span className={`text-[10px] mt-0.5 block ${
@@ -542,7 +542,7 @@ export default function ChatConversation() {
 							}}
 							placeholder="Type a message..."
 							rows={1}
-							className="w-full resize-none overflow-hidden pr-12 px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:outline-none shadow-sm bg-white dark:bg-slate-800 transition-all text-sm"
+							className="w-full resize-none overflow-hidden pr-12 px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:outline-none shadow-sm bg-white dark:bg-slate-800 transition-all text-sm [word-break:break-word]"
 							style={{
 								minHeight: '48px',
 								maxHeight: '120px',
