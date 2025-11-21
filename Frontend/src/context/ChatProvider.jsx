@@ -33,6 +33,11 @@ function ChatProvider({ children }) {
 
     }, [user?.notifications]);
 
+  useEffect(() => {
+    console.log("chatNotifications changed:", chatNotifications);
+
+  }, [chatNotifications])
+
 
   useEffect(() => {
 
@@ -169,6 +174,11 @@ function ChatProvider({ children }) {
                     return [updatedChat, ...newChats];
                 });
 
+                // Add to chat notifications if the message is not from the current user
+                if (newMessage.senderId !== user?.id) {
+                  console.log("New chat message notification:", newMessage);
+                  setChatNotifications((prev) => [newMessage, ...prev]);
+                }
               },
               { id: subId }
           );
