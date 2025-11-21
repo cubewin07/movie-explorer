@@ -29,7 +29,7 @@ function WebsocketProvider({ children }) {
     // Update notifications when user data changes
     useEffect(() => {
       console.log("user notifications changed", user?.notifications);
-        setNotifications(user?.notifications || []);
+        setNotifications(user?.notifications?.filter(noti => noti.type !== 'chat') || []);
     }, [user?.notifications]);
 
     // WebSocket connection effect
