@@ -28,6 +28,7 @@ function WebsocketProvider({ children }) {
     
     // Update notifications when user data changes
     useEffect(() => {
+      console.log("user notifications changed", user?.notifications);
         setNotifications(user?.notifications || []);
     }, [user?.notifications]);
 
@@ -120,8 +121,8 @@ function WebsocketProvider({ children }) {
 
 // Handlers for different WebSocket message types
 const handleWsNotification = (message, setNotifications) => {
-    console.log(message.body);
     const notification = JSON.parse(message.body);
+    console.log("New notification received:", notification);
     setNotifications((prev) => [notification, ...prev]); // Add new notifications to top
 }
 
