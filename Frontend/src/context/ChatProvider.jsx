@@ -12,6 +12,7 @@ function ChatProvider({ children }) {
 
   const [activeChat, setActiveChat] = useState(null);
   const [newChatIds, setNewChatIds] = useState(new Set());
+  const [chatNotifications, setChatNotifications] = useState([]);
   const newChatIdTimeoutsRef = useRef(null);
   const [chats, setChats] = useState([]);
   const { stompClientRef, registerOnConnectCallback, isSubscribedTo } = useWebsocket();
@@ -25,6 +26,13 @@ function ChatProvider({ children }) {
         setChats(user.chats || []);
     }
   }, [user?.id, user?.chats]);
+
+  useEffect(() => {
+      if (!user) return;
+      setChatNotifications(user?.notifications?.filter(noti => noti.type === 'chat') || []);
+
+    }, [user?.notifications]);
+
 
   useEffect(() => {
 
