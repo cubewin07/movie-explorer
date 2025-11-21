@@ -2,7 +2,7 @@ import { createContext, useState, useContext, useEffect, useRef } from 'react';
 import { useWebsocket } from '@/context/Websocket/WebsocketProvider';
 import useCreateChat from '@/hooks/chat/useCreateChat';
 import { useAuthen } from './AuthenProvider';
-import queryClient from '@/lib/queryClient';
+import { useQueryClient } from '@tanstack/react-query';
 
 
 const ChatContext = createContext();
@@ -18,6 +18,7 @@ function ChatProvider({ children }) {
   const { stompClientRef, registerOnConnectCallback, isSubscribedTo } = useWebsocket();
   const { user, token } = useAuthen();
   const {mutate: createChatMutation} = useCreateChat(token);
+  const queryClient = useQueryClient();
 
   // Update chats when user data changes
   useEffect(() => {
