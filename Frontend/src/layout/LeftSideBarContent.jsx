@@ -116,14 +116,15 @@ function LeftSidebarContent({ handleThemeToggle, setLoginOpen, setRegisterOpen }
                                     {(badgeCount > 0 || badgeCount === '99+') && (
                                         <span
                                             className="
-                                            absolute -top-1 -right-1 
-                                            bg-red-500 text-white text-[10px] font-semibold
-                                            rounded-full h-4 min-w-4
+                                            absolute -top-2 -right-2 
+                                            bg-red-500 text-white text-[9px] font-bold
+                                            rounded-full h-4 min-w-[16px]
                                             flex items-center justify-center
-                                            px-1
+                                            leading-none 
+                                            shadow-sm
                                             "
                                         >
-                                            {chatNotifications.length}
+                                            {badgeCount}
                                         </span>
                                     )}
                                 </div>,
