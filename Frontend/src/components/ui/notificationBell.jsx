@@ -187,7 +187,7 @@ const handleMarkAllAsRead = () => {
               </div>
 
               {/* Notification List */}
-              <ul className="max-h-[calc(100vh-200px)] overflow-y-auto">
+              <ul className="flex-1 overflow-y-auto overflow-x-hidden">
                 <AnimatePresence mode="popLayout">
                   {notifications.length === 0 ? (
                     <motion.li
