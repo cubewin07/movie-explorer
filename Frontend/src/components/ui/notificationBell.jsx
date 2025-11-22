@@ -218,7 +218,6 @@ const handleMarkAllAsRead = () => {
                           backgroundColor: notification.read
                             ? (isDark ? 'rgba(51, 65, 85, 0.4)' : 'rgba(249, 250, 251, 1)')
                             : (isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(219, 234, 254, 1)'),
-                          scale: 1.005,
                         }}
                         transition={{
                           duration: 0.2,
