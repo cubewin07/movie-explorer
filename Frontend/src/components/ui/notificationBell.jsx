@@ -144,18 +144,27 @@ const handleMarkAllAsRead = () => {
 
             {/* Notification Panel */}
             <motion.div
-              initial={{ opacity: 0, y: -10, scale: 0.95 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-              className="
-                  absolute right-0 mt-3 w-80 md:w-96 
-                  bg-white dark:bg-slate-900 
-                  border border-gray-200 dark:border-slate-800 
-                  rounded-xl shadow-2xl z-50 
-                  flex flex-col
-                  max-h-[480px] overflow-hidden
-                "
+              initial={{ opacity: 0, y: -8, scale: 0.98 }}
+              animate={{
+                opacity: 1,
+                y: 0,
+                scale: 1,
+                transition: {
+                  type: "spring",
+                  stiffness: 180,
+                  damping: 18,
+                  duration: 0.25,
+                },
+              }}
+              exit={{
+                opacity: 0,
+                y: -8,
+                scale: 0.98,
+                transition: { duration: 0.15 }
+              }}
+              className="absolute right-0 mt-3 w-80 md:w-96 bg-white dark:bg-slate-900
+                        border border-gray-200 dark:border-slate-800 rounded-xl shadow-2xl 
+                        z-50 flex flex-col max-h-[480px]"
             >
               {/* Header */}
               <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50">
