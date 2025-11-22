@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { SidebarLink, useSidebar } from '@/components/ui/Sidebar.jsx';
 import { Home, Users, Compass, Clock, User, List, Settings, LogOut, HelpCircle, Bookmark } from 'lucide-react';
 import { useThemeToggle } from '@/hooks/useThemeToggle';
@@ -16,6 +17,9 @@ function LeftSidebarContent({ handleThemeToggle, setLoginOpen, setRegisterOpen }
     const pathname = location.pathname;
 
     console.log(chatNotifications);
+    const badgeCount = useMemo(() => {
+        return chatNotifications.length > 99 ? '99+' : chatNotifications.length;
+    }, [chatNotifications]);
 
     return (
         <div
@@ -104,7 +108,28 @@ function LeftSidebarContent({ handleThemeToggle, setLoginOpen, setRegisterOpen }
                         />
                     )}
                     <SidebarLink
-                        link={{ icon: <Users className="h-5 w-5" />, label: 'Friend', href: user ? '/friend' : '#' }}
+                        link={{ 
+                            icon: <div className="relative">
+                                    <Users className="h-5 w-5" />
+
+                                    {/* Notification badge */}
+                                    {(badgeCount > 0 || badgeCount === '99+') && (
+                                        <span
+                                            className="
+                                            absolute -top-1 -right-1 
+                                            bg-red-500 text-white text-[10px] font-semibold
+                                            rounded-full h-4 min-w-4
+                                            flex items-center justify-center
+                                            px-1
+                                            "
+                                        >
+                                            {chatNotifications.length}
+                                        </span>
+                                    )}
+                                </div>,
+                            label: 'Friend',
+                            href: user ? '/friend' : '#'
+                        }}
                         active={pathname.startsWith('/friend')}
                         onClick={() => !user && setLoginOpen(true)}
                     />
