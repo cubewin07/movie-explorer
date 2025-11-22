@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { Bell, X, UserPlus, MessageCircle, Check, Trash2, CheckCheck } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuthen } from '@/context/AuthenProvider';
 import { Client } from "@stomp/stompjs";
@@ -8,6 +8,111 @@ import { Button } from "@/components/ui/button";
 import { useNotificationActions } from "@/hooks/notification/useNotificationActions";
 import { useThemeToggle } from "@/hooks/useThemeToggle";
 import { useWebsocket } from "@/context/Websocket/WebsocketProvider";
+
+function NotificationItem({
+  notification,
+  isDark,
+  getNotificationIcon,
+  getTimeAgo,
+  handleNotificationClick,
+  handleDeleteNotification
+}) {
+  const x = useMotionValue(0);
+  const opacity = useTransform(x, [-120, 0], [0, 1]);
+
+  const onPanEnd = (e, info) => {
+    if (info.offset.x < -80) {
+      // auto delete animation
+      animate(x, -200, { duration: 0.2 });
+      setTimeout(() => handleDeleteNotification(e, notification.id), 150);
+    } else {
+      animate(x, 0, { type: "spring", bounce: 0.3 });
+    }
+  };
+
+  return (
+    <motion.li
+      initial={{ opacity: 0, x: -20 }}
+      animate={{
+        opacity: 1,
+        x: 0,
+        backgroundColor: notification.read
+          ? (isDark ? "rgba(15,23,42,0)" : "rgba(255,255,255,1)")
+          : (isDark ? "rgba(59,130,246,0.1)" : "rgba(239,246,255,1)")
+      }}
+      whileHover={{
+        backgroundColor: notification.read
+          ? (isDark ? "rgba(51,65,85,0.4)" : "rgba(249,250,251,1)")
+          : (isDark ? "rgba(59,130,246,0.2)" : "rgba(219,234,254,1)")
+      }}
+      transition={{ duration: 0.2 }}
+      style={{ opacity }}
+      className="relative"
+    >
+      {/* Red delete background */}
+      <div className="absolute inset-0 flex justify-end items-center pr-4 pointer-events-none">
+        <div className="bg-red-600 text-white rounded-full p-2 pointer-events-none">
+          <Trash2 className="w-4 h-4" />
+        </div>
+      </div>
+
+      {/* Draggable container */}
+      <motion.div
+        drag="x"
+        style={{ x }}
+        dragConstraints={{ left: -120, right: 0 }}
+        dragDirectionLock
+        onPanEnd={onPanEnd}
+        onClick={() => handleNotificationClick(notification)}
+        className="
+          group relative px-4 py-3 border-l-4 cursor-pointer 
+          border-b border-gray-100 dark:border-slate-800 
+          flex gap-3 items-start
+        "
+      >
+        {/* Icon */}
+        <div className="flex-shrink-0 mt-0.5">
+          {getNotificationIcon(notification.type)}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0">
+          <p className={`text-sm leading-relaxed ${
+            notification.read
+              ? "text-gray-700 dark:text-gray-300"
+              : "text-gray-900 dark:text-white font-medium"
+          }`}>
+            {notification.message}
+          </p>
+          <div className="flex items-center gap-2 mt-1.5">
+            <span className="text-xs text-gray-500 dark:text-gray-500">
+              {getTimeAgo(notification.createdAt)}
+            </span>
+            {!notification.read && (
+              <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+            )}
+          </div>
+        </div>
+
+        {/* Delete button (hover delete) */}
+        <button
+          onClick={(e) => handleDeleteNotification(e, notification.id)}
+          className="flex-shrink-0 opacity-0 group-hover:opacity-100 p-1.5 
+                     rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 
+                     transition-all"
+        >
+          <Trash2 className="w-4 h-4 text-red-500 dark:text-red-400" />
+        </button>
+      </motion.div>
+
+      {/* Unread blue bar */}
+      {!notification.read && (
+        <div className="absolute top-0 right-0 bottom-0 w-1 bg-blue-500" />
+      )}
+    </motion.li>
+  );
+}
+
 
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
@@ -213,70 +318,15 @@ const handleMarkAllAsRead = () => {
                     </motion.li>
                   ) : (
                     notifications.map((notification, index) => (
-                      <motion.li
+                      <NotificationItem
                         key={notification.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{
-                          opacity: 1,
-                          x: 0,
-                          backgroundColor: notification.read
-                            ? (isDark ? 'rgba(15, 23, 42, 0)' : 'rgba(255, 255, 255, 1)')
-                            : (isDark ? 'rgba(59, 130, 246, 0.1)' : 'rgba(239, 246, 255, 1)'), 
-                        }}
-                        whileHover={{
-                          backgroundColor: notification.read
-                            ? (isDark ? 'rgba(51, 65, 85, 0.4)' : 'rgba(249, 250, 251, 1)')
-                            : (isDark ? 'rgba(59, 130, 246, 0.2)' : 'rgba(219, 234, 254, 1)'),
-                        }}
-                        transition={{
-                          duration: 0.2,
-                          ease: "easeInOut",
-                        }}
-                        onClick={() => handleNotificationClick(notification)}
-                        className="
-                          group relative px-4 py-3 border-l-4 cursor-pointer
-                          border-b border-gray-100 dark:border-slate-800
-                        "
-                      >
-                        <div className="flex gap-3">
-                          {/* Icon */}
-                          <div className="flex-shrink-0 mt-0.5">
-                            {getNotificationIcon(notification.type)}
-                          </div>
-
-                          {/* Content */}
-                          <div className="flex-1 min-w-0">
-                            <p className={`text-sm leading-relaxed ${
-                              notification.read 
-                                ? 'text-gray-700 dark:text-gray-300' 
-                                : 'text-gray-900 dark:text-white font-medium'
-                            }`}>
-                              {notification.message}
-                            </p>
-                            <div className="flex items-center gap-2 mt-1.5">
-                              <span className="text-xs text-gray-500 dark:text-gray-500">
-                                {getTimeAgo(notification.createdAt)}
-                              </span>
-                              {!notification.read && (
-                                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Delete button */}
-                          <button
-                            onClick={(e) => handleDeleteNotification(e, notification.id)}
-                            className="flex-shrink-0 opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-all"
-                          >
-                            <Trash2 className="w-4 h-4 text-red-500 dark:text-red-400" />
-                          </button>
-                        </div>
-
-                        {/* Unread indicator */}
-                        {!notification.read && (
-                          <div className="absolute top-0 right-0 bottom-0 w-1 bg-blue-500"></div>
-                        )}
-                      </motion.li>
+                        notification={notification}
+                        isDark={isDark}
+                        getNotificationIcon={getNotificationIcon}
+                        getTimeAgo={getTimeAgo}
+                        handleNotificationClick={handleNotificationClick}
+                        handleDeleteNotification={handleDeleteNotification}
+                      />
                     ))
                   )}
                 </AnimatePresence>
