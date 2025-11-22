@@ -188,7 +188,7 @@ function ChatProvider({ children }) {
   } 
 
   return (
-    <ChatContext.Provider value={{ activeChat, setActiveChat, chats, setChats, createChat, sendMessage, subscribeToChat, newChatIds }}>
+    <ChatContext.Provider value={{ activeChat, setActiveChat, chats, setChats, createChat, sendMessage, subscribeToChat, newChatIds, chatNotifications }}>
       {children}
     </ChatContext.Provider>
   );

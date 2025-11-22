@@ -1,6 +1,7 @@
 import { SidebarLink, useSidebar } from '@/components/ui/Sidebar.jsx';
 import { Home, Users, Compass, Clock, User, List, Settings, LogOut, HelpCircle, Bookmark } from 'lucide-react';
 import { useThemeToggle } from '@/hooks/useThemeToggle';
+import { useChat } from '@/context/ChatProvider';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthen } from '@/context/AuthenProvider';
 import { cn } from '@/lib/utils';
@@ -11,7 +12,10 @@ function LeftSidebarContent({ handleThemeToggle, setLoginOpen, setRegisterOpen }
     const navigate = useNavigate();
     const location = useLocation();
     const { user, logout } = useAuthen();
+    const { chatNotifications } = useChat();
     const pathname = location.pathname;
+
+    console.log(chatNotifications);
 
     return (
         <div
