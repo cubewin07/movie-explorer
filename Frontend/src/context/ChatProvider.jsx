@@ -3,6 +3,7 @@ import { useWebsocket } from '@/context/Websocket/WebsocketProvider';
 import useCreateChat from '@/hooks/chat/useCreateChat';
 import { useAuthen } from './AuthenProvider';
 import { useQueryClient } from '@tanstack/react-query';
+import { set } from 'react-hook-form';
 
 
 const ChatContext = createContext();
@@ -188,7 +189,7 @@ function ChatProvider({ children }) {
   } 
 
   return (
-    <ChatContext.Provider value={{ activeChat, setActiveChat, chats, setChats, createChat, sendMessage, subscribeToChat, newChatIds, chatNotifications }}>
+    <ChatContext.Provider value={{ activeChat, setActiveChat, chats, setChats, createChat, sendMessage, subscribeToChat, newChatIds, chatNotifications, setChatNotifications }}>
       {children}
     </ChatContext.Provider>
   );
