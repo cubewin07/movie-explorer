@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.Backend.services.chat_service.message.model.Message;
+import com.Backend.services.chat_service.model.Chat;
 import com.Backend.services.chat_service.model.DTO.ChatDTO;
 import com.Backend.services.chat_service.model.DTO.ChatResponseDTO;
 import com.Backend.services.chat_service.model.ChatLookUpHelper;
@@ -269,6 +270,11 @@ public class NotificationService {
         } else {
             log.info("Marked {} notifications as read for user id={}", updatedCount, user.getId());
         }
+    }
+
+    @Transactional
+    public void markChatNotificationAsRead(User reader, Long chatId) {
+        Set<Chat> chats = notificationRepo.findByUserNotAndTypeAndRelatedId(reader, "chat", chatId);
     }
 
     @Transactional
