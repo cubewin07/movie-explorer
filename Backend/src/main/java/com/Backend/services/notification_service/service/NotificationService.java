@@ -274,7 +274,13 @@ public class NotificationService {
 
     @Transactional
     public void markChatNotificationAsRead(User reader, Long chatId) {
-        Set<Notification> chats = notificationRepo.findByUserNotAndTypeAndRelatedId(reader, "chat", chatId);
+        int updatedCount = notificationRepo.updateChatNotificationReadStatus(reader.getId(), chatId, "chat");
+
+        if (updatedCount == 0) {
+            log.debug("No unread notifications found for user id={}", reader.getId());
+        } else {
+            log.info("Marked {} notifications as read for user id={}", updatedCount, reader.getId());
+        }
     }
 
     @Transactional
