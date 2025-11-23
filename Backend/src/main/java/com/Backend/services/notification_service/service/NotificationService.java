@@ -274,7 +274,7 @@ public class NotificationService {
 
     @Transactional
     public void markChatNotificationAsRead(User reader, Long chatId) {
-        Set<Chat> chats = notificationRepo.findByUserNotAndTypeAndRelatedId(reader, "chat", chatId);
+        Set<Notification> chats = notificationRepo.findByUserNotAndTypeAndRelatedId(reader, "chat", chatId);
     }
 
     @Transactional

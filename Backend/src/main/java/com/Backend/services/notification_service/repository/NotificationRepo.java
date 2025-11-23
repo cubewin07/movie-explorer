@@ -1,6 +1,7 @@
 package com.Backend.services.notification_service.repository;
 
 import java.util.List;
+import java.util.Set;
 
 import com.Backend.services.notification_service.model.Notification;
 import com.Backend.services.user_service.model.User;
@@ -20,6 +21,13 @@ public interface NotificationRepo extends JpaRepository<Notification, Long> {
     List<Notification> findByUserAndType(User user, String type);
 
     long countByUserIdAndIdIn(Long userId, List<Long> ids);
+
+    @Transactional
+    @Modifying( clearAutomatically = true)
+    @Query("UPDATE Notification n SET n.isRead = true WHERE n.relatedId = :chatId AND n.user.id = :userId AND n.type = :type AND n.isRead = false")
+    int updateChatNotificationReadStatus(@Param("userId") Long userId,
+                                         @Param("relatedId") Long chatId,
+                                         @Param("type") String type);
 
 
     @Transactional
