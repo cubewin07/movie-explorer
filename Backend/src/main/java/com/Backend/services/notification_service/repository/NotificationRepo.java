@@ -26,7 +26,7 @@ public interface NotificationRepo extends JpaRepository<Notification, Long> {
     @Modifying( clearAutomatically = true)
     @Query("UPDATE Notification n SET n.isRead = true WHERE n.relatedId = :chatId AND n.user.id = :userId AND n.type = :type AND n.isRead = false")
     int updateChatNotificationReadStatus(@Param("userId") Long userId,
-                                         @Param("relatedId") Long chatId,
+                                         @Param("chatId") Long chatId,
                                          @Param("type") String type);
 
 
