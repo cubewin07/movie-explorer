@@ -274,9 +274,9 @@ public class NotificationService {
 
     @Transactional
     @Caching(evict = {
-            @CacheEvict(value = "chatNotifications", key = "#user.id"),
-            @CacheEvict(value = "userMeDTO", key = "#user.email"),
-            @CacheEvict(value = "notifications", key = "#user.id")
+            @CacheEvict(value = "chatNotifications", key = "#reader.id"),
+            @CacheEvict(value = "userMeDTO", key = "#reader.email"),
+            @CacheEvict(value = "notifications", key = "#reader.id")
     })
     public void markChatNotificationAsRead(User reader, Long chatId) {
         int updatedCount = notificationRepo.updateChatNotificationReadStatus(reader.getId(), chatId, "chat");
