@@ -31,7 +31,8 @@ function ChatProvider({ children }) {
 
   useEffect(() => {
       if (!user) return;
-      setChatNotifications(user?.notifications?.filter(noti => noti.type === 'chat') || []);
+      setChatNotifications(user?.notifications?.filter(noti => noti.type === 'chat' && noti.read === false) || []);
+      console.log("user?.notifications:", user?.notifications);
 
     }, [user?.notifications]);
 
