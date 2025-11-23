@@ -38,6 +38,13 @@ public class NotificationController {
         return ResponseEntity.ok(Map.of("message", "Marked all notifications as read"));
     }
 
+    @PutMapping("/chat/{chatId}")
+    public ResponseEntity<Map<String, String>> markChatNotificationAsRead(@AuthenticationPrincipal User user, @PathVariable("chatId") Long chatId) {
+        notificationService.markChatNotificationAsRead(user, chatId);
+        String message = "Marked notifications of chat with id: " + chatId + " as read";
+        return ResponseEntity.ok(Map.of("message", message));
+    }
+
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Map<String, String>> deleteNotification(@AuthenticationPrincipal User user, @PathVariable("id") Long id) throws AccessDeniedException {
         notificationService.deleteNotification(user, id);
