@@ -282,9 +282,9 @@ public class NotificationService {
         int updatedCount = notificationRepo.updateChatNotificationReadStatus(reader.getId(), chatId, "chat");
 
         if (updatedCount == 0) {
-            log.debug("No unread notifications found for user id={}", reader.getId());
+            log.debug("No unread chat notifications found for user id={}", reader.getId());
         } else {
-            log.info("Marked {} notifications as read for user id={}", updatedCount, reader.getId());
+            log.info("Marked {} chat notifications as read for user id={}", updatedCount, reader.getId());
         }
     }
 
