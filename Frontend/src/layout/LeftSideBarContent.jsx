@@ -16,8 +16,8 @@ function LeftSidebarContent({ handleThemeToggle, setLoginOpen, setRegisterOpen }
     const { chatNotifications } = useChat();
     const pathname = location.pathname;
 
-    console.log(chatNotifications);
     const badgeCount = useMemo(() => {
+        console.log("Calculating badgeCount from chatNotifications:", chatNotifications);
         return chatNotifications.length > 99 ? '99+' : chatNotifications.length;
     }, [chatNotifications]);
 
