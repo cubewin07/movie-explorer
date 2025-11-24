@@ -4,7 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, Loader2, ArrowDown, Smile, Paperclip, MoreVertical, Phone, Video } from 'lucide-react';
+import { Send, Loader2, ArrowDown, Smile, Paperclip, MoreVertical, Phone, Video, Check, CheckCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import useInfiniteMessages from '@/hooks/chat/useInfiniteMessages';
@@ -16,6 +16,7 @@ export default function ChatConversation() {
 	const [newMessage, setNewMessage] = useState('');
 	const [showScrollButton, setShowScrollButton] = useState(false);
 	const [isTyping, setIsTyping] = useState(false);
+	const [isSending, setIsSending] = useState(false);
 	const { user } = useAuthen();
 	const scrollRef = useRef(null);
 	const observerTarget = useRef(null);
@@ -39,7 +40,6 @@ export default function ChatConversation() {
 		isError
 	} = useInfiniteMessages(chatId);
 
-	
 	// Flatten all pages into a single messages array and reverse it
 	const messages = useMemo(() => {
 		const allMessages = data?.pages.flatMap(page => page.content) || [];
@@ -244,15 +244,27 @@ export default function ChatConversation() {
 		};
 	}, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-	const handleSendMessage = () => {
-		if (newMessage.trim() && chatId) {
-			sendMessage(chatId, newMessage);
+	const handleSendMessage = async () => {
+		if (newMessage.trim() && chatId && !isSending) {
+			const messageToSend = newMessage;
 			setNewMessage('');
+			setIsSending(true);
 			isUserScrolling.current = false;
 			
-			// Show typing indicator briefly
-			setIsTyping(true);
-			setTimeout(() => setIsTyping(false), 2000);
+			// Reset textarea height
+			if (inputRef.current) {
+				inputRef.current.style.height = 'auto';
+			}
+			
+			try {
+				await sendMessage(chatId, messageToSend);
+			} catch (error) {
+				console.error('Failed to send message:', error);
+				// Optionally restore the message on error
+				setNewMessage(messageToSend);
+			} finally {
+				setIsSending(false);
+			}
 		}
 	};
 
@@ -302,35 +314,42 @@ export default function ChatConversation() {
 			<motion.div 
 				initial={{ y: -20, opacity: 0 }}
 				animate={{ y: 0, opacity: 1 }}
-				className="p-4 border-b border-slate-200/50 dark:border-slate-800/50 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 shadow-sm"
+				transition={{ duration: 0.3, ease: "easeOut" }}
+				className="p-4 border-b border-slate-200/60 dark:border-slate-800/60 backdrop-blur-xl bg-white/90 dark:bg-slate-900/90 shadow-sm"
 			>
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-3">
 						<div className="relative">
-							<Avatar className="ring-2 ring-emerald-500 ring-offset-2 ring-offset-white dark:ring-offset-slate-900 transition-all hover:ring-4">
+							<Avatar className="ring-2 ring-emerald-400 dark:ring-emerald-500 ring-offset-2 ring-offset-white dark:ring-offset-slate-900 transition-all hover:ring-emerald-500 dark:hover:ring-emerald-400">
 								<AvatarImage src={`https://avatar.vercel.sh/${chatId}.png`} />
-								<AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">UN</AvatarFallback>
+								<AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white font-semibold">UN</AvatarFallback>
 							</Avatar>
-							<span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900 animate-pulse" />
+							<motion.span 
+								initial={{ scale: 0 }}
+								animate={{ scale: 1 }}
+								className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900"
+							>
+								<span className="absolute inset-0 bg-emerald-500 rounded-full animate-ping opacity-75" />
+							</motion.span>
 						</div>
 						<div>
 							<p className="font-semibold text-slate-900 dark:text-slate-100">User Name</p>
-							<p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-								<span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-								Online
+							<p className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+								<span className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+								Active now
 							</p>
 						</div>
 					</div>
 					
-					<div className="flex items-center gap-2">
-						<Button variant="ghost" size="icon" className="hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-							<Phone className="h-4 w-4" />
+					<div className="flex items-center gap-1">
+						<Button variant="ghost" size="icon" className="hover:bg-slate-100 dark:hover:bg-slate-800 transition-all hover:scale-105 active:scale-95">
+							<Phone className="h-4 w-4 text-slate-600 dark:text-slate-400" />
 						</Button>
-						<Button variant="ghost" size="icon" className="hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-							<Video className="h-4 w-4" />
+						<Button variant="ghost" size="icon" className="hover:bg-slate-100 dark:hover:bg-slate-800 transition-all hover:scale-105 active:scale-95">
+							<Video className="h-4 w-4 text-slate-600 dark:text-slate-400" />
 						</Button>
-						<Button variant="ghost" size="icon" className="hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-							<MoreVertical className="h-4 w-4" />
+						<Button variant="ghost" size="icon" className="hover:bg-slate-100 dark:hover:bg-slate-800 transition-all hover:scale-105 active:scale-95">
+							<MoreVertical className="h-4 w-4 text-slate-600 dark:text-slate-400" />
 						</Button>
 					</div>
 				</div>
@@ -344,28 +363,27 @@ export default function ChatConversation() {
 							initial={{ opacity: 0, scale: 0.9 }}
 							animate={{ opacity: 1, scale: 1 }}
 							transition={{ duration: 0.5, ease: "easeOut" }}
-							className="text-center space-y-6 max-w-md"
+							className="text-center space-y-6 max-w-md px-4"
 						>
 							<motion.div 
-								className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-2xl"
+								className="w-28 h-28 mx-auto rounded-full bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-xl"
 								animate={{ 
 									rotate: [0, 5, -5, 0],
-									scale: [1, 1.05, 1]
 								}}
 								transition={{ 
-									duration: 4,
+									duration: 6,
 									repeat: Infinity,
 									ease: "easeInOut"
 								}}
 							>
-								<Send className="h-16 w-16 text-white" />
+								<Send className="h-14 w-14 text-white" />
 							</motion.div>
 							<div>
-								<h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-3 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+								<h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">
 									Start the conversation
 								</h3>
-								<p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-									Send a message to begin your chat journey
+								<p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
+									Send your first message to begin chatting
 								</p>
 							</div>
 						</motion.div>
@@ -377,12 +395,12 @@ export default function ChatConversation() {
 							<div ref={observerTarget} className="flex justify-center py-3">
 								{isFetchingNextPage && (
 									<motion.div
-										initial={{ opacity: 0 }}
-										animate={{ opacity: 1 }}
-										className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 dark:bg-slate-800 shadow-sm"
+										initial={{ opacity: 0, y: -10 }}
+										animate={{ opacity: 1, y: 0 }}
+										className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100/80 dark:bg-slate-800/80 backdrop-blur-sm shadow-sm"
 									>
-										<Loader2 className="h-4 w-4 animate-spin text-blue-500" />
-										<span className="text-xs text-slate-600 dark:text-slate-400">Loading messages...</span>
+										<Loader2 className="h-3.5 w-3.5 animate-spin text-blue-500" />
+										<span className="text-xs text-slate-600 dark:text-slate-400 font-medium">Loading messages...</span>
 									</motion.div>
 								)}
 							</div>
@@ -394,13 +412,13 @@ export default function ChatConversation() {
 									return (
 										<motion.div
 											key={`date-${item.dateString}`}
-											initial={{ opacity: 0, y: -10 }}
-											animate={{ opacity: 1, y: 0 }}
+											initial={{ opacity: 0, scale: 0.9 }}
+											animate={{ opacity: 1, scale: 1 }}
 											transition={{ duration: 0.3 }}
-											className="flex justify-center my-8"
+											className="flex justify-center my-6"
 										>
-											<div className="px-5 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-md backdrop-blur-sm">
-												<span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+											<div className="px-4 py-1.5 rounded-full bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-700/50 shadow-sm backdrop-blur-sm">
+												<span className="text-xs font-medium text-slate-600 dark:text-slate-400">
 													{formatDateHeader(item.date)}
 												</span>
 											</div>
@@ -416,66 +434,78 @@ export default function ChatConversation() {
 									<motion.div
 										key={message.id}
 										ref={isLastMessage ? lastMessageRef : null}
-										initial={{ opacity: 0, y: 10 }}
-										animate={{ opacity: 1, y: 0 }}
-										exit={{ opacity: 0, scale: 0.95 }}
+										initial={{ opacity: 0, y: 15, scale: 0.95 }}
+										animate={{ opacity: 1, y: 0, scale: 1 }}
+										exit={{ opacity: 0, scale: 0.9 }}
 										transition={{ 
-											duration: 0.2,
-											ease: "easeOut"
+											duration: 0.3,
+											ease: [0.22, 1, 0.36, 1]
 										}}
-										className={`flex ${isSentByUser ? 'justify-end' : 'justify-start'} px-2`}
+										className={`flex ${isSentByUser ? 'justify-end' : 'justify-start'} px-2 group`}
 									>
 										<div
-											className={`max-w-[70%] sm:max-w-[65%] md:max-w-[60%] rounded-lg px-3 py-2 ${
+											className={`max-w-[75%] sm:max-w-[70%] md:max-w-[65%] rounded-2xl px-3.5 py-2.5 shadow-sm transition-all ${
 												isSentByUser
-													? 'bg-blue-600 dark:bg-blue-500 text-white rounded-br-sm'
-													: 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-bl-sm'
+													? 'bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white rounded-br-md'
+													: 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 rounded-bl-md border border-slate-100 dark:border-slate-700/50'
 											}`}
 										>
-											<p className="text-[13px] leading-relaxed break-words overflow-wrap-anywhere whitespace-pre-wrap [word-break:break-word] [overflow-wrap:anywhere]">
+											<p className="text-[13.5px] leading-relaxed break-words whitespace-pre-wrap">
 												{message.text || message.content}
 											</p>
-											<span className={`text-[10px] mt-0.5 block ${
-												isSentByUser 
-													? 'text-blue-200 dark:text-blue-300' 
-													: 'text-slate-500 dark:text-slate-400'
+											<div className={`flex items-center gap-1 mt-1 ${
+												isSentByUser ? 'justify-end' : 'justify-start'
 											}`}>
-												{message.time || new Date(message.createdAt).toLocaleTimeString([], { 
-													hour: '2-digit', 
-													minute: '2-digit' 
-												})}
-											</span>
+												<span className={`text-[10px] ${
+													isSentByUser 
+														? 'text-blue-100 dark:text-blue-200' 
+														: 'text-slate-500 dark:text-slate-500'
+												}`}>
+													{message.time || new Date(message.createdAt).toLocaleTimeString([], { 
+														hour: '2-digit', 
+														minute: '2-digit' 
+													})}
+												</span>
+												{isSentByUser && (
+													<CheckCheck className={`h-3.5 w-3.5 ${
+														message.read 
+															? 'text-blue-200 dark:text-blue-300' 
+															: 'text-blue-300 dark:text-blue-400'
+													}`} />
+												)}
+											</div>
 										</div>
 									</motion.div>
 								);
 							})}
 						</AnimatePresence>
 
-						{/* Typing Indicator */}
+						{/* Typing Indicator - Only show when other user is typing */}
 						<AnimatePresence>
 							{isTyping && (
 								<motion.div
 									initial={{ opacity: 0, y: 10 }}
 									animate={{ opacity: 1, y: 0 }}
-									exit={{ opacity: 0, y: 10 }}
-									className="flex justify-start"
+									exit={{ opacity: 0, y: -10 }}
+									transition={{ duration: 0.2 }}
+									className="flex justify-start px-2"
 								>
-									<div className="bg-white dark:bg-slate-800 rounded-2xl rounded-bl-md px-5 py-3 shadow-lg border border-slate-200 dark:border-slate-700">
+									<div className="bg-white dark:bg-slate-800 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm border border-slate-100 dark:border-slate-700/50">
 										<div className="flex gap-1">
 											<motion.span
-												className="w-2 h-2 bg-slate-400 rounded-full"
-												animate={{ y: [0, -8, 0] }}
-												transition={{ duration: 0.6, repeat: Infinity, delay: 0 }}
+												className="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full"
+												animate={{ y: [0, -6, 0] }}
+												transition={{ duration: 0.6, repeat: Infinity, ease: "easeInOut" }}
 											/>
 											<motion.span
-												className="w-2 h-2 bg-slate-400 rounded-full"
-												animate={{ y: [0, -8, 0] }}
-												transition={{ duration: 0.6, repeat: Infinity, delay: 0.2 }}
+												className="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full"
+												animate={{ y: [0, -6, 0] }}
+												transition={{ duration: 0.6, repeat: Infinity, delay: 0.2, ease: "easeInOut" }}
 											/>
 											<motion.span
-												className="w-2 h-2 bg-slate-400 rounded-full"
-												animate={{ y: [0, -8, 0] }}
-												transition={{ duration: 0.6, repeat: Infinity, delay: 0.4 }}
+												className="w-2 h-2 bg-slate-400 dark:bg-slate-500 rounded-full"
+												animate={{ y: [0, -6, 0] }}
+												transition={{ duration: 0.6, repeat: Infinity, delay: 0.4, ease: "easeInOut" }}
 											/>
 										</div>
 									</div>
@@ -490,16 +520,16 @@ export default function ChatConversation() {
 			<AnimatePresence>
 				{showScrollButton && messages.length > 0 && (
 					<motion.div
-						initial={{ opacity: 0, scale: 0.8, y: 20 }}
+						initial={{ opacity: 0, scale: 0.5, y: 20 }}
 						animate={{ opacity: 1, scale: 1, y: 0 }}
-						exit={{ opacity: 0, scale: 0.8, y: 20 }}
-						transition={{ duration: 0.2, ease: "easeOut" }}
+						exit={{ opacity: 0, scale: 0.5, y: 20 }}
+						transition={{ type: "spring", stiffness: 300, damping: 25 }}
 						className="absolute bottom-24 right-6 z-10"
 					>
 						<Button
 							onClick={handleScrollToBottom}
 							size="icon"
-							className="h-12 w-12 rounded-full shadow-2xl bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-2 border-white dark:border-slate-900 transition-all hover:scale-110 active:scale-95"
+							className="h-11 w-11 rounded-full shadow-xl bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-blue-600 dark:text-blue-400 border border-slate-200 dark:border-slate-700 transition-all hover:scale-110 active:scale-95 hover:shadow-2xl"
 						>
 							<ArrowDown className="h-5 w-5" />
 						</Button>
@@ -511,10 +541,11 @@ export default function ChatConversation() {
 			<motion.div 
 				initial={{ y: 20, opacity: 0 }}
 				animate={{ y: 0, opacity: 1 }}
-				className="p-4 border-t border-slate-200/50 dark:border-slate-800/50 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80"
+				transition={{ duration: 0.3, delay: 0.1 }}
+				className="p-4 border-t border-slate-200/60 dark:border-slate-800/60 backdrop-blur-xl bg-white/90 dark:bg-slate-900/90"
 			>
 				<form
-					className="flex items-end gap-3"
+					className="flex items-end gap-2"
 					onSubmit={(e) => {
 						e.preventDefault();
 						handleSendMessage();
@@ -524,9 +555,9 @@ export default function ChatConversation() {
 						type="button" 
 						variant="ghost" 
 						size="icon"
-						className="mb-1 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+						className="mb-1 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all hover:scale-105 active:scale-95"
 					>
-						<Paperclip className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+						<Paperclip className="h-5 w-5 text-slate-500 dark:text-slate-400" />
 					</Button>
 					
 					<div className="flex-1 relative">
@@ -542,9 +573,10 @@ export default function ChatConversation() {
 							}}
 							placeholder="Type a message..."
 							rows={1}
-							className="w-full resize-none overflow-hidden pr-12 px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:outline-none shadow-sm bg-white dark:bg-slate-800 transition-all text-sm [word-break:break-word]"
+							disabled={isSending}
+							className="w-full resize-none overflow-hidden pr-11 pl-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-500 focus:border-transparent focus:outline-none shadow-sm bg-white dark:bg-slate-800 transition-all text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed"
 							style={{
-								minHeight: '48px',
+								minHeight: '44px',
 								maxHeight: '120px',
 								height: 'auto'
 							}}
@@ -557,19 +589,23 @@ export default function ChatConversation() {
 							type="button" 
 							variant="ghost" 
 							size="icon"
-							className="absolute right-2 top-1/2 -translate-y-1/2 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+							className="absolute right-1 top-1/2 -translate-y-1/2 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all hover:scale-105 active:scale-95"
 						>
-							<Smile className="h-5 w-5 text-slate-600 dark:text-slate-400" />
+							<Smile className="h-5 w-5 text-slate-500 dark:text-slate-400" />
 						</Button>
 					</div>
 					
 					<Button 
 						type="submit" 
 						size="icon"
-						disabled={!newMessage.trim()}
-						className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+						disabled={!newMessage.trim() || isSending}
+						className="h-11 w-11 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 dark:from-blue-600 dark:to-blue-700 dark:hover:from-blue-700 dark:hover:to-blue-800 text-white shadow-md transition-all hover:scale-105 active:scale-95 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:shadow-md"
 					>
-						<Send className="h-5 w-5" />
+						{isSending ? (
+							<Loader2 className="h-5 w-5 animate-spin" />
+						) : (
+							<Send className="h-5 w-5" />
+						)}
 					</Button>
 				</form>
 			</motion.div>
