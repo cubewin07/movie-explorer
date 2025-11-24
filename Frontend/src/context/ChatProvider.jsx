@@ -144,6 +144,13 @@ function ChatProvider({ children }) {
                   queryClient.setQueryData(["chat", chatId, "messages"], (oldData) => {
                     if (!oldData) return oldData; // Guard against undefined data
                     console.log(newMessage);
+
+                    if(newMessage.type === 'markAsRead') {
+
+                      // If the message is a read receipt, do not add it to messages
+                      return;
+
+                    }
           
                     const updatedPages = oldData.pages.map((page, index) => {
                       if (index === 0) {
