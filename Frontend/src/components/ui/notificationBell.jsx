@@ -50,11 +50,11 @@ function NotificationItem({
       className="relative"
     >
       {/* Red delete background */}
-      <div className="absolute inset-0 flex justify-end items-center pr-4 pointer-events-none">
+      {/* <div className="absolute inset-0 flex justify-end items-center pr-4 pointer-events-none">
         <div className="bg-red-600 text-white rounded-full p-2 pointer-events-none">
           <Trash2 className="w-4 h-4" />
         </div>
-      </div>
+      </div> */}
 
       {/* Draggable container */}
       <motion.div
@@ -99,7 +99,7 @@ function NotificationItem({
           onClick={(e) => handleDeleteNotification(e, notification.id)}
           className="flex-shrink-0 opacity-0 group-hover:opacity-100 p-1.5 
                      rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 
-                     transition-all"
+                     transition-all mt-2"
         >
           <Trash2 className="w-4 h-4 text-red-500 dark:text-red-400" />
         </button>
