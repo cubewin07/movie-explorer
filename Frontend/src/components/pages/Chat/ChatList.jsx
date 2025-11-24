@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { useChat } from '@/context/ChatProvider';
 import useMarkMessageAsRead from '@/hooks/chat/useMarkMessageAsRead';
 import { useAuthen } from '@/context/AuthenProvider';
+import { useNotificationActions } from '@/hooks/notification/useNotificationActions';
 
 export default function ChatList() {
   const [search, setSearch] = useState('');
@@ -15,6 +16,7 @@ export default function ChatList() {
   const { chats, newChatIds } = useChat();
   const { user, token } = useAuthen();
   const { mutate: markMessageAsRead } = useMarkMessageAsRead(token);
+  const { markChatNotificationsAsRead } = useNotificationActions(token);
 
   // Extract the active chatId from the current path
   const activeChatId = location.pathname.split('/').pop();
@@ -78,6 +80,7 @@ export default function ChatList() {
   const handleClickChat = (chatId) => {
     navigate(`/friend/chat/${chatId}`);
     markMessageAsRead(chatId);
+    markChatNotificationsAsRead.mutate(chatId);
   }
 
   if (!chats || chats.length === 0) {
