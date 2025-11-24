@@ -351,3 +351,26 @@ const handleMarkAllAsRead = () => {
     </div>
   );
 }
+
+function groupNotificationsByDate(notifications) {
+  const groups = {
+    Today: [],
+    Yesterday: [],
+    "This Week": [],
+    Older: []
+  };
+
+  const now = new Date();
+  
+  notifications.forEach((n) => {
+    const date = new Date(n.createdAt);
+    const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) groups.Today.push(n);
+    else if (diffDays === 1) groups.Yesterday.push(n);
+    else if (diffDays < 7) groups["This Week"].push(n);
+    else groups.Older.push(n);
+  });
+
+  return groups;
+}
