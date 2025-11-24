@@ -209,7 +209,7 @@ const handleMarkAllAsRead = () => {
   };
 
   const unreadCount = notifications.filter(n => !n.read).length;
-  const grouped = groupNotificationsByDate(notifications);
+  const grouped = notifications.length > 0 ? groupNotificationsByDate(notifications) : {};
 
   return (
     <div className="relative">
@@ -302,8 +302,22 @@ const handleMarkAllAsRead = () => {
               </div>
 
               {/* Notification List */}
-              {Object.entries(grouped).map(([section, items]) => {
-                if (items.length === 0) return (null);
+              {Object.entries(grouped).length === 0 ? (
+                <motion.li
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="px-6 py-12 text-center"
+                >
+                  <div className="w-16 h-16 bg-gray-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Bell className="w-8 h-8 text-gray-400 dark:text-gray-600" />
+                  </div>
+                  <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">No notifications yet</p>
+                  <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">We'll notify you when something happens</p>
+                </motion.li>
+              ) : (
+                Object.entries(grouped).map(([section, items]) => {
+                  if (items.length === 0) return (null);
 
                 return (
                   <div key={section}>
@@ -328,7 +342,7 @@ const handleMarkAllAsRead = () => {
                     </AnimatePresence>
                   </div>
                 );
-              })}
+              }))}
 
               {/* Footer - TODO: Add "View All" link when you have a notifications page */}
                 <div className="p-3 border-t border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-800/50">
