@@ -38,7 +38,7 @@ public class NotificationController {
         return ResponseEntity.ok(Map.of("message", "Marked all notifications as read"));
     }
 
-    @PutMapping("/chat/{chatId}")
+    @PutMapping("/chat/{chatId}/read")
     public ResponseEntity<Map<String, String>> markChatNotificationAsRead(@AuthenticationPrincipal User user, @PathVariable("chatId") Long chatId) {
         notificationService.markChatNotificationAsRead(user, chatId);
         String message = "Marked notifications of chat with id: " + chatId + " as read";
