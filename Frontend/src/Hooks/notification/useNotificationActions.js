@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import instance from "@/lib/instance";
 
-export const useNotificationActions = () => {
+export const useNotificationActions = (token) => {
   const queryClient = useQueryClient();
 
   // Mark notification as read
@@ -51,9 +51,25 @@ export const useNotificationActions = () => {
         }
     });
 
+    const markChatNotificationsAsRead = useMutation({
+        mutationFn: async (chatId) => {
+            const response = await instance.put(`/notifications/chat/${chatId}/read`);
+        return response.data;
+        },
+        onSuccess: () => {
+        // Invalidate relevant queries
+            queryClient.invalidateQueries({ queryKey: ['notifications'] });
+            queryClient.invalidateQueries({ queryKey: ['userInfo', token] });
+        },
+        onError: (error) => {
+            console.error('Error marking all chat notifications as read:', error);
+        }
+    });
+
   return {
     markAsRead,
     markAllAsRead,
-    deleteNotification
+    deleteNotification,
+    markChatNotificationsAsRead
   };
 }
