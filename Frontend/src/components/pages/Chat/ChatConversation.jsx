@@ -457,7 +457,6 @@ export default function ChatConversation() {
                                                     ? 'text-indigo-200 dark:text-indigo-300' 
                                                     : 'text-slate-500 dark:text-slate-400'
                                             }`}>
-                                                <Clock className="h-3 w-3 inline mr-1 -mt-0.5" />
                                                 {message.time || new Date(message.createdAt).toLocaleTimeString([], { 
                                                     hour: '2-digit', 
                                                     minute: '2-digit' 
