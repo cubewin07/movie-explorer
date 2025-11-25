@@ -315,6 +315,12 @@ export default function ChatConversation() {
 			<motion.div 
 				initial={{ y: -20, opacity: 0 }}
 				animate={{ y: 0, opacity: 1 }}
+				transformTemplate={(transform, generated) => {
+					if (!generated) return "";  // safety
+
+					// Remove scale(...) but keep translate/rotate etc.
+					return generated.replace(/scale\([^)]+\)/, "").trim();
+				}}
 				className="p-4 border-b border-slate-200/50 dark:border-slate-800/50 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 shadow-sm"
 			>
 				<div className="flex items-center justify-between">
