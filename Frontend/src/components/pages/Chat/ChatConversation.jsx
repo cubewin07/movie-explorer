@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -46,6 +46,8 @@ export default function ChatConversation() {
 		const allMessages = data?.pages.flatMap(page => page.content) || [];
 		return allMessages.reverse();
 	}, [data]);
+
+	const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 	// Group messages by date
 	const groupedMessages = useMemo(() => {
@@ -160,55 +162,42 @@ export default function ChatConversation() {
 	}, [scrollRef.current]);
 
 	// Reset when chatId changes
-	useEffect(() => {
-		if (prevChatId.current !== chatId) {
-			isUserScrolling.current = false;
-			prevMessagesLength.current = 0;
-			setShowScrollButton(false);
-			scrollButtonEnabled.current = false;
-			shouldScrollToBottom.current = true;
-			prevChatId.current = chatId;
-			
-			if (messages.length > 0) {
-				setTimeout(() => {
-					scrollToBottom('auto');
-					
-					setTimeout(() => {
-						shouldScrollToBottom.current = false;
-						scrollButtonEnabled.current = true;
-						prevMessagesLength.current = messages.length;
-					}, 300);
-				}, 100);
-			}
-		}
-	}, [chatId]);
+	useIsomorphicLayoutEffect(() => {
+        const scrollElement = scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+        if (!scrollElement || !messages.length) return;
 
-	// Scroll to bottom on new messages
-	useEffect(() => {
-		if (!scrollRef.current || groupedMessages.length === 0) return;
+        // CASE 1: Chat ID Changed (New Room)
+        if (prevChatId.current !== chatId) {
+            // Instant jump to bottom (no animation) so it looks like it loaded there
+            scrollElement.scrollTop = scrollElement.scrollHeight;
+            
+            // Reset trackers
+            prevChatId.current = chatId;
+            prevMessagesLength.current = messages.length;
+            isUserScrolling.current = false;
+            setShowScrollButton(false);
+            
+            return; 
+        }
 
-		if (shouldScrollToBottom.current) {
-			setShowScrollButton(false);
-			scrollButtonEnabled.current = false;
-			
-			setTimeout(() => {
-				scrollToBottom('auto');
-				
-				setTimeout(() => {
-					shouldScrollToBottom.current = false;
-					scrollButtonEnabled.current = true;
-					prevMessagesLength.current = messages.length;
-				}, 300);
-			}, 100);
-			return;
-		}
+        // CASE 2: New Messages in Same Room
+        const isNewMessage = messages.length > prevMessagesLength.current;
+        
+        if (isNewMessage) {
+            // Only auto-scroll if we aren't loading old history and user isn't scrolling up
+            if (!isFetchingNextPage && !isUserScrolling.current) {
+                // If it's my own message, snap instantly or smooth scroll? 
+                // Usually smooth is nice for "arriving" messages, instant for sending.
+                // For simplicity, let's use smooth here.
+                scrollToBottom('smooth'); 
+            } else if (isUserScrolling.current) {
+                // If user is scrolling up, show the "New Message" button instead
+                setShowScrollButton(true);
+            }
+            prevMessagesLength.current = messages.length;
+        }
 
-		if (messages.length > prevMessagesLength.current && !isFetchingNextPage && !isUserScrolling.current) {
-			scrollToBottom('smooth');
-		}
-
-		prevMessagesLength.current = messages.length;
-	}, [messages.length, isFetchingNextPage, groupedMessages.length]);
+    }, [messages, chatId, isFetchingNextPage]);
 
 	// Intersection Observer for infinite scroll
 	useEffect(() => {
@@ -389,7 +378,7 @@ export default function ChatConversation() {
 						</motion.div>
 					</div>
 				) : (
-					<div className="space-y-2 pb-4">
+					<div key={chatId} className="space-y-2 pb-4">
 						{/* Load more indicator */}
 						{hasNextPage && (
 							<div ref={observerTarget} className="flex justify-center py-3">
@@ -406,7 +395,7 @@ export default function ChatConversation() {
 							</div>
 						)}
 
-						<AnimatePresence initial={false}>
+						<AnimatePresence initial={false} mode='popLayout'>
 							{groupedMessages.map((item, index) => {
 								if (item.type === 'date') {
 									return (
