@@ -537,7 +537,7 @@ export default function ChatConversation() {
 						type="button" 
 						variant="ghost" 
 						size="icon"
-						className="mb-1 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+						className="hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
 					>
 						<Paperclip className="h-5 w-5 text-slate-600 dark:text-slate-400" />
 					</Button>
@@ -556,7 +556,7 @@ export default function ChatConversation() {
 							placeholder="Type a message..."
 							rows={1}
 							disabled={isSending}
-							className="w-full resize-none overflow-hidden pr-12 px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:outline-none shadow-sm bg-white dark:bg-slate-800 transition-all text-sm [word-break:break-word] disabled:opacity-50 disabled:cursor-not-allowed"
+							className="mb-[-5px] w-full resize-none overflow-hidden pr-12 px-4 py-3 rounded-2xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-600 focus:outline-none shadow-sm bg-white dark:bg-slate-800 transition-all text-sm [word-break:break-word] disabled:opacity-50 disabled:cursor-not-allowed"
 							style={{
 								minHeight: '48px',
 								maxHeight: '120px',
