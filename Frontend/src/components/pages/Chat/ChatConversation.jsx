@@ -443,7 +443,7 @@ export default function ChatConversation() {
                                         className={`flex ${isSentByUser ? 'justify-end' : 'justify-start'} px-2`}
                                     >
                                         <div
-                                            className={`max-w-[75%] sm:max-w-[70%] md:max-w-[65%] rounded-2xl p-3 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] relative group ${
+                                            className={`max-w-[75%] sm:max-w-[70%] md:max-w-[65%] rounded-2xl px-3 py-2 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] relative group ${
                                                 isSentByUser
                                                     ? 'bg-gradient-to-br from-indigo-600 via-indigo-500 to-purple-600 dark:from-indigo-500 dark:via-indigo-600 dark:to-purple-500 text-white rounded-br-sm'
                                                     : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-tl-sm border border-indigo-100 dark:border-indigo-900/50'
