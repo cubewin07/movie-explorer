@@ -330,7 +330,6 @@ export default function ChatConversation() {
 								<AvatarImage src={`https://avatar.vercel.sh/${chatId}.png`} />
 								<AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-500 text-white">UN</AvatarFallback>
 							</Avatar>
-							<span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 rounded-full border-2 border-white dark:border-slate-900 animate-pulse" />
 						</div>
 						<div>
 							<p className="font-semibold text-slate-900 dark:text-slate-100">User Name</p>
