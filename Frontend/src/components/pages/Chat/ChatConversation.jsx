@@ -414,7 +414,7 @@ export default function ChatConversation() {
                                             initial={{ opacity: 0, scale: 0.9 }}
                                             animate={{ opacity: 1, scale: 1 }}
                                             transition={{ duration: 0.3, ease: "easeOut" }}
-                                            className="flex justify-center my-6 sticky top-0 z-10"
+                                            className="flex justify-center my-6"
                                         >
                                             <div className="px-4 py-1.5 rounded-full bg-white/90 dark:bg-slate-900/90 border border-slate-200/60 dark:border-slate-700/60 shadow-md backdrop-blur-lg">
                                                 <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
