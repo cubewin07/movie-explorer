@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, useLayoutEffect } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import useInfiniteMessages from '@/hooks/chat/useInfiniteMessages';
 import { useChat } from '@/context/ChatProvider';
 import { useAuthen } from '@/context/AuthenProvider';
-import { set } from 'react-hook-form';
 
 export default function ChatConversation() {
 	const { chatId } = useParams();
@@ -18,10 +17,7 @@ export default function ChatConversation() {
 	const [showScrollButton, setShowScrollButton] = useState(false);
 	const [isTyping, setIsTyping] = useState(false);
 	const [isSending, setIsSending] = useState(false);
-	const [isRoomLoaded, setIsRoomLoaded] = useState(false);
-
 	const { user } = useAuthen();
-
 	const scrollRef = useRef(null);
 	const observerTarget = useRef(null);
 	const prevMessagesLength = useRef(0);
@@ -50,8 +46,6 @@ export default function ChatConversation() {
 		const allMessages = data?.pages.flatMap(page => page.content) || [];
 		return allMessages.reverse();
 	}, [data]);
-
-	const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 	// Group messages by date
 	const groupedMessages = useMemo(() => {
@@ -102,45 +96,18 @@ export default function ChatConversation() {
 		}
 	};
 
-	// --- HELPER FUNCTIONS ---
-
-    // Robustly find the scrollable element inside Radix UI
-    const getScrollElement = () => {
-        return scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]');
-    };
-
-    const scrollToBottom = (behavior = 'smooth') => {
-        const el = getScrollElement();
-        if (el) {
-            el.scrollTo({ top: el.scrollHeight, behavior: behavior });
-        }
-    };
-
-    // [FIX 2] The Scroll Handler
-    // We simplify this. No timeouts. Just Math.
-    const handleScroll = (event) => {
-        const { scrollTop, scrollHeight, clientHeight } = event.target;
-        const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
-        
-        // If we are more than 100px from bottom, user is scrolling up
-        const isScrollingUp = distanceFromBottom > 100;
-        
-        isUserScrolling.current = isScrollingUp;
-        setShowScrollButton(isScrollingUp);
-    };
-
-	// // Smooth scroll to bottom function
-	// const scrollToBottom = (behavior = 'smooth') => {
-	// 	if (scrollRef.current) {
-	// 		const scrollElement = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
-	// 		if (scrollElement) {
-	// 			scrollElement.scrollTo({
-	// 				top: scrollElement.scrollHeight,
-	// 				behavior: behavior
-	// 			});
-	// 		}
-	// 	}
-	// };
+	// Smooth scroll to bottom function
+	const scrollToBottom = (behavior = 'smooth') => {
+		if (scrollRef.current) {
+			const scrollElement = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
+			if (scrollElement) {
+				scrollElement.scrollTo({
+					top: scrollElement.scrollHeight,
+					behavior: behavior
+				});
+			}
+		}
+	};
 
 	// Observer for last message visibility
 	useEffect(() => {
@@ -164,24 +131,24 @@ export default function ChatConversation() {
 		};
 	}, [groupedMessages.length]);
 
-	// // Handle scroll detection
-	// const handleScroll = () => {
-	// 	const scrollElement = scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]');
-	// 	if (!scrollElement) return;
+	// Handle scroll detection
+	const handleScroll = () => {
+		const scrollElement = scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+		if (!scrollElement) return;
 		
-	// 	const { scrollTop, scrollHeight, clientHeight } = scrollElement;
-	// 	const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+		const { scrollTop, scrollHeight, clientHeight } = scrollElement;
+		const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
 		
-	// 	isUserScrolling.current = distanceFromBottom > 100;
+		isUserScrolling.current = distanceFromBottom > 100;
 		
-	// 	if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+		if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
 		
-	// 	scrollTimeout.current = setTimeout(() => {
-	// 		if (distanceFromBottom < 100) {
-	// 			isUserScrolling.current = false;
-	// 		}
-	// 	}, 150);
-	// };
+		scrollTimeout.current = setTimeout(() => {
+			if (distanceFromBottom < 100) {
+				isUserScrolling.current = false;
+			}
+		}, 150);
+	};
 
 	// Attach scroll listener
 	useEffect(() => {
@@ -193,96 +160,90 @@ export default function ChatConversation() {
 	}, [scrollRef.current]);
 
 	// Reset when chatId changes
-	useIsomorphicLayoutEffect(() => {
-        const scrollElement = getScrollElement();
-        
-        // If Radix hasn't mounted the viewport yet, or no messages, wait.
-        if (!scrollElement || messages.length === 0) return;
+	useEffect(() => {
+		if (prevChatId.current !== chatId) {
+			isUserScrolling.current = false;
+			prevMessagesLength.current = 0;
+			setShowScrollButton(false);
+			scrollButtonEnabled.current = false;
+			shouldScrollToBottom.current = true;
+			prevChatId.current = chatId;
+			
+			if (messages.length > 0) {
+				setTimeout(() => {
+					scrollToBottom('auto');
+					
+					setTimeout(() => {
+						shouldScrollToBottom.current = false;
+						scrollButtonEnabled.current = true;
+						prevMessagesLength.current = messages.length;
+					}, 300);
+				}, 100);
+			}
+		}
+	}, [chatId]);
 
-        // --- SCENARIO A: INITIAL ROOM SETUP ---
-        if (!isRoomLoaded) {
-            // 1. Instant Jump (Teleport)
-            scrollElement.scrollTop = scrollElement.scrollHeight;
+	// Scroll to bottom on new messages
+	useEffect(() => {
+		if (!scrollRef.current || groupedMessages.length === 0) return;
 
-            // 2. Attach Listener Manually 
-            // (We do it here to ensure the element actually exists)
-            scrollElement.removeEventListener('scroll', handleScroll); // Safety cleanup
-            scrollElement.addEventListener('scroll', handleScroll);
+		if (shouldScrollToBottom.current) {
+			setShowScrollButton(false);
+			scrollButtonEnabled.current = false;
+			
+			setTimeout(() => {
+				scrollToBottom('auto');
+				
+				setTimeout(() => {
+					shouldScrollToBottom.current = false;
+					scrollButtonEnabled.current = true;
+					prevMessagesLength.current = messages.length;
+				}, 300);
+			}, 100);
+			return;
+		}
 
-            // 3. Reveal Room
-            // We use a small timeout to let the browser paint the scrollTop change 
-            // BEFORE we make the opacity 1.
-            const timer = setTimeout(() => {
-                setIsRoomLoaded(true);
-                prevMessagesLength.current = messages.length;
-            }, 50);
+		if (messages.length > prevMessagesLength.current && !isFetchingNextPage && !isUserScrolling.current) {
+			scrollToBottom('smooth');
+		}
 
-            return () => {
-                scrollElement.removeEventListener('scroll', handleScroll);
-                clearTimeout(timer);
-            };
-        }
+		prevMessagesLength.current = messages.length;
+	}, [messages.length, isFetchingNextPage, groupedMessages.length]);
 
-        // --- SCENARIO B: NEW MESSAGE ARRIVAL ---
-        const isNewMessage = messages.length > prevMessagesLength.current;
-        
-        if (isNewMessage) {
-            // Check if we should auto-scroll
-            if (!isFetchingNextPage && !isUserScrolling.current) {
-                scrollToBottom('smooth');
-            } 
-            // Update reference
-            prevMessagesLength.current = messages.length;
-        }
+	// Intersection Observer for infinite scroll
+	useEffect(() => {
+		const observer = new IntersectionObserver(
+			entries => {
+				if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+					const scrollElement = scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+					if (scrollElement) {
+						const previousScrollHeight = scrollElement.scrollHeight;
+						const previousScrollTop = scrollElement.scrollTop;
 
-        // Re-attach listener if lost (rare edge case with Radix updates)
-        scrollElement.removeEventListener('scroll', handleScroll);
-        scrollElement.addEventListener('scroll', handleScroll);
+						fetchNextPage().then(() => {
+							requestAnimationFrame(() => {
+								if (scrollElement) {
+									const newScrollHeight = scrollElement.scrollHeight;
+									scrollElement.scrollTop = previousScrollTop + (newScrollHeight - previousScrollHeight);
+								}
+							});
+						});
+					}
+				}
+			},
+			{ threshold: 1 }
+		);
 
-        return () => {
-            scrollElement.removeEventListener('scroll', handleScroll);
-        };
+		if (observerTarget.current) {
+			observer.observe(observerTarget.current);
+		}
 
-    }, [messages, chatId, isRoomLoaded, isFetchingNextPage]); // Dependencies are crucial
-
-    // Reset isRoomLoaded when chatId changes (Render Phase Update)
-    // This prevents the "Flash" of the old room's state
-    const currentChatId = useRef(chatId);
-    if (currentChatId.current !== chatId) {
-        currentChatId.current = chatId;
-        setIsRoomLoaded(false);
-        isUserScrolling.current = false;
-        setShowScrollButton(false);
-    }
-
-	// --- LOAD MORE OBSERVER ---
-    useEffect(() => {
-        const observer = new IntersectionObserver(
-            entries => {
-                if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-                    const scrollElement = getScrollElement();
-                    if (scrollElement) {
-                        const previousScrollHeight = scrollElement.scrollHeight;
-                        const previousScrollTop = scrollElement.scrollTop;
-
-                        fetchNextPage().then(() => {
-                            // Restore scroll position after loading old messages
-                            requestAnimationFrame(() => {
-                                if (scrollElement) {
-                                    const newScrollHeight = scrollElement.scrollHeight;
-                                    scrollElement.scrollTop = previousScrollTop + (newScrollHeight - previousScrollHeight);
-                                }
-                            });
-                        });
-                    }
-                }
-            },
-            { threshold: 1 }
-        );
-
-        if (observerTarget.current) observer.observe(observerTarget.current);
-        return () => observerTarget.current && observer.unobserve(observerTarget.current);
-    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+		return () => {
+			if (observerTarget.current) {
+				observer.unobserve(observerTarget.current);
+			}
+		};
+	}, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
 	const handleSendMessage = async () => {
 		if (newMessage.trim() && chatId && !isSending) {
@@ -394,7 +355,7 @@ export default function ChatConversation() {
 			</motion.div>
 
 			{/* Messages Area */}
-			<ScrollArea key={chatId} className="flex-1 p-4" ref={scrollRef}>
+			<ScrollArea className="flex-1 p-4" ref={scrollRef}>
 				{messages.length === 0 ? (
 					<div className="h-full flex items-center justify-center">
 						<motion.div
@@ -428,9 +389,7 @@ export default function ChatConversation() {
 						</motion.div>
 					</div>
 				) : (
-					<div className={`space-y-2 pb-4 transition-opacity duration-150 ${
-                        isRoomLoaded ? 'opacity-100' : 'opacity-0'
-                    }`}>
+					<div className="space-y-2 pb-4">
 						{/* Load more indicator */}
 						{hasNextPage && (
 							<div ref={observerTarget} className="flex justify-center py-3">
@@ -447,7 +406,7 @@ export default function ChatConversation() {
 							</div>
 						)}
 
-						<AnimatePresence initial={false} mode='popLayout'>
+						<AnimatePresence initial={false}>
 							{groupedMessages.map((item, index) => {
 								if (item.type === 'date') {
 									return (
