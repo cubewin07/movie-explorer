@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import useInfiniteMessages from '@/hooks/chat/useInfiniteMessages';
 import { useChat } from '@/context/ChatProvider';
 import { useAuthen } from '@/context/AuthenProvider';
+import { set } from 'react-hook-form';
 
 export default function ChatConversation() {
 	const { chatId } = useParams();
@@ -17,7 +18,10 @@ export default function ChatConversation() {
 	const [showScrollButton, setShowScrollButton] = useState(false);
 	const [isTyping, setIsTyping] = useState(false);
 	const [isSending, setIsSending] = useState(false);
+	const [isRoomLoaded, setIsRoomLoaded] = useState(false);
+
 	const { user } = useAuthen();
+
 	const scrollRef = useRef(null);
 	const observerTarget = useRef(null);
 	const prevMessagesLength = useRef(0);
@@ -98,18 +102,45 @@ export default function ChatConversation() {
 		}
 	};
 
-	// Smooth scroll to bottom function
-	const scrollToBottom = (behavior = 'smooth') => {
-		if (scrollRef.current) {
-			const scrollElement = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
-			if (scrollElement) {
-				scrollElement.scrollTo({
-					top: scrollElement.scrollHeight,
-					behavior: behavior
-				});
-			}
-		}
-	};
+	// --- HELPER FUNCTIONS ---
+
+    // Robustly find the scrollable element inside Radix UI
+    const getScrollElement = () => {
+        return scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+    };
+
+    const scrollToBottom = (behavior = 'smooth') => {
+        const el = getScrollElement();
+        if (el) {
+            el.scrollTo({ top: el.scrollHeight, behavior: behavior });
+        }
+    };
+
+    // [FIX 2] The Scroll Handler
+    // We simplify this. No timeouts. Just Math.
+    const handleScroll = (event) => {
+        const { scrollTop, scrollHeight, clientHeight } = event.target;
+        const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+        
+        // If we are more than 100px from bottom, user is scrolling up
+        const isScrollingUp = distanceFromBottom > 100;
+        
+        isUserScrolling.current = isScrollingUp;
+        setShowScrollButton(isScrollingUp);
+    };
+
+	// // Smooth scroll to bottom function
+	// const scrollToBottom = (behavior = 'smooth') => {
+	// 	if (scrollRef.current) {
+	// 		const scrollElement = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
+	// 		if (scrollElement) {
+	// 			scrollElement.scrollTo({
+	// 				top: scrollElement.scrollHeight,
+	// 				behavior: behavior
+	// 			});
+	// 		}
+	// 	}
+	// };
 
 	// Observer for last message visibility
 	useEffect(() => {
@@ -133,24 +164,24 @@ export default function ChatConversation() {
 		};
 	}, [groupedMessages.length]);
 
-	// Handle scroll detection
-	const handleScroll = () => {
-		const scrollElement = scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]');
-		if (!scrollElement) return;
+	// // Handle scroll detection
+	// const handleScroll = () => {
+	// 	const scrollElement = scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+	// 	if (!scrollElement) return;
 		
-		const { scrollTop, scrollHeight, clientHeight } = scrollElement;
-		const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+	// 	const { scrollTop, scrollHeight, clientHeight } = scrollElement;
+	// 	const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
 		
-		isUserScrolling.current = distanceFromBottom > 100;
+	// 	isUserScrolling.current = distanceFromBottom > 100;
 		
-		if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+	// 	if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
 		
-		scrollTimeout.current = setTimeout(() => {
-			if (distanceFromBottom < 100) {
-				isUserScrolling.current = false;
-			}
-		}, 150);
-	};
+	// 	scrollTimeout.current = setTimeout(() => {
+	// 		if (distanceFromBottom < 100) {
+	// 			isUserScrolling.current = false;
+	// 		}
+	// 	}, 150);
+	// };
 
 	// Attach scroll listener
 	useEffect(() => {
@@ -163,76 +194,95 @@ export default function ChatConversation() {
 
 	// Reset when chatId changes
 	useIsomorphicLayoutEffect(() => {
-        const scrollElement = scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]');
-        if (!scrollElement || !messages.length) return;
+        const scrollElement = getScrollElement();
+        
+        // If Radix hasn't mounted the viewport yet, or no messages, wait.
+        if (!scrollElement || messages.length === 0) return;
 
-        // CASE 1: Chat ID Changed (New Room)
-        if (prevChatId.current !== chatId) {
-            // Instant jump to bottom (no animation) so it looks like it loaded there
+        // --- SCENARIO A: INITIAL ROOM SETUP ---
+        if (!isRoomLoaded) {
+            // 1. Instant Jump (Teleport)
             scrollElement.scrollTop = scrollElement.scrollHeight;
-            
-            // Reset trackers
-            prevChatId.current = chatId;
-            prevMessagesLength.current = messages.length;
-            isUserScrolling.current = false;
-            setShowScrollButton(false);
-            
-            return; 
+
+            // 2. Attach Listener Manually 
+            // (We do it here to ensure the element actually exists)
+            scrollElement.removeEventListener('scroll', handleScroll); // Safety cleanup
+            scrollElement.addEventListener('scroll', handleScroll);
+
+            // 3. Reveal Room
+            // We use a small timeout to let the browser paint the scrollTop change 
+            // BEFORE we make the opacity 1.
+            const timer = setTimeout(() => {
+                setIsRoomLoaded(true);
+                prevMessagesLength.current = messages.length;
+            }, 50);
+
+            return () => {
+                scrollElement.removeEventListener('scroll', handleScroll);
+                clearTimeout(timer);
+            };
         }
 
-        // CASE 2: New Messages in Same Room
+        // --- SCENARIO B: NEW MESSAGE ARRIVAL ---
         const isNewMessage = messages.length > prevMessagesLength.current;
         
         if (isNewMessage) {
-            // Only auto-scroll if we aren't loading old history and user isn't scrolling up
+            // Check if we should auto-scroll
             if (!isFetchingNextPage && !isUserScrolling.current) {
-                // If it's my own message, snap instantly or smooth scroll? 
-                // Usually smooth is nice for "arriving" messages, instant for sending.
-                // For simplicity, let's use smooth here.
-                scrollToBottom('smooth'); 
-            } else if (isUserScrolling.current) {
-                // If user is scrolling up, show the "New Message" button instead
-                setShowScrollButton(true);
-            }
+                scrollToBottom('smooth');
+            } 
+            // Update reference
             prevMessagesLength.current = messages.length;
         }
 
-    }, [messages, chatId, isFetchingNextPage]);
+        // Re-attach listener if lost (rare edge case with Radix updates)
+        scrollElement.removeEventListener('scroll', handleScroll);
+        scrollElement.addEventListener('scroll', handleScroll);
 
-	// Intersection Observer for infinite scroll
-	useEffect(() => {
-		const observer = new IntersectionObserver(
-			entries => {
-				if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-					const scrollElement = scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]');
-					if (scrollElement) {
-						const previousScrollHeight = scrollElement.scrollHeight;
-						const previousScrollTop = scrollElement.scrollTop;
+        return () => {
+            scrollElement.removeEventListener('scroll', handleScroll);
+        };
 
-						fetchNextPage().then(() => {
-							requestAnimationFrame(() => {
-								if (scrollElement) {
-									const newScrollHeight = scrollElement.scrollHeight;
-									scrollElement.scrollTop = previousScrollTop + (newScrollHeight - previousScrollHeight);
-								}
-							});
-						});
-					}
-				}
-			},
-			{ threshold: 1 }
-		);
+    }, [messages, chatId, isRoomLoaded, isFetchingNextPage]); // Dependencies are crucial
 
-		if (observerTarget.current) {
-			observer.observe(observerTarget.current);
-		}
+    // Reset isRoomLoaded when chatId changes (Render Phase Update)
+    // This prevents the "Flash" of the old room's state
+    const currentChatId = useRef(chatId);
+    if (currentChatId.current !== chatId) {
+        currentChatId.current = chatId;
+        setIsRoomLoaded(false);
+        isUserScrolling.current = false;
+        setShowScrollButton(false);
+    }
 
-		return () => {
-			if (observerTarget.current) {
-				observer.unobserve(observerTarget.current);
-			}
-		};
-	}, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+	// --- LOAD MORE OBSERVER ---
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            entries => {
+                if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+                    const scrollElement = getScrollElement();
+                    if (scrollElement) {
+                        const previousScrollHeight = scrollElement.scrollHeight;
+                        const previousScrollTop = scrollElement.scrollTop;
+
+                        fetchNextPage().then(() => {
+                            // Restore scroll position after loading old messages
+                            requestAnimationFrame(() => {
+                                if (scrollElement) {
+                                    const newScrollHeight = scrollElement.scrollHeight;
+                                    scrollElement.scrollTop = previousScrollTop + (newScrollHeight - previousScrollHeight);
+                                }
+                            });
+                        });
+                    }
+                }
+            },
+            { threshold: 1 }
+        );
+
+        if (observerTarget.current) observer.observe(observerTarget.current);
+        return () => observerTarget.current && observer.unobserve(observerTarget.current);
+    }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
 	const handleSendMessage = async () => {
 		if (newMessage.trim() && chatId && !isSending) {
@@ -344,7 +394,7 @@ export default function ChatConversation() {
 			</motion.div>
 
 			{/* Messages Area */}
-			<ScrollArea className="flex-1 p-4" ref={scrollRef}>
+			<ScrollArea key={chatId} className="flex-1 p-4" ref={scrollRef}>
 				{messages.length === 0 ? (
 					<div className="h-full flex items-center justify-center">
 						<motion.div
@@ -378,7 +428,9 @@ export default function ChatConversation() {
 						</motion.div>
 					</div>
 				) : (
-					<div key={chatId} className="space-y-2 pb-4">
+					<div className={`space-y-2 pb-4 transition-opacity duration-150 ${
+                        isRoomLoaded ? 'opacity-100' : 'opacity-0'
+                    }`}>
 						{/* Load more indicator */}
 						{hasNextPage && (
 							<div ref={observerTarget} className="flex justify-center py-3">
