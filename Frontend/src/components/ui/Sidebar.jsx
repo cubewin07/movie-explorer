@@ -126,7 +126,7 @@ export const SidebarLink = ({ link, className, active, ...props }) => {
             className={cn(
                 'flex items-center justify-center md:justify-start gap-2 group/sidebar py-2 px-2 sm:px-3',
                 className,
-                !open ? 'ml-[-20px]' : '',
+                !open ? 'ml-[-24px]' : '',
             )}
             {...props}
         >
