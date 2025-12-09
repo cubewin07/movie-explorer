@@ -1,3 +1,7 @@
+import { useState, useEffect, useRef } from 'react';
+import { MessageCircle, Minimize2, Send, X, Loader2 } from 'lucide-react';
+import { useChatBox } from '../../hooks/useChatBox';
+
 function CollapsibleChatBox({ sessionToken = "demo-token" }) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
