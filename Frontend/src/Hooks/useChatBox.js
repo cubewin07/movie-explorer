@@ -6,7 +6,7 @@ function useChatBox(sessionToken) {
     try {
         const response = await axios.post(N8N_URL, {
           message: "Hi",
-          sessionToken: localStorage.getItem('sessionToken'),
+          sessionToken: sessionToken,
         });
         return response.data;
     } catch (error) {
