@@ -17,6 +17,7 @@ import WebsocketProvider from '@/context/Websocket/WebsocketProvider';
 
 import Login from '@/components/pages/Authentication/Login';
 import Register from '@/components/pages/Authentication/Register';
+import CollapsibleChatBox from '@/components/ui/collapsibleChatBox';
 
 function Layout() {
     const [open, setOpen] = useState(false);
@@ -55,6 +56,7 @@ function Layout() {
                                     <Sidebar right={true} />
                                 </aside>
                             </div>
+                            <CollapsibleChatBox />
                         </div>
                         <Dialog open={loginOpen} onOpenChange={setLoginOpen}>
                             <DialogContent className="p-0 w-full max-w-xs sm:max-w-sm bg-background border-border shadow-md rounded-xl">
