@@ -295,25 +295,36 @@ function CollapsibleChatBox({ sessionToken = "demo-token" }) {
                       className={`flex ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
                       <motion.div
-                        whileHover={{ scale: 1.02 }}
-                        className={`max-w-[75%] rounded-lg px-3 py-2 ${
+                        whileHover={{
+                          y: -2,
+                          transition: { 
+                            duration: 0.2,
+                            ease: "easeOut"
+                          }
+                        }}
+                        className={`max-w-[75%] rounded-lg px-3 py-2 relative cursor-default group ${
                           message.sender === 'user'
-                            ? 'bg-blue-600 text-white rounded-br-sm shadow-lg'
+                            ? 'bg-gradient-to-br from-blue-600 via-blue-600 to-indigo-600 text-white rounded-br-sm shadow-lg hover:shadow-2xl hover:shadow-blue-500/30 chat-message-user'
                             : message.sender === 'system'
-                            ? 'bg-red-900/50 text-red-200 border border-red-800'
-                            : 'bg-slate-800 text-slate-100 rounded-bl-sm shadow-lg'
+                            ? 'bg-red-900/50 text-red-200 border border-red-800 hover:border-red-600 hover:bg-red-900/80 chat-message-system'
+                            : 'bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 text-slate-100 rounded-bl-sm shadow-lg hover:shadow-2xl hover:shadow-slate-500/20 chat-message-bot'
                         }`}
+                        style={{
+                          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+                        }}
                       >
-                        <FormattedMessage 
-                          text={message.text} 
-                          isBot={message.sender === 'bot'} 
-                        />
-                        <p className="text-xs opacity-70 mt-1.5">
-                          {new Date(message.timestamp).toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          })}
-                        </p>
+                        <div className="relative z-10">
+                          <FormattedMessage 
+                            text={message.text} 
+                            isBot={message.sender === 'bot'} 
+                          />
+                          <p className="text-xs opacity-70 mt-1.5">
+                            {new Date(message.timestamp).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
                       </motion.div>
                     </motion.div>
                   ))}
