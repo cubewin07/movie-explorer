@@ -1,22 +1,29 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, Loader2, ArrowDown, Smile, Paperclip, MoreVertical, Phone, Video, MessageCircle, Clock } from 'lucide-react';
+import { Send, Loader2, ArrowDown, Smile, Paperclip, MoreVertical, Phone, Video, MessageCircle, WifiOff, RotateCcw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import useInfiniteMessages from '@/hooks/chat/useInfiniteMessages';
 import { useChat } from '@/context/ChatProvider';
 import { useAuthen } from '@/context/AuthenProvider';
 
+const MAX_MESSAGE_LENGTH = 800;
+const GROUP_GAP_MS = 5 * 60 * 1000; // 5 minutes
+
 export default function ChatConversation() {
     const { chatId } = useParams();
     const [newMessage, setNewMessage] = useState('');
     const [showScrollButton, setShowScrollButton] = useState(false);
-    const [isTyping, setIsTyping] = useState(false);
+    const [isTyping, setIsTyping] = useState(false); // reserved for remote typing signals
+    const [isComposerTyping, setIsComposerTyping] = useState(false);
     const [isSending, setIsSending] = useState(false);
+    const [pendingMessages, setPendingMessages] = useState([]);
+    const [charWarning, setCharWarning] = useState('');
+    const [isOffline, setIsOffline] = useState(() => (typeof navigator !== 'undefined' ? !navigator.onLine : false));
+    const [sendErrorBanner, setSendErrorBanner] = useState('');
     const { user } = useAuthen();
     const scrollRef = useRef(null);
     const observerTarget = useRef(null);
@@ -28,6 +35,9 @@ export default function ChatConversation() {
     const scrollButtonEnabled = useRef(false);
     const shouldScrollToBottom = useRef(true);
     const inputRef = useRef(null);
+    const sendCooldownRef = useRef(0);
+    const typingTimeoutRef = useRef(null);
+    const pendingTimeoutsRef = useRef({});
 
     const { sendMessage } = useChat();
 
@@ -47,12 +57,18 @@ export default function ChatConversation() {
         return allMessages.reverse();
     }, [data]);
 
+    // Merge server messages with local optimistic ones and keep chronological order
+    const combinedMessages = useMemo(() => {
+        const merged = [...messages, ...pendingMessages];
+        return merged.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    }, [messages, pendingMessages]);
+
     // Group messages by date
     const groupedMessages = useMemo(() => {
         const groups = [];
         let currentDate = null;
         
-        messages.forEach((message) => {
+        combinedMessages.forEach((message) => {
             const messageDate = new Date(message.createdAt);
             const dateString = messageDate.toDateString();
             
@@ -72,7 +88,7 @@ export default function ChatConversation() {
         });
         
         return groups;
-    }, [messages]);
+    }, [combinedMessages]);
 
     // Format date for display
     const formatDateHeader = (date) => {
@@ -168,20 +184,21 @@ export default function ChatConversation() {
             scrollButtonEnabled.current = false;
             shouldScrollToBottom.current = true;
             prevChatId.current = chatId;
+            setPendingMessages([]);
             
-            if (messages.length > 0) {
+            if (combinedMessages.length > 0) {
                 setTimeout(() => {
                     scrollToBottom('auto');
                     
                     setTimeout(() => {
                         shouldScrollToBottom.current = false;
                         scrollButtonEnabled.current = true;
-                        prevMessagesLength.current = messages.length;
+                        prevMessagesLength.current = combinedMessages.length;
                     }, 300);
                 }, 100);
             }
         }
-    }, [chatId]);
+    }, [chatId, combinedMessages.length]);
 
     // Scroll to bottom on new messages
     useEffect(() => {
@@ -197,18 +214,18 @@ export default function ChatConversation() {
                 setTimeout(() => {
                     shouldScrollToBottom.current = false;
                     scrollButtonEnabled.current = true;
-                    prevMessagesLength.current = messages.length;
+                    prevMessagesLength.current = combinedMessages.length;
                 }, 300);
             }, 100);
             return;
         }
 
-        if (messages.length > prevMessagesLength.current && !isFetchingNextPage && !isUserScrolling.current) {
+        if (combinedMessages.length > prevMessagesLength.current && !isFetchingNextPage && !isUserScrolling.current) {
             scrollToBottom('smooth');
         }
 
-        prevMessagesLength.current = messages.length;
-    }, [messages.length, isFetchingNextPage, groupedMessages.length]);
+        prevMessagesLength.current = combinedMessages.length;
+    }, [combinedMessages.length, isFetchingNextPage, groupedMessages.length]);
 
     // Intersection Observer for infinite scroll
     useEffect(() => {
@@ -245,34 +262,141 @@ export default function ChatConversation() {
         };
     }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-    const handleSendMessage = async () => {
-        if (newMessage.trim() && chatId && !isSending) {
-            const messageToSend = newMessage;
-            setNewMessage('');
-            setIsSending(true);
-            isUserScrolling.current = false;
-            
-            // Reset textarea height
-            if (inputRef.current) {
-                inputRef.current.style.height = 'auto';
-            }
-            
-            try {
-                await sendMessage(chatId, messageToSend);
-            } catch (error) {
-                console.error('Failed to send message:', error);
-                // Optionally restore the message on error
-                setNewMessage(messageToSend);
-            } finally {
-                setIsSending(false);
-            }
+    // Keep pending bubbles in sync with real messages from backend
+    useEffect(() => {
+        if (messages.length === 0) return;
+
+        setPendingMessages((prev) => {
+            if (prev.length === 0) return prev;
+
+            let changed = false;
+            const filtered = prev.filter((pending) => {
+                const match = messages.find((m) => 
+                    m.senderId === pending.senderId &&
+                    (m.text || m.content) === (pending.text || pending.content) &&
+                    Math.abs(new Date(m.createdAt) - new Date(pending.createdAt)) < 30000
+                );
+
+                if (match) {
+                    changed = true;
+                    if (pendingTimeoutsRef.current[pending.id]) {
+                        clearTimeout(pendingTimeoutsRef.current[pending.id]);
+                        delete pendingTimeoutsRef.current[pending.id];
+                    }
+                }
+
+                return !match;
+            });
+
+            return changed ? filtered : prev;
+        });
+    }, [messages]);
+
+    const markPendingStatus = (id, status) => {
+        setPendingMessages((prev) => prev.map((msg) => msg.id === id ? { ...msg, status } : msg));
+    };
+
+    const handleSendMessage = async (overrideText) => {
+        const messageToSend = (overrideText ?? newMessage).trim();
+        if (!messageToSend || !chatId || isSending) return;
+
+        if (messageToSend.length > MAX_MESSAGE_LENGTH) {
+            setCharWarning(`Message too long. Limit is ${MAX_MESSAGE_LENGTH} characters.`);
+            return;
         }
+
+        const now = Date.now();
+        if (now - sendCooldownRef.current < 400) {
+            return;
+        }
+        sendCooldownRef.current = now;
+
+        const tempId = `temp-${now}`;
+        const optimisticMessage = {
+            id: tempId,
+            text: messageToSend,
+            createdAt: new Date().toISOString(),
+            senderId: user?.id,
+            status: 'sending',
+            optimistic: true,
+        };
+
+        setPendingMessages((prev) => [...prev, optimisticMessage]);
+        if (!overrideText) {
+            setNewMessage('');
+        }
+        setIsSending(true);
+        setSendErrorBanner('');
+        isUserScrolling.current = false;
+
+        // Reset textarea height
+        if (inputRef.current) {
+            inputRef.current.style.height = 'auto';
+        }
+
+        // Timeout to mark failure if no server echo arrives
+        pendingTimeoutsRef.current[tempId] = setTimeout(() => {
+            markPendingStatus(tempId, 'failed');
+            setIsSending(false);
+            setSendErrorBanner('Message failed to send. Tap retry.');
+        }, 8000);
+        
+        try {
+            await sendMessage(chatId, messageToSend);
+            setIsSending(false);
+        } catch (error) {
+            console.error('Failed to send message:', error);
+            if (pendingTimeoutsRef.current[tempId]) {
+                clearTimeout(pendingTimeoutsRef.current[tempId]);
+                delete pendingTimeoutsRef.current[tempId];
+            }
+            markPendingStatus(tempId, 'failed');
+            setIsSending(false);
+            setSendErrorBanner('Message failed to send. Tap retry.');
+        }
+    };
+
+    const retryPendingMessage = (id, text) => {
+        setPendingMessages((prev) => prev.filter((msg) => msg.id !== id));
+        handleSendMessage(text);
     };
 
     const handleScrollToBottom = () => {
         scrollToBottom('smooth');
         isUserScrolling.current = false;
     };
+
+    // Composer typing indicator (local only for now)
+    useEffect(() => {
+        if (!newMessage) {
+            setIsComposerTyping(false);
+            return;
+        }
+        setIsComposerTyping(true);
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+        typingTimeoutRef.current = setTimeout(() => setIsComposerTyping(false), 1200);
+    }, [newMessage]);
+
+    // Online/offline banner
+    useEffect(() => {
+        const handleOnline = () => setIsOffline(false);
+        const handleOffline = () => setIsOffline(true);
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
+    }, []);
+
+    useEffect(() => {
+        return () => {
+            Object.values(pendingTimeoutsRef.current).forEach(clearTimeout);
+        };
+    }, []);
+
+    const remainingChars = MAX_MESSAGE_LENGTH - newMessage.length;
+    const isOverLimit = remainingChars < 0;
 
     if (isLoading || !user) {
         return (
@@ -352,9 +476,39 @@ export default function ChatConversation() {
                 </div>
             </motion.div>
 
+            {/* Connectivity + errors */}
+            <div className="px-4 pt-2 space-y-2">
+                <AnimatePresence>
+                    {isOffline && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -8 }}
+                            className="flex items-center gap-2 rounded-xl bg-amber-100 text-amber-800 border border-amber-200 px-3 py-2 text-sm shadow"
+                        >
+                            <WifiOff className="h-4 w-4" />
+                            You are offline. Messages will retry when connection returns.
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+                <AnimatePresence>
+                    {sendErrorBanner && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -8 }}
+                            className="flex items-center gap-2 rounded-xl bg-red-100 text-red-700 border border-red-200 px-3 py-2 text-sm shadow"
+                        >
+                            <RotateCcw className="h-4 w-4" />
+                            {sendErrorBanner}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
+
             {/* Messages Area */}
             <ScrollArea className="flex-1 p-4 relative" ref={scrollRef}>
-                {messages.length === 0 ? (
+                {combinedMessages.length === 0 ? (
                     <div className="h-full flex items-center justify-center">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9 }}
@@ -427,6 +581,15 @@ export default function ChatConversation() {
                                 const message = item.data;
                                 const isLastMessage = index === groupedMessages.length - 1;
                                 const isSentByUser = message.senderId === user.id;
+                                const previousMessage = groupedMessages[index - 1]?.type === 'message' ? groupedMessages[index - 1].data : null;
+                                const nextMessage = groupedMessages[index + 1]?.type === 'message' ? groupedMessages[index + 1].data : null;
+                                const isGroupStart = !previousMessage || previousMessage.senderId !== message.senderId || (new Date(message.createdAt) - new Date(previousMessage.createdAt)) > GROUP_GAP_MS;
+                                const isGroupEnd = !nextMessage || nextMessage.senderId !== message.senderId || (new Date(nextMessage.createdAt) - new Date(message.createdAt)) > GROUP_GAP_MS;
+                                const showAvatar = !isSentByUser && isGroupEnd;
+                                const isOptimistic = message.optimistic;
+                                const messageStatus = message.status;
+                                const displayName = message.senderName || message.sender?.username || 'User';
+                                const avatarSeed = message.senderId || message.sender?.id || displayName;
 
                                 return (
                                     <motion.div
@@ -439,28 +602,63 @@ export default function ChatConversation() {
                                             duration: 0.2,
                                             ease: "easeOut"
                                         }}
-                                        className={`flex ${isSentByUser ? 'justify-end' : 'justify-start'} px-2`}
+                                        className={`flex ${isSentByUser ? 'justify-end' : 'justify-start'} px-2 gap-2`}
                                     >
+                                        {!isSentByUser && (
+                                            <div className={`pt-6 transition-opacity ${showAvatar ? 'opacity-100' : 'opacity-0'}`}>
+                                                <Avatar className="h-8 w-8 shadow">
+                                                    <AvatarImage src={`https://avatar.vercel.sh/${avatarSeed}.png`} />
+                                                    <AvatarFallback className="text-xs">{displayName?.[0]?.toUpperCase() || 'U'}</AvatarFallback>
+                                                </Avatar>
+                                            </div>
+                                        )}
                                         <div
                                             className={`max-w-[75%] sm:max-w-[70%] md:max-w-[65%] rounded-2xl px-3 py-2 shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-[1.02] relative group ${
                                                 isSentByUser
-                                                    ? 'bg-gradient-to-br from-indigo-600 via-indigo-500 to-purple-600 dark:from-indigo-500 dark:via-indigo-600 dark:to-purple-500 text-white rounded-br-sm'
-                                                    : 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-tl-sm border border-indigo-100 dark:border-indigo-900/50'
-                                            }`}
+                                                    ? `bg-gradient-to-br from-indigo-600 via-indigo-500 to-purple-600 dark:from-indigo-500 dark:via-indigo-600 dark:to-purple-500 text-white ${isGroupStart ? 'rounded-br-sm' : 'rounded-br-2xl'} ${isGroupEnd ? 'rounded-tr-sm' : 'rounded-tr-2xl'}`
+                                                    : `bg-white dark:bg-slate-800 text-slate-900 dark:text-white border border-indigo-100 dark:border-indigo-900/50 ${isGroupStart ? 'rounded-tl-sm' : 'rounded-tl-2xl'} ${isGroupEnd ? 'rounded-bl-sm' : 'rounded-bl-2xl'}`
+                                            } ${isOptimistic && messageStatus === 'failed' ? 'opacity-70 border-dashed' : ''}`}
                                         >
-                                            <p className="text-sm leading-relaxed break-words overflow-wrap-anywhere whitespace-pre-wrap [word-break:break-word] [overflow-wrap:anywhere]">
+                                            {isGroupStart && !isSentByUser && (
+                                                <p className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mb-0.5">
+                                                    {displayName}
+                                                </p>
+                                            )}
+                                            <p className="text-sm leading-relaxed break-words whitespace-pre-wrap [word-break:break-word]">
                                                 {message.text || message.content}
                                             </p>
-                                            <span className={`text-[10px] mt-1 block text-right font-medium opacity-75 group-hover:opacity-100 transition-opacity ${
-                                                isSentByUser 
-                                                    ? 'text-indigo-200 dark:text-indigo-300' 
-                                                    : 'text-slate-500 dark:text-slate-400'
-                                            }`}>
-                                                {message.time || new Date(message.createdAt).toLocaleTimeString([], { 
-                                                    hour: '2-digit', 
-                                                    minute: '2-digit' 
-                                                })}
-                                            </span>
+                                            <div className="flex items-center justify-between gap-2 mt-1">
+                                                <span className={`text-[10px] font-medium opacity-75 group-hover:opacity-100 transition-opacity ${
+                                                    isSentByUser 
+                                                        ? 'text-indigo-200 dark:text-indigo-300' 
+                                                        : 'text-slate-500 dark:text-slate-400'
+                                                }`}>
+                                                    {message.time || new Date(message.createdAt).toLocaleTimeString([], { 
+                                                        hour: '2-digit', 
+                                                        minute: '2-digit' 
+                                                    })}
+                                                </span>
+                                                {isSentByUser && (
+                                                    <span className="text-[10px] font-semibold flex items-center gap-1">
+                                                        {isOptimistic && messageStatus === 'sending' && (
+                                                            <>
+                                                                <Loader2 className="h-3 w-3 animate-spin" />
+                                                                <span>Sending</span>
+                                                            </>
+                                                        )}
+                                                        {isOptimistic && messageStatus === 'failed' && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => retryPendingMessage(message.id, message.text || message.content)}
+                                                                className="flex items-center gap-1 text-amber-200 hover:text-white underline"
+                                                            >
+                                                                <RotateCcw className="h-3 w-3" />
+                                                                Retry
+                                                            </button>
+                                                        )}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </motion.div>
                                 );
@@ -504,7 +702,7 @@ export default function ChatConversation() {
 
             {/* Scroll to Bottom Button */}
             <AnimatePresence>
-                {showScrollButton && messages.length > 0 && (
+                {showScrollButton && combinedMessages.length > 0 && (
                     <motion.div
                         initial={{ opacity: 0, scale: 0.8, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -531,7 +729,7 @@ export default function ChatConversation() {
             >
                 <form
                     className="flex items-end gap-3"
-                    onSubmit={(e) => {
+                            onSubmit={(e) => {
                         e.preventDefault();
                         handleSendMessage();
                     }}
@@ -549,7 +747,11 @@ export default function ChatConversation() {
                         <textarea
                             ref={inputRef}
                             value={newMessage}
-                            onChange={(e) => setNewMessage(e.target.value)}
+                            onChange={(e) => {
+                                const nextValue = e.target.value;
+                                setNewMessage(nextValue);
+                                setCharWarning(nextValue.length > MAX_MESSAGE_LENGTH ? `Over limit by ${nextValue.length - MAX_MESSAGE_LENGTH} characters` : '');
+                            }}
                             onKeyDown={(e) => {
                                 if (e.key === 'Enter' && !e.shiftKey) {
                                     e.preventDefault();
@@ -583,7 +785,7 @@ export default function ChatConversation() {
                     <Button 
                         type="submit" 
                         size="icon"
-                        disabled={!newMessage.trim() || isSending}
+                        disabled={!newMessage.trim() || isSending || isOverLimit}
                         className="h-12 w-12 rounded-full bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 hover:from-indigo-600 hover:via-purple-600 hover:to-pink-600 text-white shadow-2xl transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
                     >
                         {isSending ? (
@@ -593,6 +795,19 @@ export default function ChatConversation() {
                         )}
                     </Button>
                 </form>
+                <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mt-2 px-1">
+                    <div className="flex items-center gap-2">
+                        {isComposerTyping && (
+                            <span className="flex items-center gap-1">
+                                <Loader2 className="h-3 w-3 animate-spin" />
+                                Typing…
+                            </span>
+                        )}
+                    </div>
+                    <div className={`${isOverLimit ? 'text-red-500 dark:text-red-400 font-semibold' : ''}`}>
+                        {charWarning || `${remainingChars} characters left`}
+                    </div>
+                </div>
             </motion.div>
         </div>
     );

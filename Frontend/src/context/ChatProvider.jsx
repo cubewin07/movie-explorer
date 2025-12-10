@@ -111,13 +111,18 @@ function ChatProvider({ children }) {
   }
 
   // Function to send a message via WebSocket
-  const sendMessage = (chatId, message) => {
-    if (stompClientRef.current && stompClientRef.current.connected) {
-        stompClientRef.current.publish({
-            destination: "/app/chat/" + chatId + "/send",
-            body: message,
-        });
+  const sendMessage = async (chatId, message) => {
+    if (!stompClientRef.current || !stompClientRef.current.connected) {
+      throw new Error("Not connected");
     }
+
+    stompClientRef.current.publish({
+      destination: "/app/chat/" + chatId + "/send",
+      body: message,
+    });
+
+    // Keep signature async to allow callers to await / catch failures
+    return true;
   }
 
   // Function to subscribe to chat messages
