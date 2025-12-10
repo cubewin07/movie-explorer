@@ -25,7 +25,7 @@ function CollapsibleChatBox({ sessionToken = "demo-token" }) {
     }
   }, [isOpen]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
 
@@ -37,14 +37,17 @@ function CollapsibleChatBox({ sessionToken = "demo-token" }) {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const userInput = input;
     setInput('');
     setIsLoading(true);
 
-    send(input)
-      .then(response => {
+    try {
+      const response = await send(userInput);
+      
+      if (response) {
         const botMessage = {
           id: Date.now() + 1,
-          text: response.reply || 'No response',
+          text: response.reply || response.message || JSON.stringify(response) || 'No response',
           sender: 'bot',
           timestamp: response.timestamp || new Date().toISOString()
         };
@@ -54,19 +57,20 @@ function CollapsibleChatBox({ sessionToken = "demo-token" }) {
         if (!isOpen) {
           setUnreadCount(prev => prev + 1);
         }
-      })
-      .catch(error => {
-        const errorMessage = {
-          id: Date.now() + 1,
-          text: 'Failed to send message. Please try again.',
-          sender: 'system',
-          timestamp: new Date().toISOString()
-        };
-        setMessages(prev => [...prev, errorMessage]);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+      } else {
+        throw new Error('No response from server');
+      }
+    } catch (error) {
+      const errorMessage = {
+        id: Date.now() + 1,
+        text: 'Failed to send message. Please try again.',
+        sender: 'system',
+        timestamp: new Date().toISOString()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
