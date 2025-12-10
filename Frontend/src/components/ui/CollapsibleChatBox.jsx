@@ -60,11 +60,25 @@ function CollapsibleChatBox({ sessionToken = "demo-token" }) {
       const response = await send(userInput);
       
       if (response) {
+        // Handle array response format from N8N: [{ "output": "message" }]
+        let messageText = 'No response';
+        
+        if (Array.isArray(response) && response.length > 0) {
+          // If response is an array, get the first item's output
+          const firstItem = response[0];
+          messageText = firstItem?.output || firstItem?.reply || firstItem?.message || JSON.stringify(firstItem);
+        } else if (typeof response === 'object') {
+          // If response is an object, check for output, reply, or message
+          messageText = response.output || response.reply || response.message || JSON.stringify(response);
+        } else if (typeof response === 'string') {
+          messageText = response;
+        }
+
         const botMessage = {
           id: Date.now() + 1,
-          text: response.reply || response.message || JSON.stringify(response) || 'No response',
+          text: messageText,
           sender: 'bot',
-          timestamp: response.timestamp || new Date().toISOString()
+          timestamp: new Date().toISOString()
         };
 
         setMessages(prev => [...prev, botMessage]);
