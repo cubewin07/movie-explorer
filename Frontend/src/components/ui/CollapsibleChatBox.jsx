@@ -3,6 +3,70 @@ import { MessageCircle, Send, X, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useChatBox from '@/hooks/useChatBox';
 
+// Helper component to render formatted messages
+const FormattedMessage = ({ text, isBot = false }) => {
+  if (!isBot) {
+    // For user messages, just render plain text (safe from XSS)
+    // Still handle \n for line breaks
+    const formattedText = String(text || '').split('\n').map((line, index, array) => (
+      <span key={index}>
+        {line}
+        {index < array.length - 1 && <br />}
+      </span>
+    ));
+    return <p className="text-sm break-words leading-relaxed">{formattedText}</p>;
+  }
+
+  // For bot messages, handle HTML, Markdown, and newlines
+  const formatMessage = (msg) => {
+    if (!msg) return '';
+    
+    let formatted = String(msg);
+    
+    // Store protected sections
+    const protectedBlocks = [];
+    let protectIndex = 0;
+    
+    // Protect code blocks first: `code`
+    formatted = formatted.replace(/`([^`]+)`/g, (match, content) => {
+      const placeholder = `__PROTECT_${protectIndex}__`;
+      protectedBlocks[protectIndex] = `<code>${content}</code>`;
+      protectIndex++;
+      return placeholder;
+    });
+    
+    // Bold: **text** or __text__ - process double markers first
+    formatted = formatted.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
+    formatted = formatted.replace(/__([^_]+?)__/g, '<strong>$1</strong>');
+    
+    // Italic: *text* or _text_ - single markers (processed after bold)
+    formatted = formatted.replace(/\*([^*\n]+?)\*/g, '<em>$1</em>');
+    formatted = formatted.replace(/\b_([^_\n]+?)_\b/g, '<em>$1</em>');
+    
+    // Links: [text](url)
+    formatted = formatted.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    
+    // Restore protected code blocks
+    for (let i = 0; i < protectIndex; i++) {
+      formatted = formatted.replace(`__PROTECT_${i}__`, protectedBlocks[i]);
+    }
+    
+    // Convert \n to <br /> tags (do this last)
+    formatted = formatted.replace(/\n/g, '<br />');
+    
+    // The message may already contain HTML tags, so we'll render them
+    // Note: In production, you might want to sanitize HTML here for security
+    return formatted;
+  };
+
+  return (
+    <div 
+      className="text-sm break-words chat-message-content"
+      dangerouslySetInnerHTML={{ __html: formatMessage(text) }}
+    />
+  );
+};
+
 function CollapsibleChatBox({ sessionToken = "demo-token" }) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([]);
@@ -240,7 +304,10 @@ function CollapsibleChatBox({ sessionToken = "demo-token" }) {
                             : 'bg-slate-800 text-slate-100 rounded-bl-sm shadow-lg'
                         }`}
                       >
-                        <p className="text-sm break-words leading-relaxed">{message.text}</p>
+                        <FormattedMessage 
+                          text={message.text} 
+                          isBot={message.sender === 'bot'} 
+                        />
                         <p className="text-xs opacity-70 mt-1.5">
                           {new Date(message.timestamp).toLocaleTimeString([], {
                             hour: '2-digit',
