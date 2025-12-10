@@ -145,3 +145,26 @@
 .group:hover .border-glow {
     animation: gradient-shift 3s ease infinite;
 }
+
+/* Custom scrollbar for chat box */
+.chat-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #475569 transparent;
+}
+
+.chat-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.chat-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.chat-scrollbar::-webkit-scrollbar-thumb {
+    background-color: #475569;
+    border-radius: 3px;
+}
+
+.chat-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: #64748b;
+}
