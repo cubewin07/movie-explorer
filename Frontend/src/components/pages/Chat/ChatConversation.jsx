@@ -502,6 +502,8 @@ export default function ChatConversation() {
         );
     }
 
+    const lastMessage = combinedMessages[combinedMessages.length - 1] || null;
+
     return (
         <div className="h-full flex flex-col relative bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-indigo-950 dark:to-purple-950">
             {/* Enhanced Header */}
@@ -723,6 +725,16 @@ export default function ChatConversation() {
                                 );
                             })}
                         </AnimatePresence>
+
+                        {lastMessage && lastMessage.senderId === user?.id && (
+                            <div className="flex justify-end px-2">
+                                <span className="mt-1 pr-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                                    {lastMessage.optimistic
+                                        ? (lastMessage.status === 'failed' ? 'Failed' : 'Sent')
+                                        : 'Received'}
+                                </span>
+                            </div>
+                        )}
 
                         {/* Typing Indicator */}
                         <AnimatePresence>
