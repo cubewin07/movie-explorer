@@ -8,6 +8,7 @@ import { useChat } from '@/context/ChatProvider';
 import useMarkMessageAsRead from '@/hooks/chat/useMarkMessageAsRead';
 import { useAuthen } from '@/context/AuthenProvider';
 import { useNotificationActions } from '@/hooks/notification/useNotificationActions';
+import { useWebsocket } from '@/context/Websocket/WebsocketProvider';
 
 export default function ChatList() {
   const [search, setSearch] = useState('');
@@ -15,6 +16,7 @@ export default function ChatList() {
   const location = useLocation();
   const { chats, newChatIds } = useChat();
   const { user, token } = useAuthen();
+  const { friends } = useWebsocket();
   const { mutate: markMessageAsRead } = useMarkMessageAsRead(token);
   const { markChatNotificationsAsRead } = useNotificationActions(token);
 
@@ -56,7 +58,7 @@ export default function ChatList() {
       if (!b.latestMessage) return -1;
       return new Date(b.latestMessage.timestamp) - new Date(a.latestMessage.timestamp);
     });
-  }, [filteredChats]);
+  }, [filteredChats, newChatIds]);
 
 
   // Format timestamp to relative time
@@ -113,6 +115,7 @@ export default function ChatList() {
           ) : (
             sortedChats.map((chat) => {
               const displayInfo = getChatDisplayInfo(chat, user);
+              const friendInfo = !displayInfo.isGroup ? getFriendInfo(displayInfo.email, friends) : null;
 
               return (
                 <motion.div
@@ -130,18 +133,39 @@ export default function ChatList() {
                     }`}
                   onClick={() => handleClickChat(chat.id)}
                 >
-                  <Avatar className="flex-shrink-0">
-                    <AvatarImage src={`https://avatar.vercel.sh/${displayInfo.avatarSeed}.png`} />
-                    <AvatarFallback>
-                      {displayInfo.isGroup ? '👥' : displayInfo.name?.[0]?.toUpperCase() || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
+                  <div className="relative flex-shrink-0">
+                    <Avatar className={friendInfo?.isOnline ? 'ring-2 ring-green-500' : ''}>
+                      <AvatarImage src={`https://avatar.vercel.sh/${displayInfo.avatarSeed}.png`} />
+                      <AvatarFallback>
+                        {displayInfo.isGroup ? '👥' : displayInfo.name?.[0]?.toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    {/* Online status indicator */}
+                    {friendInfo?.isOnline && (
+                      <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+                    )}
+                  </div>
                   
                   <div className="flex-1 min-w-0 overflow-hidden">
                     <div className="flex justify-between items-center gap-2 mb-0.5">
-                      <p className="font-medium text-slate-900 dark:text-slate-100 truncate flex-1">
-                        {displayInfo.name}
-                      </p>
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <p className="font-medium text-slate-900 dark:text-slate-100 truncate">
+                          {displayInfo.name}
+                        </p>
+                        {/* Friend/Stranger badge */}
+                        {!displayInfo.isGroup && friendInfo && (
+                          <Badge 
+                            variant={friendInfo.isFriend ? "default" : "outline"}
+                            className={`text-xs flex-shrink-0 ${
+                              friendInfo.isFriend 
+                                ? 'bg-emerald-500 dark:bg-emerald-600 text-white' 
+                                : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
+                            }`}
+                          >
+                            {friendInfo.isFriend ? 'Friend' : 'Stranger'}
+                          </Badge>
+                        )}
+                      </div>
                       {chat.latestMessage && (
                         <span className="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0 whitespace-nowrap">
                           {getRelativeTime(chat.latestMessage.timestamp)}
@@ -183,5 +207,25 @@ const getChatDisplayInfo = (chat, currentUser) => {
     name: otherParticipant?.username || otherParticipant?.email || 'Unknown User',
     avatarSeed: otherParticipant?.email || otherParticipant?.username || 'user',
     isGroup: false,
+    email: otherParticipant?.email,
+  };
+};
+
+// Get friend status and relationship info
+const getFriendInfo = (email, friends) => {
+  if (!email || !friends) {
+    return { isFriend: false, status: undefined };
+  }
+
+  const friend = friends.find(f => f.user?.email === email);
+  
+  if (!friend) {
+    return { isFriend: false, status: undefined };
+  }
+
+  return {
+    isFriend: true,
+    status: friend.status,
+    isOnline: friend.status === true || friend.status === 'online',
   };
 };
