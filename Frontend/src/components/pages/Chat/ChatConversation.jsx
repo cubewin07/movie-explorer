@@ -129,6 +129,16 @@ export default function ChatConversation() {
         return groups;
     }, [combinedMessages]);
 
+    const lastUserOptimistic = useMemo(() => {
+        if (!combinedMessages || combinedMessages.length === 0) return null;
+        const last = combinedMessages[combinedMessages.length - 1];
+        if (!last) return null;
+        const isUserLast = last.senderId === user?.id;
+        const isOptimistic = !!last.optimistic;
+        const hasStatus = last.status === 'sending' || last.status === 'failed';
+        return isUserLast && isOptimistic && hasStatus ? last : null;
+    }, [combinedMessages, user?.id]);
+
     // Format date for display
     const formatDateHeader = (date) => {
         const today = new Date();
@@ -707,26 +717,6 @@ export default function ChatConversation() {
                                                         minute: '2-digit' 
                                                     })}
                                                 </span>
-                                                {isSentByUser && (
-                                                    <span className="text-[10px] font-semibold flex items-center gap-1">
-                                                        {isOptimistic && messageStatus === 'sending' && (
-                                                            <>
-                                                                <Loader2 className="h-3 w-3 animate-spin" />
-                                                                <span>Sending</span>
-                                                            </>
-                                                        )}
-                                                        {isOptimistic && messageStatus === 'failed' && (
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => retryPendingMessage(message.id, message.text || message.content)}
-                                                                className="flex items-center gap-1 text-amber-200 hover:text-white underline"
-                                                            >
-                                                                <RotateCcw className="h-3 w-3" />
-                                                                Retry
-                                                            </button>
-                                                        )}
-                                                    </span>
-                                                )}
                                             </div>
                                         </div>
                                     </motion.div>
@@ -786,6 +776,40 @@ export default function ChatConversation() {
                         >
                             <ArrowDown className="h-5 w-5" />
                         </Button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {lastUserOptimistic && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        transition={{ duration: 0.2, ease: 'easeOut' }}
+                        className="px-4 pb-2"
+                    >
+                        <div className="mx-auto max-w-[75%] sm:max-w-[70%] md:max-w-[65%] rounded-full px-4 py-2 shadow-lg bg-white/90 dark:bg-slate-900/90 border border-indigo-200/60 dark:border-indigo-800/60 flex items-center justify-center gap-2 text-xs font-semibold">
+                            {lastUserOptimistic.status === 'sending' && (
+                                <>
+                                    <Loader2 className="h-4 w-4 animate-spin text-indigo-600 dark:text-indigo-400" />
+                                    <span className="text-slate-700 dark:text-slate-300">Sending…</span>
+                                </>
+                            )}
+                            {lastUserOptimistic.status === 'failed' && (
+                                <>
+                                    <RotateCcw className="h-4 w-4 text-red-600 dark:text-red-400" />
+                                    <span className="text-red-700 dark:text-red-400">Message failed.</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => retryPendingMessage(lastUserOptimistic.id, lastUserOptimistic.text || lastUserOptimistic.content)}
+                                        className="ml-2 px-3 py-1 rounded-full bg-gradient-to-r from-amber-500 to-rose-500 text-white shadow hover:opacity-90 transition"
+                                    >
+                                        Retry
+                                    </button>
+                                </>
+                            )}
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
