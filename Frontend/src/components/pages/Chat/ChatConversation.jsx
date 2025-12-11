@@ -504,6 +504,8 @@ export default function ChatConversation() {
 
     const lastMessage = combinedMessages[combinedMessages.length - 1] || null;
 
+    console.log(lastMessage)
+
     return (
         <div className="h-full flex flex-col relative bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-950 dark:via-indigo-950 dark:to-purple-950">
             {/* Enhanced Header */}
@@ -728,11 +730,22 @@ export default function ChatConversation() {
 
                         {lastMessage && lastMessage.senderId === user?.id && (
                             <div className="flex justify-end px-2">
-                                <span className="mt-1 pr-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                                    {lastMessage.optimistic
-                                        ? (lastMessage.status === 'failed' ? 'Failed' : 'Sent')
-                                        : 'Received'}
-                                </span>
+                                {lastMessage.isRead === true ? (
+                                    <div className="mt-1 pr-1">
+                                        <Avatar className="h-5 w-5 shadow-sm ring-1 ring-indigo-200 dark:ring-indigo-900/50">
+                                            <AvatarImage src={`https://avatar.vercel.sh/${friendInfo.avatarSeed}.png`} />
+                                            <AvatarFallback className="text-[10px]">
+                                                {friendInfo.name?.[0]?.toUpperCase() || 'U'}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                    </div>
+                                ) : (
+                                    <span className="mt-1 pr-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                                        {lastMessage.optimistic
+                                            ? (lastMessage.status === 'failed' ? 'Failed' : 'Sent')
+                                            : 'Received'}
+                                    </span>
+                                )}
                             </div>
                         )}
 
