@@ -129,8 +129,24 @@ export default function ChatConversation() {
     useEffect(() => {
         const observer = new IntersectionObserver(
             ([entry]) => {
-                if (scrollButtonEnabled.current) {
-                    setShowScrollButton(!entry.isIntersecting);
+                if (!scrollButtonEnabled.current || shouldScrollToBottom.current) {
+                    setShowScrollButton(false);
+                    return;
+                }
+
+                // Only show button if last message is not visible AND we're actually scrolled away from bottom
+                if (!entry.isIntersecting) {
+                    const scrollElement = scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+                    if (scrollElement) {
+                        const { scrollTop, scrollHeight, clientHeight } = scrollElement;
+                        const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+                        // Only show if we're more than 50px away from bottom (user has scrolled up)
+                        setShowScrollButton(distanceFromBottom > 50);
+                    } else {
+                        setShowScrollButton(false);
+                    }
+                } else {
+                    setShowScrollButton(false);
                 }
             },
             { threshold: 0.1 }
@@ -221,6 +237,8 @@ export default function ChatConversation() {
         }
 
         if (combinedMessages.length > prevMessagesLength.current && !isFetchingNextPage && !isUserScrolling.current) {
+            // Hide button when auto-scrolling to new messages
+            setShowScrollButton(false);
             scrollToBottom('smooth');
         }
 
@@ -328,6 +346,8 @@ export default function ChatConversation() {
         setIsSending(true);
         setSendErrorBanner('');
         isUserScrolling.current = false;
+        setShowScrollButton(false); // Hide button when sending
+        shouldScrollToBottom.current = true; // Enable auto-scroll
 
         // Reset textarea height
         if (inputRef.current) {
