@@ -57,7 +57,10 @@ const UserInfoPage = () => {
     updateFriendStatus.mutate(
       { id: userInfo.id, status: 'ACCEPTED' },
       {
-        onSuccess: () => toast.success('Friend request accepted'),
+        onSuccess: () => {
+          toast.success('Friend request accepted') 
+          setIsAccepted(true);
+        },
         onError: () => toast.error('Failed to accept request')
       }
     );
