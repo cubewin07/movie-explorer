@@ -708,7 +708,7 @@ export default function ChatConversation() {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.8, y: 20 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="absolute bottom-24 right-6 z-10"
+                        className="absolute bottom-28 right-6 z-10"
                     >
                         <Button
                             onClick={handleScrollToBottom}
