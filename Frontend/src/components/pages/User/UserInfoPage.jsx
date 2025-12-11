@@ -7,6 +7,7 @@ import useUserInfo from '@/hooks/API/useUserInfo';
 import WatchlistCard from '@/components/ui/WatchlistCard';
 import useWatchlistFilmData from '@/hooks/watchList/useWatchListFilmData';
 import { useFriendActions } from '@/hooks/friend/useFriendActions';
+import { useFriendRequests } from '@/hooks/friend/useFriendRequests';
 import { useAuthen } from '@/context/AuthenProvider';
 
 const UserInfoPage = () => {
@@ -18,6 +19,7 @@ const UserInfoPage = () => {
   const { films, isLoading: isFilmsLoading, error: filmsError } = useWatchlistFilmData(userInfo?.watchlist);
   const { sendRequest, updateFriendStatus, deleteFriend } = useFriendActions();
   const { user } = useAuthen();
+  const { incomingRequests, outgoingRequests } = useFriendRequests();
   console.log(userInfo);
   console.log(user);
   
@@ -94,12 +96,12 @@ const UserInfoPage = () => {
   };
 
   const getFriendshipStatusButton = () => {
-    // Determine pending states using current user's request lists
-    const incomingPending = user?.requestsTo?.some(
-      (r) => r?.user?.id === userInfo?.id && r?.status === 'PENDING'
+    // Determine pending states using live friend request queries
+    const incomingPending = incomingRequests?.data?.some(
+      (r) => r?.id === userInfo?.id
     );
-    const outgoingPending = user?.requestsFrom?.some(
-      (r) => r?.user?.id === userInfo?.id && r?.status === 'PENDING'
+    const outgoingPending = outgoingRequests?.data?.some(
+      (r) => r?.id === userInfo?.id
     );
 
     // If there is an incoming pending request from this user -> show Accept/Block
