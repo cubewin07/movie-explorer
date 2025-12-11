@@ -99,11 +99,11 @@ export function AuthenProvider({ children }) {
             await queryClient.cancelQueries();
             queryClient.clear();
 
+            // remove all cookies
             Cookies.remove('token');
+            localStorage.removeItem('sessionToken');
             setUser(null);
-            if (showNotification) {
-                toast.success('Logged out successfully');
-            }
+            if (showNotification) toast.success('Logged out successfully');
     };
         
     // Handle login modal success
