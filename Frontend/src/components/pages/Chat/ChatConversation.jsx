@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import useInfiniteMessages from '@/hooks/chat/useInfiniteMessages';
 import { useChat } from '@/context/ChatProvider';
 import { useAuthen } from '@/context/AuthenProvider';
+import { useWebsocket } from '@/context/Websocket/WebsocketProvider';
 
 const MAX_MESSAGE_LENGTH = 800;
 const GROUP_GAP_MS = 5 * 60 * 1000; // 5 minutes
@@ -24,7 +25,6 @@ export default function ChatConversation() {
     const [charWarning, setCharWarning] = useState('');
     const [isOffline, setIsOffline] = useState(() => (typeof navigator !== 'undefined' ? !navigator.onLine : false));
     const [sendErrorBanner, setSendErrorBanner] = useState('');
-    const { user } = useAuthen();
     const scrollRef = useRef(null);
     const observerTarget = useRef(null);
     const prevMessagesLength = useRef(0);
@@ -38,8 +38,18 @@ export default function ChatConversation() {
     const sendCooldownRef = useRef(0);
     const typingTimeoutRef = useRef(null);
     const pendingTimeoutsRef = useRef({});
-
+    
     const { sendMessage } = useChat();
+    const { user } = useAuthen();
+    const { friends } = useWebsocket();
+
+    const friendEmail = useMemo(() => {
+        return user?.chats?.find(chat => chat.id === Number(chatId))?.participants?.find(participant => participant.id !== user.id)?.email;
+    }, [chatId]);
+
+    const friendStatus = useMemo(() => {
+        return friends?.find(friend => friend.user.email === friendEmail)?.status;
+    }, [friends, friendEmail]);
 
     const {
         data,
