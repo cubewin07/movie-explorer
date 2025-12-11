@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Send, Loader2, ArrowDown, Smile, Paperclip, MoreVertical, Phone, Video, MessageCircle, WifiOff, RotateCcw } from 'lucide-react';
+import { Send, Loader2, ArrowDown, Smile, Paperclip, MoreVertical, Phone, Video, MessageCircle, WifiOff, RotateCcw, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import useInfiniteMessages from '@/hooks/chat/useInfiniteMessages';
@@ -45,11 +45,40 @@ export default function ChatConversation() {
 
     const friendEmail = useMemo(() => {
         return user?.chats?.find(chat => chat.id === Number(chatId))?.participants?.find(participant => participant.id !== user.id)?.email;
-    }, [chatId]);
+    }, [chatId, user?.chats, user?.id]);
 
     const friendStatus = useMemo(() => {
         return friends?.find(friend => friend.user.email === friendEmail)?.status;
     }, [friends, friendEmail]);
+
+    // Get friend's name and info from chat participants
+    const friendInfo = useMemo(() => {
+        const chat = user?.chats?.find(chat => chat.id === Number(chatId));
+        const participant = chat?.participants?.find(p => p.id !== user?.id);
+        return {
+            name: participant?.username || participant?.email || 'User',
+            email: participant?.email,
+            avatarSeed: participant?.email || participant?.id || chatId
+        };
+    }, [user?.chats, chatId, user?.id]);
+
+    // Get status display text and color
+    const getStatusDisplay = (status) => {
+        if (status === undefined) return null; // Not friends, don't show status
+        
+        if (status === true || status === 'online') {
+            return { text: 'Active Now', color: 'text-emerald-600 dark:text-emerald-400', isOnline: true };
+        }
+        if (status === false || status === 'offline') {
+            return { text: 'Offline', color: 'text-slate-500 dark:text-slate-400', isOnline: false };
+        }
+        if (status === 'busy') {
+            return { text: 'Busy', color: 'text-amber-600 dark:text-amber-400', isOnline: false };
+        }
+        return { text: 'Offline', color: 'text-slate-500 dark:text-slate-400', isOnline: false };
+    };
+
+    const statusDisplay = getStatusDisplay(friendStatus);
 
     const {
         data,
@@ -479,16 +508,26 @@ export default function ChatConversation() {
                     <div className="flex items-center gap-4">
                         <div className="relative">
                             <Avatar className="ring-2 ring-indigo-500 dark:ring-indigo-400 ring-offset-2 ring-offset-white dark:ring-offset-slate-900 transition-all hover:ring-4 h-12 w-12 shadow-lg">
-                                <AvatarImage src={`https://avatar.vercel.sh/${chatId}.png`} />
-                                <AvatarFallback className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white font-bold text-lg">UN</AvatarFallback>
+                                <AvatarImage src={`https://avatar.vercel.sh/${friendInfo.avatarSeed}.png`} />
+                                <AvatarFallback className="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 text-white font-bold text-lg">
+                                    {friendInfo.name?.[0]?.toUpperCase() || 'U'}
+                                </AvatarFallback>
                             </Avatar>
                         </div>
                         <div>
-                            <p className="font-extrabold text-lg text-slate-900 dark:text-white leading-none">User Name</p>
-                            <p className="text-sm text-emerald-600 dark:text-emerald-400 flex items-center gap-1 mt-0.5 font-medium">
-                                <MessageCircle className="h-3 w-3" />
-                                Active Now
+                            <p className="font-extrabold text-lg text-slate-900 dark:text-white leading-none">
+                                {friendInfo.name}
                             </p>
+                            {statusDisplay && (
+                                <p className={`text-sm ${statusDisplay.color} flex items-center gap-1 mt-0.5 font-medium`}>
+                                    {statusDisplay.isOnline ? (
+                                        <MessageCircle className="h-3 w-3" />
+                                    ) : (
+                                        <Clock className="h-3 w-3" />
+                                    )}
+                                    {statusDisplay.text}
+                                </p>
+                            )}
                         </div>
                     </div>
                     
