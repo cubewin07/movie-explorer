@@ -20,6 +20,17 @@ export function AuthenProvider({ children }) {
     const token = Cookies.get('token');
     const userInfoQuery = useGetUserInfo(token);
 
+    // Session token
+    const [sessionToken, setSessionToken] = useState(localStorage.getItem('sessionToken') || crypto.randomUUID());
+
+    useEffect(() => {
+        if(sessionToken) {
+            localStorage.setItem('sessionToken', sessionToken);
+        } else {
+            localStorage.removeItem('sessionToken');
+        }
+    }, [sessionToken]);
+
     // Handle token expiration and automatic logout
     const handleTokenExpiration = () => {
         Cookies.remove('token');
@@ -71,6 +82,10 @@ export function AuthenProvider({ children }) {
             queryClient.clear(); 
 
             Cookies.set('token', res.token, { expires: 7 });
+            if(!sessionToken) {
+                const newSessionToken = crypto.randomUUID();
+                setSessionToken(newSessionToken);
+            }
             return { success: true };
         }
         return { success: false, message: res?.message || 'Login failed' };
@@ -84,6 +99,10 @@ export function AuthenProvider({ children }) {
             const res = await registerMutateAsync({ email, password, username });
             if (res?.token) {
                 Cookies.set('token', res.token, { expires: 7 });
+                if(!sessionToken) {
+                    const newSessionToken = crypto.randomUUID();
+                    setSessionToken(newSessionToken);
+                }
                 setUser(res.user);
                 return { success: true };
             }
@@ -101,7 +120,7 @@ export function AuthenProvider({ children }) {
 
             // remove all cookies
             Cookies.remove('token');
-            localStorage.removeItem('sessionToken');
+            setSessionToken(null);
             setUser(null);
             if (showNotification) toast.success('Logged out successfully');
     };
@@ -117,7 +136,7 @@ export function AuthenProvider({ children }) {
     };
 
     return (
-        <AuthenContext.Provider value={{ user, loading, login, register, logout, showLoginModal, setShowLoginModal, token }}>
+        <AuthenContext.Provider value={{ user, loading, login, register, logout, showLoginModal, setShowLoginModal, token, sessionToken }}>
             {children}
             <Dialog open={showLoginModal} onOpenChange={handleLoginModalClose}>
                 <DialogContent className="w-full max-w-md">
