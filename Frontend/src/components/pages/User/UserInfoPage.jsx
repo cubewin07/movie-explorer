@@ -8,7 +8,6 @@ import WatchlistCard from '@/components/ui/WatchlistCard';
 import useWatchlistFilmData from '@/hooks/watchList/useWatchListFilmData';
 import { useFriendActions } from '@/hooks/friend/useFriendActions';
 import { useFriendRequests } from '@/hooks/friend/useFriendRequests';
-import { useAuthen } from '@/context/AuthenProvider';
 
 const UserInfoPage = () => {
   const [isRequestSent, setIsRequestSent] = useState(false);
@@ -18,11 +17,7 @@ const UserInfoPage = () => {
   const { mutate: fetchUserInfo, data: userInfo, isLoading, isError } = useUserInfo();
   const { films, isLoading: isFilmsLoading, error: filmsError } = useWatchlistFilmData(userInfo?.watchlist);
   const { sendRequest, updateFriendStatus, deleteFriend } = useFriendActions();
-  const { user } = useAuthen();
-  const { incomingRequests, outgoingRequests } = useFriendRequests();
-  console.log(userInfo);
-  console.log(user);
-  
+  const { incomingRequests, outgoingRequests } = useFriendRequests(); 
 
   useEffect(() => {
     if (userId) {
