@@ -7,6 +7,7 @@ import useUserInfo from '@/hooks/API/useUserInfo';
 import WatchlistCard from '@/components/ui/WatchlistCard';
 import useWatchlistFilmData from '@/hooks/watchList/useWatchListFilmData';
 import { useFriendActions } from '@/hooks/friend/useFriendActions';
+import { useAuthen } from '@/context/AuthenProvider';
 
 const UserInfoPage = () => {
   const [isRequestSent, setIsRequestSent] = useState(false);
@@ -14,7 +15,11 @@ const UserInfoPage = () => {
   const navigate = useNavigate();
   const { mutate: fetchUserInfo, data: userInfo, isLoading, isError } = useUserInfo();
   const { films, isLoading: isFilmsLoading, error: filmsError } = useWatchlistFilmData(userInfo?.watchlist);
-  const { sendRequest } = useFriendActions();
+  const { sendRequest, updateFriendStatus, deleteFriend } = useFriendActions();
+  const { user } = useAuthen();
+  console.log(userInfo);
+  console.log(user);
+  
 
   useEffect(() => {
     if (userId) {
@@ -45,6 +50,39 @@ const UserInfoPage = () => {
     });
   };
 
+  // Accept an incoming pending request from this user
+  const handleAcceptRequest = () => {
+    if (!userInfo?.id) return;
+    updateFriendStatus.mutate(
+      { id: userInfo.id, status: 'ACCEPTED' },
+      {
+        onSuccess: () => toast.success('Friend request accepted'),
+        onError: () => toast.error('Failed to accept request')
+      }
+    );
+  };
+
+  // Block the requester
+  const handleBlockRequest = () => {
+    if (!userInfo?.id) return;
+    updateFriendStatus.mutate(
+      { id: userInfo.id, status: 'BLOCKED' },
+      {
+        onSuccess: () => toast.success('User blocked'),
+        onError: () => toast.error('Failed to block user')
+      }
+    );
+  };
+
+  // Cancel an outgoing pending request to this user
+  const handleCancelRequest = () => {
+    if (!userInfo?.id) return;
+    deleteFriend.mutate(userInfo.id, {
+      onSuccess: () => toast.success('Friend request canceled'),
+      onError: () => toast.error('Failed to cancel request')
+    });
+  };
+
   const handleRetry = () => {
     if (userId) {
       fetchUserInfo(userId);
@@ -52,6 +90,64 @@ const UserInfoPage = () => {
   };
 
   const getFriendshipStatusButton = () => {
+    // Determine pending states using current user's request lists
+    const incomingPending = user?.requestsTo?.some(
+      (r) => r?.user?.id === userInfo?.id && r?.status === 'PENDING'
+    );
+    const outgoingPending = user?.requestsFrom?.some(
+      (r) => r?.user?.id === userInfo?.id && r?.status === 'PENDING'
+    );
+
+    // If there is an incoming pending request from this user -> show Accept/Block
+    if (incomingPending) {
+      return (
+        <div className="flex items-center gap-3">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50"
+            onClick={handleAcceptRequest}
+            disabled={updateFriendStatus.isPending}
+          >
+            {updateFriendStatus.isPending ? 'Processing...' : 'Accept'}
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors shadow-sm disabled:opacity-50"
+            onClick={handleBlockRequest}
+            disabled={updateFriendStatus.isPending}
+          >
+            {updateFriendStatus.isPending ? 'Processing...' : 'Block'}
+          </motion.button>
+        </div>
+      );
+    }
+
+    // If there is an outgoing pending request to this user -> show Pending + Cancel
+    if (outgoingPending) {
+      return (
+        <div className="flex items-center gap-3">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="flex items-center gap-2 px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-lg border border-yellow-200 dark:border-yellow-800"
+          >
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="font-medium">Request Pending</span>
+          </motion.div>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors shadow-sm disabled:opacity-50"
+            onClick={handleCancelRequest}
+            disabled={deleteFriend.isPending}
+          >
+            {deleteFriend.isPending ? 'Processing...' : 'Cancel'}
+          </motion.button>
+        </div>
+      );
+    }
     // Already friends
     if (userInfo?.status === 'ACCEPTED') {
       return (
