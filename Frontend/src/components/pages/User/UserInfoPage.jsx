@@ -11,6 +11,7 @@ import { useAuthen } from '@/context/AuthenProvider';
 
 const UserInfoPage = () => {
   const [isRequestSent, setIsRequestSent] = useState(false);
+  const [isAccepted, setIsAccepted] = useState(false);
   const { userId } = useParams();
   const navigate = useNavigate();
   const { mutate: fetchUserInfo, data: userInfo, isLoading, isError } = useUserInfo();
@@ -149,7 +150,7 @@ const UserInfoPage = () => {
       );
     }
     // Already friends
-    if (userInfo?.status === 'ACCEPTED') {
+    if (userInfo?.status === 'ACCEPTED' || isAccepted) {
       return (
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
@@ -162,19 +163,19 @@ const UserInfoPage = () => {
       );
     }
 
-    // Pending request
-    if (userInfo?.status === 'PENDING') {
-      return (
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="flex items-center gap-2 px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-lg border border-yellow-200 dark:border-yellow-800"
-        >
-          <Loader2 className="w-4 h-4 animate-spin" />
-          <span className="font-medium">Request Pending</span>
-        </motion.div>
-      );
-    }
+    // // Pending request
+    // if (userInfo?.status === 'PENDING') {
+    //   return (
+    //     <motion.div
+    //       initial={{ scale: 0.9, opacity: 0 }}
+    //       animate={{ scale: 1, opacity: 1 }}
+    //       className="flex items-center gap-2 px-4 py-2 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-lg border border-yellow-200 dark:border-yellow-800"
+    //     >
+    //       <Loader2 className="w-4 h-4 animate-spin" />
+    //       <span className="font-medium">Request Pending</span>
+    //     </motion.div>
+    //   );
+    // }
 
     // Request sent in this session
     if (isRequestSent) {
