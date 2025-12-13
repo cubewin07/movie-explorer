@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import useUserSearch from "@/hooks/friend/useUserSearch";
 import useUserInfo from "@/hooks/API/useUserInfo";
 import { useNavigate } from "react-router";
+import { motion } from "framer-motion";
 
 const AddFriendTab = ({ compact }) => {
     const [searchQuery, setSearchQuery] = useState('');
@@ -65,10 +66,47 @@ const AddFriendTab = ({ compact }) => {
         )}
 
         {!debouncedQuery && (
-          <div className="text-center text-slate-500 dark:text-slate-400 py-8">
-            <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
-            <p className="text-sm">Start typing to search for users</p>
-          </div>
+          <motion.div 
+            className="text-center text-slate-500 dark:text-slate-400 py-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <motion.div
+              animate={{ y: [0, -8, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              className="inline-block"
+            >
+              <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
+            </motion.div>
+            <motion.p 
+              className="text-sm"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+            >
+              Start typing to search for users
+            </motion.p>
+            <motion.div
+              className="flex justify-center gap-1 mt-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.5 }}
+            >
+              {[0, 1, 2].map((i) => (
+                <motion.div
+                  key={i}
+                  className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-blue-400 to-purple-400"
+                  animate={{ scale: [1, 1.5, 1] }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    delay: i * 0.2,
+                  }}
+                />
+              ))}
+            </motion.div>
+          </motion.div>
         )}
       </ScrollArea>
     </div>
