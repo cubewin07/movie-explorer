@@ -18,7 +18,7 @@ import ChatLayout from '../pages/Chat/ChatLayout';
 import ChatList from '../pages/Chat/ChatList';
 import ChatConversation from '../pages/Chat/ChatConversation';
 import FriendsList from '../pages/Chat/FriendsList';
-import RequestsView from '../pages/Chat/RequestsView';
+import FriendRequests from '../pages/Chat/FriendRequests';
 import FriendsView from '../pages/Chat/FriendsView';
 import UserInfoPage from '../pages/User/UserInfoPage';
 import NotificationsPage from '../pages/Notification/NotificationPage';
@@ -159,7 +159,7 @@ const router = createBrowserRouter(
                         },
                         {
                             path: 'requests/:type?',
-                            element: <RequestsView />
+                            element: <FriendRequests />
                         }
                     ]
                 },

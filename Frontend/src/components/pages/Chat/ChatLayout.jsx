@@ -6,7 +6,7 @@ import { ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ChatList from './ChatList';
 import FriendsList from './FriendsList';
-import RequestTabs from './RequestTabs';
+import FriendRequests from './FriendRequests';
 
 export default function ChatLayout() {
   const [showMobileContent, setShowMobileContent] = useState(false);
@@ -43,7 +43,7 @@ export default function ChatLayout() {
       case 'friends':
         return <FriendsList onFriendSelect={(friendId) => navigate(`/friend/friends/${friendId}`)} />;
       case 'requests':
-        return <RequestTabs onRequestSelect={(requestId) => navigate(`/friend/requests/${requestId}`)} />;
+        return <FriendRequests onRequestSelect={(requestId) => navigate(`/friend/requests/${requestId}`)} />;
       default:
         return null;
     }
