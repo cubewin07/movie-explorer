@@ -20,6 +20,7 @@ import ChatConversation from '../pages/Chat/ChatConversation';
 import FriendsList from '../pages/Chat/FriendsList';
 import FriendRequests from '../pages/Chat/FriendRequests';
 import FriendsView from '../pages/Chat/FriendsView';
+import ChatPlaceholder from '../pages/Chat/ChatPlaceholder';
 import UserInfoPage from '../pages/User/UserInfoPage';
 import NotificationsPage from '../pages/Notification/NotificationPage';
 
@@ -139,15 +140,11 @@ const router = createBrowserRouter(
                     children: [
                         {
                             path: '',
-                            element: <div className="flex items-center justify-center h-full text-slate-500">
-                                Select a conversation or friend to start
-                            </div>
+                            element: <ChatPlaceholder />
                         },
                         {
                             path: 'chat',
-                            element: <div className="flex items-center justify-center h-full text-slate-500">
-                                Select a chat to start conversation
-                            </div>
+                            element: <ChatPlaceholder type="chat" />
                         },
                         {
                             path: 'chat/:chatId',

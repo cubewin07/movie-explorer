@@ -4,6 +4,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { MessageCircle } from 'lucide-react';
 import { useChat } from '@/context/ChatProvider';
 import useMarkMessageAsRead from '@/hooks/chat/useMarkMessageAsRead';
 import { useAuthen } from '@/context/AuthenProvider';
@@ -87,11 +88,36 @@ export default function ChatList() {
 
   if (!chats || chats.length === 0) {
     return (
-      <div className="h-full flex flex-col items-center justify-center p-4">
-        <p className="text-slate-500 dark:text-slate-400 text-center">
-          No conversations yet. Start chatting with your friends!
-        </p>
-      </div>
+      <motion.div 
+        className="h-full flex flex-col items-center justify-center p-4"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <motion.div
+          animate={{ y: [0, -12, 0] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+          className="mb-4"
+        >
+          <MessageCircle className="h-12 w-12 text-slate-400 dark:text-slate-500" />
+        </motion.div>
+        <motion.p
+          className="text-sm text-slate-500 dark:text-slate-400 text-center mb-2"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
+          No conversations yet
+        </motion.p>
+        <motion.p
+          className="text-xs text-slate-400 dark:text-slate-500 text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.5 }}
+        >
+          Start chatting with your friends!
+        </motion.p>
+      </motion.div>
     );
   }
 
