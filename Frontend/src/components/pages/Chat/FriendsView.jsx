@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { UserPlus, Search } from 'lucide-react';
+import { UserPlus, Search, Users } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { motion } from 'framer-motion';
 
 import { useFriends } from '@/hooks/friend/useFriends';
 import ErrorState from '@/components/ui/ErrorState';
@@ -93,9 +94,36 @@ export default function FriendsView({ onFriendSelect, compact = false }) {
                   );
                 })}
                 {filteredFriends.length === 0 && (
-                  <div className="text-center text-slate-500 dark:text-slate-400 py-8">
-                    {search ? 'No friends found' : 'No friends yet'}
-                  </div>
+                  <motion.div 
+                    className="flex flex-col items-center justify-center py-12"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <motion.div
+                      animate={{ y: [0, -12, 0] }}
+                      transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                      className="mb-4"
+                    >
+                      <Users className="h-12 w-12 text-slate-400 dark:text-slate-500" />
+                    </motion.div>
+                    <motion.p
+                      className="text-sm text-slate-500 dark:text-slate-400 mb-2"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.2, duration: 0.5 }}
+                    >
+                      {search ? 'No friends found' : 'No friends yet'}
+                    </motion.p>
+                    <motion.p
+                      className="text-xs text-slate-400 dark:text-slate-500"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.4, duration: 0.5 }}
+                    >
+                      {search ? 'Try a different search' : 'Start adding friends to connect!'}
+                    </motion.p>
+                  </motion.div>
                 )}
               </div>
             )}
