@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import useHelper from "./helper";
 
 const FriendItem = ({ 
   friend, 
@@ -20,6 +21,8 @@ const FriendItem = ({
   onBlock,
   showActions = true 
 }) => {
+
+  const { getStatusColor } = useHelper();
 
   const getStatusBadge = (status) => {
     const statusLower = status;
