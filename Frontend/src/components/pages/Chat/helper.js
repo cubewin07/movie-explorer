@@ -73,12 +73,22 @@ function useHelper() {
         }
         return { text: 'Offline', color: 'text-slate-500 dark:text-slate-400', isOnline: false };
     };
+
+    const getStatusColor = (status) => {
+        switch(status) {
+        case true: return 'ring-2 ring-green-500';
+        case false: return 'ring-2 ring-yellow-500';
+        case 'busy': return 'ring-2 ring-red-500';
+        default: return 'ring-2 ring-slate-300';
+        }
+    };
     
     return {
         getChatDisplayInfo,
         getFriendInfo,
         formatDateHeader,
-        getStatusDisplay
+        getStatusDisplay,
+        getStatusColor
     }
 }
 
