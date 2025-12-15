@@ -40,3 +40,5 @@ function useHelper() {
         getFriendInfo
     }
 }
+
+export default useHelper;

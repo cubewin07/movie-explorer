@@ -10,7 +10,7 @@ import useMarkMessageAsRead from '@/hooks/chat/useMarkMessageAsRead';
 import { useAuthen } from '@/context/AuthenProvider';
 import { useNotificationActions } from '@/hooks/notification/useNotificationActions';
 import { useWebsocket } from '@/context/Websocket/WebsocketProvider';
-import { useHelper } from './helper';
+import useHelper from './helper';
 
 export default function ChatList() {
   const [search, setSearch] = useState('');
