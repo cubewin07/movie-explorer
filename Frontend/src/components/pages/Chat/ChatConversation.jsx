@@ -10,6 +10,7 @@ import useInfiniteMessages from '@/hooks/chat/useInfiniteMessages';
 import { useChat } from '@/context/ChatProvider';
 import { useAuthen } from '@/context/AuthenProvider';
 import { useWebsocket } from '@/context/Websocket/WebsocketProvider';
+import useHelper from './helper';
 
 const MAX_MESSAGE_LENGTH = 800;
 const GROUP_GAP_MS = 5 * 60 * 1000; // 5 minutes
@@ -38,6 +39,7 @@ export default function ChatConversation() {
     const sendCooldownRef = useRef(0);
     const typingTimeoutRef = useRef(null);
     const pendingTimeoutsRef = useRef({});
+    const { getStatusDisplay, formatDateHeader } = useHelper();
     
     const { sendMessage } = useChat();
     const { user } = useAuthen();
