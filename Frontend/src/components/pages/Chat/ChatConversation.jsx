@@ -178,6 +178,25 @@ export default function ChatConversation() {
         };
     }, [groupedMessages.length]);
 
+    // Handle scroll detection
+    const handleScroll = () => {
+        const scrollElement = scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+        if (!scrollElement) return;
+        
+        const { scrollTop, scrollHeight, clientHeight } = scrollElement;
+        const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+        
+        isUserScrolling.current = distanceFromBottom > 100;
+        
+        if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+        
+        scrollTimeout.current = setTimeout(() => {
+            if (distanceFromBottom < 100) {
+                isUserScrolling.current = false;
+            }
+        }, 150);
+    };
+
     // Attach scroll listener
     useEffect(() => {
         const scrollElement = scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]');
