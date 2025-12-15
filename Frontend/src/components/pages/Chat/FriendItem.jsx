@@ -29,8 +29,6 @@ const FriendItem = ({
     }
   };
 
-  console.log(compact );
-
   const getStatusBadge = (status) => {
     const statusLower = status;
     if (statusLower === true) return <Badge variant="default" className="bg-green-500">Online</Badge>;
