@@ -108,25 +108,118 @@ export default function NotificationsPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
       {/* Loading State */}
       {isLoading && (
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-gray-500 dark:text-gray-400">Loading notifications...</p>
-          </div>
-        </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="flex items-center justify-center min-h-screen"
+        >
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="text-center"
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              className="w-16 h-16 mx-auto mb-4"
+            >
+              <div className="relative w-full h-full">
+                <motion.div
+                  className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-500 border-r-blue-400"
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                />
+                <motion.div
+                  className="absolute inset-1 rounded-full border-2 border-transparent border-b-blue-300"
+                  animate={{ rotate: -360 }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                />
+              </div>
+            </motion.div>
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-gray-500 dark:text-gray-400 font-medium"
+            >
+              Loading notifications...
+            </motion.p>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="flex justify-center gap-1 mt-3"
+            >
+              {[0, 1, 2].map((i) => (
+                <motion.div
+                  key={i}
+                  animate={{ scale: [1, 1.2, 1] }}
+                  transition={{
+                    duration: 1.4,
+                    repeat: Infinity,
+                    delay: i * 0.2,
+                  }}
+                  className="w-2 h-2 bg-blue-500 rounded-full"
+                />
+              ))}
+            </motion.div>
+          </motion.div>
+        </motion.div>
       )}
 
       {/* Error State */}
       {error && (
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Bell className="w-8 h-8 text-red-500" />
-            </div>
-            <p className="text-red-500 dark:text-red-400 font-medium">Failed to load notifications</p>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mt-2">Please try again later</p>
-          </div>
-        </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="flex items-center justify-center min-h-screen"
+        >
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className="text-center"
+          >
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.1, duration: 0.4 }}
+              className="w-16 h-16 bg-gradient-to-br from-red-100 to-red-50 dark:from-red-900/40 dark:to-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4 relative"
+            >
+              <motion.div
+                animate={{ scale: [1, 1.3, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="absolute inset-0 rounded-full border-2 border-red-300 dark:border-red-700/50"
+              />
+              <motion.div
+                initial={{ rotate: -45 }}
+                animate={{ rotate: 0 }}
+                transition={{ delay: 0.2, duration: 0.5 }}
+              >
+                <Bell className="w-8 h-8 text-red-500 dark:text-red-400" />
+              </motion.div>
+            </motion.div>
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-red-500 dark:text-red-400 font-medium text-lg"
+            >
+              Failed to load notifications
+            </motion.p>
+            <motion.p
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-gray-500 dark:text-gray-400 text-sm mt-2"
+            >
+              Please try again later
+            </motion.p>
+          </motion.div>
+        </motion.div>
       )}
 
       {/* Main Content */}
