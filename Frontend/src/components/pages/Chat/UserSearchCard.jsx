@@ -1,8 +1,6 @@
-import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Info, UserPlus } from "lucide-react";
-import { useFriendActions } from "@/hooks/friend/useFriendActions";
+import { Info } from "lucide-react";
 
 const UserSearchCard = ({ user, compact, onViewDetails }) => {
   return (
