@@ -73,12 +73,32 @@ function useHelper() {
         }
         return { text: 'Offline', color: 'text-slate-500 dark:text-slate-400', isOnline: false };
     };
+
+    // Handle scroll detection
+    const handleScroll = (scrollRef) => {
+        const scrollElement = scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+        if (!scrollElement) return;
+        
+        const { scrollTop, scrollHeight, clientHeight } = scrollElement;
+        const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+        
+        isUserScrolling.current = distanceFromBottom > 100;
+        
+        if (scrollTimeout.current) clearTimeout(scrollTimeout.current);
+        
+        scrollTimeout.current = setTimeout(() => {
+            if (distanceFromBottom < 100) {
+                isUserScrolling.current = false;
+            }
+        }, 150);
+    };
     
     return {
         getChatDisplayInfo,
         getFriendInfo,
         formatDateHeader,
-        getStatusDisplay
+        getStatusDisplay,
+        handleScroll
     }
 }
 
