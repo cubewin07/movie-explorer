@@ -62,21 +62,6 @@ export default function ChatConversation() {
         };
     }, [user?.chats, chatId, user?.id]);
 
-    // Get status display text and color
-    const getStatusDisplay = (status) => {
-        if (status === undefined) return null; // Not friends, don't show status
-        
-        if (status === true || status === 'online') {
-            return { text: 'Active Now', color: 'text-emerald-600 dark:text-emerald-400', isOnline: true };
-        }
-        if (status === false || status === 'offline') {
-            return { text: 'Offline', color: 'text-slate-500 dark:text-slate-400', isOnline: false };
-        }
-        if (status === 'busy') {
-            return { text: 'Busy', color: 'text-amber-600 dark:text-amber-400', isOnline: false };
-        }
-        return { text: 'Offline', color: 'text-slate-500 dark:text-slate-400', isOnline: false };
-    };
 
     const statusDisplay = getStatusDisplay(friendStatus);
 
