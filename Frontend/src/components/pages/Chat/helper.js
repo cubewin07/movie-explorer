@@ -1,4 +1,4 @@
-function helper() {
+function useHelper() {
     const getChatDisplayInfo = (chat, currentUser) => {
         if (chat.isGroup) {
             return {
