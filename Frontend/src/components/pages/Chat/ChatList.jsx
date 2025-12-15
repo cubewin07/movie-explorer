@@ -10,6 +10,7 @@ import useMarkMessageAsRead from '@/hooks/chat/useMarkMessageAsRead';
 import { useAuthen } from '@/context/AuthenProvider';
 import { useNotificationActions } from '@/hooks/notification/useNotificationActions';
 import { useWebsocket } from '@/context/Websocket/WebsocketProvider';
+import { helper } from './helper';
 
 export default function ChatList() {
   const [search, setSearch] = useState('');
@@ -20,6 +21,7 @@ export default function ChatList() {
   const { friends } = useWebsocket();
   const { mutate: markMessageAsRead } = useMarkMessageAsRead(token);
   const { markChatNotificationsAsRead } = useNotificationActions(token);
+  const { getChatDisplayInfo, getFriendInfo } = helper();
 
   // Extract the active chatId from the current path
   const activeChatId = location.pathname.split('/').pop();
