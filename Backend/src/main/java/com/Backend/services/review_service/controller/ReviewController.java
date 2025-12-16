@@ -30,10 +30,6 @@ public class ReviewController {
         return ResponseEntity.ok(null);
     }
 
-    @PostMapping("/like/{reviewId}")
-    public ResponseEntity<Review> likeReview(@RequestParam("reviewId") Long reviewId, @AuthenticationPrincipal User user){
-        return ResponseEntity.ok(null);
-    }
 
 
 }
