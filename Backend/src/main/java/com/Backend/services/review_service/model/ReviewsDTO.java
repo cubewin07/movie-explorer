@@ -15,7 +15,7 @@ public class ReviewsDTO {
     private SimpleUserDTO user;
     private LocalDateTime createdAt;
 
-    public ReviewsDTO fromReview(Review review) {
+    public static ReviewsDTO fromReview(Review review) {
         Long userId = review.getUser().getId();
         String userEmail = review.getUser().getEmail();
         String userName = review.getUser().getRealUsername();
