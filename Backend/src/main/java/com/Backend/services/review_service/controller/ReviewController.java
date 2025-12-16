@@ -30,6 +30,10 @@ public class ReviewController {
         return ResponseEntity.ok(null);
     }
 
+    @PostMapping()
+    public ResponseEntity<Review> createReview(@RequestBody Review review, @AuthenticationPrincipal User user){
+        return ResponseEntity.ok(null);
+    }
 
 
 }
