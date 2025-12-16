@@ -4,7 +4,7 @@ import com.Backend.services.user_service.model.User;
 import com.Backend.services.watchlist_service.model.Watchlist;
 import com.Backend.services.watchlist_service.model.WatchlistPosting;
 import com.Backend.services.watchlist_service.model.WatchlistDTO;
-import com.Backend.services.watchlist_service.model.WatchlistType;
+import com.Backend.services.FilmType;
 import com.Backend.services.watchlist_service.repository.WatchlistRepository;
 import com.Backend.exception.WatchlistNotFoundException;
 import com.Backend.exception.DuplicateWatchlistItemException;
@@ -53,7 +53,7 @@ public class WatchlistService {
                 .orElseThrow(() -> new WatchlistNotFoundException("Watchlist for user id " + user.getId() + " not found"));
 
         Set<Long> IdSet;
-        if(posting.type().equals(WatchlistType.MOVIE))
+        if(posting.type().equals(FilmType.MOVIE))
             IdSet = watchlist.getMoviesId();
         else
             IdSet = watchlist.getSeriesId();
@@ -80,7 +80,7 @@ public class WatchlistService {
                 .orElseThrow(() -> new WatchlistNotFoundException("Watchlist for user id " + user.getId() + " not found"));
 
         Set<Long> IdSet;
-        if(posting.type().equals(WatchlistType.MOVIE))
+        if(posting.type().equals(FilmType.MOVIE))
             IdSet = watchlist.getMoviesId();
         else
             IdSet = watchlist.getSeriesId();

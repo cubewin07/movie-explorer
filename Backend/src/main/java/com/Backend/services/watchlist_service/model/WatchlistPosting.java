@@ -1,7 +1,9 @@
 package com.Backend.services.watchlist_service.model;
 
+import com.Backend.services.FilmType;
+
 public record WatchlistPosting(
-        WatchlistType type,
+        FilmType type,
         Long id
 )
 {}

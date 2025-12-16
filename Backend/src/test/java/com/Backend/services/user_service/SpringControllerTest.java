@@ -8,7 +8,7 @@ import com.Backend.services.user_service.model.DTO.UpdateUserDTO;
 import com.Backend.services.user_service.model.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.Backend.services.watchlist_service.model.WatchlistPosting;
-import com.Backend.services.watchlist_service.model.WatchlistType;
+import com.Backend.services.FilmType;
 import com.Backend.services.friend_service.model.EmailBody;
 import com.Backend.services.friend_service.model.Status;
 import com.Backend.services.friend_service.model.DTO.FriendUpdatingBody;
@@ -96,7 +96,7 @@ class SpringControllerTest {
 
     // Watchlist helpers
     private void addMovie(String token, long id) throws Exception {
-        WatchlistPosting posting = new WatchlistPosting(WatchlistType.MOVIE, id);
+        WatchlistPosting posting = new WatchlistPosting(FilmType.MOVIE, id);
         mockMvc.perform(post("/watchlist")
         .header("Authorization", bearer(token))
         .contentType(MediaType.APPLICATION_JSON)
@@ -105,7 +105,7 @@ class SpringControllerTest {
     }
     
     private void addSeries(String token, long id) throws Exception {
-        WatchlistPosting posting = new WatchlistPosting(WatchlistType.SERIES, id);
+        WatchlistPosting posting = new WatchlistPosting(FilmType.SERIES, id);
         mockMvc.perform(post("/watchlist")
         .header("Authorization", bearer(token))
         .contentType(MediaType.APPLICATION_JSON)
@@ -117,7 +117,7 @@ class SpringControllerTest {
         mockMvc.perform(delete("/watchlist")
                         .header("Authorization", bearer(token))
                         .param("id", String.valueOf(id))
-                        .param("type", WatchlistType.MOVIE.name())) // "MOVIE"
+                        .param("type", FilmType.MOVIE.name())) // "MOVIE"
                 .andExpect(status().isOk());
     }
     
@@ -125,7 +125,7 @@ class SpringControllerTest {
         mockMvc.perform(delete("/watchlist")
                         .header("Authorization", bearer(token))
                         .param("id", String.valueOf(id))
-                        .param("type", WatchlistType.SERIES.name())) // "MOVIE"
+                        .param("type", FilmType.SERIES.name())) // "MOVIE"
                 .andExpect(status().isOk());
     }
     
