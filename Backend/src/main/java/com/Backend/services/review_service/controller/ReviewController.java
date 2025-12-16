@@ -1,6 +1,7 @@
 package com.Backend.services.review_service.controller;
 
 import com.Backend.services.review_service.model.Review;
+import com.Backend.services.review_service.model.ReviewsDTO;
 import com.Backend.services.user_service.model.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -13,7 +14,7 @@ import java.util.List;
 public class ReviewController {
 
     @GetMapping()
-    public ResponseEntity<List<Review>> getReviews(
+    public ResponseEntity<List<ReviewsDTO>> getReviews(
             @RequestParam("filmId") Long filmId,
             @RequestParam("type") String type,
             @AuthenticationPrincipal User user){
