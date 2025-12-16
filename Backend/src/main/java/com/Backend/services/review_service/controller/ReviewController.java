@@ -25,7 +25,7 @@ public class ReviewController {
             @RequestParam("type") FilmType type,
             @AuthenticationPrincipal User user){
 
-        return ResponseEntity.ok(reviewService.getReviewsByFilmId(filmId,));
+        return ResponseEntity.ok(reviewService.getReviewsByFilmId(filmId, type, user, 0));
     }
 
     @GetMapping("/reply/{reviewId}")
