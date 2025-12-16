@@ -38,6 +38,8 @@ public class Review {
     @Builder.Default
     private List<Review> replies = new ArrayList<>();
 
+    private long replyCount;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
