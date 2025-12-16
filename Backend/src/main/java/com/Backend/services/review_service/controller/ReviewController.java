@@ -4,10 +4,7 @@ import com.Backend.services.review_service.model.Review;
 import com.Backend.services.user_service.model.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -30,6 +27,11 @@ public class ReviewController {
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Review>> getReviewsByUser(@RequestParam("userId") Long userId, @AuthenticationPrincipal User user){
+        return ResponseEntity.ok(null);
+    }
+
+    @PostMapping("/like/{reviewId}")
+    public ResponseEntity<Review> likeReview(@RequestParam("reviewId") Long reviewId, @AuthenticationPrincipal User user){
         return ResponseEntity.ok(null);
     }
 
