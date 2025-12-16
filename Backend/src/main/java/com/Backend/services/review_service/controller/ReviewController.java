@@ -35,5 +35,10 @@ public class ReviewController {
         return ResponseEntity.ok(null);
     }
 
+    @DeleteMapping("/delete/{reviewId}")
+    public ResponseEntity<Void> deleteReview(@RequestParam("reviewId") Long reviewId, @AuthenticationPrincipal User user){
+        return ResponseEntity.ok().build();
+    }
+
 
 }
