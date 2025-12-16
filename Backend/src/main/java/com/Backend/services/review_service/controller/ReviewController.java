@@ -2,7 +2,9 @@ package com.Backend.services.review_service.controller;
 
 import com.Backend.services.review_service.model.Review;
 import com.Backend.services.review_service.model.ReviewsDTO;
+import com.Backend.services.review_service.service.ReviewService;
 import com.Backend.services.user_service.model.User;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -11,14 +13,18 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/reviews")
+@RequiredArgsConstructor
 public class ReviewController {
+
+    private final ReviewService reviewService;
 
     @GetMapping()
     public ResponseEntity<List<ReviewsDTO>> getReviews(
             @RequestParam("filmId") Long filmId,
             @RequestParam("type") String type,
             @AuthenticationPrincipal User user){
-        return ResponseEntity.ok(null);
+
+        return ResponseEntity.ok(reviewService.getReviewsByFilmId(filmId,));
     }
 
     @GetMapping("/reply/{reviewId}")
