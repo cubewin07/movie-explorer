@@ -2,6 +2,8 @@ package com.Backend.services.review_service.model;
 
 import com.Backend.services.user_service.model.User;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -13,6 +15,8 @@ import java.util.List;
 @Entity
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Review {
     @Id
     private Long id;
@@ -26,6 +30,7 @@ public class Review {
     private Review answerTo;
 
     @OneToMany(mappedBy = "answerTo", cascade = CascadeType.ALL)
+    @Builder.Default
     private List<Review> replies = new ArrayList<>();
 
     @ManyToOne
