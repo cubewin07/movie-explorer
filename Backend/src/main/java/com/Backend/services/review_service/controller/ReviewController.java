@@ -14,6 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/reviews")
 public class ReviewController {
+
     @GetMapping()
     public ResponseEntity<List<Review>> getReviews(
             @RequestParam("filmId") Long filmId,
@@ -21,4 +22,11 @@ public class ReviewController {
             @AuthenticationPrincipal User user){
         return ResponseEntity.ok(null);
     }
+
+    @GetMapping("/reply/{reviewId}")
+    public ResponseEntity<List<Review>> getReviewById(@RequestParam("reviewId") Long reviewId, @AuthenticationPrincipal User user){
+        return ResponseEntity.ok(null);
+    }
+
+
 }
