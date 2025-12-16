@@ -1,5 +1,6 @@
 package com.Backend.services.review_service.model;
 
+import com.Backend.services.FilmType;
 import com.Backend.services.user_service.model.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -25,6 +26,9 @@ public class Review {
     private String content;
 
     private long filmId;
+
+    @Enumerated(EnumType.STRING)
+    private FilmType type;
 
     @ManyToOne
     @JoinColumn(name = "answer_to_id")
