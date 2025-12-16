@@ -21,22 +21,30 @@ public class ReviewController {
     }
 
     @GetMapping("/reply/{reviewId}")
-    public ResponseEntity<List<Review>> getRepliesById(@RequestParam("reviewId") Long reviewId, @AuthenticationPrincipal User user){
+    public ResponseEntity<List<Review>> getRepliesById(
+            @RequestParam("reviewId") Long reviewId,
+            @AuthenticationPrincipal User user){
         return ResponseEntity.ok(null);
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Review>> getReviewsByUser(@RequestParam("userId") Long userId, @AuthenticationPrincipal User user){
+    public ResponseEntity<List<Review>> getReviewsByUser(
+            @RequestParam("userId") Long userId,
+            @AuthenticationPrincipal User user){
         return ResponseEntity.ok(null);
     }
 
     @PostMapping()
-    public ResponseEntity<Review> createReview(@RequestBody Review review, @AuthenticationPrincipal User user){
+    public ResponseEntity<Review> createReview(
+            @RequestBody Review review,
+            @AuthenticationPrincipal User user){
         return ResponseEntity.ok(null);
     }
 
     @DeleteMapping("/delete/{reviewId}")
-    public ResponseEntity<Void> deleteReview(@RequestParam("reviewId") Long reviewId, @AuthenticationPrincipal User user){
+    public ResponseEntity<Void> deleteReview(
+            @RequestParam("reviewId") Long reviewId,
+            @AuthenticationPrincipal User user){
         return ResponseEntity.ok().build();
     }
 
