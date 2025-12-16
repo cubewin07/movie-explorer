@@ -1,5 +1,6 @@
 package com.Backend.services.review_service.controller;
 
+import com.Backend.services.FilmType;
 import com.Backend.services.review_service.model.Review;
 import com.Backend.services.review_service.model.ReviewsDTO;
 import com.Backend.services.review_service.service.ReviewService;
@@ -21,7 +22,7 @@ public class ReviewController {
     @GetMapping()
     public ResponseEntity<List<ReviewsDTO>> getReviews(
             @RequestParam("filmId") Long filmId,
-            @RequestParam("type") String type,
+            @RequestParam("type") FilmType type,
             @AuthenticationPrincipal User user){
 
         return ResponseEntity.ok(reviewService.getReviewsByFilmId(filmId,));
