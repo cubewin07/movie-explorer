@@ -28,7 +28,7 @@ public class ReviewService {
 
     public List<ReviewsDTO> getRepliesByReviewId(Long reviewId) {
         Pageable pageable = PageRequest.of(0, 20, Sort.by("createdAt").descending());
-        Page<Review> reviews = reviewRepository.findByAnswerTo_Id(reviewId);
+        Page<Review> reviews = reviewRepository.findByAnswerTo_Id(reviewId, pageable);
         return reviews.stream().map(ReviewsDTO::fromReview).toList();
     }
 }
