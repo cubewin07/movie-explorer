@@ -83,7 +83,7 @@ public class ReviewService {
                 .value(1)
                 .build();
         voteRepository.save(vote);
-        return ReviewsDTO.fromReview(review, true);
+        return ReviewsDTO.fromReview(review, true, false);
     }
 
     @Caching(evict = {
@@ -118,7 +118,7 @@ public class ReviewService {
                 .value(1)
                 .build();
         voteRepository.save(vote);
-        return ReviewsDTO.fromReview(reply, true);
+        return ReviewsDTO.fromReview(reply, true, false);
     }
 
     @Caching(evict = {

@@ -14,9 +14,10 @@ public class ReviewsDTO {
     private long replyCount;
     private SimpleUserDTO user;
     private Boolean likedByMe;
+    private Boolean disLikedByMe;
     private LocalDateTime createdAt;
 
-    public static ReviewsDTO fromReview(Review review, Boolean likedByMe) {
+    public static ReviewsDTO fromReview(Review review, Boolean likedByMe, Boolean disLikedByMe) {
         Long userId = review.getUser().getId();
         String userEmail = review.getUser().getEmail();
         String userName = review.getUser().getRealUsername();
@@ -27,6 +28,7 @@ public class ReviewsDTO {
                 .replyCount(review.getReplyCount())
                 .user(simpleUserDTO)
                 .likedByMe(likedByMe)
+                .disLikedByMe(disLikedByMe)
                 .createdAt(review.getCreatedAt())
                 .build();
     }
