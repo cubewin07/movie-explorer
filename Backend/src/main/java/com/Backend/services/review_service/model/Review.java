@@ -31,7 +31,7 @@ public class Review {
     private FilmType type;
 
     @ManyToOne
-    @JoinColumn(name = "answer_to_id")
+    @JoinColumn(name = "answer_to_id", nullable = true)
     private Review answerTo;
 
     @OneToMany(mappedBy = "answerTo", cascade = CascadeType.ALL)
