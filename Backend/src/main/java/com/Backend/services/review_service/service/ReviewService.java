@@ -68,7 +68,10 @@ public class ReviewService {
     public ReviewsDTO createReply(CreateReplyRequest request, User user) {
         Long userId = (user != null) ? user.getId() : null;
         log.info("Creating reply to reviewId={} by userId={}", request.getReplyToId(), userId);
+
         Review parent = reviewRepository.findById(request.getReplyToId()).orElseThrow();
+        parent.setReplyCount(parent.getReplyCount() + 1);
+
         Review reply = Review.builder()
                 .user(user)
                 .filmId(parent.getFilmId())
@@ -77,6 +80,7 @@ public class ReviewService {
                 .answerTo(parent)
                 .build();
         reviewRepository.save(reply);
+        reviewRepository.save(parent);
         log.info("Created reply id={} to parentReviewId={} by userId={}", reply.getId(), parent.getId(), userId);
         return ReviewsDTO.fromReview(reply);
     }
