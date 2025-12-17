@@ -1,5 +1,6 @@
 package com.Backend.services.review_service.model;
 
+import com.Backend.services.FilmType;
 import lombok.Builder;
 import lombok.Data;
 
@@ -8,6 +9,6 @@ import lombok.Data;
 public class CreateReviewRequest {
     private String content;
     private long filmId;
-    private String type;
+    private FilmType type;
     private long replyToId;
 }
