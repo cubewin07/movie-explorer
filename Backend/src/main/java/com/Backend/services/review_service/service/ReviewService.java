@@ -118,6 +118,11 @@ public class ReviewService {
             throw new IllegalArgumentException("Review does not belong to user");
         }
         reviewRepository.delete(review);
+        //  Decrease replyCount of parent
+        if (review.getAnswerTo() != null) {
+            review.getAnswerTo().setReplyCount(review.getAnswerTo().getReplyCount() - 1);
+            reviewRepository.save(review.getAnswerTo());
+        }
         log.info("Deleted reviewId={} by userId={}", reviewId, userId);
     }
 }
