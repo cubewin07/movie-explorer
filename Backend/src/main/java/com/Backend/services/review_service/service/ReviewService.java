@@ -87,7 +87,7 @@ public class ReviewService {
         log.info("Deleting reviewId={} by userId={}", reviewId, userId);
         Review review = reviewRepository.findById(reviewId).orElseThrow();
         if (!review.getUser().equals(user)) {
-            log.warn("UserId={} attempted to delete reviewId={} which belongs to userId={}", userId, reviewId, review.getUser() != null ? review.getUser().getId() : null);
+            log.warn("UserId={} attempted to delete reviewId={} which belongs to userId={}", userId, reviewId, review.getUser().getId());
             throw new IllegalArgumentException("Review does not belong to user");
         }
         reviewRepository.delete(review);
