@@ -15,6 +15,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 
 import java.util.List;
 
@@ -24,6 +27,7 @@ import java.util.List;
 public class ReviewService {
     private final ReviewRepository reviewRepository;
 
+    @Cacheable(value = "filmReviews", key = "{#filmId, #filmType, #page}")
     public List<ReviewsDTO> getReviewsByFilmId(Long filmId, FilmType filmType, int page) {
         log.info("Fetching reviews for filmId={}, type={}, page={}", filmId, filmType, page);
         Pageable pageable = PageRequest.of(page, 20, Sort.by("createdAt").descending());
@@ -32,6 +36,7 @@ public class ReviewService {
         return reviews.stream().map(ReviewsDTO::fromReview).toList();
     }
 
+    @Cacheable(value = "reviewReplies", key = "#reviewId")
     public List<ReviewsDTO> getRepliesByReviewId(Long reviewId) {
         log.info("Fetching replies for reviewId={}", reviewId);
         Pageable pageable = PageRequest.of(0, 20, Sort.by("createdAt").descending());
@@ -40,6 +45,7 @@ public class ReviewService {
         return reviews.stream().map(ReviewsDTO::fromReview).toList();
     }
 
+    @Cacheable(value = "userReviews", key = "{ (#user != null ? #user.id : 0), #page }")
     public List<ReviewsDTO> getReviewsByUser(User user, int page) {
         Long userId = (user != null) ? user.getId() : null;
         log.info("Fetching reviews by userId={}, page={}", userId, page);
@@ -49,6 +55,11 @@ public class ReviewService {
         return review.stream().map(ReviewsDTO::fromReview).toList();
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "filmReviews", allEntries = true),
+            @CacheEvict(value = "userReviews", allEntries = true),
+            @CacheEvict(value = "userMeDTO", key = "#user.email")
+    })
     @Transactional
     public ReviewsDTO createReview(CreateReviewRequest request, User user) {
         Long userId = (user != null) ? user.getId() : null;
@@ -64,6 +75,12 @@ public class ReviewService {
         return ReviewsDTO.fromReview(review);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "reviewReplies", key = "#request.replyToId"),
+            @CacheEvict(value = "filmReviews", allEntries = true),
+            @CacheEvict(value = "userReviews", allEntries = true),
+            @CacheEvict(value = "userMeDTO", key = "#user.email")
+    })
     @Transactional
     public ReviewsDTO createReply(CreateReplyRequest request, User user) {
         Long userId = (user != null) ? user.getId() : null;
@@ -85,6 +102,12 @@ public class ReviewService {
         return ReviewsDTO.fromReview(reply);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "reviewReplies", key = "#reviewId"),
+            @CacheEvict(value = "filmReviews", allEntries = true),
+            @CacheEvict(value = "userReviews", allEntries = true),
+            @CacheEvict(value = "userMeDTO", key = "#user.email")
+    })
     @Transactional
     public void deleteReview(Long reviewId, User user) {
         Long userId = (user != null) ? user.getId() : null;
