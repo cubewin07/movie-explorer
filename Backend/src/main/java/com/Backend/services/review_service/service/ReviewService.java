@@ -30,4 +30,9 @@ public class ReviewService {
         Page<Review> reviews = reviewRepository.findByAnswerTo_Id(reviewId, pageable);
         return reviews.stream().map(ReviewsDTO::fromReview).toList();
     }
+
+    public List<ReviewsDTO> getReviewsByUser(User user) {
+        List<Review> review = reviewRepository.findByUserOrderByCreatedAtDesc(user);
+        return review.stream().map(ReviewsDTO::fromReview).toList();
+    }
 }
