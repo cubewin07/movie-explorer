@@ -455,4 +455,197 @@ class SpringControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message", is("Deleted notification")));
     }
+
+    // ===================== Review Controller Tests =====================
+
+    @Test
+    @Order(14)
+    @DisplayName("POST /reviews creates a review and GET /reviews returns it by filmId/type")
+    void createReview_and_getByFilm() throws Exception {
+        // Arrange: register and authenticate
+        String email = "reviewer1@example.com";
+        register("reviewer1", email, "password123");
+        String token = authenticate(email, "password123");
+
+        long filmId = 5555L;
+        // Create review
+        Map<String, Object> createReq = Map.of(
+                "content", "Amazing movie!",
+                "filmId", filmId,
+                "type", FilmType.MOVIE.name()
+        );
+
+        MvcResult createRes = mockMvc.perform(post("/reviews")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createReq)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", greaterThanOrEqualTo(1)))
+                .andExpect(jsonPath("$.content", is("Amazing movie!")))
+                .andExpect(jsonPath("$.replyCount", is(0)))
+                .andExpect(jsonPath("$.user.email", is(email)))
+                .andReturn();
+
+        String createBody = createRes.getResponse().getContentAsString();
+        Map<?,?> created = objectMapper.readValue(createBody, Map.class);
+        Integer reviewId = (Integer) created.get("id");
+
+        // Fetch by filmId/type
+        mockMvc.perform(get("/reviews")
+                        .header("Authorization", bearer(token))
+                        .param("filmId", String.valueOf(filmId))
+                        .param("type", FilmType.MOVIE.name())
+                        .param("page", "0"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id==%s)].content", reviewId).value(hasItem("Amazing movie!")))
+                .andExpect(jsonPath("$[?(@.id==%s)].user.email", reviewId).value(hasItem(email)));
+    }
+
+    @Test
+    @Order(15)
+    @DisplayName("POST /reviews/reply creates a reply; GET /reviews/reply/{id}?reviewId= returns replies; parent replyCount increments")
+    void createReply_and_getReplies_and_checkParentCount() throws Exception {
+        String email = "reviewer2@example.com";
+        register("reviewer2", email, "password123");
+        String token = authenticate(email, "password123");
+
+        long filmId = 7777L;
+        // Create parent review
+        Map<String, Object> createReq = Map.of(
+                "content", "Parent review",
+                "filmId", filmId,
+                "type", FilmType.MOVIE.name()
+        );
+        MvcResult parentRes = mockMvc.perform(post("/reviews")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createReq)))
+                .andExpect(status().isOk())
+                .andReturn();
+        Map<?,?> parent = objectMapper.readValue(parentRes.getResponse().getContentAsString(), Map.class);
+        Integer parentId = (Integer) parent.get("id");
+
+        // Create reply
+        Map<String, Object> replyReq = Map.of(
+                "content", "This is a reply",
+                "replyToId", parentId
+        );
+        mockMvc.perform(post("/reviews/reply")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(replyReq)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", is("This is a reply")))
+                .andExpect(jsonPath("$.user.email", is(email)));
+
+        // Get replies using the path + query param combo (controller expects @RequestParam)
+        mockMvc.perform(get("/reviews/reply/{reviewId}", parentId)
+                        .header("Authorization", bearer(token))
+                        .param("reviewId", String.valueOf(parentId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$[0].content", is("This is a reply")));
+
+        // Parent replyCount should be 1 when fetching by film
+        mockMvc.perform(get("/reviews")
+                        .header("Authorization", bearer(token))
+                        .param("filmId", String.valueOf(filmId))
+                        .param("type", FilmType.MOVIE.name())
+                        .param("page", "0"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id==%s)].replyCount", parentId).value(hasItem(1)));
+    }
+
+    @Test
+    @Order(16)
+    @DisplayName("GET /reviews/user returns only current user's reviews")
+    void getReviewsByUser_returnsOnlyOwn() throws Exception {
+        String emailA = "userA@example.com";
+        String emailB = "userB@example.com";
+        register("userA", emailA, "password123");
+        register("userB", emailB, "password123");
+        String tokenA = authenticate(emailA, "password123");
+        String tokenB = authenticate(emailB, "password123");
+
+        long filmId = 8888L;
+        // A creates two reviews
+        for (String content : List.of("A1", "A2")) {
+            Map<String, Object> req = Map.of(
+                    "content", content,
+                    "filmId", filmId,
+                    "type", FilmType.MOVIE.name()
+            );
+            mockMvc.perform(post("/reviews")
+                            .header("Authorization", bearer(tokenA))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(req)))
+                    .andExpect(status().isOk());
+        }
+        // B creates one review
+        Map<String, Object> reqB = Map.of(
+                "content", "B1",
+                "filmId", filmId,
+                "type", FilmType.MOVIE.name()
+        );
+        mockMvc.perform(post("/reviews")
+                        .header("Authorization", bearer(tokenB))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(reqB)))
+                .andExpect(status().isOk());
+
+        // Fetch by user A
+        mockMvc.perform(get("/reviews/user")
+                        .header("Authorization", bearer(tokenA))
+                        .param("page", "0"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[*].user.email", everyItem(is(emailA))))
+                .andExpect(jsonPath("$[*].content", containsInAnyOrder("A1", "A2")));
+    }
+
+    @Test
+    @Order(17)
+    @DisplayName("DELETE /reviews/delete/{id}?reviewId= deletes review; lists reflect removal")
+    void deleteReview_flow() throws Exception {
+        String email = "reviewer3@example.com";
+        register("reviewer3", email, "password123");
+        String token = authenticate(email, "password123");
+
+        long filmId = 9999L;
+        Map<String, Object> createReq = Map.of(
+                "content", "To be deleted",
+                "filmId", filmId,
+                "type", FilmType.MOVIE.name()
+        );
+        MvcResult createRes = mockMvc.perform(post("/reviews")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createReq)))
+                .andExpect(status().isOk())
+                .andReturn();
+        Map<?,?> created = objectMapper.readValue(createRes.getResponse().getContentAsString(), Map.class);
+        Integer reviewId = (Integer) created.get("id");
+
+        // Delete using path + query param due to controller signature
+        mockMvc.perform(delete("/reviews/delete/{reviewId}", reviewId)
+                        .header("Authorization", bearer(token))
+                        .param("reviewId", String.valueOf(reviewId)))
+                .andExpect(status().isOk());
+
+        // Verify not present in film list
+        mockMvc.perform(get("/reviews")
+                        .header("Authorization", bearer(token))
+                        .param("filmId", String.valueOf(filmId))
+                        .param("type", FilmType.MOVIE.name())
+                        .param("page", "0"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].id", not(hasItem(reviewId))));
+
+        // Verify not present in user list
+        mockMvc.perform(get("/reviews/user")
+                        .header("Authorization", bearer(token))
+                        .param("page", "0"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].id", not(hasItem(reviewId))));
+    }
 }
