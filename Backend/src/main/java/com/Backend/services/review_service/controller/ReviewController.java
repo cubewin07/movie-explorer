@@ -36,10 +36,10 @@ public class ReviewController {
     }
 
     @GetMapping("/user")
-    public ResponseEntity<List<Review>> getReviewsByUser(
+    public ResponseEntity<List<ReviewsDTO>> getReviewsByUser(
             @RequestParam(name = "page", defaultValue = "0") int page,
             @AuthenticationPrincipal User user){
-        return ResponseEntity.ok(null);
+        return ResponseEntity.ok(reviewService.getReviewsByUser(user, page));
     }
 
     @PostMapping()
