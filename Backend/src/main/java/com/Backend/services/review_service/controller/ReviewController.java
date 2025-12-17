@@ -1,6 +1,7 @@
 package com.Backend.services.review_service.controller;
 
 import com.Backend.services.FilmType;
+import com.Backend.services.review_service.model.CreateReplyRequest;
 import com.Backend.services.review_service.model.Review;
 import com.Backend.services.review_service.model.ReviewsDTO;
 import com.Backend.services.review_service.service.ReviewService;
@@ -47,6 +48,13 @@ public class ReviewController {
             @RequestBody Review review,
             @AuthenticationPrincipal User user){
         return ResponseEntity.ok(null);
+    }
+
+    @PostMapping("/reply")
+    public ResponseEntity<ReviewsDTO> createReply(
+            @RequestBody CreateReplyRequest request,
+            @AuthenticationPrincipal User user) {
+        return ResponseEntity.ok(reviewService.createReply(request, user));
     }
 
     @DeleteMapping("/delete/{reviewId}")
