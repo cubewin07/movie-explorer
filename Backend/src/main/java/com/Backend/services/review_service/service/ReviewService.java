@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class ReviewService {
     private final ReviewRepository reviewRepository;
 
-    public List<ReviewsDTO> getReviewsByFilmId(Long filmId, FilmType filmType, User user, int page) {
+    public List<ReviewsDTO> getReviewsByFilmId(Long filmId, FilmType filmType, int page) {
         Pageable pageable = PageRequest.of(page, 20, Sort.by("createdAt").descending());
         Page<Review> reviews = reviewRepository.findByFilmIdAndType(filmId, filmType, pageable);
         return reviews.stream().map(ReviewsDTO::fromReview).toList();
