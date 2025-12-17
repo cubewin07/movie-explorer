@@ -1,6 +1,7 @@
 package com.Backend.services.review_service.service;
 
 import com.Backend.services.FilmType;
+import com.Backend.services.review_service.model.CreateReplyRequest;
 import com.Backend.services.review_service.model.CreateReviewRequest;
 import com.Backend.services.review_service.model.Review;
 import com.Backend.services.review_service.model.ReviewsDTO;
@@ -50,4 +51,19 @@ public class ReviewService {
         reviewRepository.save(review);
         return ReviewsDTO.fromReview(review);
     }
+
+    @Transactional
+    public ReviewsDTO createReply(CreateReplyRequest request, User user) {
+        Review parent = reviewRepository.findById(request.getReplyToId()).orElseThrow();
+        Review reply = Review.builder()
+                .user(user)
+                .filmId(parent.getFilmId())
+                .type(parent.getType())
+                .content(request.getContent())
+                .answerTo(parent)
+                .build();
+        reviewRepository.save(reply);
+        return ReviewsDTO.fromReview(reply);
+    }
+
 }
