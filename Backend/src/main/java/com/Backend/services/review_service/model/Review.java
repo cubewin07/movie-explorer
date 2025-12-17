@@ -30,6 +30,10 @@ public class Review {
     @Enumerated(EnumType.STRING)
     private FilmType type;
 
+    private long upVotes;
+
+    private long downVotes;
+
     @ManyToOne
     @JoinColumn(name = "answer_to_id", nullable = true)
     private Review answerTo;
