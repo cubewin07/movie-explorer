@@ -66,4 +66,10 @@ public class ReviewService {
         return ReviewsDTO.fromReview(reply);
     }
 
+    @Transactional
+    public void deleteReview(Long reviewId, User user) {
+        Review review = reviewRepository.findById(reviewId).orElseThrow();
+        if(!review.getUser().equals(user)) throw new IllegalArgumentException("Review does not belong to user");
+        reviewRepository.delete(review);
+    }
 }
