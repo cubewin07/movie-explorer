@@ -37,6 +37,7 @@ public class ReviewController {
 
     @GetMapping("/user")
     public ResponseEntity<List<Review>> getReviewsByUser(
+            @RequestParam(name = "page", defaultValue = "0") int page,
             @AuthenticationPrincipal User user){
         return ResponseEntity.ok(null);
     }
