@@ -12,5 +12,5 @@ import java.util.List;
 public interface ReviewRepository extends JpaRepository<Review, Long> {
     Page<Review> findByFilmIdAndType(Long filmId, FilmType filmType, Pageable pageable);
     Page<Review> findByAnswerTo_Id(Long reviewId, Pageable pageable);
-    List<Review> findByUserOrderByCreatedAtDesc(User user);
+    Page<Review> findByUserOrderByCreatedAtDesc(User user, Pageable pageable);
 }
