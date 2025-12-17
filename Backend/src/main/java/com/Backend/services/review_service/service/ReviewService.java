@@ -25,4 +25,10 @@ public class ReviewService {
         Page<Review> reviews = reviewRepository.findByFilmIdAndType(filmId, filmType, pageable);
         return reviews.stream().map(ReviewsDTO::fromReview).toList();
     }
+
+    public List<ReviewsDTO> getRepliesByReviewId(Long reviewId) {
+        Pageable pageable = PageRequest.of(0, 20, Sort.by("createdAt").descending());
+        Page<Review> reviews = reviewRepository.findByAnswerTo_Id(reviewId);
+        return reviews.stream().map(ReviewsDTO::fromReview).toList();
+    }
 }
