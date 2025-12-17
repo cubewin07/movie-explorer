@@ -62,6 +62,7 @@ public class ReviewController {
     public ResponseEntity<Void> deleteReview(
             @RequestParam("reviewId") Long reviewId,
             @AuthenticationPrincipal User user){
+        reviewService.deleteReview(reviewId, user);
         return ResponseEntity.ok().build();
     }
 
