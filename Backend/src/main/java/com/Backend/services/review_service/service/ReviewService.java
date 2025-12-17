@@ -33,7 +33,7 @@ public class ReviewService {
 
     public List<ReviewsDTO> getReviewsByUser(User user, int page) {
         Pageable pageable = PageRequest.of(page, 20, Sort.by("createdAt").descending());
-        List<Review> review = reviewRepository.findByUser(user, pageable);
+        Page<Review> review = reviewRepository.findByUser(user, pageable);
         return review.stream().map(ReviewsDTO::fromReview).toList();
     }
 }
