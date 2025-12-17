@@ -7,10 +7,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
-
 public interface ReviewRepository extends JpaRepository<Review, Long> {
     Page<Review> findByFilmIdAndType(Long filmId, FilmType filmType, Pageable pageable);
     Page<Review> findByAnswerTo_Id(Long reviewId, Pageable pageable);
-    Page<Review> findByUserOrderByCreatedAtDesc(User user, Pageable pageable);
+    Page<Review> findByUser(User user, Pageable pageable);
 }
