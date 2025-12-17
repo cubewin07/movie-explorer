@@ -31,8 +31,9 @@ public class ReviewService {
         return reviews.stream().map(ReviewsDTO::fromReview).toList();
     }
 
-    public List<ReviewsDTO> getReviewsByUser(User user) {
-        List<Review> review = reviewRepository.findByUserOrderByCreatedAtDesc(user);
+    public List<ReviewsDTO> getReviewsByUser(User user, int page) {
+        Pageable pageable = PageRequest.of(page, 20, Sort.by("createdAt").descending());
+        List<Review> review = reviewRepository.findByUser(user, pageable);
         return review.stream().map(ReviewsDTO::fromReview).toList();
     }
 }
