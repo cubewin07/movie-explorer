@@ -2,6 +2,7 @@ package com.Backend.services.review_service.controller;
 
 import com.Backend.services.FilmType;
 import com.Backend.services.review_service.model.CreateReplyRequest;
+import com.Backend.services.review_service.model.CreateReviewRequest;
 import com.Backend.services.review_service.model.Review;
 import com.Backend.services.review_service.model.ReviewsDTO;
 import com.Backend.services.review_service.service.ReviewService;
@@ -44,10 +45,10 @@ public class ReviewController {
     }
 
     @PostMapping()
-    public ResponseEntity<Review> createReview(
-            @RequestBody Review review,
+    public ResponseEntity<ReviewsDTO> createReview(
+            @RequestBody CreateReviewRequest request,
             @AuthenticationPrincipal User user){
-        return ResponseEntity.ok(null);
+        return ResponseEntity.ok(reviewService.createReview(request, user));
     }
 
     @PostMapping("/reply")
