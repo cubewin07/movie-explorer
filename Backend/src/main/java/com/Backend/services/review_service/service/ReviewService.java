@@ -5,6 +5,8 @@ import com.Backend.services.review_service.model.CreateReplyRequest;
 import com.Backend.services.review_service.model.CreateReviewRequest;
 import com.Backend.services.review_service.model.Review;
 import com.Backend.services.review_service.model.ReviewsDTO;
+import com.Backend.services.review_service.model.vote.Vote;
+import com.Backend.services.review_service.model.vote.VoteRepository;
 import com.Backend.services.review_service.repository.ReviewRepository;
 import com.Backend.services.user_service.model.User;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ import java.util.List;
 @Slf4j
 public class ReviewService {
     private final ReviewRepository reviewRepository;
+    private final VoteRepository voteRepository;
 
     @Cacheable(value = "filmReviews", key = "{#filmId, #filmType, #page}")
     public List<ReviewsDTO> getReviewsByFilmId(Long filmId, FilmType filmType, int page) {
@@ -72,7 +75,15 @@ public class ReviewService {
                 .build();
         reviewRepository.save(review);
         log.info("Created review id={} for filmId={} by userId={}", review.getId(), request.getFilmId(), userId);
-        return ReviewsDTO.fromReview(review);
+
+        // Create vote
+        Vote vote = Vote.builder()
+                .user(user)
+                .review(review)
+                .value(1)
+                .build();
+        voteRepository.save(vote);
+        return ReviewsDTO.fromReview(review, true);
     }
 
     @Caching(evict = {
@@ -99,7 +110,15 @@ public class ReviewService {
         reviewRepository.save(reply);
         reviewRepository.save(parent);
         log.info("Created reply id={} to parentReviewId={} by userId={}", reply.getId(), parent.getId(), userId);
-        return ReviewsDTO.fromReview(reply);
+
+        // Create vote
+        Vote vote = Vote.builder()
+                .user(user)
+                .review(reply)
+                .value(1)
+                .build();
+        voteRepository.save(vote);
+        return ReviewsDTO.fromReview(reply, true);
     }
 
     @Caching(evict = {
