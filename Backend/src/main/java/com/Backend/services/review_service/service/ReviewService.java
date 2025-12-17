@@ -1,6 +1,7 @@
 package com.Backend.services.review_service.service;
 
 import com.Backend.services.FilmType;
+import com.Backend.services.review_service.model.CreateReviewRequest;
 import com.Backend.services.review_service.model.Review;
 import com.Backend.services.review_service.model.ReviewsDTO;
 import com.Backend.services.review_service.repository.ReviewRepository;
@@ -11,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -35,5 +37,17 @@ public class ReviewService {
         Pageable pageable = PageRequest.of(page, 20, Sort.by("createdAt").descending());
         Page<Review> review = reviewRepository.findByUser(user, pageable);
         return review.stream().map(ReviewsDTO::fromReview).toList();
+    }
+
+    @Transactional
+    public ReviewsDTO createReview(CreateReviewRequest request, User user) {
+        Review review = Review.builder()
+                .user(user)
+                .filmId(request.getFilmId())
+                .type(request.getType())
+                .content(request.getContent())
+                .build();
+        reviewRepository.save(review);
+        return ReviewsDTO.fromReview(review);
     }
 }
