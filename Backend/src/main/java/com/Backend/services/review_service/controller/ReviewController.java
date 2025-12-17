@@ -29,10 +29,10 @@ public class ReviewController {
     }
 
     @GetMapping("/reply/{reviewId}")
-    public ResponseEntity<List<Review>> getRepliesById(
+    public ResponseEntity<List<ReviewsDTO>> getRepliesById(
             @RequestParam("reviewId") Long reviewId,
             @AuthenticationPrincipal User user){
-        return ResponseEntity.ok(null);
+        return ResponseEntity.ok(reviewService.getRepliesByReviewId(reviewId));
     }
 
     @GetMapping("/user/{userId}")
