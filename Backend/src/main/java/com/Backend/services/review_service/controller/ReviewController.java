@@ -35,9 +35,8 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.getRepliesByReviewId(reviewId));
     }
 
-    @GetMapping("/user/{userId}")
+    @GetMapping("/user")
     public ResponseEntity<List<Review>> getReviewsByUser(
-            @RequestParam("userId") Long userId,
             @AuthenticationPrincipal User user){
         return ResponseEntity.ok(null);
     }
