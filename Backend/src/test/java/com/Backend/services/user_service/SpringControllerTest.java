@@ -794,4 +794,85 @@ class SpringControllerTest {
                 .andExpect(status().is4xxClientError());
     }
 
+    
+    @Test
+    @Order(20)
+    @DisplayName("Anonymous GET /reviews returns items with likedByMe=false and disLikedByMe=false")
+    void anonymous_getReviews_flagsAreFalse() throws Exception {
+        // Arrange: create a user and a review
+        String email = "anonreviews@example.com";
+        register("anonreviews", email, "password123");
+        String token = authenticate(email, "password123");
+        long filmId = 121212L;
+        Map<String, Object> createReq = Map.of(
+                "content", "Anon visible review",
+                "filmId", filmId,
+                "type", FilmType.MOVIE.name()
+        );
+        MvcResult createRes = mockMvc.perform(post("/reviews")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createReq)))
+                .andExpect(status().isOk())
+                .andReturn();
+        Map<?,?> created = objectMapper.readValue(createRes.getResponse().getContentAsString(), Map.class);
+        Integer reviewId = (Integer) created.get("id");
+
+        // Act + Assert: fetch as anonymous (no Authorization header)
+        mockMvc.perform(get("/reviews")
+                        .param("filmId", String.valueOf(filmId))
+                        .param("type", FilmType.MOVIE.name())
+                        .param("page", "0"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id==%s)].content", reviewId).value(hasItem("Anon visible review")))
+                .andExpect(jsonPath("$[?(@.id==%s)].likedByMe", reviewId).value(hasItem(false)))
+                .andExpect(jsonPath("$[?(@.id==%s)].disLikedByMe", reviewId).value(hasItem(false)));
+    }
+
+    @Test
+    @Order(21)
+    @DisplayName("Anonymous GET /reviews/reply returns replies with likedByMe=false and disLikedByMe=false")
+    void anonymous_getReplies_flagsAreFalse() throws Exception {
+        // Arrange: create a user, a parent review, and a reply
+        String email = "anonreplies@example.com";
+        register("anonreplies", email, "password123");
+        String token = authenticate(email, "password123");
+
+        long filmId = 343434L;
+        Map<String, Object> parentReq = Map.of(
+                "content", "Parent for anon reply",
+                "filmId", filmId,
+                "type", FilmType.MOVIE.name()
+        );
+        MvcResult parentRes = mockMvc.perform(post("/reviews")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(parentReq)))
+                .andExpect(status().isOk())
+                .andReturn();
+        Map<?,?> parent = objectMapper.readValue(parentRes.getResponse().getContentAsString(), Map.class);
+        Integer parentId = (Integer) parent.get("id");
+
+        Map<String, Object> replyReq = Map.of(
+                "content", "Reply shown to anonymous",
+                "replyToId", parentId
+        );
+        MvcResult replyRes = mockMvc.perform(post("/reviews/reply")
+                        .header("Authorization", bearer(token))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(replyReq)))
+                .andExpect(status().isOk())
+                .andReturn();
+        Map<?,?> reply = objectMapper.readValue(replyRes.getResponse().getContentAsString(), Map.class);
+        Integer replyId = (Integer) reply.get("id");
+
+        // Act + Assert: fetch replies as anonymous
+        mockMvc.perform(get("/reviews/reply")
+                        .param("reviewId", String.valueOf(parentId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].id", hasItem(replyId)))
+                .andExpect(jsonPath("$[?(@.id==%s)].content", replyId).value(hasItem("Reply shown to anonymous")))
+                .andExpect(jsonPath("$[?(@.id==%s)].likedByMe", replyId).value(hasItem(false)))
+                .andExpect(jsonPath("$[?(@.id==%s)].disLikedByMe", replyId).value(hasItem(false)));
+    }
 }
