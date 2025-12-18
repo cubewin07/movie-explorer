@@ -23,6 +23,8 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,14 +43,13 @@ public class ReviewService {
 
         List<Long> reviewIds = reviews.stream().map(Review::getId).toList();
 
-        List<Long> userLikedReviewList = voteService.voteByUserIdAndReviewIds(user, reviewIds).stream()
-                .filter(vote -> vote.getValue() == 1)
-                .map(vote -> vote.getReview().getId())
-                .toList();
-        List<Long> userDislikedReviewList = voteService.voteByUserIdAndReviewIds(user, reviewIds).stream()
-                .filter(vote -> vote.getValue() == -1)
-                .map(vote -> vote.getReview().getId())
-                .toList();
+        Map<Integer, List<Long>> reviewIdsByVoteValue = voteService.voteByUserIdAndReviewIds(user, reviewIds).stream()
+                .collect(Collectors.groupingBy(
+                        Vote::getValue,
+                        Collectors.mapping(v -> v.getReview().getId(), Collectors.toList())
+                ));
+        List<Long> userLikedReviewList = reviewIdsByVoteValue.getOrDefault(1, List.of());
+        List<Long> userDislikedReviewList = reviewIdsByVoteValue.getOrDefault(-1, List.of());
 
         return reviews.stream()
                 .map(review -> {
