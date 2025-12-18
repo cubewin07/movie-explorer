@@ -204,4 +204,29 @@ public class ReviewService {
         }
         log.info("Deleted reviewId={} by userId={}", reviewId, userId);
     }
+
+
+//    ============Helper============
+
+    private List<ReviewsDTO> handleVoteForReviewsDTO(List<Review> reviews, User user) {
+        List<Long> reviewIds = reviews.stream().map(Review::getId).toList();
+
+        Map<Integer, List<Long>> reviewIdsByVoteValue = voteService.voteByUserIdAndReviewIds(user, reviewIds).stream()
+                .collect(Collectors.groupingBy(
+                        Vote::getValue,
+                        Collectors.mapping(v -> v.getReview().getId(), Collectors.toList())
+                ));
+        List<Long> userLikedReviewList = reviewIdsByVoteValue.getOrDefault(1, List.of());
+        List<Long> userDislikedReviewList = reviewIdsByVoteValue.getOrDefault(-1, List.of());
+
+        return reviews.stream()
+                .map(review -> {
+                    boolean userLiked = userLikedReviewList.contains(review.getId());
+                    boolean userDisliked = userDislikedReviewList.contains(review.getId());
+                    if(!userLiked && !userDisliked) return ReviewsDTO.fromReview(review, false, false);
+                    return userLiked
+                            ? ReviewsDTO.fromReview(review, true, false)
+                            : ReviewsDTO.fromReview(review, false, true);
+                }).toList();
+    }
 }
