@@ -10,6 +10,7 @@ import { Loader } from '@/components/ui/loader';
 import FancyLoader from '@/components/ui/FancyLoader';
 import ErrorState from '@/components/ui/ErrorState';
 import LoadingState from '@/components/ui/LoadingState';
+import Reviews from '@/components/react_components/Reviews/Reviews';
 
 import { useTVSeriesDetails, useTVSeriesTrailer, useTvSeriesCredits } from '@/hooks/API/data';
 import { useAuthen } from '@/context/AuthenProvider';
@@ -227,7 +228,7 @@ export default function TVSeriesDetailPage() {
             {/* Tabs */}
             <div className="p-2 sm:p-4 md:p-8">
                 <Tabs defaultValue="overview">
-                    <TabsList className="grid grid-cols-3 md:grid-cols-6 bg-slate-200 dark:bg-slate-800 rounded-lg mb-6 overflow-x-auto">
+                    <TabsList className="grid grid-cols-3 md:grid-cols-7 bg-slate-200 dark:bg-slate-800 rounded-lg mb-6 overflow-x-auto">
                         <TabsTrigger
                             value="overview"
                             className="hover:bg-blue-100 hover:text-blue-800 dark:hover:bg-slate-700 dark:hover:text-white transition-colors"
@@ -251,6 +252,12 @@ export default function TVSeriesDetailPage() {
                             className="hover:bg-blue-100 hover:text-blue-800 dark:hover:bg-slate-700 dark:hover:text-white transition-colors"
                         >
                             Crew
+                        </TabsTrigger>
+                        <TabsTrigger
+                            value="reviews"
+                            className="hover:bg-blue-100 hover:text-blue-800 dark:hover:bg-slate-700 dark:hover:text-white transition-colors"
+                        >
+                            Reviews
                         </TabsTrigger>
                         <TabsTrigger
                             value="details"
@@ -443,6 +450,9 @@ export default function TVSeriesDetailPage() {
                                 </div>
                             )}
                         </motion.div>
+                    </TabsContent>
+                    <TabsContent value="reviews">
+                        <Reviews filmId={Number(id)} type="SERIES" />
                     </TabsContent>
 
                     <TabsContent value="episodes">

@@ -16,6 +16,7 @@ import { LoginNotificationModal } from '@/components/react_components/Modal/Logi
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import axiosInstance from '@/lib/axiosInstance';
+import Reviews from '@/components/react_components/Reviews/Reviews';
 
 export default function MovieDetailPage() {
     const { id } = useParams();
@@ -481,7 +482,7 @@ export default function MovieDetailPage() {
                         )}
                     </TabsContent>
                     <TabsContent value="reviews">
-                        <p>Reviews placeholder.</p>
+                        <Reviews filmId={Number(id)} type="MOVIE" />
                     </TabsContent>
                     <TabsContent value="details">
                         <motion.div
