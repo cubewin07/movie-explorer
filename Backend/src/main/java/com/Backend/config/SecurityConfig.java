@@ -42,6 +42,8 @@ public class SecurityConfig {
                     auth
                             .requestMatchers("/user/register").permitAll()
                             .requestMatchers("/user/authenticate").permitAll()
+                            .requestMatchers("/reviews").permitAll()
+                            .requestMatchers("/reviews/reply").permitAll()
                             .requestMatchers("/actuator/**").permitAll()
                             .requestMatchers("/ws/**").permitAll()
                             .requestMatchers("/swagger-ui/**").permitAll()
