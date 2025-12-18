@@ -31,9 +31,9 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.getReviewsByFilmId(filmId, type, page, user));
     }
 
-    @GetMapping("/reply/{reviewId}")
+    @GetMapping("/reply")
     public ResponseEntity<List<ReviewsDTO>> getRepliesById(
-            @PathVariable("reviewId") Long reviewId,
+            @RequestParam("reviewId") Long reviewId,
             @AuthenticationPrincipal User user){
         return ResponseEntity.ok(reviewService.getRepliesByReviewId(reviewId, user));
     }
@@ -59,9 +59,9 @@ public class ReviewController {
         return ResponseEntity.ok(reviewService.createReply(request, user));
     }
 
-    @DeleteMapping("/delete/{reviewId}")
+    @DeleteMapping("/delete")
     public ResponseEntity<Void> deleteReview(
-            @PathVariable("reviewId") Long reviewId,
+            @RequestParam("reviewId") Long reviewId,
             @AuthenticationPrincipal User user){
         reviewService.deleteReview(reviewId, user);
         return ResponseEntity.ok().build();
