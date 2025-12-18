@@ -33,7 +33,7 @@ public class ReviewController {
 
     @GetMapping("/reply/{reviewId}")
     public ResponseEntity<List<ReviewsDTO>> getRepliesById(
-            @RequestParam("reviewId") Long reviewId,
+            @PathVariable("reviewId") Long reviewId,
             @AuthenticationPrincipal User user){
         return ResponseEntity.ok(reviewService.getRepliesByReviewId(reviewId, user));
     }
@@ -61,7 +61,7 @@ public class ReviewController {
 
     @DeleteMapping("/delete/{reviewId}")
     public ResponseEntity<Void> deleteReview(
-            @RequestParam("reviewId") Long reviewId,
+            @PathVariable("reviewId") Long reviewId,
             @AuthenticationPrincipal User user){
         reviewService.deleteReview(reviewId, user);
         return ResponseEntity.ok().build();

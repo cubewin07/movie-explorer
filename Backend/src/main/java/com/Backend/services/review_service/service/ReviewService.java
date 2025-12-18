@@ -34,7 +34,7 @@ public class ReviewService {
     private final VoteRepository voteRepository;
     private final VoteService voteService;
 
-    @Cacheable(value = "filmReviews", key = "{#filmId, #filmType, #page}")
+    @Cacheable(value = "filmReviews", key = "{#filmId, #filmType, #page, (#user != null ? #user.id : 0)}")
     public List<ReviewsDTO> getReviewsByFilmId(Long filmId, FilmType filmType, int page, User user) {
         log.info("Fetching reviews for filmId={}, type={}, page={}", filmId, filmType, page);
         Pageable pageable = PageRequest.of(page, 20, Sort.by("createdAt").descending());
@@ -44,7 +44,7 @@ public class ReviewService {
         return handleVoteForReviewsDTO(reviews.getContent(), user);
     }
 
-    @Cacheable(value = "reviewReplies", key = "#reviewId")
+    @Cacheable(value = "reviewReplies", key = "{#reviewId, (#user != null ? #user.id : 0)}")
     public List<ReviewsDTO> getRepliesByReviewId(Long reviewId, User user) {
         log.info("Fetching replies for reviewId={}", reviewId);
         Pageable pageable = PageRequest.of(0, 20, Sort.by("createdAt").descending());
@@ -79,11 +79,12 @@ public class ReviewService {
                 .filmId(request.getFilmId())
                 .type(request.getType())
                 .content(request.getContent())
+                .score(1L)
                 .build();
         reviewRepository.save(review);
         log.info("Created review id={} for filmId={} by userId={}", review.getId(), request.getFilmId(), userId);
 
-        // Create vote
+        // Create initial upvote by author
         Vote vote = Vote.builder()
                 .user(user)
                 .review(review)
@@ -94,7 +95,7 @@ public class ReviewService {
     }
 
     @Caching(evict = {
-            @CacheEvict(value = "reviewReplies", key = "#request.replyToId"),
+            @CacheEvict(value = "reviewReplies", allEntries = true),
             @CacheEvict(value = "filmReviews", allEntries = true),
             @CacheEvict(value = "userReviews", allEntries = true),
             @CacheEvict(value = "userMeDTO", key = "#user.email")
@@ -113,6 +114,7 @@ public class ReviewService {
                 .type(parent.getType())
                 .content(request.getContent())
                 .answerTo(parent)
+                .score(1L)
                 .build();
         reviewRepository.save(reply);
         reviewRepository.save(parent);
