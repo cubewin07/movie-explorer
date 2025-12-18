@@ -25,9 +25,10 @@ public class ReviewController {
     public ResponseEntity<List<ReviewsDTO>> getReviews(
             @RequestParam("filmId") Long filmId,
             @RequestParam("type") FilmType type,
-            @RequestParam(name = "page", defaultValue = "0") int page){
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @AuthenticationPrincipal User user){
 
-        return ResponseEntity.ok(reviewService.getReviewsByFilmId(filmId, type, page));
+        return ResponseEntity.ok(reviewService.getReviewsByFilmId(filmId, type, page, user));
     }
 
     @GetMapping("/reply/{reviewId}")

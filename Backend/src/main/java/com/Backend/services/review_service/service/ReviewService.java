@@ -33,7 +33,7 @@ public class ReviewService {
     private final VoteService voteService;
 
     @Cacheable(value = "filmReviews", key = "{#filmId, #filmType, #page}")
-    public List<ReviewsDTO> getReviewsByFilmId(Long filmId, FilmType filmType, int page) {
+    public List<ReviewsDTO> getReviewsByFilmId(Long filmId, FilmType filmType, int page, User user) {
         log.info("Fetching reviews for filmId={}, type={}, page={}", filmId, filmType, page);
         Pageable pageable = PageRequest.of(page, 20, Sort.by("createdAt").descending());
         Page<Review> reviews = reviewRepository.findByFilmIdAndType(filmId, filmType, pageable);
