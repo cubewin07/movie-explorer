@@ -7,6 +7,7 @@ import com.Backend.services.review_service.model.Review;
 import com.Backend.services.review_service.model.ReviewsDTO;
 import com.Backend.services.review_service.model.vote.Vote;
 import com.Backend.services.review_service.model.vote.VoteRepository;
+import com.Backend.services.review_service.model.vote.VoteService;
 import com.Backend.services.review_service.repository.ReviewRepository;
 import com.Backend.services.user_service.model.User;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ import java.util.List;
 public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final VoteRepository voteRepository;
+    private final VoteService voteService;
 
     @Cacheable(value = "filmReviews", key = "{#filmId, #filmType, #page}")
     public List<ReviewsDTO> getReviewsByFilmId(Long filmId, FilmType filmType, int page) {
@@ -36,7 +38,27 @@ public class ReviewService {
         Pageable pageable = PageRequest.of(page, 20, Sort.by("createdAt").descending());
         Page<Review> reviews = reviewRepository.findByFilmIdAndType(filmId, filmType, pageable);
         log.debug("Fetched {} reviews for filmId={}, type={}, page={}", reviews.getNumberOfElements(), filmId, filmType, page);
-        return reviews.stream().map(ReviewsDTO::fromReview).toList();
+
+        List<Long> reviewIds = reviews.stream().map(Review::getId).toList();
+
+        List<Long> userLikedReviewList = voteService.voteByUserIdAndReviewIds(user, reviewIds).stream()
+                .filter(vote -> vote.getValue() == 1)
+                .map(vote -> vote.getReview().getId())
+                .toList();
+        List<Long> userDislikedReviewList = voteService.voteByUserIdAndReviewIds(user, reviewIds).stream()
+                .filter(vote -> vote.getValue() == -1)
+                .map(vote -> vote.getReview().getId())
+                .toList();
+
+        return reviews.stream()
+                .map(review -> {
+                    boolean userLiked = userLikedReviewList.contains(review.getId());
+                    boolean userDisliked = userDislikedReviewList.contains(review.getId());
+                    if(!userLiked && !userDisliked) return ReviewsDTO.fromReview(review, false, false);
+                    return userLiked
+                            ? ReviewsDTO.fromReview(review, true, false)
+                            : ReviewsDTO.fromReview(review, false, true);
+                }).toList();
     }
 
     @Cacheable(value = "reviewReplies", key = "#reviewId")
