@@ -456,8 +456,6 @@ class SpringControllerTest {
                 .andExpect(jsonPath("$.message", is("Deleted notification")));
     }
 
-    // ===================== Review Controller Tests =====================
-
     @Test
     @Order(14)
     @DisplayName("POST /reviews creates a review and GET /reviews returns it by filmId/type")
@@ -484,6 +482,8 @@ class SpringControllerTest {
                 .andExpect(jsonPath("$.content", is("Amazing movie!")))
                 .andExpect(jsonPath("$.replyCount", is(0)))
                 .andExpect(jsonPath("$.user.email", is(email)))
+                .andExpect(jsonPath("$.likedByMe", is(true)))
+                .andExpect(jsonPath("$.disLikedByMe", is(false)))
                 .andReturn();
 
         String createBody = createRes.getResponse().getContentAsString();
@@ -536,10 +536,12 @@ class SpringControllerTest {
                         .content(objectMapper.writeValueAsString(replyReq)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", is("This is a reply")))
-                .andExpect(jsonPath("$.user.email", is(email)));
+                .andExpect(jsonPath("$.user.email", is(email)))
+                .andExpect(jsonPath("$.likedByMe", is(true)))
+                .andExpect(jsonPath("$.disLikedByMe", is(false)));
 
-        // Get replies using the path + query param combo (controller expects @RequestParam)
-        mockMvc.perform(get("/reviews/reply/{reviewId}", parentId)
+        // Get replies using query param (controller expects @RequestParam)
+        mockMvc.perform(get("/reviews/reply")
                         .header("Authorization", bearer(token))
                         .param("reviewId", String.valueOf(parentId)))
                 .andExpect(status().isOk())
@@ -626,8 +628,8 @@ class SpringControllerTest {
         Map<?,?> created = objectMapper.readValue(createRes.getResponse().getContentAsString(), Map.class);
         Integer reviewId = (Integer) created.get("id");
 
-        // Delete using path + query param due to controller signature
-        mockMvc.perform(delete("/reviews/delete/{reviewId}", reviewId)
+        // Delete using query param (controller expects @RequestParam)
+        mockMvc.perform(delete("/reviews/delete")
                         .header("Authorization", bearer(token))
                         .param("reviewId", String.valueOf(reviewId)))
                 .andExpect(status().isOk());
@@ -648,4 +650,148 @@ class SpringControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[*].id", not(hasItem(reviewId))));
     }
+
+    @Test
+    @Order(18)
+    @DisplayName("POST /votes updates like state for current user (upvote -> downvote -> remove)")
+    void vote_update_flow_onReview() throws Exception {
+        // Create author and reviewer
+        String authorEmail = "vote_author@example.com";
+        String voterEmail = "vote_voter@example.com";
+        register("vote_author", authorEmail, "password123");
+        register("vote_voter", voterEmail, "password123");
+        String authorToken = authenticate(authorEmail, "password123");
+        String voterToken = authenticate(voterEmail, "password123");
+
+        long filmId = 424242L;
+        // Author creates a review (auto-liked by author per service)
+        Map<String, Object> createReq = Map.of(
+                "content", "Vote me",
+                "filmId", filmId,
+                "type", FilmType.MOVIE.name()
+        );
+        MvcResult createRes = mockMvc.perform(post("/reviews")
+                        .header("Authorization", bearer(authorToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createReq)))
+                .andExpect(status().isOk())
+                .andReturn();
+        Map<?,?> created = objectMapper.readValue(createRes.getResponse().getContentAsString(), Map.class);
+        Integer reviewId = (Integer) created.get("id");
+
+        // As voter, initially should not be liked/disliked
+        mockMvc.perform(get("/reviews")
+                        .header("Authorization", bearer(voterToken))
+                        .param("filmId", String.valueOf(filmId))
+                        .param("type", FilmType.MOVIE.name())
+                        .param("page", "0"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id==%s)].likedByMe", reviewId).value(hasItem(false)))
+                .andExpect(jsonPath("$[?(@.id==%s)].disLikedByMe", reviewId).value(hasItem(false)));
+
+        // Upvote by voter
+        Map<String, Object> upvote = Map.of(
+                "value", 1,
+                "reviewId", reviewId
+        );
+        mockMvc.perform(post("/votes")
+                        .header("Authorization", bearer(voterToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(upvote)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is("Succeed")));
+
+        mockMvc.perform(get("/reviews")
+                        .header("Authorization", bearer(voterToken))
+                        .param("filmId", String.valueOf(filmId))
+                        .param("type", FilmType.MOVIE.name())
+                        .param("page", "0"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id==%s)].likedByMe", reviewId).value(hasItem(true)))
+                .andExpect(jsonPath("$[?(@.id==%s)].disLikedByMe", reviewId).value(hasItem(false)));
+
+        // Switch to downvote
+        Map<String, Object> downvote = Map.of(
+                "value", -1,
+                "reviewId", reviewId
+        );
+        mockMvc.perform(post("/votes")
+                        .header("Authorization", bearer(voterToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(downvote)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is("Succeed")));
+
+        mockMvc.perform(get("/reviews")
+                        .header("Authorization", bearer(voterToken))
+                        .param("filmId", String.valueOf(filmId))
+                        .param("type", FilmType.MOVIE.name())
+                        .param("page", "0"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id==%s)].likedByMe", reviewId).value(hasItem(false)))
+                .andExpect(jsonPath("$[?(@.id==%s)].disLikedByMe", reviewId).value(hasItem(true)));
+
+        // Remove vote (set to 0) and ensure idempotency
+        Map<String, Object> remove = Map.of(
+                "value", 0,
+                "reviewId", reviewId
+        );
+        mockMvc.perform(post("/votes")
+                        .header("Authorization", bearer(voterToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(remove)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is("Succeed")));
+
+        mockMvc.perform(get("/reviews")
+                        .header("Authorization", bearer(voterToken))
+                        .param("filmId", String.valueOf(filmId))
+                        .param("type", FilmType.MOVIE.name())
+                        .param("page", "0"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id==%s)].likedByMe", reviewId).value(hasItem(false)))
+                .andExpect(jsonPath("$[?(@.id==%s)].disLikedByMe", reviewId).value(hasItem(false)));
+
+        // Idempotent removal
+        mockMvc.perform(post("/votes")
+                        .header("Authorization", bearer(voterToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(remove)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message", is("Succeed")));
+
+        mockMvc.perform(get("/reviews")
+                        .header("Authorization", bearer(voterToken))
+                        .param("filmId", String.valueOf(filmId))
+                        .param("type", FilmType.MOVIE.name())
+                        .param("page", "0"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id==%s)].likedByMe", reviewId).value(hasItem(false)))
+                .andExpect(jsonPath("$[?(@.id==%s)].disLikedByMe", reviewId).value(hasItem(false)));
+
+        // Author should still see their own auto-like
+        mockMvc.perform(get("/reviews")
+                        .header("Authorization", bearer(authorToken))
+                        .param("filmId", String.valueOf(filmId))
+                        .param("type", FilmType.MOVIE.name())
+                        .param("page", "0"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id==%s)].likedByMe", reviewId).value(hasItem(true)))
+                .andExpect(jsonPath("$[?(@.id==%s)].disLikedByMe", reviewId).value(hasItem(false)));
+    }
+
+    @Test
+    @Order(19)
+    @DisplayName("POST /votes requires authentication")
+    void vote_requiresAuth() throws Exception {
+        Map<String, Object> body = Map.of(
+                "value", 1,
+                "reviewId", 1
+        );
+        mockMvc.perform(post("/votes")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().is4xxClientError());
+    }
+
 }

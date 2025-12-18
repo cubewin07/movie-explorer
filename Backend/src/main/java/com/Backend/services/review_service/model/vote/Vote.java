@@ -32,5 +32,6 @@ public class Vote {
     @JoinColumn(name = "review_id")
     private Review review;
 
+    @Column(name = "vote_value")
     private int value;
 }

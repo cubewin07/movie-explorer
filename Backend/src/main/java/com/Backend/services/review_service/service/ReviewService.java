@@ -145,6 +145,9 @@ public class ReviewService {
             log.warn("UserId={} attempted to delete reviewId={} which belongs to userId={}", userId, reviewId, review.getUser().getId());
             throw new IllegalArgumentException("Review does not belong to user");
         }
+        // delete votes referencing this review to satisfy FK constraints
+        voteRepository.deleteByReview_Id(reviewId);
+
         reviewRepository.delete(review);
         //  Decrease replyCount of parent
         if (review.getAnswerTo() != null) {
