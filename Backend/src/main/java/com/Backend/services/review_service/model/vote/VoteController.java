@@ -14,11 +14,12 @@ import java.util.Map;
 public class VoteController {
     private final VoteService voteService;
 
-    @PostMapping("/like")
+    @PostMapping()
     public ResponseEntity<Map<String, String>> likeReview(
             @RequestBody VoteStateRequest request,
             @AuthenticationPrincipal User user
     ) {
-        return ResponseEntity.ok(Map.of("message", "You liked the review with id: " + reviewId));
+        voteService.updateVote(request, user);
+        return ResponseEntity.ok(Map.of("message", "Succeed"));
     }
 }
