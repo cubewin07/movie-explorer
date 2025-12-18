@@ -11,7 +11,7 @@ import java.util.List;
 public class VoteService {
     private final VoteRepository voteRepository;
 
-    public List<Vote> voteByUserIdAndReviewIds(User user, List<Long> reviewIds) {
+    public List<Vote> voteByUserAndReviewIds(User user, List<Long> reviewIds) {
         return voteRepository.findByUserAndReview_IdIn(user, reviewIds);
     }
 

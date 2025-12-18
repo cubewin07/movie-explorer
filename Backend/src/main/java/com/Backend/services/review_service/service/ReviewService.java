@@ -158,7 +158,7 @@ public class ReviewService {
     private List<ReviewsDTO> handleVoteForReviewsDTO(List<Review> reviews, User user) {
         List<Long> reviewIds = reviews.stream().map(Review::getId).toList();
 
-        Map<Integer, List<Long>> reviewIdsByVoteValue = voteService.voteByUserIdAndReviewIds(user, reviewIds).stream()
+        Map<Integer, List<Long>> reviewIdsByVoteValue = voteService.voteByUserAndReviewIds(user, reviewIds).stream()
                 .collect(Collectors.groupingBy(
                         Vote::getValue,
                         Collectors.mapping(v -> v.getReview().getId(), Collectors.toList())
