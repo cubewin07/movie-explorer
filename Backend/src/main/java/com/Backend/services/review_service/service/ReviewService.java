@@ -94,9 +94,28 @@ public class ReviewService {
         Long userId = (user != null) ? user.getId() : null;
         log.info("Fetching reviews by userId={}, page={}", userId, page);
         Pageable pageable = PageRequest.of(page, 20, Sort.by("createdAt").descending());
-        Page<Review> review = reviewRepository.findByUser(user, pageable);
-        log.debug("Fetched {} reviews for userId={}, page={}", review.getNumberOfElements(), userId, page);
-        return review.stream().map(ReviewsDTO::fromReview).toList();
+        Page<Review> reviews = reviewRepository.findByUser(user, pageable);
+        log.debug("Fetched {} reviews for userId={}, page={}", reviews.getNumberOfElements(), userId, page);
+
+        List<Long> reviewIds = reviews.stream().map(Review::getId).toList();
+
+        Map<Integer, List<Long>> reviewIdsByVoteValue = voteService.voteByUserIdAndReviewIds(user, reviewIds).stream()
+                .collect(Collectors.groupingBy(
+                        Vote::getValue,
+                        Collectors.mapping(v -> v.getReview().getId(), Collectors.toList())
+                ));
+        List<Long> userLikedReviewList = reviewIdsByVoteValue.getOrDefault(1, List.of());
+        List<Long> userDislikedReviewList = reviewIdsByVoteValue.getOrDefault(-1, List.of());
+
+        return reviews.stream()
+                .map(review -> {
+                    boolean userLiked = userLikedReviewList.contains(review.getId());
+                    boolean userDisliked = userDislikedReviewList.contains(review.getId());
+                    if(!userLiked && !userDisliked) return ReviewsDTO.fromReview(review, false, false);
+                    return userLiked
+                            ? ReviewsDTO.fromReview(review, true, false)
+                            : ReviewsDTO.fromReview(review, false, true);
+                }).toList();
     }
 
     @Caching(evict = {
