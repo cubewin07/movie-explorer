@@ -41,6 +41,10 @@ public class ReviewService {
         Page<Review> reviews = reviewRepository.findByFilmIdAndType(filmId, filmType, pageable);
         log.debug("Fetched {} reviews for filmId={}, type={}, page={}", reviews.getNumberOfElements(), filmId, filmType, page);
 
+        // Vote default to false when the user is unauthenticated
+        if(user == null)
+            return reviews.stream().map(r -> ReviewsDTO.fromReview(r, false, false)).toList();
+
         return handleVoteForReviewsDTO(reviews.getContent(), user);
     }
 
@@ -50,6 +54,10 @@ public class ReviewService {
         Pageable pageable = PageRequest.of(0, 20, Sort.by("createdAt").descending());
         Page<Review> reviews = reviewRepository.findByAnswerTo_Id(reviewId, pageable);
         log.debug("Fetched {} replies for reviewId={}", reviews.getNumberOfElements(), reviewId);
+
+        // Vote default to false when the user is unauthenticated
+        if(user == null)
+            return reviews.stream().map(r -> ReviewsDTO.fromReview(r, false, false)).toList();
 
         return handleVoteForReviewsDTO(reviews.getContent(), user);
     }
