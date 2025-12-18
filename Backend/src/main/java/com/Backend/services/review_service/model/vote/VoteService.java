@@ -15,4 +15,8 @@ public class VoteService {
         return voteRepository.findByUserAndReview_IdIn(user, reviewIds);
     }
 
+    public void updateVote(VoteStateRequest request, User user) {
+
+    }
+
 }
