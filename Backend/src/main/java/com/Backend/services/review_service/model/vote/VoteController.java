@@ -15,7 +15,7 @@ public class VoteController {
     private final VoteService voteService;
 
     @PostMapping()
-    public ResponseEntity<Map<String, String>> likeReview(
+    public ResponseEntity<Map<String, String>> updateVote(
             @RequestBody VoteStateRequest request,
             @AuthenticationPrincipal User user
     ) {
