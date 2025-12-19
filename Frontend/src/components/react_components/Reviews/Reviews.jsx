@@ -7,6 +7,7 @@ import LoadingState from '@/components/ui/LoadingState';
 import ErrorState from '@/components/ui/ErrorState';
 import { ArrowBigUp, ArrowBigDown, MessageSquare, Trash2, Send, ChevronDown, ChevronUp, User as UserIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 function formatDate(iso) {
   try {
@@ -16,11 +17,9 @@ function formatDate(iso) {
   }
 }
 
-function ReviewItem({ item, isOwner, onVote, onDelete, filmId, type, user }) {
+function ReviewItem({ item, isOwner, onVote, filmId, type, user }) {
   const [open, setOpen] = useState(false);
   const [replyText, setReplyText] = useState('');
-
-  console.log(item);
 
   const { data: replies, isLoading: loadingReplies, isError: errorReplies } = useReplies(item.id, open);
   const { createReply, vote, deleteReview } = useReviewActions(filmId, type);
@@ -59,26 +58,56 @@ function ReviewItem({ item, isOwner, onVote, onDelete, filmId, type, user }) {
           <p className="mt-2 text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{item.content}</p>
 
           <div className="mt-3 flex items-center gap-3">
-            <div className="flex items-center gap-1">
-              <Button
-                variant="bare"
-                size="icon"
-                className={cn('h-8 w-8 rounded-md text-slate-500 hover:text-orange-500', item.likedByMe && 'text-orange-500')}
+            <div
+              className={cn(
+                'inline-flex items-center rounded-full border px-1 py-0.5 shadow-sm backdrop-blur transition-colors',
+                'border-slate-200 bg-white/70 dark:border-slate-800 dark:bg-slate-950/40',
+              )}
+            >
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.92 }}
+                className={cn(
+                  'h-9 w-9 rounded-full grid place-items-center transition-colors',
+                  'text-slate-500 hover:bg-orange-500/10 hover:text-orange-600 dark:hover:bg-orange-500/15',
+                  item.likedByMe && 'bg-orange-500/15 text-orange-600 dark:bg-orange-500/20',
+                )}
                 onClick={() => handleVote(1)}
               >
-                <ArrowBigUp className="w-5 h-5" />
-              </Button>
-              <span className="min-w-[2ch] text-sm font-semibold text-slate-800 dark:text-slate-200 text-center">
+                <ArrowBigUp className={cn('w-5 h-5', item.likedByMe && 'fill-orange-500')} />
+              </motion.button>
+
+              <motion.span
+                key={Number.isFinite(item.score) ? item.score : 0}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.18 }}
+                className={cn(
+                  'min-w-[2.5ch] px-1 text-sm font-extrabold tabular-nums text-center',
+                  item.likedByMe
+                    ? 'text-orange-600'
+                    : item.disLikedByMe
+                      ? 'text-blue-600'
+                      : 'text-slate-800 dark:text-slate-200',
+                )}
+              >
                 {Number.isFinite(item.score) ? item.score : 0}
-              </span>
-              <Button
-                variant="bare"
-                size="icon"
-                className={cn('h-8 w-8 rounded-md text-slate-500 hover:text-blue-500', item.disLikedByMe && 'text-blue-500')}
+              </motion.span>
+
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.08 }}
+                whileTap={{ scale: 0.92 }}
+                className={cn(
+                  'h-9 w-9 rounded-full grid place-items-center transition-colors',
+                  'text-slate-500 hover:bg-blue-500/10 hover:text-blue-600 dark:hover:bg-blue-500/15',
+                  item.disLikedByMe && 'bg-blue-500/15 text-blue-600 dark:bg-blue-500/20',
+                )}
                 onClick={() => handleVote(-1)}
               >
-                <ArrowBigDown className="w-5 h-5" />
-              </Button>
+                <ArrowBigDown className={cn('w-5 h-5', item.disLikedByMe && 'fill-blue-500')} />
+              </motion.button>
             </div>
 
             <Button variant="ghost" size="sm" className="gap-1" onClick={() => setOpen((v) => !v)}>
@@ -120,11 +149,21 @@ function ReviewItem({ item, isOwner, onVote, onDelete, filmId, type, user }) {
                           </div>
                           <p className="mt-1 text-slate-700 dark:text-slate-200 text-sm">{rep.content}</p>
                           <div className="mt-2 flex items-center gap-2">
-                            <div className="flex items-center gap-1">
-                              <Button
-                                variant="bare"
-                                size="icon"
-                                className={cn('h-7 w-7 rounded-md text-slate-500 hover:text-orange-500', rep.likedByMe && 'text-orange-500')}
+                            <div
+                              className={cn(
+                                'inline-flex items-center rounded-full border px-1 py-0.5 shadow-sm',
+                                'border-slate-200 bg-white/60 dark:border-slate-800 dark:bg-slate-950/30',
+                              )}
+                            >
+                              <motion.button
+                                type="button"
+                                whileHover={{ scale: 1.08 }}
+                                whileTap={{ scale: 0.92 }}
+                                className={cn(
+                                  'h-8 w-8 rounded-full grid place-items-center transition-colors',
+                                  'text-slate-500 hover:bg-orange-500/10 hover:text-orange-600 dark:hover:bg-orange-500/15',
+                                  rep.likedByMe && 'bg-orange-500/15 text-orange-600 dark:bg-orange-500/20',
+                                )}
                                 onClick={() => {
                                   if (!user) return onVote?.('auth');
                                   const current = rep.likedByMe ? 1 : rep.disLikedByMe ? -1 : 0;
@@ -132,15 +171,35 @@ function ReviewItem({ item, isOwner, onVote, onDelete, filmId, type, user }) {
                                   vote.mutate({ reviewId: rep.id, value: next, parentId: item.id });
                                 }}
                               >
-                                <ArrowBigUp className="w-4 h-4" />
-                              </Button>
-                              <span className="min-w-[2ch] text-xs font-semibold text-slate-700 dark:text-slate-200 text-center">
+                                <ArrowBigUp className={cn('w-4 h-4', rep.likedByMe && 'fill-orange-500')} />
+                              </motion.button>
+
+                              <motion.span
+                                key={Number.isFinite(rep.score) ? rep.score : 0}
+                                initial={{ opacity: 0, y: 3 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.18 }}
+                                className={cn(
+                                  'min-w-[2.5ch] px-1 text-xs font-extrabold tabular-nums text-center',
+                                  rep.likedByMe
+                                    ? 'text-orange-600'
+                                    : rep.disLikedByMe
+                                      ? 'text-blue-600'
+                                      : 'text-slate-700 dark:text-slate-200',
+                                )}
+                              >
                                 {Number.isFinite(rep.score) ? rep.score : 0}
-                              </span>
-                              <Button
-                                variant="bare"
-                                size="icon"
-                                className={cn('h-7 w-7 rounded-md text-slate-500 hover:text-blue-500', rep.disLikedByMe && 'text-blue-500')}
+                              </motion.span>
+
+                              <motion.button
+                                type="button"
+                                whileHover={{ scale: 1.08 }}
+                                whileTap={{ scale: 0.92 }}
+                                className={cn(
+                                  'h-8 w-8 rounded-full grid place-items-center transition-colors',
+                                  'text-slate-500 hover:bg-blue-500/10 hover:text-blue-600 dark:hover:bg-blue-500/15',
+                                  rep.disLikedByMe && 'bg-blue-500/15 text-blue-600 dark:bg-blue-500/20',
+                                )}
                                 onClick={() => {
                                   if (!user) return onVote?.('auth');
                                   const current = rep.likedByMe ? 1 : rep.disLikedByMe ? -1 : 0;
@@ -148,8 +207,8 @@ function ReviewItem({ item, isOwner, onVote, onDelete, filmId, type, user }) {
                                   vote.mutate({ reviewId: rep.id, value: next, parentId: item.id });
                                 }}
                               >
-                                <ArrowBigDown className="w-4 h-4" />
-                              </Button>
+                                <ArrowBigDown className={cn('w-4 h-4', rep.disLikedByMe && 'fill-blue-500')} />
+                              </motion.button>
                             </div>
                             {user && user.id === rep.user?.id && (
                               <Button
@@ -167,7 +226,30 @@ function ReviewItem({ item, isOwner, onVote, onDelete, filmId, type, user }) {
                   ))}
                 </div>
               ) : (
-                <div className="text-sm text-muted-foreground">No replies yet.</div>
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key="empty-replies"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 6 }}
+                    transition={{ duration: 0.22 }}
+                    className="rounded-lg border border-dashed border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-950/20 px-4 py-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <motion.div
+                        animate={{ y: [0, -3, 0] }}
+                        transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut' }}
+                        className="w-9 h-9 rounded-full bg-gradient-to-br from-slate-200 to-slate-100 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center"
+                      >
+                        <MessageSquare className="w-4 h-4 text-slate-500" />
+                      </motion.div>
+                      <div>
+                        <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">No replies yet</div>
+                        <div className="text-xs text-muted-foreground">Start the conversation with a quick reply.</div>
+                      </div>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
               )}
 
               {/* Reply composer */}
@@ -270,7 +352,50 @@ export default function Reviews({ filmId, type }) {
       {/* List */}
       <div className="space-y-3">
         {items.length === 0 ? (
-          <div className="text-muted-foreground">No reviews yet. Be the first to write one!</div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key="empty-reviews"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 6 }}
+              transition={{ duration: 0.25 }}
+              className="rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-gradient-to-br from-white/80 to-slate-50/80 dark:from-slate-950/30 dark:to-slate-900/20 p-6"
+            >
+              <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                <motion.div
+                  className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center shadow-lg"
+                  animate={{ rotate: [0, -2, 2, 0] }}
+                  transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+                >
+                  <MessageSquare className="w-6 h-6" />
+                </motion.div>
+                <div className="flex-1">
+                  <div className="text-lg font-extrabold text-slate-900 dark:text-white">No reviews yet</div>
+                  <div className="text-sm text-muted-foreground">Be the first to share what you think. Upvotes help surface the best takes.</div>
+                  <div className="mt-3 flex items-center gap-2">
+                    <motion.div
+                      className="h-1.5 w-1.5 rounded-full bg-blue-500"
+                      animate={{ opacity: [0.3, 1, 0.3] }}
+                      transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+                    />
+                    <motion.div
+                      className="h-1.5 w-1.5 rounded-full bg-purple-500"
+                      animate={{ opacity: [0.3, 1, 0.3] }}
+                      transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
+                    />
+                    <motion.div
+                      className="h-1.5 w-1.5 rounded-full bg-indigo-500"
+                      animate={{ opacity: [0.3, 1, 0.3] }}
+                      transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
+                    />
+                  </div>
+                </div>
+                {!user ? (
+                  <Button onClick={() => setShowLoginModal?.(true)} className="shrink-0">Sign in to review</Button>
+                ) : null}
+              </div>
+            </motion.div>
+          </AnimatePresence>
         ) : (
           items.map((item) => (
             <ReviewItem
