@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import LoadingState from '@/components/ui/LoadingState';
 import ErrorState from '@/components/ui/ErrorState';
-import { ThumbsUp, ThumbsDown, MessageSquare, Trash2, Send, ChevronDown, ChevronUp, User as UserIcon, Loader2 } from 'lucide-react';
+import { ArrowBigUp, ArrowBigDown, MessageSquare, Trash2, Send, ChevronDown, ChevronUp, User as UserIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 function formatDate(iso) {
@@ -19,6 +19,8 @@ function formatDate(iso) {
 function ReviewItem({ item, isOwner, onVote, onDelete, filmId, type, user }) {
   const [open, setOpen] = useState(false);
   const [replyText, setReplyText] = useState('');
+
+  console.log(item);
 
   const { data: replies, isLoading: loadingReplies, isError: errorReplies } = useReplies(item.id, open);
   const { createReply, vote, deleteReview } = useReviewActions(filmId, type);
@@ -56,25 +58,28 @@ function ReviewItem({ item, isOwner, onVote, onDelete, filmId, type, user }) {
           </div>
           <p className="mt-2 text-slate-800 dark:text-slate-200 whitespace-pre-wrap">{item.content}</p>
 
-          <div className="mt-3 flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              className={cn('gap-1', item.likedByMe && 'border-blue-500 text-blue-600')}
-              onClick={() => handleVote(1)}
-              disabled={false}
-            >
-              <ThumbsUp className="w-4 h-4" /> Like
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className={cn('gap-1', item.disLikedByMe && 'border-rose-500 text-rose-600')}
-              onClick={() => handleVote(-1)}
-              disabled={false}
-            >
-              <ThumbsDown className="w-4 h-4" /> Dislike
-            </Button>
+          <div className="mt-3 flex items-center gap-3">
+            <div className="flex items-center gap-1">
+              <Button
+                variant="bare"
+                size="icon"
+                className={cn('h-8 w-8 rounded-md text-slate-500 hover:text-orange-500', item.likedByMe && 'text-orange-500')}
+                onClick={() => handleVote(1)}
+              >
+                <ArrowBigUp className="w-5 h-5" />
+              </Button>
+              <span className="min-w-[2ch] text-sm font-semibold text-slate-800 dark:text-slate-200 text-center">
+                {Number.isFinite(item.score) ? item.score : 0}
+              </span>
+              <Button
+                variant="bare"
+                size="icon"
+                className={cn('h-8 w-8 rounded-md text-slate-500 hover:text-blue-500', item.disLikedByMe && 'text-blue-500')}
+                onClick={() => handleVote(-1)}
+              >
+                <ArrowBigDown className="w-5 h-5" />
+              </Button>
+            </div>
 
             <Button variant="ghost" size="sm" className="gap-1" onClick={() => setOpen((v) => !v)}>
               <MessageSquare className="w-4 h-4" />
@@ -115,32 +120,37 @@ function ReviewItem({ item, isOwner, onVote, onDelete, filmId, type, user }) {
                           </div>
                           <p className="mt-1 text-slate-700 dark:text-slate-200 text-sm">{rep.content}</p>
                           <div className="mt-2 flex items-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className={cn('gap-1', rep.likedByMe && 'border-blue-500 text-blue-600')}
-                              onClick={() => {
-                                if (!user) return onVote?.('auth');
-                                const current = rep.likedByMe ? 1 : rep.disLikedByMe ? -1 : 0;
-                                const next = current === 1 ? 0 : 1;
-                                vote.mutate({ reviewId: rep.id, value: next, parentId: item.id });
-                              }}
-                            >
-                              <ThumbsUp className="w-3 h-3" /> Like
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className={cn('gap-1', rep.disLikedByMe && 'border-rose-500 text-rose-600')}
-                              onClick={() => {
-                                if (!user) return onVote?.('auth');
-                                const current = rep.likedByMe ? 1 : rep.disLikedByMe ? -1 : 0;
-                                const next = current === -1 ? 0 : -1;
-                                vote.mutate({ reviewId: rep.id, value: next, parentId: item.id });
-                              }}
-                            >
-                              <ThumbsDown className="w-3 h-3" /> Dislike
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="bare"
+                                size="icon"
+                                className={cn('h-7 w-7 rounded-md text-slate-500 hover:text-orange-500', rep.likedByMe && 'text-orange-500')}
+                                onClick={() => {
+                                  if (!user) return onVote?.('auth');
+                                  const current = rep.likedByMe ? 1 : rep.disLikedByMe ? -1 : 0;
+                                  const next = current === 1 ? 0 : 1;
+                                  vote.mutate({ reviewId: rep.id, value: next, parentId: item.id });
+                                }}
+                              >
+                                <ArrowBigUp className="w-4 h-4" />
+                              </Button>
+                              <span className="min-w-[2ch] text-xs font-semibold text-slate-700 dark:text-slate-200 text-center">
+                                {Number.isFinite(rep.score) ? rep.score : 0}
+                              </span>
+                              <Button
+                                variant="bare"
+                                size="icon"
+                                className={cn('h-7 w-7 rounded-md text-slate-500 hover:text-blue-500', rep.disLikedByMe && 'text-blue-500')}
+                                onClick={() => {
+                                  if (!user) return onVote?.('auth');
+                                  const current = rep.likedByMe ? 1 : rep.disLikedByMe ? -1 : 0;
+                                  const next = current === -1 ? 0 : -1;
+                                  vote.mutate({ reviewId: rep.id, value: next, parentId: item.id });
+                                }}
+                              >
+                                <ArrowBigDown className="w-4 h-4" />
+                              </Button>
+                            </div>
                             {user && user.id === rep.user?.id && (
                               <Button
                                 variant="destructive"

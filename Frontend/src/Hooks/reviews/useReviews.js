@@ -48,6 +48,10 @@ export const useReviewActions = (filmId, type) => {
       return res.data; // ReviewsDTO
     },
     onSuccess: (created) => {
+      // Ensure score has a reasonable default if server does not provide it
+      if (typeof created.score !== 'number') {
+        created.score = created.likedByMe ? 1 : 0;
+      }
       qc.setQueryData(['reviews', filmId, type], (old) => {
         if (!old) return old;
         const first = Array.isArray(old.pages?.[0]) ? old.pages[0] : [];
@@ -66,6 +70,9 @@ export const useReviewActions = (filmId, type) => {
     },
     onSuccess: (reply, variables) => {
       const parentId = variables.replyToId;
+      if (typeof reply.score !== 'number') {
+        reply.score = reply.likedByMe ? 1 : 0;
+      }
       qc.setQueryData(['replies', parentId], (old) => {
         const list = Array.isArray(old) ? old : [];
         return [...list, reply];
@@ -87,21 +94,25 @@ export const useReviewActions = (filmId, type) => {
     },
     onSuccess: (_data, variables) => {
       const { reviewId, value, parentId } = variables;
-      const applyVoteFlag = (item) => {
+      const applyVote = (item) => {
         if (item.id !== reviewId) return item;
+        const current = item.likedByMe ? 1 : item.disLikedByMe ? -1 : 0;
+        const delta = (typeof value === 'number' ? value : 0) - current;
+        const nextScore = (typeof item.score === 'number' ? item.score : 0) + delta;
         return {
           ...item,
-          likedByMe: value === 1 ? true : value === 0 ? false : false,
-          disLikedByMe: value === -1 ? true : value === 0 ? false : value === 1 ? false : item.disLikedByMe,
+          likedByMe: value === 1,
+          disLikedByMe: value === -1,
+          score: nextScore,
         };
       };
       qc.setQueryData(['reviews', filmId, type], (old) => {
         if (!old) return old;
-        const pages = old.pages.map((page) => page.map(applyVoteFlag));
+        const pages = old.pages.map((page) => page.map(applyVote));
         return { ...old, pages };
       });
       if (parentId) {
-        qc.setQueryData(['replies', parentId], (old) => (Array.isArray(old) ? old.map(applyVoteFlag) : old));
+        qc.setQueryData(['replies', parentId], (old) => (Array.isArray(old) ? old.map(applyVote) : old));
       }
     },
   });
