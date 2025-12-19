@@ -15,6 +15,7 @@ public class ReviewsDTO {
     private SimpleUserDTO user;
     private Boolean likedByMe;
     private Boolean disLikedByMe;
+    private Long score;
     private LocalDateTime createdAt;
 
     public static ReviewsDTO fromReview(Review review, Boolean likedByMe, Boolean disLikedByMe) {
@@ -28,6 +29,7 @@ public class ReviewsDTO {
                 .replyCount(review.getReplyCount())
                 .user(simpleUserDTO)
                 .likedByMe(likedByMe)
+                .score(review.getScore())
                 .disLikedByMe(disLikedByMe)
                 .createdAt(review.getCreatedAt())
                 .build();

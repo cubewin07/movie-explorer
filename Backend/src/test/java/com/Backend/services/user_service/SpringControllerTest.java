@@ -481,6 +481,7 @@ class SpringControllerTest {
                 .andExpect(jsonPath("$.id", greaterThanOrEqualTo(1)))
                 .andExpect(jsonPath("$.content", is("Amazing movie!")))
                 .andExpect(jsonPath("$.replyCount", is(0)))
+                .andExpect(jsonPath("$.score", is(1)))
                 .andExpect(jsonPath("$.user.email", is(email)))
                 .andExpect(jsonPath("$.likedByMe", is(true)))
                 .andExpect(jsonPath("$.disLikedByMe", is(false)))
@@ -498,6 +499,7 @@ class SpringControllerTest {
                         .param("page", "0"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[?(@.id==%s)].content", reviewId).value(hasItem("Amazing movie!")))
+                .andExpect(jsonPath("$[?(@.id==%s)].score", reviewId).value(hasItem(1)))
                 .andExpect(jsonPath("$[?(@.id==%s)].user.email", reviewId).value(hasItem(email)));
     }
 
@@ -536,6 +538,7 @@ class SpringControllerTest {
                         .content(objectMapper.writeValueAsString(replyReq)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.content", is("This is a reply")))
+                .andExpect(jsonPath("$.score", is(1)))
                 .andExpect(jsonPath("$.user.email", is(email)))
                 .andExpect(jsonPath("$.likedByMe", is(true)))
                 .andExpect(jsonPath("$.disLikedByMe", is(false)));
@@ -546,7 +549,8 @@ class SpringControllerTest {
                         .param("reviewId", String.valueOf(parentId)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].content", is("This is a reply")));
+                .andExpect(jsonPath("$[0].content", is("This is a reply")))
+                .andExpect(jsonPath("$[0].score", is(1)));
 
         // Parent replyCount should be 1 when fetching by film
         mockMvc.perform(get("/reviews")
@@ -602,7 +606,8 @@ class SpringControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(2)))
                 .andExpect(jsonPath("$[*].user.email", everyItem(is(emailA))))
-                .andExpect(jsonPath("$[*].content", containsInAnyOrder("A1", "A2")));
+                .andExpect(jsonPath("$[*].content", containsInAnyOrder("A1", "A2")))
+                .andExpect(jsonPath("$[*].score", everyItem(is(1))));
     }
 
     @Test
