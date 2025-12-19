@@ -199,7 +199,8 @@ function SearchInput() {
 
                         {/* Search Results */}
                         <div className="p-3 sm:p-4 overflow-y-auto max-h-[calc(80vh-120px)] space-y-4 sm:space-y-6">
-                            {isLoading && isLoadingGenres && (
+                            
+                            {(isLoading || isLoadingGenres) && (
                                 <div className="space-y-4">
                                     {Array.from({ length: 5 }).map((_, idx) => (
                                         <SkeletonCard key={idx} delay={idx * 0.05} />

@@ -18,6 +18,19 @@ export const useReviewsList = (filmId, type) => {
       }
       return undefined;
     },
+    onError: (err) => {
+      if (err.response) {
+        console.error('SERVER ERROR RESPONSE:', {
+          status: err.response.status,
+          data: err.response.data,
+          headers: err.response.headers,
+        });
+      } else if (err.request) {
+        console.error('NO RESPONSE FROM SERVER:', err.request);
+      } else {
+        console.error('REQUEST SETUP ERROR:', err.message);
+      }
+    },
     refetchOnWindowFocus: false,
     staleTime: 1000 * 60,
   });
