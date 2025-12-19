@@ -8,6 +8,7 @@ import { useSearchOrFallbackContent } from '@/hooks/API/data';
 import MovieCard from '@/components/ui/MovieCard';
 import TabbedResults from './TabbedResults';
 import SkeletonCard from '@/components/ui/skeletonCard';
+import SearchSkeletonItem from '@/components/ui/SearchSkeletonItem';
 import { FilmModalContext } from '@/context/FilmModalProvider';
 import { useAllGenres } from '@/hooks/API/genres';
 
@@ -21,7 +22,7 @@ function SearchInput() {
     const { setIsOpen, setContext } = useContext(FilmModalContext);
     const openedFromSearchRef = useRef(false);
 
-    const {movieGenres, tvGenres, isLoading: isLoadingGenres} = useAllGenres();
+    const { movieGenres, tvGenres, isLoading: isLoadingGenres, isFetching: isFetchingGenres } = useAllGenres();
     const genreArr = useMemo(() => [...movieGenres, ...tvGenres], [movieGenres, tvGenres]);
     const genreMap = useMemo(
         () =>
@@ -64,7 +65,7 @@ function SearchInput() {
         }
     }, [isModalOpen]);
 
-    const { data, isLoading } = useSearchOrFallbackContent(isModalOpen, debouncedSearch);
+    const { data, isLoading, isFetching } = useSearchOrFallbackContent(isModalOpen, debouncedSearch);
     const renderCards = (items, type) => (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {items.map((item, i) => {
@@ -200,10 +201,10 @@ function SearchInput() {
                         {/* Search Results */}
                         <div className="p-3 sm:p-4 overflow-y-auto max-h-[calc(80vh-120px)] space-y-4 sm:space-y-6">
                             
-                            {(isLoading || isLoadingGenres) && (
-                                <div className="space-y-4">
-                                    {Array.from({ length: 5 }).map((_, idx) => (
-                                        <SkeletonCard key={idx} delay={idx * 0.05} />
+                            {(isLoading || isFetching || isLoadingGenres || isFetchingGenres) && (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                                    {Array.from({ length: 6 }).map((_, idx) => (
+                                        <SearchSkeletonItem key={idx} delay={idx * 0.05} />
                                     ))}
                                 </div>
                             )}

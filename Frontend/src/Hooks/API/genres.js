@@ -2,7 +2,7 @@ import axiosInstance from '@/lib/axiosInstance';
 import { useQuery } from '@tanstack/react-query';
 
 export const useMovieGenres = () => {
-    const { data: MovieGenres, isLoading: isGenresLoading } = useQuery({
+    const { data: MovieGenres, isLoading: isGenresLoading, isFetching: isGenresFetching } = useQuery({
         queryKey: ['MovieGenres'],
         queryFn: () =>
             axiosInstance.get('/genre/movie/list', {
@@ -13,11 +13,11 @@ export const useMovieGenres = () => {
         staleTime: Infinity,
     });
 
-    return { MovieGenres, isGenresLoading };
+    return { MovieGenres, isGenresLoading, isGenresFetching };
 };
 
 export const useTvSeriesGenres = () => {
-    const { data: TvSeriesGenresRes, isLoading: isTvSeriesGenreLoading } = useQuery({
+    const { data: TvSeriesGenresRes, isLoading: isTvSeriesGenreLoading, isFetching: isTvSeriesGenreFetching } = useQuery({
         queryKey: ['tvSeriesGenres'],
         queryFn: () => {
             return axiosInstance.get('/genre/tv/list', {
@@ -31,21 +31,23 @@ export const useTvSeriesGenres = () => {
         staleTime: Infinity,
     });
 
-    return { TvSeriesGenresRes, isTvSeriesGenreLoading };
+    return { TvSeriesGenresRes, isTvSeriesGenreLoading, isTvSeriesGenreFetching };
 };
 
 export const useAllGenres = () => {
-    const { MovieGenres, isGenresLoading } = useMovieGenres();
-    const { TvSeriesGenresRes, isTvSeriesGenreLoading } = useTvSeriesGenres();
+    const { MovieGenres, isGenresLoading, isGenresFetching } = useMovieGenres();
+    const { TvSeriesGenresRes, isTvSeriesGenreLoading, isTvSeriesGenreFetching } = useTvSeriesGenres();
 
     const movieGenres = MovieGenres?.data?.genres || [];
     const tvGenres = TvSeriesGenresRes?.data?.genres || [];
 
     const isLoading = isGenresLoading || isTvSeriesGenreLoading;
+    const isFetching = isGenresFetching || isTvSeriesGenreFetching;
 
     return {
         movieGenres,
         tvGenres,
         isLoading,
+        isFetching,
     };
 };

@@ -74,7 +74,7 @@ export const useSearchOrFallbackContent = (
     debouncedSearch,
     fallbackEndpoints = ['trending/all/week', 'movie/top_rated'],
 ) => {
-    const { data, isLoading } = useQuery({
+    const { data, isLoading, isFetching } = useQuery({
         queryKey: ['search-multi', debouncedSearch],
         enabled: isModalOpen,
         queryFn: async ({ signal }) => {
@@ -99,7 +99,7 @@ export const useSearchOrFallbackContent = (
         },
     });
 
-    return { data, isLoading };
+    return { data, isLoading, isFetching };
 };
 
 export const useInfinitePaginatedFetch = (url, key) => {
