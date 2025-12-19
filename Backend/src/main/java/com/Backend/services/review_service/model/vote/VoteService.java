@@ -20,12 +20,18 @@ public class VoteService {
     private final ReviewRepository reviewRepository;
 
     @Cacheable(value = "userVotes", key = "{ (#user != null ? #user.id : 0), #reviewIds }")
-    public List<Vote> voteByUserAndReviewIds(User user, List<Long> reviewIds) {
+    public List<SimpleVoteDTO> voteByUserAndReviewIds(User user, List<Long> reviewIds) {
         Long userId = (user != null ? user.getId() : null);
         log.info("Fetching votes for userId={}, reviewIds.size={} ", userId, (reviewIds != null ? reviewIds.size() : 0));
         List<Vote> votes = voteRepository.findByUserAndReview_IdIn(user, reviewIds);
         log.debug("Fetched {} votes for userId={}", (votes != null ? votes.size() : 0), userId);
-        return votes;
+        if (votes == null) return List.of();
+        return votes.stream().map(v -> SimpleVoteDTO.builder()
+                .value(v.getValue())
+                        .id(v.getId())
+                .reviewId(v.getReview().getId())
+                .build())
+                .toList();
     }
 
     @Transactional
