@@ -5,6 +5,7 @@ import com.Backend.services.review_service.model.CreateReplyRequest;
 import com.Backend.services.review_service.model.CreateReviewRequest;
 import com.Backend.services.review_service.model.Review;
 import com.Backend.services.review_service.model.ReviewsDTO;
+import com.Backend.services.review_service.model.vote.SimpleVoteDTO;
 import com.Backend.services.review_service.model.vote.Vote;
 import com.Backend.services.review_service.model.vote.VoteRepository;
 import com.Backend.services.review_service.model.vote.VoteService;
@@ -173,8 +174,8 @@ public class ReviewService {
 
         Map<Integer, List<Long>> reviewIdsByVoteValue = voteService.voteByUserAndReviewIds(user, reviewIds).stream()
                 .collect(Collectors.groupingBy(
-                        Vote::getValue,
-                        Collectors.mapping(v -> v.getReview().getId(), Collectors.toList())
+                        SimpleVoteDTO::getValue,
+                        Collectors.mapping(SimpleVoteDTO::getReviewId, Collectors.toList())
                 ));
         List<Long> userLikedReviewList = reviewIdsByVoteValue.getOrDefault(1, List.of());
         List<Long> userDislikedReviewList = reviewIdsByVoteValue.getOrDefault(-1, List.of());
