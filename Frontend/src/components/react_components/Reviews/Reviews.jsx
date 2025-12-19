@@ -283,6 +283,7 @@ function ReviewItem({ item, isOwner, onVote, filmId, type, user }) {
 export default function Reviews({ filmId, type }) {
   const { user, setShowLoginModal } = useAuthen();
   const [content, setContent] = useState('');
+  const [sort, setSort] = useState('top');
 
   const {
     data,
@@ -299,6 +300,25 @@ export default function Reviews({ filmId, type }) {
     if (!data?.pages) return [];
     return data.pages.flat();
   }, [data]);
+
+  const sortedItems = useMemo(() => {
+    const list = Array.isArray(items) ? [...items] : [];
+    const byDateAsc = (a, b) => {
+      const at = new Date(a?.createdAt || 0).getTime();
+      const bt = new Date(b?.createdAt || 0).getTime();
+      return at - bt;
+    };
+    const byDateDesc = (a, b) => -byDateAsc(a, b);
+
+    if (sort === 'new') return list.sort(byDateDesc);
+    if (sort === 'old') return list.sort(byDateAsc);
+    return list.sort((a, b) => {
+      const as = typeof a?.score === 'number' ? a.score : 0;
+      const bs = typeof b?.score === 'number' ? b.score : 0;
+      if (bs !== as) return bs - as;
+      return byDateDesc(a, b);
+    });
+  }, [items, sort]);
 
   if (isLoading) {
     return <LoadingState title="Loading Reviews" subtitle="Getting latest reviews..." fullScreen={false} className="py-6" />;
@@ -397,17 +417,49 @@ export default function Reviews({ filmId, type }) {
             </motion.div>
           </AnimatePresence>
         ) : (
-          items.map((item) => (
-            <ReviewItem
-              key={item.id}
-              item={item}
-              isOwner={user && user.id === item.user?.id}
-              filmId={filmId}
-              type={type}
-              user={user}
-              onVote={(why) => why === 'auth' && setShowLoginModal?.(true)}
-            />
-          ))
+          <>
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-sm font-semibold text-slate-800 dark:text-slate-200">{sortedItems.length} Reviews</div>
+              <div className="inline-flex items-center rounded-full border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-slate-950/30 p-1">
+                <Button
+                  variant={sort === 'top' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  className="rounded-full"
+                  onClick={() => setSort('top')}
+                >
+                  Top
+                </Button>
+                <Button
+                  variant={sort === 'new' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  className="rounded-full"
+                  onClick={() => setSort('new')}
+                >
+                  New
+                </Button>
+                <Button
+                  variant={sort === 'old' ? 'secondary' : 'ghost'}
+                  size="sm"
+                  className="rounded-full"
+                  onClick={() => setSort('old')}
+                >
+                  Old
+                </Button>
+              </div>
+            </div>
+
+            {sortedItems.map((item) => (
+              <ReviewItem
+                key={item.id}
+                item={item}
+                isOwner={user && user.id === item.user?.id}
+                filmId={filmId}
+                type={type}
+                user={user}
+                onVote={(why) => why === 'auth' && setShowLoginModal?.(true)}
+              />
+            ))}
+          </>
         )}
       </div>
 
