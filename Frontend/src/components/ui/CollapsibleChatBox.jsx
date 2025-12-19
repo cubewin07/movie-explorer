@@ -175,12 +175,12 @@ function CollapsibleChatBox({ sessionToken = "demo-token" }) {
       exit={{ opacity: 0 }}
       className="flex justify-start"
     >
-      <div className="bg-slate-800 rounded-lg rounded-bl-sm px-4 py-3 flex items-center gap-1">
+      <div className="bg-white dark:bg-slate-800 rounded-lg rounded-bl-sm px-4 py-3 flex items-center gap-1">
         <div className="flex gap-1">
           {[0, 1, 2].map((i) => (
             <motion.div
               key={i}
-              className="w-2 h-2 bg-slate-400 rounded-full"
+              className="w-2 h-2 bg-slate-500 dark:bg-slate-400 rounded-full"
               animate={{
                 y: [0, -6, 0],
                 opacity: [0.5, 1, 0.5],
@@ -194,7 +194,7 @@ function CollapsibleChatBox({ sessionToken = "demo-token" }) {
             />
           ))}
         </div>
-        <span className="ml-2 text-xs text-slate-400">Thinking...</span>
+        <span className="ml-2 text-xs text-slate-600 dark:text-slate-400">Thinking...</span>
       </div>
     </motion.div>
   );
@@ -223,10 +223,10 @@ function CollapsibleChatBox({ sessionToken = "demo-token" }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="mb-4 w-96 h-[500px] bg-slate-950 rounded-2xl shadow-2xl border border-slate-800 flex flex-col overflow-hidden"
+            className="mb-4 w-96 h-[500px] bg-white dark:bg-slate-950 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden"
           >
             {/* Chat Header */}
-            <div className="px-4 py-3 border-b border-slate-800 bg-slate-900/50 flex items-center justify-between backdrop-blur-sm">
+            <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-800 bg-slate-100/50 dark:bg-slate-900/50 flex items-center justify-between backdrop-blur-sm">
               <div className="flex items-center gap-3">
                 <motion.div
                   animate={{
@@ -243,15 +243,15 @@ function CollapsibleChatBox({ sessionToken = "demo-token" }) {
                   <div className="relative w-3 h-3 bg-green-500 rounded-full" />
                 </motion.div>
                 <div>
-                  <h2 className="text-lg font-semibold text-white">Chat Assistant</h2>
-                  <p className="text-xs text-slate-400">Online</p>
+                  <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Chat Assistant</h2>
+                  <p className="text-xs text-slate-600 dark:text-slate-400">Online</p>
                 </div>
               </div>
               <motion.button
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => setIsOpen(false)}
-                className="text-slate-400 hover:text-white transition-colors p-2 hover:bg-slate-800 rounded-lg"
+                className="text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-colors p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg"
                 aria-label="Close chat"
               >
                 <X className="w-5 h-5" />
@@ -259,7 +259,7 @@ function CollapsibleChatBox({ sessionToken = "demo-token" }) {
             </div>
 
             {/* Messages Container */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-950 chat-scrollbar">
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-white dark:bg-slate-950 chat-scrollbar">
               {messages.length === 0 ? (
                 <motion.div
                   initial={{ opacity: 0 }}
@@ -267,7 +267,7 @@ function CollapsibleChatBox({ sessionToken = "demo-token" }) {
                   transition={{ delay: 0.2 }}
                   className="flex items-center justify-center h-full"
                 >
-                  <div className="text-center text-slate-500">
+                  <div className="text-center text-slate-600 dark:text-slate-500">
                     <motion.div
                       animate={{
                         y: [0, -10, 0],
@@ -306,8 +306,8 @@ function CollapsibleChatBox({ sessionToken = "demo-token" }) {
                           message.sender === 'user'
                             ? 'bg-gradient-to-br from-blue-600 via-blue-600 to-indigo-600 text-white rounded-br-sm shadow-lg hover:shadow-2xl hover:shadow-blue-500/30 chat-message-user'
                             : message.sender === 'system'
-                            ? 'bg-red-900/50 text-red-200 border border-red-800 hover:border-red-600 hover:bg-red-900/80 chat-message-system'
-                            : 'bg-gradient-to-br from-slate-800 via-slate-800 to-slate-900 text-slate-100 rounded-bl-sm shadow-lg hover:shadow-2xl hover:shadow-slate-500/20 chat-message-bot'
+                            ? 'bg-red-100 text-red-800 border border-red-200 hover:border-red-300 hover:bg-red-200/80 dark:bg-red-900/50 dark:text-red-200 dark:border-red-800 dark:hover:border-red-600 dark:hover:bg-red-900/80 chat-message-system'
+                            : 'bg-gradient-to-br from-slate-100 via-slate-100 to-slate-200 text-slate-800 rounded-bl-sm shadow-lg hover:shadow-2xl hover:shadow-slate-500/20 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 dark:text-slate-100 chat-message-bot'
                         }`}
                         style={{
                           transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
@@ -337,7 +337,7 @@ function CollapsibleChatBox({ sessionToken = "demo-token" }) {
             </div>
 
             {/* Input Area */}
-            <div className="p-3 border-t border-slate-800 bg-slate-900/50 backdrop-blur-sm">
+            <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-slate-100/50 dark:bg-slate-900/50 backdrop-blur-sm">
               <form onSubmit={handleSubmit} className="flex gap-2">
                 <input
                   ref={inputRef}
@@ -352,14 +352,14 @@ function CollapsibleChatBox({ sessionToken = "demo-token" }) {
                   }}
                   placeholder="Type your message..."
                   disabled={isLoading}
-                  className="flex-1 bg-slate-800 text-white placeholder-slate-500 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-slate-950 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                  className="flex-1 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-500 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-slate-950 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 />
                 <motion.button
                   type="submit"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   disabled={!input.trim() || isLoading}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white rounded-lg px-4 py-2.5 transition-colors flex items-center justify-center min-w-[44px]"
+                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 dark:disabled:bg-slate-700 disabled:cursor-not-allowed text-white rounded-lg px-4 py-2.5 transition-colors flex items-center justify-center min-w-[44px] shadow-md"
                   aria-label="Send message"
                 >
                   {isLoading ? (
