@@ -42,11 +42,36 @@ public class KryoRedisSerializer<T> implements RedisSerializer<T> {
     @SuppressWarnings("unchecked")
     public T deserialize(byte[] bytes) {
         if (bytes == null || bytes.length == 0) return null;
+
         Kryo kryo = kryoThreadLocal.get();
+        Object obj;
+
         try (Input input = new Input(new ByteArrayInputStream(bytes))) {
-            return (T) kryo.readClassAndObject(input);
-        } catch (Exception e) {
-            throw new SerializationException("Kryo deserialization failed", e);
+            obj = kryo.readClassAndObject(input);
+        }
+        catch (com.esotericsoftware.kryo.KryoException e) {
+            throw new SerializationException(
+                    "Kryo failed while reading object (possibly incompatible class or corrupted bytes)",
+                    e
+            );
+        }
+        catch (Exception e) {
+            throw new SerializationException(
+                    "Unexpected error during Kryo deserialization",
+                    e
+            );
+        }
+
+        try {
+            return (T) obj;
+        }
+        catch (ClassCastException e) {
+            throw new SerializationException(
+                    "Type mismatch during deserialization. " +
+                            "Expected type: " + type.getName() +
+                            ", but actual type: " + obj.getClass().getName(),
+                    e
+            );
         }
     }
 }

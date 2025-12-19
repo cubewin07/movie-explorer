@@ -23,6 +23,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -44,7 +45,7 @@ public class ReviewService {
 
         // Vote default to false when the user is unauthenticated
         if(user == null)
-            return reviews.stream().map(r -> ReviewsDTO.fromReview(r, false, false)).toList();
+            return new ArrayList<>(reviews.stream().map(r -> ReviewsDTO.fromReview(r, false, false)).toList());
 
         return handleVoteForReviewsDTO(reviews.getContent(), user);
     }
@@ -58,7 +59,7 @@ public class ReviewService {
 
         // Vote default to false when the user is unauthenticated
         if(user == null)
-            return reviews.stream().map(r -> ReviewsDTO.fromReview(r, false, false)).toList();
+            return new ArrayList<>(reviews.stream().map(r -> ReviewsDTO.fromReview(r, false, false)).toList());
 
         return handleVoteForReviewsDTO(reviews.getContent(), user);
     }
@@ -180,7 +181,8 @@ public class ReviewService {
         List<Long> userLikedReviewList = reviewIdsByVoteValue.getOrDefault(1, List.of());
         List<Long> userDislikedReviewList = reviewIdsByVoteValue.getOrDefault(-1, List.of());
 
-        return reviews.stream()
+        List<ReviewsDTO> reviewsDTOSList = new ArrayList<>(
+                reviews.stream()
                 .map(review -> {
                     boolean userLiked = userLikedReviewList.contains(review.getId());
                     boolean userDisliked = userDislikedReviewList.contains(review.getId());
@@ -188,6 +190,8 @@ public class ReviewService {
                     return userLiked
                             ? ReviewsDTO.fromReview(review, true, false)
                             : ReviewsDTO.fromReview(review, false, true);
-                }).toList();
+                }).toList()
+        );
+        return reviewsDTOSList;
     }
 }
