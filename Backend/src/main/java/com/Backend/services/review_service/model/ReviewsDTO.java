@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 public class ReviewsDTO {
     private Long id;
     private String content;
-    private long replyCount;
+    private Long replyCount;
     private SimpleUserDTO user;
     private Boolean likedByMe;
     private Boolean disLikedByMe;
