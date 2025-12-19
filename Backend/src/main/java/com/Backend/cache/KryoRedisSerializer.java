@@ -44,35 +44,54 @@ public class KryoRedisSerializer<T> implements RedisSerializer<T> {
         if (bytes == null || bytes.length == 0) return null;
 
         Kryo kryo = kryoThreadLocal.get();
-        Object obj;
 
         try (Input input = new Input(new ByteArrayInputStream(bytes))) {
-            obj = kryo.readClassAndObject(input);
+            Object obj = kryo.readClassAndObject(input);
+
+            if (obj == null) return null;
+
+            return (T) obj;
+
+        } catch (Exception e) {
+            throw new SerializationException(buildKryoErrorMessage(bytes, e), e);
         }
-        catch (com.esotericsoftware.kryo.KryoException e) {
-            throw new SerializationException(
-                    "Kryo failed while reading object (possibly incompatible class or corrupted bytes)",
-                    e
-            );
-        }
-        catch (Exception e) {
-            throw new SerializationException(
-                    "Unexpected error during Kryo deserialization",
-                    e
-            );
+    }
+    private String buildKryoErrorMessage(byte[] bytes, Exception e) {
+        StringBuilder sb = new StringBuilder();
+
+        sb.append("Kryo deserialization failed.\n");
+
+        sb.append("Exception type: ")
+                .append(e.getClass().getName())
+                .append("\n");
+
+        sb.append("Message: ")
+                .append(e.getMessage())
+                .append("\n");
+
+        if (e.getCause() != null) {
+            sb.append("Cause: ")
+                    .append(e.getCause().getClass().getName())
+                    .append(" - ")
+                    .append(e.getCause().getMessage())
+                    .append("\n");
         }
 
-        try {
-            return (T) obj;
+        sb.append("Payload size: ")
+                .append(bytes.length)
+                .append(" bytes\n");
+
+        sb.append("First 32 bytes (hex): ")
+                .append(toHex(bytes, 32));
+
+        return sb.toString();
+    }
+    private String toHex(byte[] bytes, int limit) {
+        StringBuilder hex = new StringBuilder();
+        for (int i = 0; i < Math.min(bytes.length, limit); i++) {
+            hex.append(String.format("%02x ", bytes[i]));
         }
-        catch (ClassCastException e) {
-            throw new SerializationException(
-                    "Type mismatch during deserialization. " +
-                            "Expected type: " + type.getName() +
-                            ", but actual type: " + obj.getClass().getName(),
-                    e
-            );
-        }
+        return hex.toString().trim();
     }
 }
 
