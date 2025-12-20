@@ -445,9 +445,9 @@ export default function NotificationsPage() {
                     className={`
                       group relative px-6 py-4 border-l-4 cursor-pointer transition-all duration-200
                       ${isSelectionMode && selectedIds.includes(notification.id)
-                        ? 'bg-blue-100 dark:bg-blue-900/40 border-l-blue-600 dark:border-l-blue-400 shadow-sm ring-2 ring-blue-500/30 dark:ring-blue-400/30'
+                        ? 'bg-gradient-to-r from-blue-500/20 to-blue-400/10 dark:from-blue-500/30 dark:to-blue-400/20 border-l-blue-600 dark:border-l-blue-400 shadow-md ring-2 ring-blue-500 dark:ring-blue-400'
                         : isSelectionMode
-                        ? 'bg-gray-50/50 dark:bg-slate-800/30 hover:bg-gray-100 dark:hover:bg-slate-800/50 border-l-gray-400 dark:border-l-gray-600'
+                        ? 'bg-gray-100 dark:bg-slate-700/50 hover:bg-gray-200 dark:hover:bg-slate-700 border-l-gray-400 dark:border-l-gray-500 hover:border-l-blue-400 dark:hover:border-l-blue-500'
                         : notification.read 
                         ? 'bg-transparent dark:bg-transparent hover:bg-gray-50/80 dark:hover:bg-slate-800/50' 
                         : 'bg-blue-50/60 dark:bg-blue-950/20 hover:bg-blue-100/70 dark:hover:bg-blue-950/30'
