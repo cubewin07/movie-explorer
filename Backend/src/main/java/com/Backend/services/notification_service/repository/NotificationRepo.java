@@ -20,6 +20,8 @@ public interface NotificationRepo extends JpaRepository<Notification, Long> {
 
     List<Notification> findByUserAndType(User user, String type);
 
+    List<Notification> findByIdIn(Set<Long> ids);
+
     long countByUserIdAndIdIn(Long userId, List<Long> ids);
 
     @Transactional
