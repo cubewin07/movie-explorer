@@ -441,29 +441,22 @@ export default function NotificationsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, x: -20 }}
                     transition={{ delay: index * 0.03 }}
-                    onClick={() => handleNotificationClick(notification)}
+                    onClick={() => isSelectionMode ? handleToggleSelect({stopPropagation: () => {}}, notification.id) : handleNotificationClick(notification)}
                     className={`
                       group relative px-6 py-4 border-l-4 cursor-pointer transition-all duration-200
-                      ${notification.read 
+                      ${isSelectionMode && selectedIds.includes(notification.id)
+                        ? 'bg-blue-100 dark:bg-blue-900/40 border-l-blue-600 dark:border-l-blue-400 shadow-sm ring-2 ring-blue-500/30 dark:ring-blue-400/30'
+                        : isSelectionMode
+                        ? 'bg-gray-50/50 dark:bg-slate-800/30 hover:bg-gray-100 dark:hover:bg-slate-800/50 border-l-gray-400 dark:border-l-gray-600'
+                        : notification.read 
                         ? 'bg-transparent dark:bg-transparent hover:bg-gray-50/80 dark:hover:bg-slate-800/50' 
                         : 'bg-blue-50/60 dark:bg-blue-950/20 hover:bg-blue-100/70 dark:hover:bg-blue-950/30'
                       }
-                      ${getNotificationColor(notification.type)}
+                      ${!isSelectionMode ? getNotificationColor(notification.type) : ''}
                       border-b border-gray-100 dark:border-slate-800/50 last:border-b-0
                     `}
                   >
                     <div className="flex gap-4">
-                      {/* Selection checkbox (only in selection mode) */}
-                      {isSelectionMode && (
-                        <input
-                          type="checkbox"
-                          checked={selectedIds.includes(notification.id)}
-                          onClick={(e) => e.stopPropagation()}
-                          onChange={(e) => handleToggleSelect(e, notification.id)}
-                          className="mt-2 w-4 h-4 accent-blue-500"
-                          aria-label="Select notification"
-                        />
-                      )}
                       {/* Icon */}
                       <div className="flex-shrink-0 mt-0.5">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
