@@ -302,6 +302,16 @@ public class NotificationService {
         }
     }
 
+    @Transactional
+    public void deleteListNotifications(User user, Set<Long> notificationIds) {
+        List<Notification> notifications = notificationRepo.findByIdIn(notificationIds);
+
+        if(notificationIds != null && notifications.getFirst().getUser().equals(user)) {
+            notificationRepo.deleteAll(notifications);
+            log.debug("Notifications {} deleted for user id={}", notificationIds, user.getId());
+        }
+    }
+
     @Transactional( readOnly = true)
     @Cacheable(value = "notifications", key = "#user.id")
     public Set<NotificationDTO> getNotifications(User user) {
