@@ -94,8 +94,6 @@ export default function NotificationsPage() {
 
   const openDeleteSelectedConfirm = () => {
     if (selectedIds.length === 0) return;
-    const confirmed = window.confirm(`Delete ${selectedIds.length} selected notifications?\nThis action cannot be undone.`);
-    if (!confirmed) return;
     deleteNotificationsByIds.mutate(
       { ids: selectedIds, token },
       { onSuccess: () => { setSelectedIds([]); setIsSelectionMode(false); } }
