@@ -1,6 +1,7 @@
 package com.Backend.services.notification_service.controller;
 
 import com.Backend.services.notification_service.model.AllReadRecord;
+import com.Backend.services.notification_service.model.ListNotificationDTO;
 import com.Backend.services.notification_service.model.NotificationDTO;
 import com.Backend.services.notification_service.service.NotificationService;
 import com.Backend.services.user_service.model.User;
@@ -56,7 +57,7 @@ public class NotificationController {
             @RequestBody ListNotificationDTO listNot,
             @AuthenticationPrincipal User user
     ){
-        notificationService.deleteListNotifications(user, listNot.notifications);
+        notificationService.deleteListNotifications(user, listNot.getNotifications());
         return ResponseEntity.ok(Map.of("message", "Deleted notifications"));
     }
 
