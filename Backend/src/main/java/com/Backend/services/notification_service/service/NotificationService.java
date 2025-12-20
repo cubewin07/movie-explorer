@@ -303,12 +303,23 @@ public class NotificationService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "chatNotifications", key = "#user.id"),
+            @CacheEvict(value = "userMeDTO", key = "#user.email"),
+            @CacheEvict(value = "notifications", key = "#user.id")
+    })
     public void deleteListNotifications(User user, Set<Long> notificationIds) {
+        if (notificationIds == null || notificationIds.isEmpty()) {
+            log.debug("Empty notification id list provided for user id={}", user.getId());
+            return;
+        }
         List<Notification> notifications = notificationRepo.findByIdIn(notificationIds);
 
-        if(notificationIds != null && notifications.getFirst().getUser().equals(user)) {
+        if(!notifications.isEmpty() && notifications.getFirst().getUser().equals(user)) {
             notificationRepo.deleteAll(notifications);
             log.debug("Notifications {} deleted for user id={}", notificationIds, user.getId());
+        } else {
+            log.warn("No notifications deleted for user id={} - ownership mismatch or none found", user.getId());
         }
     }
 
