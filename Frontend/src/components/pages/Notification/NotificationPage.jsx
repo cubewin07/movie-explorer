@@ -301,13 +301,24 @@ export default function NotificationsPage() {
                 </Button>
               )}
               {!isSelectionMode ? (
-                <Button
-                  onClick={enableSelectionMode}
-                  variant="outline"
-                  className="flex items-center gap-2"
-                >
-                  Select
-                </Button>
+                <>
+                  <Button
+                    onClick={handleDeleteAll}
+                    variant="destructive"
+                    className={`flex items-center gap-2 ${isSelectionMode ? 'hidden' : ''}`}
+                    disabled={filteredNotifications.length === 0}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete all
+                  </Button>
+                  <Button
+                    onClick={enableSelectionMode}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    Select
+                  </Button>
+                </>
               ) : (
                 <>
                   <Button
