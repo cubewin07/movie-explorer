@@ -12,6 +12,7 @@ export default function NotificationsPage() {
   const [filter, setFilter] = useState('all'); // 'all', 'unread', 'friendRequest', 'chat'
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedIds, setSelectedIds] = useState([]);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
   
   const { data, isLoading, error } = useNotification();
   const { user, token } = useAuthen();
@@ -81,11 +82,23 @@ export default function NotificationsPage() {
     setSelectedIds((prev) => prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]);
   };
 
-  const handleDeleteSelected = () => {
+  const enableSelectionMode = () => {
+    setIsSelectionMode(true);
+    setSelectedIds([]);
+  };
+
+  const disableSelectionMode = () => {
+    setIsSelectionMode(false);
+    setSelectedIds([]);
+  };
+
+  const openDeleteSelectedConfirm = () => {
     if (selectedIds.length === 0) return;
+    const confirmed = window.confirm(`Delete ${selectedIds.length} selected notifications?\nThis action cannot be undone.`);
+    if (!confirmed) return;
     deleteNotificationsByIds.mutate(
       { ids: selectedIds, token },
-      { onSuccess: () => { setSelectedIds([]); } }
+      { onSuccess: () => { setSelectedIds([]); setIsSelectionMode(false); } }
     );
   };
 
@@ -289,23 +302,34 @@ export default function NotificationsPage() {
                   Mark all read
                 </Button>
               )}
-              <Button
-                onClick={handleDeleteSelected}
-                variant="destructive"
-                className="flex items-center gap-2"
-                disabled={selectedIds.length === 0}
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete selected
-              </Button>
-              <Button
-                onClick={handleDeleteAll}
-                variant="outline"
-                className="flex items-center gap-2"
-              >
-                <Trash2 className="w-4 h-4" />
-                Delete all
-              </Button>
+              {!isSelectionMode ? (
+                <Button
+                  onClick={enableSelectionMode}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  Select
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    onClick={openDeleteSelectedConfirm}
+                    variant="destructive"
+                    className="flex items-center gap-2"
+                    disabled={selectedIds.length === 0}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete selected
+                  </Button>
+                  <Button
+                    onClick={disableSelectionMode}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    Cancel selection
+                  </Button>
+                </>
+              )}
             </div>
           </div>
 
@@ -420,15 +444,17 @@ export default function NotificationsPage() {
                     `}
                   >
                     <div className="flex gap-4">
-                      {/* Selection checkbox */}
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.includes(notification.id)}
-                        onClick={(e) => e.stopPropagation()}
-                        onChange={(e) => handleToggleSelect(e, notification.id)}
-                        className="mt-2 w-4 h-4 accent-blue-500"
-                        aria-label="Select notification"
-                      />
+                      {/* Selection checkbox (only in selection mode) */}
+                      {isSelectionMode && (
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(notification.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => handleToggleSelect(e, notification.id)}
+                          className="mt-2 w-4 h-4 accent-blue-500"
+                          aria-label="Select notification"
+                        />
+                      )}
                       {/* Icon */}
                       <div className="flex-shrink-0 mt-0.5">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
