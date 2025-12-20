@@ -323,8 +323,8 @@ export default function NotificationsPage() {
                 <>
                   <Button
                     onClick={openDeleteSelectedConfirm}
-                    variant="destructive"
-                    className="flex items-center gap-2"
+                    variant="outline"
+                    className="flex items-center gap-2 border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={selectedIds.length === 0}
                   >
                     <Trash2 className="w-4 h-4" />
