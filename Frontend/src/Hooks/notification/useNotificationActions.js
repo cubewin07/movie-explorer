@@ -36,6 +36,24 @@ export const useNotificationActions = (token) => {
         }
     });
 
+    // Delete notifications by IDs (bulk)
+    const deleteNotificationsByIds = useMutation({
+        mutationFn: async ({ ids, token }) => {
+            const response = await instance.delete(`/notifications/deleteListNotifications`, {
+                data: { notifications: ids }
+            });
+            return response.data;
+        },
+        onSuccess: (data, variables) => {
+            // Invalidate relevant queries
+            queryClient.invalidateQueries({ queryKey: ['notifications'] });
+            queryClient.invalidateQueries({ queryKey: ['userInfo', variables.token] });
+        },
+        onError: (error) => {
+            console.error('Error deleting notifications by ids:', error);
+        }
+    });
+
     const markAllAsRead = useMutation({
         mutationFn: async (token) => {
             const response = await instance.put('/notifications/allRead');
@@ -70,6 +88,7 @@ export const useNotificationActions = (token) => {
     markAsRead,
     markAllAsRead,
     deleteNotification,
+    deleteNotificationsByIds,
     markChatNotificationsAsRead
   };
 }
