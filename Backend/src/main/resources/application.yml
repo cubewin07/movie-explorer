@@ -39,3 +39,8 @@ management:
   endpoint:
     health:
       show-details: always
+
+security:
+  jwt:
+    secret: ${SECURITY_JWT_SECRET:change-me-please-min-32-characters}
+    expiration: ${SECURITY_JWT_EXPIRATION:864000000}
