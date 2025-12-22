@@ -14,6 +14,13 @@ import com.Backend.services.chat_service.model.DTO.ChatCreateGroupID;
 import com.Backend.services.chat_service.model.DTO.ChatResponseDTO;
 import com.Backend.services.chat_service.model.DTO.SimpleChatDTO;
 import com.Backend.services.chat_service.service.ChatService;
+import com.Backend.services.chat_service.model.ChatLookUpHelper;
+import com.Backend.services.user_service.model.DTO.SimpleUserDTO;
+import com.Backend.services.user_service.model.User;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+
+import java.util.Set;
+import java.nio.file.AccessDeniedException;
 
 @RestController
 @RequestMapping("/chats")
@@ -21,6 +28,7 @@ import com.Backend.services.chat_service.service.ChatService;
 public class ChatController {
 
     private final ChatService chatService;
+    private final ChatLookUpHelper chatLookUpHelper;
 
     @PostMapping("/private")
     public ResponseEntity<SimpleChatDTO> createChat(@RequestBody ChatCreateDTOID chat) {
@@ -35,7 +43,13 @@ public class ChatController {
     }
 
     @GetMapping()
-    public ResponseEntity<ChatResponseDTO> getChat(@RequestParam("chatId") Long chatId) {
+    public ResponseEntity<ChatResponseDTO> getChat(@RequestParam("chatId") Long chatId, @AuthenticationPrincipal User user) throws AccessDeniedException {
+        // Enforce membership before returning chat metadata
+        Set<SimpleUserDTO> participants = chatLookUpHelper.getParticipants(chatId);
+        boolean isMember = participants.stream().anyMatch(p -> p.getId().equals(user.getId()));
+        if (!isMember) {
+            throw new AccessDeniedException("You are not a participant of this chat");
+        }
         return ResponseEntity.ok(chatService.gettingChatDTO(chatId));
     }
 }

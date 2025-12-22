@@ -21,4 +21,7 @@ public interface MessageRepository extends JpaRepository<Message, Long>{
      * @return Optional containing the latest message if it exists, empty otherwise
      */
     Optional<Message> findTopByChatIdOrderByCreatedAtDesc(Long chatId);
+
+    // Delete all messages belonging to a chat to avoid FK violations on chat deletion
+    void deleteByChatId(Long chatId);
 }

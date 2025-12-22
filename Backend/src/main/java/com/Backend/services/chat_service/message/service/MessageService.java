@@ -177,6 +177,12 @@ public class MessageService {
         }
     }
 
+    @Transactional
+    public void deleteMessagesByChatId(Long chatId) {
+        validateNotNull(chatId, "Chat ID");
+        messageRepository.deleteByChatId(chatId);
+        log.info("Deleted all messages for chat: {}", chatId);
+    }
     
     // ==================== Private Helper Methods ====================
     
