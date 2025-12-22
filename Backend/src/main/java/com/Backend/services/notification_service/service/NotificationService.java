@@ -130,9 +130,9 @@ public class NotificationService {
     }
 
     @Caching(evict = {
-            @CacheEvict(value = "chatNotifications", key = "#userDTO.getId"),
-            @CacheEvict(value = "userMeDTO", key = "#userDTO.getEmail"),
-            @CacheEvict(value = "notifications", key = "#userDTO.getId")
+            @CacheEvict(value = "chatNotifications", key = "#userDTO.id"),
+            @CacheEvict(value = "userMeDTO", key = "#userDTO.email"),
+            @CacheEvict(value = "notifications", key = "#userDTO.id")
     })
     public void createNotificationWithoutSending(SimpleUserDTO userDTO, String type, Long relatedId, Message message) {
 
