@@ -146,21 +146,20 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "userSearch", key = "{#query, #id, #page, #size}")
-    public List<SimpleUserDTO> searchUsers(String query, Long id, int page, int size) {
+    @Cacheable(value = "userSearch", key = "{#query, #id, #pageable.pageNumber, #pageable.pageSize}")
+    public List<SimpleUserDTO> searchUsers(String query, Long id, Pageable pageable) {
         log.debug("Searching users with query: '{}', excluding user ID: {}, page: {}, size: {}",
-                query, id, page, size);
+                query, id, pageable.getPageNumber(), pageable.getPageSize());
 
-        Pageable pageable = PageRequest.of(page, size);
-        Page<User> users = userRepository.findByUsernameContainingIgnoreCaseAndIdNot(query, id, pageable);
+        Page<User> users = getPageUserSearch(query, id, pageable);
 
         if (users == null || users.isEmpty()) {
             log.info("No users found matching query '{}'", query);
             return Collections.emptyList();
         }
-
+        
         log.info("Found {} users matching query '{}' (Page {} of {})",
-                users.getTotalElements(), query, page + 1, users.getTotalPages());
+                users.getTotalElements(), query, pageable.getPageNumber() + 1, users.getTotalPages());
 
         // Cache only DTOs
         return users.getContent().stream()
