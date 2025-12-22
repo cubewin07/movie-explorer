@@ -17,6 +17,7 @@ import org.springframework.lang.NonNull;
 import com.Backend.exception.UserNotFoundException;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.repository.UserRepository;
+import com.Backend.springSecurity.jwtAuthentication.JwtService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -30,6 +31,7 @@ public class WebsocketHandshaker implements HandshakeInterceptor {
     private static final Logger log = LoggerFactory.getLogger(WebsocketHandshaker.class);
 
     private final UserRepository userRepository;
+    private final JwtService jwtService;
 
     @Override
     public boolean beforeHandshake(
@@ -38,6 +40,15 @@ public class WebsocketHandshaker implements HandshakeInterceptor {
         @NonNull WebSocketHandler wsHandler,
         @NonNull Map<String, Object> attributes) throws Exception {
         URI uri = request.getURI();
+
+        String jwt = request.getHeaders().getFirst("Authorization");
+        if (jwt == null || !jwt.startsWith("Bearer ")) {
+            log.warn("WebSocket handshake missing or invalid 'Authorization' header: uri={}", uri);
+            response.setStatusCode(HttpStatus.UNAUTHORIZED);
+            return false;
+        }
+        jwt = jwt.substring(7); // Remove "Bearer " prefix
+
         MultiValueMap<String, String> params = UriComponentsBuilder.fromUri(uri).build().getQueryParams();
 
         List<String> userIds = params.get("userId");
@@ -58,6 +69,12 @@ public class WebsocketHandshaker implements HandshakeInterceptor {
 
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new UserNotFoundException("User not found"));
+
+        if(!jwtService.isTokenValid(jwt, user)) {
+            log.warn("WebSocket handshake invalid 'Authorization' header: uri={}", uri);
+            response.setStatusCode(HttpStatus.UNAUTHORIZED);
+            return false;
+        }
 
         attributes.put("email", user.getEmail());
         log.debug("WebSocket handshake accepted for uri={}, userId={}, email set", uri, userId);
