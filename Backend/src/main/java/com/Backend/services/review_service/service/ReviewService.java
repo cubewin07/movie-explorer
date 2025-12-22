@@ -181,8 +181,8 @@ public class ReviewService {
         List<Long> userLikedReviewList = reviewIdsByVoteValue.getOrDefault(1, List.of());
         List<Long> userDislikedReviewList = reviewIdsByVoteValue.getOrDefault(-1, List.of());
 
-        List<ReviewsDTO> reviewsDTOSList = new ArrayList<>(
-                reviews.stream()
+        
+            return  reviews.stream()
                 .map(review -> {
                     boolean userLiked = userLikedReviewList.contains(review.getId());
                     boolean userDisliked = userDislikedReviewList.contains(review.getId());
@@ -190,8 +190,6 @@ public class ReviewService {
                     return userLiked
                             ? ReviewsDTO.fromReview(review, true, false)
                             : ReviewsDTO.fromReview(review, false, true);
-                }).toList()
-        );
-        return reviewsDTOSList;
+                }).toList();
     }
 }
