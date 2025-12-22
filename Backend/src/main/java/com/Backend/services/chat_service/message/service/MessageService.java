@@ -143,7 +143,8 @@ public class MessageService {
         @CacheEvict(value = "chatNotifications", key = "#user.id"),
         @CacheEvict(value = "notifications", key = "#user.id"),
         @CacheEvict(value = "userMeDTO", key = "#user.email"),
-        @CacheEvict(value = "chats", key = "#user.id")
+        @CacheEvict(value = "chats", key = "#user.id"),
+        @CacheEvict(value = "messagesDTO", allEntries = true)
     })
     public void markMessagesAsRead(Long chatId, User user) {
         validateNotNull(chatId, "Chat ID");
@@ -178,6 +179,10 @@ public class MessageService {
     }
 
     @Transactional
+    @Caching(evict = {
+        @CacheEvict(value = "messagesDTO", allEntries = true),
+        @CacheEvict(value = "latestMessageDTO", key = "#chatId")
+    })
     public void deleteMessagesByChatId(Long chatId) {
         validateNotNull(chatId, "Chat ID");
         messageRepository.deleteByChatId(chatId);
