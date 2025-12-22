@@ -298,4 +298,9 @@ public class UserService {
                     .build();
         }
     }
+
+    // ====Helper===
+    public Page<User> getPageUserSearch(String query, Long userId, Pageable pageable) {
+        return userRepository.findByUsernameContainingIgnoreCaseAndIdNot(query, userId, pageable);
+    }
 }
