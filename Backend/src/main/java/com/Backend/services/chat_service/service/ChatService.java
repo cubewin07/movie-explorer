@@ -215,6 +215,9 @@ public class ChatService {
         
         log.debug("Deleting chat with id: {}", chat.getId());
         
+        // Delete messages first to avoid FK constraint violations or orphan records
+        messageService.deleteMessagesByChatId(chat.getId());
+        
         chatRepository.delete(chat);
         
         log.info("Successfully deleted chat with id: {}", chat.getId());
