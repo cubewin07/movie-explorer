@@ -10,6 +10,9 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.springframework.lang.NonNull;
+
+
 
 import com.Backend.exception.UserNotFoundException;
 import com.Backend.services.user_service.model.User;
@@ -29,8 +32,11 @@ public class WebsocketHandshaker implements HandshakeInterceptor {
     private final UserRepository userRepository;
 
     @Override
-    public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response,
-                                   WebSocketHandler wsHandler, Map<String, Object> attributes) throws Exception {
+    public boolean beforeHandshake(
+        @NonNull ServerHttpRequest request, 
+        @NonNull ServerHttpResponse response,
+        @NonNull WebSocketHandler wsHandler,
+        @NonNull Map<String, Object> attributes) throws Exception {
         URI uri = request.getURI();
         MultiValueMap<String, String> params = UriComponentsBuilder.fromUri(uri).build().getQueryParams();
 
