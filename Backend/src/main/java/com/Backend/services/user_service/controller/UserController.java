@@ -51,10 +51,11 @@ public class UserController {
         Long id = user.getId();
         int size = 20;
 
-        List<SimpleUserDTO> results = userService.searchUsers(query, id, page, size);
+        List<SimpleUserDTO> results = userService.searchUsers(query, id, PageRequest.of(page, size));
 
-        Page<SimpleUserDTO> pageResult = new PageImpl<>(results, PageRequest.of(page, size), results.size());
-        return ResponseEntity.ok(pageResult);
+        Long totalElements = userService.getPageUserSearch(query, id, PageRequest.of(page, size)).getTotalElements();
+
+        return ResponseEntity.ok(new PageImpl<>(results, PageRequest.of(page, size), totalElements));
     }
 
     @GetMapping("/{id}")
