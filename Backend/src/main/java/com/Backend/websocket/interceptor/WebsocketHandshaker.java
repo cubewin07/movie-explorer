@@ -41,13 +41,13 @@ public class WebsocketHandshaker implements HandshakeInterceptor {
         @NonNull Map<String, Object> attributes) throws Exception {
         URI uri = request.getURI();
 
-        String jwt = request.getHeaders().getFirst("Authorization");
-        if (jwt == null || !jwt.startsWith("Bearer ")) {
-            log.warn("WebSocket handshake missing or invalid 'Authorization' header: uri={}", uri);
-            response.setStatusCode(HttpStatus.UNAUTHORIZED);
-            return false;
-        }
-        jwt = jwt.substring(7); // Remove "Bearer " prefix
+        // String jwt = request.getHeaders().getFirst("Authorization");
+        // if (jwt == null || !jwt.startsWith("Bearer ")) {
+        //     log.warn("WebSocket handshake missing or invalid 'Authorization' header: uri={}", uri);
+        //     response.setStatusCode(HttpStatus.UNAUTHORIZED);
+        //     return false;
+        // }
+        // jwt = jwt.substring(7); // Remove "Bearer " prefix
 
         MultiValueMap<String, String> params = UriComponentsBuilder.fromUri(uri).build().getQueryParams();
 
@@ -70,11 +70,11 @@ public class WebsocketHandshaker implements HandshakeInterceptor {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-        if(!jwtService.isTokenValid(jwt, user)) {
-            log.warn("WebSocket handshake invalid 'Authorization' header: uri={}", uri);
-            response.setStatusCode(HttpStatus.UNAUTHORIZED);
-            return false;
-        }
+        // if(!jwtService.isTokenValid(jwt, user)) {
+        //     log.warn("WebSocket handshake invalid 'Authorization' header: uri={}", uri);
+        //     response.setStatusCode(HttpStatus.UNAUTHORIZED);
+        //     return false;
+        // }
 
         attributes.put("email", user.getEmail());
         log.debug("WebSocket handshake accepted for uri={}, userId={}, email set", uri, userId);
