@@ -1,61 +1,35 @@
 import { useContext } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Tv, Film, Users, Bell, Play, ArrowRight } from 'lucide-react';
+import { Calendar, Tv, Film, Bell, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { usePaginatedFetch } from '@/hooks/API/data';
-import { useMovieGenres, useTvSeriesGenres } from '@/hooks/API/genres';
 import SkeletonCard from '@/components/ui/skeletonCard';
 import { Link } from 'react-router-dom';
 import { FilmModalContext } from '@/context/FilmModalProvider';
 import ErrorState from '@/components/ui/ErrorState';
+import { useUpcomingMovies } from './useUpcomingMovies';
+import { useUpcomingTVSeries } from './useUpcomingTVSeries';
+import UpcomingFeatureCard from './UpcomingFeatureCard';
+import { upcomingFeaturesConfig } from './upcomingFeaturesConfig.jsx';
 
-const upcomingFeatures = [
-    {
-        icon: <Users className="w-7 h-7" />,
-        title: 'Social Watchlists',
-        description: 'Share your watchlist with friends and discover what others are watching.',
-        eta: 'Coming July 2025',
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: { staggerChildren: 0.1 },
     },
-    {
-        icon: <Play className="w-7 h-7" />,
-        title: 'Integrated Trailers',
-        description: 'Watch trailers directly on the site without leaving the page.',
-        eta: 'Coming August 2025',
-    },
-    {
-        icon: <Bell className="w-7 h-7" />,
-        title: 'Release Notifications',
-        description: 'Get notified when your most anticipated movies and shows are released.',
-        eta: 'Coming July 2024',
-    },
-];
+};
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
+};
 
 export default function ComingSoon() {
-    const { data: upcomingMoviesData, isLoading: isLoadingMovies } = usePaginatedFetch('movie/upcoming', 1);
-    const today = new Date().toISOString().split('T')[0];
-    const { data: upcomingTVData, isLoading: isLoadingUpcomingTV } = usePaginatedFetch(
-        `discover/tv?first_air_date.gte=${today}&sort_by=first_air_date.asc`,
-        1,
-    );
-    const { MovieGenres } = useMovieGenres();
-    const { TvSeriesGenresRes } = useTvSeriesGenres();
+    const { upcomingMovies, isLoadingMovies, movieGenreMap } = useUpcomingMovies();
+    const { upcomingTVShows, isLoadingUpcomingTV, tvGenreMap } = useUpcomingTVSeries();
     const { setIsOpen, setContext } = useContext(FilmModalContext);
 
-    const movieGenreMap =
-        MovieGenres?.data?.genres?.reduce((acc, g) => {
-            acc[g.id] = g.name;
-            return acc;
-        }, {}) || {};
-    const tvGenreMap =
-        TvSeriesGenresRes?.data?.genres?.reduce((acc, g) => {
-            acc[g.id] = g.name;
-            return acc;
-        }, {}) || {};
-
-    const now = new Date();
-    const upcomingMovies = (upcomingMoviesData?.results || []).filter((m) => new Date(m.release_date) > now);
-    const upcomingTVShows = (upcomingTVData?.results || []).filter((tv) => new Date(tv.first_air_date) >= now);
 
     const renderCard = (item, isMovie = true) => {
         const image = item.poster_path
@@ -129,47 +103,6 @@ export default function ComingSoon() {
                 </div>
             </motion.div>
         );
-    };
-
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1 },
-        },
-    };
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
-    };
-
-    const featureCardVariants = {
-        hidden: { opacity: 0, y: 40 },
-        visible: (i) => ({
-            opacity: 1,
-            y: 0,
-            transition: { delay: i * 0.15, duration: 0.6, type: 'spring', bounce: 0.3 },
-        }),
-        hover: {
-            scale: 1.04,
-            y: -8,
-            boxShadow: '0 8px 32px 0 rgba(59,130,246,0.15)',
-            backgroundColor: '#f0f7ff',
-            borderColor: '#3b82f6',
-            transition: { type: 'spring', stiffness: 300, damping: 18 },
-        },
-        'hover-dark': {
-            scale: 1.04,
-            y: -8,
-            boxShadow: '0 8px 32px 0 rgba(99,102,241,0.18)',
-            backgroundColor: '#1e293b',
-            borderColor: '#6366f1',
-            transition: { type: 'spring', stiffness: 300, damping: 18 },
-        },
-    };
-    const featureIconVariants = {
-        initial: { scale: 1, rotate: 0 },
-        hover: { scale: 1.15, rotate: 10, transition: { type: 'spring', stiffness: 300 } },
     };
 
     return (
@@ -317,37 +250,8 @@ export default function ComingSoon() {
                         </p>
                     </motion.div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {upcomingFeatures.map((feature, index) => (
-                            <motion.div
-                                key={index}
-                                className="bg-white dark:bg-slate-800 rounded-xl p-6 shadow-lg border border-transparent transition-all duration-300"
-                                custom={index}
-                                variants={featureCardVariants}
-                                initial="hidden"
-                                animate="visible"
-                                whileHover={
-                                    typeof window !== 'undefined' &&
-                                    window.matchMedia('(prefers-color-scheme: dark)').matches
-                                        ? 'hover-dark'
-                                        : 'hover'
-                                }
-                            >
-                                <motion.div
-                                    className="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center mb-4 mx-auto"
-                                    variants={featureIconVariants}
-                                    initial="initial"
-                                    whileHover="hover"
-                                >
-                                    <div className="text-blue-600 dark:text-blue-400">{feature.icon}</div>
-                                </motion.div>
-                                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                                    {feature.title}
-                                </h3>
-                                <p className="text-gray-600 dark:text-gray-400 mb-4">{feature.description}</p>
-                                <Badge variant="secondary" className="text-xs">
-                                    {feature.eta}
-                                </Badge>
-                            </motion.div>
+                        {upcomingFeaturesConfig.map((feature, index) => (
+                            <UpcomingFeatureCard key={index} feature={feature} index={index} />
                         ))}
                     </div>
                 </motion.section>
