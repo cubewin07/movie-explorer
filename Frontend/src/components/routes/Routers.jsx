@@ -22,7 +22,7 @@ import FriendRequests from '../pages/Chat/FriendRequests';
 import FriendsView from '../pages/Chat/FriendsView';
 import ChatPlaceholder from '../pages/Chat/ChatPlaceholder';
 import UserInfoPage from '../pages/User/UserInfoPage';
-import NotificationsPage from '../pages/Notification/NotificationPage';
+import { NotificationPage as NotificationsPage } from '../pages/Notification/NotificationPage';
 
 const router = createBrowserRouter(
     [
