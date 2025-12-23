@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { HelpCircle, ArrowRight } from 'lucide-react';
+import { HelpCircle, Zap, Search, Settings, Shield, Film } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 /**
@@ -7,6 +7,13 @@ import { Badge } from '@/components/ui/badge';
  * Displays FAQ categories with expandable questions and answers
  */
 export default function FAQSection({ filteredFAQs, searchQuery, resultsCount }) {
+    const iconMap = {
+        Zap,
+        Search,
+        Settings,
+        Shield,
+        Film,
+    };
     return (
         <motion.section
             className="mb-16"
@@ -67,12 +74,16 @@ export default function FAQSection({ filteredFAQs, searchQuery, resultsCount }) 
                     >
                         <div className="bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10 dark:from-blue-500/20 dark:via-purple-500/20 dark:to-pink-500/20 px-8 py-6 border-b border-gray-200/50 dark:border-slate-600/50">
                             <div className="flex items-center gap-4">
-                                <motion.div 
+                        <motion.div 
                                     className="p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl shadow-lg"
                                     whileHover={{ scale: 1.05, rotate: 3 }}
                                     transition={{ duration: 0.15 }}
                                 >
-                                    <div className="text-white">{category.icon}</div>
+                                    <div className="text-white">
+                                        {iconMap[category.iconName] && 
+                                            iconMap[category.iconName]({ className: 'w-5 h-5' })
+                                        }
+                                    </div>
                                 </motion.div>
                                 <div className="flex-1">
                                     <h3 className="text-xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 dark:from-white dark:to-gray-300 bg-clip-text text-transparent">

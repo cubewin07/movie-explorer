@@ -1,15 +1,7 @@
-import {
-    Zap,
-    Search,
-    Settings,
-    Shield,
-    Film,
-} from 'lucide-react';
-
 export const faqData = [
     {
         category: 'Getting Started',
-        icon: <Zap className="w-5 h-5" />,
+        iconName: 'Zap',
         items: [
             {
                 question: 'How do I create an account?',
@@ -31,7 +23,7 @@ export const faqData = [
     },
     {
         category: 'Browsing & Discovery',
-        icon: <Search className="w-5 h-5" />,
+        iconName: 'Search',
         items: [
             {
                 question: 'How do I search for specific movies or shows?',
@@ -53,7 +45,7 @@ export const faqData = [
     },
     {
         category: 'Account & Settings',
-        icon: <Settings className="w-5 h-5" />,
+        iconName: 'Settings',
         items: [
             {
                 question: 'How do I change my password?',
@@ -75,7 +67,7 @@ export const faqData = [
     },
     {
         category: 'Technical Issues',
-        icon: <Shield className="w-5 h-5" />,
+        iconName: 'Shield',
         items: [
             {
                 question: 'The app is loading slowly. What can I do?',
@@ -97,7 +89,7 @@ export const faqData = [
     },
     {
         category: 'Content & Features',
-        icon: <Film className="w-5 h-5" />,
+        iconName: 'Film',
         items: [
             {
                 question: 'Where does the movie data come from?',
