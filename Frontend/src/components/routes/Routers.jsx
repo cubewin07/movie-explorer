@@ -4,7 +4,7 @@ import Home from '../pages/Home';
 import MovieDetailPage from '../pages/FilmDetails/MovieDetailPage';
 import TVSeriesDetailPage from '../pages/FilmDetails/TvSeriesDetailPage';
 import Discovery from '../pages/Discovery/Discovery';
-import WatchlistPage from '../pages/Watchlist/WatchlistPage/';
+import WatchlistPage from '../pages/Watchlist/WatchlistPage';
 import Settings from '../pages/Settings/Settings';
 import ComingSoon from '../pages/ComingSoon';
 import UpcomingMoviesPage from '../pages/ComingSoon/UpcomingMoviesPage';
