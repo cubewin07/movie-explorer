@@ -16,7 +16,7 @@ import ProtectedRoute from './ProtectedRoute';
 import PublicRoute from './PublicRoute';
 import ChatLayout from '../pages/Chat/ChatLayout';
 import ChatList from '../pages/Chat/ChatList';
-import { default as ChatConversation} from '../pages/Chat/ChatConversation';
+import { ChatConversation } from '../pages/Chat/ChatConversation';
 import FriendsList from '../pages/Chat/FriendsList';
 import FriendRequests from '../pages/Chat/FriendRequests';
 import FriendsView from '../pages/Chat/FriendsView';
