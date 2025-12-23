@@ -17,7 +17,6 @@ import PublicRoute from './PublicRoute';
 import ChatLayout from '../pages/Chat/ChatLayout';
 import ChatList from '../pages/Chat/ChatList';
 import { ChatConversation } from '../pages/Chat/ChatConversation';
-import FriendsList from '../pages/Chat/FriendsList';
 import FriendRequests from '../pages/Chat/FriendRequests';
 import FriendsView from '../pages/Chat/FriendsView';
 import ChatPlaceholder from '../pages/Chat/ChatPlaceholder';
