@@ -3,10 +3,8 @@ import { Play, Plus, Share, Star, Users, User, Clock, Calendar } from 'lucide-re
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Loader } from '@/components/ui/loader';
 import FancyLoader from '@/components/ui/FancyLoader';
 import ErrorState from '@/components/ui/ErrorState';
 import LoadingState from '@/components/ui/LoadingState';

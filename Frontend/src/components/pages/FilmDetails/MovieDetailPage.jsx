@@ -3,9 +3,7 @@ import { useParams } from 'react-router-dom';
 import { useMovieDetails, useMovieTrailer, useMovieCredits } from '@/hooks/API/data';
 import { Play, Plus, Share, Heart, Star, Clock, Calendar, Users, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Loader } from '@/components/ui/Loader';
 import FancyLoader from '@/components/ui/FancyLoader';
 import ErrorState from '@/components/ui/ErrorState';
 import LoadingState from '@/components/ui/LoadingState';
@@ -14,8 +12,6 @@ import { useAuthen } from '@/context/AuthenProvider';
 import { useState } from 'react';
 import { LoginNotificationModal } from '@/components/react_components/Modal/LoginNotificationModal';
 import { motion } from 'framer-motion';
-import { useQuery } from '@tanstack/react-query';
-import axiosInstance from '@/lib/axiosInstance';
 import Reviews from '@/components/react_components/Reviews/Reviews';
 
 export default function MovieDetailPage() {
