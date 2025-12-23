@@ -18,6 +18,9 @@ import com.Backend.exception.UserNotFoundException;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.repository.UserRepository;
 import com.Backend.springSecurity.jwtAuthentication.JwtService;
+import org.springframework.lang.Nullable;
+
+
 
 import lombok.RequiredArgsConstructor;
 
@@ -82,8 +85,11 @@ public class WebsocketHandshaker implements HandshakeInterceptor {
     }
 
     @Override
-    public void afterHandshake(ServerHttpRequest request, ServerHttpResponse response,
-                               WebSocketHandler wsHandler, Exception exception) {
+    public void afterHandshake(
+        @NonNull ServerHttpRequest request, 
+        @NonNull ServerHttpResponse response,
+        @NonNull WebSocketHandler wsHandler, 
+        @Nullable Exception exception) {
         if (exception != null) {
             log.error("WebSocket afterHandshake encountered exception", exception);
         }
