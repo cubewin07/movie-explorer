@@ -94,7 +94,7 @@ public class ReviewService {
         Integer episodeNumber = null;
 
         if (metadata != null) {
-            episodeSeasonNumber = metadata.getEpisodeSeasonNumber();
+            episodeSeasonNumber = metadata.getSeasonNumber();
             episodeNumber = metadata.getEpisodeNumber();
         }
 
