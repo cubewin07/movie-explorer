@@ -313,7 +313,16 @@ export default function Reviews({ filmId, type, episodeMetadata = null }) {
   }, [data]);
 
   const sortedItems = useMemo(() => {
-    const list = Array.isArray(items) ? [...items] : [];
+    let list = Array.isArray(items) ? [...items] : [];
+    
+    // Filter by episode if episodeMetadata is provided
+    if (type === 'SERIES' && episodeMetadata?.seasonNumber !== null && episodeMetadata?.seasonNumber !== undefined) {
+      list = list.filter(item => 
+        item.episodeSeasonNumber === episodeMetadata.seasonNumber && 
+        item.episodeNumber === episodeMetadata.episodeNumber
+      );
+    }
+    
     const byDateAsc = (a, b) => {
       const at = new Date(a?.createdAt || 0).getTime();
       const bt = new Date(b?.createdAt || 0).getTime();
@@ -329,7 +338,7 @@ export default function Reviews({ filmId, type, episodeMetadata = null }) {
       if (bs !== as) return bs - as;
       return byDateDesc(a, b);
     });
-  }, [items, sort]);
+  }, [items, sort, episodeMetadata, type]);
 
   if (isLoading) {
     return <LoadingState title="Loading Reviews" subtitle="Getting latest reviews..." fullScreen={false} className="py-6" />;
