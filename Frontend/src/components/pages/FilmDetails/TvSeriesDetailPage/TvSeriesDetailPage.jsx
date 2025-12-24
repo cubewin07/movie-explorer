@@ -37,6 +37,8 @@ export default function TvSeriesDetailPage() {
         watchlistData,
     } = useSeriesData(id);
 
+    console.log(series);
+
     const { mutate: addToWatchlist, isPending } = useAddToWatchlist(token);
 
     const handleAddToWatchlist = () => {
@@ -162,7 +164,7 @@ export default function TvSeriesDetailPage() {
 
                     {/* Reviews Tab */}
                     <TabsContent value="reviews">
-                        <SeriesReviewsSection filmId={id} />
+                        <SeriesReviewsSection seriesId={series.id} seasons={series.seasons} />
                     </TabsContent>
 
                     {/* Details Tab */}
