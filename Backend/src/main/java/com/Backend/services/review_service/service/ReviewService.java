@@ -1,10 +1,7 @@
 package com.Backend.services.review_service.service;
 
 import com.Backend.services.FilmType;
-import com.Backend.services.review_service.model.CreateReplyRequest;
-import com.Backend.services.review_service.model.CreateReviewRequest;
-import com.Backend.services.review_service.model.Review;
-import com.Backend.services.review_service.model.ReviewsDTO;
+import com.Backend.services.review_service.model.*;
 import com.Backend.services.review_service.model.vote.SimpleVoteDTO;
 import com.Backend.services.review_service.model.vote.Vote;
 import com.Backend.services.review_service.model.vote.VoteRepository;
@@ -91,8 +88,16 @@ public class ReviewService {
     })
     @Transactional
     public ReviewsDTO createReview(CreateReviewRequest request, User user) {
-        Integer episodeSeasonNumber = request.getEpisodeMetadata().getEpisodeSeasonNumber();
-        Integer episodeNumber = request.getEpisodeMetadata().getEpisodeNumber();
+        EpisodeMetadata metadata = request.getEpisodeMetadata();
+
+        Integer episodeSeasonNumber = null;
+        Integer episodeNumber = null;
+
+        if (metadata != null) {
+            episodeSeasonNumber = metadata.getEpisodeSeasonNumber();
+            episodeNumber = metadata.getEpisodeNumber();
+        }
+
         if (request.getType() == FilmType.SERIES) {
             boolean s = episodeSeasonNumber != null;
             boolean e = episodeNumber != null;
