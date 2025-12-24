@@ -14,5 +14,5 @@ public class CreateReviewRequest {
     private String content;
     private long filmId;
     private FilmType type;
-    private long replyToId;
+    private EpisodeMetadata episodeMetadata;
 }
