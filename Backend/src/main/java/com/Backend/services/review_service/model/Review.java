@@ -30,6 +30,9 @@ public class Review {
     @Enumerated(EnumType.STRING)
     private FilmType type;
 
+    private Integer seasonNumber;
+    private Integer episodeNumber;
+
     private Long score;
 
     @ManyToOne

@@ -9,6 +9,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
     Page<Review> findByFilmIdAndType(Long filmId, FilmType filmType, Pageable pageable);
+
+    Page<Review> findByFilmIdAndTypeAndSeasonNumberAndEpisodeNumber(
+            Long filmId, FilmType type, Integer seasonNumber, Integer episodeNumber, Pageable pageable);
+
+    Page<Review> findByFilmIdAndTypeAndSeasonNumberIsNullAndEpisodeNumberIsNull(
+            Long filmId, FilmType type, Pageable pageable);
+
     Page<Review> findByAnswerTo_Id(Long reviewId, Pageable pageable);
     Page<Review> findByUser(User user, Pageable pageable);
 }

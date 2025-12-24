@@ -40,7 +40,7 @@ public class ReviewsDTO {
                 .score(review.getScore())
                 .disLikedByMe(disLikedByMe)
                 .episodeNumber(isSeries ? review.getEpisodeNumber() : null)
-                .episodeSeasonNumber(isSeries ? review.getEpisodeSeasonNumber() : null)
+                .episodeSeasonNumber(isSeries ? review.getSeasonNumber() : null)
                 .createdAt(review.getCreatedAt())
                 .build();
     }

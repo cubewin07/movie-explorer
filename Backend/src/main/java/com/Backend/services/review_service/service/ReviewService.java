@@ -36,11 +36,20 @@ public class ReviewService {
     private final VoteRepository voteRepository;
     private final VoteService voteService;
 
-    @Cacheable(value = "filmReviews", key = "{#filmId, #filmType, #page, (#user != null ? #user.id : 0)}")
-    public List<ReviewsDTO> getReviewsByFilmId(Long filmId, FilmType filmType, int page, User user) {
-        log.info("Fetching reviews for filmId={}, type={}, page={}", filmId, filmType, page);
+    @Cacheable(value = "filmReviews", key = "{#filmId, #filmType, #seasonNumber, #episodeNumber, #page, (#user != null ? #user.id : 0)}")
+    public List<ReviewsDTO> getReviewsByFilmId(Long filmId, FilmType filmType, Integer seasonNumber, Integer episodeNumber, int page, User user) {
+        log.info("Fetching reviews for filmId={}, type={}, season={}, episode={}, page={}", filmId, filmType, seasonNumber, episodeNumber, page);
         Pageable pageable = PageRequest.of(page, 20, Sort.by("createdAt").descending());
-        Page<Review> reviews = reviewRepository.findByFilmIdAndType(filmId, filmType, pageable);
+
+        Page<Review> reviews;
+        if (seasonNumber != null && episodeNumber != null) {
+            reviews = reviewRepository.findByFilmIdAndTypeAndSeasonNumberAndEpisodeNumber(filmId, filmType, seasonNumber, episodeNumber, pageable);
+        } else if (seasonNumber == null && episodeNumber == null) {
+            reviews = reviewRepository.findByFilmIdAndType(filmId, filmType, pageable);
+        } else {
+            throw new IllegalArgumentException("Both seasonNumber and episodeNumber must be provided for episode filtering.");
+        }
+
         log.debug("Fetched {} reviews for filmId={}, type={}, page={}", reviews.getNumberOfElements(), filmId, filmType, page);
 
         // Vote default to false when the user is unauthenticated
@@ -82,6 +91,20 @@ public class ReviewService {
     })
     @Transactional
     public ReviewsDTO createReview(CreateReviewRequest request, User user) {
+        Integer episodeSeasonNumber = request.getEpisodeMetadata().getEpisodeSeasonNumber();
+        Integer episodeNumber = request.getEpisodeMetadata().getEpisodeNumber();
+        if (request.getType() == FilmType.SERIES) {
+            boolean s = episodeSeasonNumber != null;
+            boolean e = episodeNumber != null;
+            if (s ^ e) {
+                throw new IllegalArgumentException("For SERIES, both seasonNumber and episodeNumber must be provided or both null.");
+            }
+        } else if (request.getType() == FilmType.MOVIE) {
+            if (episodeSeasonNumber != null || episodeNumber != null) {
+                throw new IllegalArgumentException("For MOVIE, seasonNumber and episodeNumber must be null.");
+            }
+        }
+
         Long userId = (user != null) ? user.getId() : null;
         log.info("Creating review for filmId={}, type={}, userId={}", request.getFilmId(), request.getType(), userId);
         Review review = Review.builder()
@@ -89,6 +112,8 @@ public class ReviewService {
                 .filmId(request.getFilmId())
                 .type(request.getType())
                 .content(request.getContent())
+                .seasonNumber(episodeSeasonNumber)
+                .episodeNumber(episodeNumber)
                 .score(1L)
                 .build();
         reviewRepository.save(review);
