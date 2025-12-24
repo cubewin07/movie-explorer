@@ -303,7 +303,7 @@ export default function Reviews({ filmId, type, episodeMetadata = null }) {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useReviewsList(filmId, type);
+  } = useReviewsList(filmId, type, episodeMetadata);
 
   const { createReview } = useReviewActions(filmId, type, episodeMetadata);
 

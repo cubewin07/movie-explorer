@@ -57,17 +57,14 @@ export const useReviewActions = (filmId, type, episodeMetadata = null) => {
 
   const createReview = useMutation({
     mutationFn: async (content) => {
-      // Build payload - include episode metadata for series reviews if available
       const payload = { content, filmId, type };
       
-      // For series reviews with specific episodes, include metadata
+      // Add episodeMetadata object if available for series reviews
       if (type === 'SERIES' && episodeMetadata?.seasonNumber !== null && episodeMetadata?.seasonNumber !== undefined) {
-        payload.seasonNumber = episodeMetadata.seasonNumber;
-        payload.episodeNumber = episodeMetadata.episodeNumber;
-      } else if (type === 'SERIES') {
-        // For whole series reviews, explicitly set to null
-        payload.seasonNumber = null;
-        payload.episodeNumber = null;
+        payload.episodeMetadata = {
+          seasonNumber: episodeMetadata.seasonNumber,
+          episodeNumber: episodeMetadata.episodeNumber,
+        };
       }
       
       const res = await instance.post('/reviews', payload);
