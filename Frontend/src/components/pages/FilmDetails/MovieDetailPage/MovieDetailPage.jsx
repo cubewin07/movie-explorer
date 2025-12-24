@@ -76,13 +76,7 @@ export default function MovieDetailPage() {
                             value="cast"
                             className="hover:bg-blue-100 hover:text-blue-800 dark:hover:bg-slate-700 dark:hover:text-white transition-colors"
                         >
-                            Cast
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="crew"
-                            className="hover:bg-blue-100 hover:text-blue-800 dark:hover:bg-slate-700 dark:hover:text-white transition-colors"
-                        >
-                            Crew
+                            Cast & Crew
                         </TabsTrigger>
                         <TabsTrigger
                             value="reviews"
@@ -117,13 +111,6 @@ export default function MovieDetailPage() {
                             cast={cast}
                             crew={crew}
                         />
-                    </TabsContent>
-
-                    {/* Crew Tab (Alternative view for movies) */}
-                    <TabsContent value="crew">
-                        <div className="text-slate-600 dark:text-slate-300">
-                            Crew information displayed in the Cast tab for movies. Check the Cast section above.
-                        </div>
                     </TabsContent>
 
                     {/* Reviews Tab */}
