@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.Backend.services.FilmType;
 
 import java.time.LocalDateTime;
 
@@ -20,12 +21,15 @@ public class ReviewsDTO {
     private Boolean likedByMe;
     private Boolean disLikedByMe;
     private Long score;
+    private Integer episodeSeasonNumber;
+    private Integer episodeNumber;
     private LocalDateTime createdAt;
 
     public static ReviewsDTO fromReview(Review review, Boolean likedByMe, Boolean disLikedByMe) {
         Long userId = review.getUser().getId();
         String userEmail = review.getUser().getEmail();
         String userName = review.getUser().getRealUsername();
+        Boolean isSeries = review.getType() == FilmType.SERIES;
         SimpleUserDTO simpleUserDTO = new SimpleUserDTO(userId, userEmail, userName);
         return ReviewsDTO.builder()
                 .id(review.getId())
@@ -35,6 +39,8 @@ public class ReviewsDTO {
                 .likedByMe(likedByMe)
                 .score(review.getScore())
                 .disLikedByMe(disLikedByMe)
+                .episodeNumber(isSeries ? review.getEpisodeNumber() : null)
+                .episodeSeasonNumber(isSeries ? review.getEpisodeSeasonNumber() : null)
                 .createdAt(review.getCreatedAt())
                 .build();
     }

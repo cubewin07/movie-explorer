@@ -7,6 +7,6 @@ import lombok.Builder;
 @Builder
 public class EpisodeMetadata {
     private String episodeId;
-    private int seasonNumber;
-    private int episodeNumber;
+    private Integer episodeSeasonNumber;
+    private Integer episodeNumber;
 }
