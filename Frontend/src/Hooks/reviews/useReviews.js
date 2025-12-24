@@ -52,12 +52,25 @@ export const useReplies = (reviewId, enabled = false) => {
   });
 };
 
-export const useReviewActions = (filmId, type) => {
+export const useReviewActions = (filmId, type, episodeMetadata = null) => {
   const qc = useQueryClient();
 
   const createReview = useMutation({
     mutationFn: async (content) => {
-      const res = await instance.post('/reviews', { content, filmId, type });
+      // Build payload - include episode metadata for series reviews if available
+      const payload = { content, filmId, type };
+      
+      // For series reviews with specific episodes, include metadata
+      if (type === 'SERIES' && episodeMetadata?.seasonNumber !== null && episodeMetadata?.seasonNumber !== undefined) {
+        payload.seasonNumber = episodeMetadata.seasonNumber;
+        payload.episodeNumber = episodeMetadata.episodeNumber;
+      } else if (type === 'SERIES') {
+        // For whole series reviews, explicitly set to null
+        payload.seasonNumber = null;
+        payload.episodeNumber = null;
+      }
+      
+      const res = await instance.post('/reviews', payload);
       return res.data; // ReviewsDTO
     },
     onSuccess: (created) => {

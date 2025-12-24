@@ -23,14 +23,19 @@ export default function EpisodeSelector({
     const [showError, setShowError] = useState(false);
     const [selectionType, setSelectionType] = useState(null); // 'whole' or 'specific'
 
+    // Validate seasons and find current with null safety
+    const validSeasons = seasons?.filter(s => s.season_number > 0) ?? [];
     const currentSeason = selectedSeason 
-        ? seasons?.find(s => s.season_number === selectedSeason)
+        ? validSeasons.find(s => s.season_number === selectedSeason)
         : null;
+    const episodeCount = currentSeason?.episode_count ?? 0;
 
     const handleWholeSeries = () => {
+        // Consistent object structure - no seriesId field
         onSelect({
             type: 'whole',
-            seriesId: null,
+            seasonNumber: null,
+            episodeNumber: null,
         });
         onClose?.();
     };
@@ -42,11 +47,18 @@ export default function EpisodeSelector({
             return;
         }
 
+        // Validate episode number is within valid range
+        if (selectedEpisode > episodeCount) {
+            setShowError(true);
+            setTimeout(() => setShowError(false), 500);
+            return;
+        }
+
+        // Consistent object structure - no seriesId field
         onSelect({
             type: 'specific',
             seasonNumber: selectedSeason,
             episodeNumber: selectedEpisode,
-            seriesId: null,
         });
         onClose?.();
     };
@@ -121,9 +133,9 @@ export default function EpisodeSelector({
                                         className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-white appearance-none cursor-pointer focus:ring-2 focus:ring-blue-500 outline-none"
                                     >
                                         <option value="">Choose a season...</option>
-                                        {seasons?.map((season) => (
+                                        {validSeasons.map((season) => (
                                             <option key={season.id} value={season.season_number}>
-                                                Season {season.season_number} ({season.episode_count} episodes)
+                                                Season {season.season_number} ({season.episode_count ?? 0} episodes)
                                             </option>
                                         ))}
                                     </select>
@@ -132,7 +144,7 @@ export default function EpisodeSelector({
                             </div>
 
                             {/* Episode Selection */}
-                            {selectedSeason && currentSeason && (
+                            {selectedSeason && currentSeason && episodeCount > 0 && (
                                 <motion.div
                                     initial={{ opacity: 0, y: -10 }}
                                     animate={{ opacity: 1, y: 0 }}
@@ -143,7 +155,7 @@ export default function EpisodeSelector({
                                         Select Episode
                                     </label>
                                     <div className="relative max-h-48 overflow-y-auto rounded-lg border border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800">
-                                        {Array.from({ length: currentSeason.episode_count || 0 }, (_, i) => i + 1).map((epNum) => (
+                                        {Array.from({ length: episodeCount }, (_, i) => i + 1).map((epNum) => (
                                             <motion.button
                                                 key={epNum}
                                                 whileHover={{ backgroundColor: 'var(--hover-bg)' }}
@@ -162,6 +174,17 @@ export default function EpisodeSelector({
                                             </motion.button>
                                         ))}
                                     </div>
+                                </motion.div>
+                            )}
+
+                            {selectedSeason && currentSeason && episodeCount === 0 && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -10 }}
+                                    className="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg text-sm text-slate-600 dark:text-slate-400"
+                                >
+                                    No episode data available for this season
                                 </motion.div>
                             )}
 

@@ -285,6 +285,17 @@ export default function Reviews({ filmId, type, episodeMetadata = null }) {
   const [content, setContent] = useState('');
   const [sort, setSort] = useState('top');
 
+  // Validate filmId is a valid positive integer
+  const validFilmId = Number.isInteger(Number(filmId)) && Number(filmId) > 0;
+  if (!validFilmId) {
+    return <ErrorState 
+      title="Invalid Content" 
+      message="Unable to load reviews - invalid content ID" 
+      fullScreen={false} 
+      showHomeButton={false} 
+    />;
+  }
+
   const {
     data,
     isLoading,
