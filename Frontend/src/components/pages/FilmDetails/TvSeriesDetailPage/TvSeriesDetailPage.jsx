@@ -94,7 +94,7 @@ export default function TvSeriesDetailPage() {
             {/* Tabs */}
             <div className="p-2 sm:p-4 md:p-8">
                 <Tabs defaultValue="overview">
-                    <TabsList className="grid grid-cols-3 md:grid-cols-7 bg-slate-200 dark:bg-slate-800 rounded-lg mb-6 overflow-x-auto">
+                    <TabsList className="grid grid-cols-2 md:grid-cols-6 bg-slate-200 dark:bg-slate-800 rounded-lg mb-6 overflow-x-auto">
                         <TabsTrigger
                             value="overview"
                             className="hover:bg-blue-100 hover:text-blue-800 dark:hover:bg-slate-700 dark:hover:text-white transition-colors"
@@ -111,13 +111,7 @@ export default function TvSeriesDetailPage() {
                             value="cast"
                             className="hover:bg-blue-100 hover:text-blue-800 dark:hover:bg-slate-700 dark:hover:text-white transition-colors"
                         >
-                            Cast
-                        </TabsTrigger>
-                        <TabsTrigger
-                            value="crew"
-                            className="hover:bg-blue-100 hover:text-blue-800 dark:hover:bg-slate-700 dark:hover:text-white transition-colors"
-                        >
-                            Crew
+                            Cast & Crew
                         </TabsTrigger>
                         <TabsTrigger
                             value="reviews"
@@ -154,24 +148,11 @@ export default function TvSeriesDetailPage() {
                         />
                     </TabsContent>
 
-                    {/* Cast & Crew Tabs */}
+                    {/* Cast & Crew Tab */}
                     <TabsContent value="cast">
                         <div className="mt-4">
-                            {/* Show only cast in this tab */}
                             <CastCrewSection
                                 cast={cast}
-                                crew={[]}
-                                isLoadingCredits={isLoadingCredits}
-                                isErrorCredits={isErrorCredits}
-                            />
-                        </div>
-                    </TabsContent>
-
-                    <TabsContent value="crew">
-                        <div className="mt-4">
-                            {/* Show only crew in this tab */}
-                            <CastCrewSection
-                                cast={[]}
                                 crew={crew}
                                 isLoadingCredits={isLoadingCredits}
                                 isErrorCredits={isErrorCredits}
