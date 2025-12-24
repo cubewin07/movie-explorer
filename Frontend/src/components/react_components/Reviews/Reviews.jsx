@@ -280,7 +280,7 @@ function ReviewItem({ item, isOwner, onVote, filmId, type, user }) {
   );
 }
 
-export default function Reviews({ filmId, type }) {
+export default function Reviews({ filmId, type, episodeMetadata = null }) {
   const { user, setShowLoginModal } = useAuthen();
   const [content, setContent] = useState('');
   const [sort, setSort] = useState('top');
@@ -294,7 +294,7 @@ export default function Reviews({ filmId, type }) {
     isFetchingNextPage,
   } = useReviewsList(filmId, type);
 
-  const { createReview } = useReviewActions(filmId, type);
+  const { createReview } = useReviewActions(filmId, type, episodeMetadata);
 
   const items = useMemo(() => {
     if (!data?.pages) return [];

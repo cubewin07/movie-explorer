@@ -8,6 +8,7 @@ import EpisodeSelector from './EpisodeSelector';
  * - Prompts user to select season/episode before reviewing
  * - Supports whole series reviews
  * - Prevents accidental full-series reviews with modal confirmation
+ * - Passes numeric seriesId to API (Long type compatible)
  */
 export default function SeriesReviewsSection({ seriesId, seasons }) {
     const [showSelector, setShowSelector] = useState(true);
@@ -35,12 +36,8 @@ export default function SeriesReviewsSection({ seriesId, seasons }) {
         );
     }
 
-    // If episode selected, show reviews with the appropriate filmId
+    // If episode selected, show reviews with the numeric seriesId
     if (selectedEpisode) {
-        const filmId = selectedEpisode.type === 'whole'
-            ? `series-${seriesId}`
-            : `series-${seriesId}-s${selectedEpisode.seasonNumber}-e${selectedEpisode.episodeNumber}`;
-
         return (
             <div className="space-y-4">
                 {/* Episode Context Display */}
@@ -82,8 +79,15 @@ export default function SeriesReviewsSection({ seriesId, seasons }) {
                     </div>
                 )}
 
-                {/* Reviews Component */}
-                <Reviews filmId={filmId} type="SERIES" />
+                {/* Reviews Component - Passes numeric seriesId and episode metadata */}
+                <Reviews 
+                    filmId={seriesId} 
+                    type="SERIES"
+                    episodeMetadata={selectedEpisode.type === 'specific' ? {
+                        seasonNumber: selectedEpisode.seasonNumber,
+                        episodeNumber: selectedEpisode.episodeNumber,
+                    } : null}
+                />
             </div>
         );
     }
