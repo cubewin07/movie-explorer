@@ -155,6 +155,8 @@ public class ReviewService {
                 .content(request.getContent())
                 .answerTo(parent)
                 .score(1L)
+                .seasonNumber(parent.getSeasonNumber())
+                .episodeNumber(parent.getEpisodeNumber())
                 .build();
         reviewRepository.save(reply);
         reviewRepository.save(parent);
