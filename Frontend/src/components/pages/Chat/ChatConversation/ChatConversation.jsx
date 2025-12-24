@@ -98,7 +98,19 @@ export default function ChatConversation() {
         const observer = new IntersectionObserver(
             entries => {
                 if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
-                    const scrollElement = scrollState.scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+                    let scrollElement = scrollState.scrollRef.current?.querySelector('[data-radix-scroll-area-viewport]');
+                    
+                    // Fallback to find scroll element
+                    if (!scrollElement && scrollState.scrollRef.current) {
+                        const children = scrollState.scrollRef.current.children;
+                        for (let child of children) {
+                            if (child.style.overflow === 'hidden' || child.getAttribute('data-radix-scroll-area-viewport')) {
+                                scrollElement = child;
+                                break;
+                            }
+                        }
+                    }
+                    
                     if (scrollElement) {
                         const previousScrollHeight = scrollElement.scrollHeight;
                         const previousScrollTop = scrollElement.scrollTop;
@@ -139,19 +151,19 @@ export default function ChatConversation() {
             prevChatId.current = chatId;
             setPendingMessages([]);
             
-            if (messageState.combinedMessages.length > 0) {
+            // Scroll to bottom when chat loads
+            setTimeout(() => {
+                scrollState.scrollToBottom('auto');
+                
+                // Enable scroll button after initial scroll
                 setTimeout(() => {
-                    scrollState.scrollToBottom('auto');
-                    
-                    setTimeout(() => {
-                        scrollState.shouldScrollToBottom.current = false;
-                        scrollState.scrollButtonEnabled.current = true;
-                        scrollState.prevMessagesLength.current = messageState.combinedMessages.length;
-                    }, 300);
-                }, 100);
-            }
+                    scrollState.shouldScrollToBottom.current = false;
+                    scrollState.scrollButtonEnabled.current = true;
+                    scrollState.prevMessagesLength.current = messageState.combinedMessages.length;
+                }, 300);
+            }, 50);
         }
-    }, [chatId, messageState.combinedMessages.length, scrollState]);
+    }, [chatId]);
 
     // Auto-scroll on new messages
     useEffect(() => {
