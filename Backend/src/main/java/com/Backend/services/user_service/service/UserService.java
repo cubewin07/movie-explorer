@@ -151,7 +151,7 @@ public class UserService {
         log.debug("Searching users with query: '{}', excluding user ID: {}, page: {}, size: {}",
                 query, id, pageable.getPageNumber(), pageable.getPageSize());
 
-        Page<User> users = getPageUserSearch(query, id, pageable);
+        Page<User> users = userRepository.findByUsernameContainingIgnoreCaseAndIdNot(query, id, pageable);
 
         if (users == null || users.isEmpty()) {
             log.info("No users found matching query '{}'", query);
@@ -299,7 +299,10 @@ public class UserService {
     }
 
     // ====Helper===
-    public Page<User> getPageUserSearch(String query, Long userId, Pageable pageable) {
-        return userRepository.findByUsernameContainingIgnoreCaseAndIdNot(query, userId, pageable);
+    public List<SimpleUserDTO> getPageUserSearch(String query, Long userId, Pageable pageable) {
+        return userRepository.findByUsernameContainingIgnoreCaseAndIdNot(query, userId)
+                .stream()
+                .map(u -> new SimpleUserDTO(u.getId(), u.getEmail(), u.getRealUsername()))
+                .toList();
     }
 }

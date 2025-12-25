@@ -53,7 +53,7 @@ public class UserController {
 
         List<SimpleUserDTO> results = userService.searchUsers(query, id, PageRequest.of(page, size));
 
-        Long totalElements = userService.getPageUserSearch(query, id, PageRequest.of(page, size)).getTotalElements();
+        Long totalElements = (long) results.size();
 
         return ResponseEntity.ok(new PageImpl<>(results, PageRequest.of(page, size), totalElements));
     }
