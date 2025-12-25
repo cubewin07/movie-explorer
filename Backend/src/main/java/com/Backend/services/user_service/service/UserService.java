@@ -299,9 +299,9 @@ public class UserService {
     }
 
     // ====Helper===
-    @Cacheable(value = "userSearchCache", key = "#query + - + #userId + - + #pageable.pageNumber + - + #pageable.pageSize")
-    public List<SimpleUserDTO> getPageUserSearch(String query, Long userId, Pageable pageable) {
-        return userRepository.findByUsernameContainingIgnoreCaseAndIdNot(query, userId, pageable)
+    @Cacheable(value = "userSearchCache", key = "#query + - + #userId")
+    public List<SimpleUserDTO> getPageUserSearch(String query, Long userId) {
+        return userRepository.findByUsernameContainingIgnoreCaseAndIdNot(query, userId)
                 .stream()
                 .map(u -> new SimpleUserDTO(u.getId(), u.getEmail(), u.getRealUsername()))
                 .toList();
