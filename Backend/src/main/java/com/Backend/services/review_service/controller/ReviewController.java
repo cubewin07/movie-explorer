@@ -7,6 +7,10 @@ import com.Backend.services.review_service.model.ReviewsDTO;
 import com.Backend.services.review_service.service.ReviewService;
 import com.Backend.services.user_service.model.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Page;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +25,7 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @GetMapping()
-    public ResponseEntity<List<ReviewsDTO>> getReviews(
+    public ResponseEntity<Page<ReviewsDTO>> getReviews(
             @RequestParam("filmId") Long filmId,
             @RequestParam("type") FilmType type,
             @RequestParam(name = "seasonNumber", required = false) Integer seasonNumber,
@@ -29,7 +33,9 @@ public class ReviewController {
             @RequestParam(name = "page", defaultValue = "0") int page,
             @AuthenticationPrincipal User user){
 
-        return ResponseEntity.ok(reviewService.getReviewsByFilmId(filmId, type, seasonNumber, episodeNumber, page, user));
+         List<ReviewsDTO> reviews = reviewService.getReviewsByFilmId(filmId, type, seasonNumber, episodeNumber, page, user);
+         List<Long> totalElements = reviewService.getIdListReviewsByFilmIdNoPage(filmId, type, seasonNumber, episodeNumber);
+         return ResponseEntity.ok(new PageImpl<>(reviews, PageRequest.of(page, 10), totalElements.size()));
     }
 
     @GetMapping("/reply")
