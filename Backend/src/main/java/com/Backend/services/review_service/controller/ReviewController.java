@@ -43,7 +43,7 @@ public class ReviewController {
             @RequestParam("reviewId") Long reviewId,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @AuthenticationPrincipal User user){
-        Page<ReviewsDTO> replies = reviewService.getRepliesByReviewId(reviewId, page, user);
+        List<ReviewsDTO> replies = reviewService.getRepliesByReviewId(reviewId, page, user);
         return ResponseEntity.ok(replies);
     }
 

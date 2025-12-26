@@ -58,10 +58,10 @@ public class ReviewService {
         return handleVoteForReviewsDTO(reviews.getContent(), user);
     }
 
-    @Cacheable(value = "reviewReplies", key = "{#reviewId, (#user != null ? #user.id : 0)}")
-    public List<ReviewsDTO> getRepliesByReviewId(Long reviewId, User user) {
+    @Cacheable(value = "reviewReplies", key = "{#reviewId, #page, (#user != null ? #user.id : 0)}")
+    public List<ReviewsDTO> getRepliesByReviewId(Long reviewId, int page, User user) {
         log.info("Fetching replies for reviewId={}", reviewId);
-        Pageable pageable = PageRequest.of(0, 20, Sort.by("createdAt").descending());
+        Pageable pageable = PageRequest.of(page, 20, Sort.by("createdAt").descending());
         Page<Review> reviews = reviewRepository.findByAnswerTo_Id(reviewId, pageable);
         log.debug("Fetched {} replies for reviewId={}", reviews.getNumberOfElements(), reviewId);
 
