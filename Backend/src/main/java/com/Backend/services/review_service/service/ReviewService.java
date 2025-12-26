@@ -234,9 +234,9 @@ public class ReviewService {
         if (seasonNumber != null && episodeNumber != null) {
             return reviewRepository.countByFilmIdAndTypeAndSeasonNumberAndEpisodeNumber(filmId, filmType, seasonNumber, episodeNumber);
         } else if (seasonNumber != null && episodeNumber == null) {
-            return reviewRepository.countByFilmIdAndTypeAndSeasonNumberAndEpisodeNumberIsNull(filmId, filmType, seasonNumber);
+            return reviewRepository.countByFilmIdAndTypeAndSeasonNumber(filmId, filmType, seasonNumber);
         } else if (seasonNumber == null && episodeNumber != null) {
-            return reviewRepository.countByFilmIdAndTypeAndSeasonNumberIsNullAndEpisodeNumber(filmId, filmType, episodeNumber);
+            throw new IllegalArgumentException("episodeNumber cannot be provided without seasonNumber");
         } else {
             return reviewRepository.countByFilmIdAndType(filmId, filmType);
         }
