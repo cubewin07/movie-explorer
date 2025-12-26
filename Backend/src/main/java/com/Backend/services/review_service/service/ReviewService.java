@@ -85,6 +85,7 @@ public class ReviewService {
 
     @Caching(evict = {
             @CacheEvict(value = "filmReviews", allEntries = true),
+            @CacheEvict(value = "filmReviewsCount", allEntries = true),
             @CacheEvict(value = "userReviews", allEntries = true),
             @CacheEvict(value = "userMeDTO", key = "#user.email")
     })
@@ -135,7 +136,9 @@ public class ReviewService {
 
     @Caching(evict = {
             @CacheEvict(value = "reviewReplies", allEntries = true),
+            @CacheEvict(value = "reviewRepliesCount", allEntries = true),
             @CacheEvict(value = "filmReviews", allEntries = true),
+            @CacheEvict(value = "filmReviewsCount", allEntries = true),
             @CacheEvict(value = "userReviews", allEntries = true),
             @CacheEvict(value = "userMeDTO", key = "#user.email")
     })
@@ -173,7 +176,9 @@ public class ReviewService {
 
     @Caching(evict = {
             @CacheEvict(value = "reviewReplies", key = "#reviewId"),
+            @CacheEvict(value = "reviewRepliesCount", key = "#reviewId"),
             @CacheEvict(value = "filmReviews", allEntries = true),
+            @CacheEvict(value = "filmReviewsCount", allEntries = true),
             @CacheEvict(value = "userReviews", allEntries = true),
             @CacheEvict(value = "userMeDTO", key = "#user.email")
     })
@@ -224,6 +229,7 @@ public class ReviewService {
                 }).toList();
     }
 
+    @Cacheable(value = "filmReviewsCount", key = "{#filmId, #filmType, #seasonNumber, #episodeNumber}")
     public long countReviewsByFilmIdNoPage(Long filmId, FilmType filmType, Integer seasonNumber, Integer episodeNumber) {
         if (seasonNumber != null && episodeNumber != null) {
             return reviewRepository.countByFilmIdAndTypeAndSeasonNumberAndEpisodeNumber(filmId, filmType, seasonNumber, episodeNumber);
@@ -236,6 +242,7 @@ public class ReviewService {
         }
     }
 
+    @Cacheable(value = "reviewRepliesCount", key = "#reviewId")
     public long countRepliesByReviewIdNoPage(Long reviewId) {
         return reviewRepository.countByAnswerTo_Id(reviewId);
     }
