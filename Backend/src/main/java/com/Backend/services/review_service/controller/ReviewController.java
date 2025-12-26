@@ -3,7 +3,6 @@ package com.Backend.services.review_service.controller;
 import com.Backend.services.FilmType;
 import com.Backend.services.review_service.model.CreateReplyRequest;
 import com.Backend.services.review_service.model.CreateReviewRequest;
-import com.Backend.services.review_service.model.Review;
 import com.Backend.services.review_service.model.ReviewsDTO;
 import com.Backend.services.review_service.service.ReviewService;
 import com.Backend.services.user_service.model.User;
