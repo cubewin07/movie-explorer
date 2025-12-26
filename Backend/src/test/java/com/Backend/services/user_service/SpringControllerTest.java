@@ -498,9 +498,9 @@ class SpringControllerTest {
                         .param("type", FilmType.MOVIE.name())
                         .param("page", "0"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.id==%s)].content", reviewId).value(hasItem("Amazing movie!")))
-                .andExpect(jsonPath("$[?(@.id==%s)].score", reviewId).value(hasItem(1)))
-                .andExpect(jsonPath("$[?(@.id==%s)].user.email", reviewId).value(hasItem(email)));
+                .andExpect(jsonPath("$.content[?(@.id==%s)].content", reviewId).value(hasItem("Amazing movie!")))
+                .andExpect(jsonPath("$.content[?(@.id==%s)].score", reviewId).value(hasItem(1)))
+                .andExpect(jsonPath("$.content[?(@.id==%s)].user.email", reviewId).value(hasItem(email)));
     }
 
     @Test
@@ -559,7 +559,7 @@ class SpringControllerTest {
                         .param("type", FilmType.MOVIE.name())
                         .param("page", "0"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.id==%s)].replyCount", parentId).value(hasItem(1)));
+                .andExpect(jsonPath("$.content[?(@.id==%s)].replyCount", parentId).value(hasItem(1)));
     }
 
     @Test
@@ -646,7 +646,7 @@ class SpringControllerTest {
                         .param("type", FilmType.MOVIE.name())
                         .param("page", "0"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].id", not(hasItem(reviewId))));
+                .andExpect(jsonPath("$.content[*].id", not(hasItem(reviewId))));
 
         // Verify not present in user list
         mockMvc.perform(get("/reviews/user")
@@ -691,8 +691,8 @@ class SpringControllerTest {
                         .param("type", FilmType.MOVIE.name())
                         .param("page", "0"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.id==%s)].likedByMe", reviewId).value(hasItem(false)))
-                .andExpect(jsonPath("$[?(@.id==%s)].disLikedByMe", reviewId).value(hasItem(false)));
+                .andExpect(jsonPath("$.content[?(@.id==%s)].likedByMe", reviewId).value(hasItem(false)))
+                .andExpect(jsonPath("$.content[?(@.id==%s)].disLikedByMe", reviewId).value(hasItem(false)));
 
         // Upvote by voter
         Map<String, Object> upvote = Map.of(
@@ -712,8 +712,8 @@ class SpringControllerTest {
                         .param("type", FilmType.MOVIE.name())
                         .param("page", "0"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.id==%s)].likedByMe", reviewId).value(hasItem(true)))
-                .andExpect(jsonPath("$[?(@.id==%s)].disLikedByMe", reviewId).value(hasItem(false)));
+                .andExpect(jsonPath("$.content[?(@.id==%s)].likedByMe", reviewId).value(hasItem(true)))
+                .andExpect(jsonPath("$.content[?(@.id==%s)].disLikedByMe", reviewId).value(hasItem(false)));
 
         // Switch to downvote
         Map<String, Object> downvote = Map.of(
@@ -733,8 +733,8 @@ class SpringControllerTest {
                         .param("type", FilmType.MOVIE.name())
                         .param("page", "0"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.id==%s)].likedByMe", reviewId).value(hasItem(false)))
-                .andExpect(jsonPath("$[?(@.id==%s)].disLikedByMe", reviewId).value(hasItem(true)));
+                .andExpect(jsonPath("$.content[?(@.id==%s)].likedByMe", reviewId).value(hasItem(false)))
+                .andExpect(jsonPath("$.content[?(@.id==%s)].disLikedByMe", reviewId).value(hasItem(true)));
 
         // Remove vote (set to 0) and ensure idempotency
         Map<String, Object> remove = Map.of(
@@ -754,8 +754,8 @@ class SpringControllerTest {
                         .param("type", FilmType.MOVIE.name())
                         .param("page", "0"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.id==%s)].likedByMe", reviewId).value(hasItem(false)))
-                .andExpect(jsonPath("$[?(@.id==%s)].disLikedByMe", reviewId).value(hasItem(false)));
+                .andExpect(jsonPath("$.content[?(@.id==%s)].likedByMe", reviewId).value(hasItem(false)))
+                .andExpect(jsonPath("$.content[?(@.id==%s)].disLikedByMe", reviewId).value(hasItem(false)));
 
         // Idempotent removal
         mockMvc.perform(post("/votes")
@@ -771,8 +771,8 @@ class SpringControllerTest {
                         .param("type", FilmType.MOVIE.name())
                         .param("page", "0"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.id==%s)].likedByMe", reviewId).value(hasItem(false)))
-                .andExpect(jsonPath("$[?(@.id==%s)].disLikedByMe", reviewId).value(hasItem(false)));
+                .andExpect(jsonPath("$.content[?(@.id==%s)].likedByMe", reviewId).value(hasItem(false)))
+                .andExpect(jsonPath("$.content[?(@.id==%s)].disLikedByMe", reviewId).value(hasItem(false)));
 
         // Author should still see their own auto-like
         mockMvc.perform(get("/reviews")
@@ -781,8 +781,8 @@ class SpringControllerTest {
                         .param("type", FilmType.MOVIE.name())
                         .param("page", "0"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.id==%s)].likedByMe", reviewId).value(hasItem(true)))
-                .andExpect(jsonPath("$[?(@.id==%s)].disLikedByMe", reviewId).value(hasItem(false)));
+                .andExpect(jsonPath("$.content[?(@.id==%s)].likedByMe", reviewId).value(hasItem(true)))
+                .andExpect(jsonPath("$.content[?(@.id==%s)].disLikedByMe", reviewId).value(hasItem(false)));
     }
 
     @Test
@@ -829,9 +829,9 @@ class SpringControllerTest {
                         .param("type", FilmType.MOVIE.name())
                         .param("page", "0"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[?(@.id==%s)].content", reviewId).value(hasItem("Anon visible review")))
-                .andExpect(jsonPath("$[?(@.id==%s)].likedByMe", reviewId).value(hasItem(false)))
-                .andExpect(jsonPath("$[?(@.id==%s)].disLikedByMe", reviewId).value(hasItem(false)));
+                .andExpect(jsonPath("$.content[?(@.id==%s)].content", reviewId).value(hasItem("Anon visible review")))
+                .andExpect(jsonPath("$.content[?(@.id==%s)].likedByMe", reviewId).value(hasItem(false)))
+                .andExpect(jsonPath("$.content[?(@.id==%s)].disLikedByMe", reviewId).value(hasItem(false)));
     }
 
     @Test
