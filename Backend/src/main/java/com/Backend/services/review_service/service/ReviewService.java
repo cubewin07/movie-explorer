@@ -42,9 +42,9 @@ public class ReviewService {
         if (seasonNumber != null && episodeNumber != null) {
             reviews = reviewRepository.findByFilmIdAndTypeAndSeasonNumberAndEpisodeNumber(filmId, filmType, seasonNumber, episodeNumber, pageable);
         } else if (seasonNumber != null && episodeNumber == null) {
-            reviews = reviewRepository.findByFilmIdAndTypeAndSeasonNumberAndEpisodeNumberIsNull(filmId, filmType, seasonNumber, pageable);
+            reviews = reviewRepository.findByFilmIdAndTypeAndSeasonNumber(filmId, filmType, seasonNumber, pageable);
         } else if (seasonNumber == null && episodeNumber != null) {
-            reviews = reviewRepository.findByFilmIdAndTypeAndSeasonNumberIsNullAndEpisodeNumber(filmId, filmType, episodeNumber, pageable);
+            throw new IllegalArgumentException("episodeNumber cannot be provided without seasonNumber");
         } else {
             reviews = reviewRepository.findByFilmIdAndType(filmId, filmType, pageable);
         }
