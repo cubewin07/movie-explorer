@@ -112,7 +112,9 @@ export const useReviewActions = (filmId, type, episodeMetadata = null) => {
       if (typeof created.score !== 'number') {
         created.score = created.likedByMe ? 1 : 0;
       }
-      qc.setQueryData(['reviews', filmId, type], (old) => {
+      // Build the query key with episodeMetadata to match useReviewsList
+      const queryKey = ['reviews', filmId, type, episodeMetadata?.seasonNumber, episodeMetadata?.episodeNumber];
+      qc.setQueryData(queryKey, (old) => {
         if (!old) return old;
         const first = Array.isArray(old.pages?.[0]) ? old.pages[0] : [];
         return {
@@ -137,7 +139,9 @@ export const useReviewActions = (filmId, type, episodeMetadata = null) => {
         const list = Array.isArray(old) ? old : [];
         return [...list, reply];
       });
-      qc.setQueryData(['reviews', filmId, type], (old) => {
+      // Build the query key with episodeMetadata to match useReviewsList
+      const queryKey = ['reviews', filmId, type, episodeMetadata?.seasonNumber, episodeMetadata?.episodeNumber];
+      qc.setQueryData(queryKey, (old) => {
         if (!old) return old;
         const pages = old.pages.map((page) =>
           page.map((r) => (r.id === parentId ? { ...r, replyCount: (r.replyCount || 0) + 1 } : r)),
@@ -166,7 +170,9 @@ export const useReviewActions = (filmId, type, episodeMetadata = null) => {
           score: nextScore,
         };
       };
-      qc.setQueryData(['reviews', filmId, type], (old) => {
+      // Build the query key with episodeMetadata to match useReviewsList
+      const queryKey = ['reviews', filmId, type, episodeMetadata?.seasonNumber, episodeMetadata?.episodeNumber];
+      qc.setQueryData(queryKey, (old) => {
         if (!old) return old;
         const pages = old.pages.map((page) => page.map(applyVote));
         return { ...old, pages };
@@ -183,14 +189,16 @@ export const useReviewActions = (filmId, type, episodeMetadata = null) => {
       return reviewId;
     },
     onSuccess: (deletedId, { parentId }) => {
-      qc.setQueryData(['reviews', filmId, type], (old) => {
+      // Build the query key with episodeMetadata to match useReviewsList
+      const queryKey = ['reviews', filmId, type, episodeMetadata?.seasonNumber, episodeMetadata?.episodeNumber];
+      qc.setQueryData(queryKey, (old) => {
         if (!old) return old;
         const pages = old.pages.map((page) => page.filter((r) => r.id !== deletedId));
         return { ...old, pages };
       });
       if (parentId) {
         qc.setQueryData(['replies', parentId], (old) => (Array.isArray(old) ? old.filter((r) => r.id !== deletedId) : old));
-        qc.setQueryData(['reviews', filmId, type], (old) => {
+        qc.setQueryData(queryKey, (old) => {
           if (!old) return old;
           const pages = old.pages.map((page) =>
             page.map((r) => (r.id === parentId ? { ...r, replyCount: Math.max((r.replyCount || 1) - 1, 0) } : r)),
