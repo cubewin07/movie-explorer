@@ -41,10 +41,10 @@ public class ReviewController {
     @GetMapping("/reply")
     public ResponseEntity<Page<ReviewsDTO>> getRepliesById(
             @RequestParam("reviewId") Long reviewId,
+            @RequestParam(name = "page", defaultValue = "0") int page,
             @AuthenticationPrincipal User user){
-        List<ReviewsDTO> replies = reviewService.getRepliesByReviewId(reviewId, user);
-        Long totalElements = reviewService.countRepliesByReviewIdNoPage(reviewId);
-        return ResponseEntity.ok(new PageImpl<>(replies, PageRequest.of(0, 10), totalElements));
+        Page<ReviewsDTO> replies = reviewService.getRepliesByReviewId(reviewId, page, user);
+        return ResponseEntity.ok(replies);
     }
 
     @GetMapping("/user")
