@@ -73,8 +73,9 @@ public class UserService {
 
     @Transactional
     @Caching(evict = {
-        @CacheEvict(value = "userSearch", allEntries = true),
-        @CacheEvict(value = "allUsersDTO", key = "'all'")
+            @CacheEvict(value = "userSearch", allEntries = true),
+            @CacheEvict(value = "allUsersDTO", key = "'all'"),
+            @CacheEvict(value = "userSearchCache", allEntries = true)
     })
     public JwtToken registerUser(RegisterDTO registerDTO) {
         String encryptedPassword = passwordEncoder.encode(registerDTO.password());
