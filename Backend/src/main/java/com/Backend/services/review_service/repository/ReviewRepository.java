@@ -7,14 +7,24 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 public interface ReviewRepository extends JpaRepository<Review, Long> {
     Page<Review> findByFilmIdAndType(Long filmId, FilmType filmType, Pageable pageable);
+
+    List<Review> findByFilmIdAndType(Long filmId, FilmType filmType);
 
     Page<Review> findByFilmIdAndTypeAndSeasonNumberAndEpisodeNumber(
             Long filmId, FilmType type, Integer seasonNumber, Integer episodeNumber, Pageable pageable);
 
+    List<Review> findByFilmIdAndTypeAndSeasonNumberAndEpisodeNumber(
+            Long filmId, FilmType type, Integer seasonNumber, Integer episodeNumber);
+
     Page<Review> findByFilmIdAndTypeAndSeasonNumberIsNullAndEpisodeNumberIsNull(
             Long filmId, FilmType type, Pageable pageable);
+
+    List<Review> findByFilmIdAndTypeAndSeasonNumberIsNullAndEpisodeNumberIsNull(
+            Long filmId, FilmType type);
 
     Page<Review> findByAnswerTo_Id(Long reviewId, Pageable pageable);
     Page<Review> findByUser(User user, Pageable pageable);
