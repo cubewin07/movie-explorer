@@ -548,9 +548,9 @@ class SpringControllerTest {
                         .header("Authorization", bearer(token))
                         .param("reviewId", String.valueOf(parentId)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andExpect(jsonPath("$[0].content", is("This is a reply")))
-                .andExpect(jsonPath("$[0].score", is(1)));
+                .andExpect(jsonPath("$.content", hasSize(1)))
+                .andExpect(jsonPath("$.content[0].content", is("This is a reply")))
+                .andExpect(jsonPath("$.content[0].score", is(1)));
 
         // Parent replyCount should be 1 when fetching by film
         mockMvc.perform(get("/reviews")
@@ -875,9 +875,9 @@ class SpringControllerTest {
         mockMvc.perform(get("/reviews/reply")
                         .param("reviewId", String.valueOf(parentId)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[*].id", hasItem(replyId)))
-                .andExpect(jsonPath("$[?(@.id==%s)].content", replyId).value(hasItem("Reply shown to anonymous")))
-                .andExpect(jsonPath("$[?(@.id==%s)].likedByMe", replyId).value(hasItem(false)))
-                .andExpect(jsonPath("$[?(@.id==%s)].disLikedByMe", replyId).value(hasItem(false)));
+                .andExpect(jsonPath("$.content[*].id", hasItem(replyId)))
+                .andExpect(jsonPath("$.content[?(@.id==%s)].content", replyId).value(hasItem("Reply shown to anonymous")))
+                .andExpect(jsonPath("$.content[?(@.id==%s)].likedByMe", replyId).value(hasItem(false)))
+                .andExpect(jsonPath("$.content[?(@.id==%s)].disLikedByMe", replyId).value(hasItem(false)));
     }
 }
