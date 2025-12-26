@@ -115,8 +115,6 @@ export const useReviewActions = (filmId, type, episodeMetadata = null) => {
       // Build the query key with episodeMetadata to match useReviewsList
       const queryKey = ['reviews', filmId, type, episodeMetadata?.seasonNumber, episodeMetadata?.episodeNumber];
       qc.setQueryData(queryKey, (old) => {
-        console.log(old);
-        console.log(created);
         if (!old) return old;
         const firstOldPage = Array.isArray(old.pages) ? old.pages[0]: [];
         const newFirstContent = [created, ...firstOldPage.content];
