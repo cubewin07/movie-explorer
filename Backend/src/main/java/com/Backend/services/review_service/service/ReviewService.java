@@ -41,10 +41,12 @@ public class ReviewService {
         Page<Review> reviews;
         if (seasonNumber != null && episodeNumber != null) {
             reviews = reviewRepository.findByFilmIdAndTypeAndSeasonNumberAndEpisodeNumber(filmId, filmType, seasonNumber, episodeNumber, pageable);
-        } else if (seasonNumber == null && episodeNumber == null) {
-            reviews = reviewRepository.findByFilmIdAndType(filmId, filmType, pageable);
+        } else if (seasonNumber != null && episodeNumber == null) {
+            reviews = reviewRepository.findByFilmIdAndTypeAndSeasonNumberAndEpisodeNumberIsNull(filmId, filmType, seasonNumber, pageable);
+        } else if (seasonNumber == null && episodeNumber != null) {
+            reviews = reviewRepository.findByFilmIdAndTypeAndSeasonNumberIsNullAndEpisodeNumber(filmId, filmType, episodeNumber, pageable);
         } else {
-            throw new IllegalArgumentException("Both seasonNumber and episodeNumber must be provided for episode filtering.");
+            reviews = reviewRepository.findByFilmIdAndType(filmId, filmType, pageable);
         }
 
         log.debug("Fetched {} reviews for filmId={}, type={}, page={}", reviews.getNumberOfElements(), filmId, filmType, page);
@@ -99,11 +101,8 @@ public class ReviewService {
         }
 
         if (request.getType() == FilmType.SERIES) {
-            boolean s = episodeSeasonNumber != null;
-            boolean e = episodeNumber != null;
-            if (s ^ e) {
-                throw new IllegalArgumentException("For SERIES, both seasonNumber and episodeNumber must be provided or both null.");
-            }
+            // For series, allow any combination: both null, season only, episode only, or both provided
+            // No validation needed - all combinations are valid
         } else if (request.getType() == FilmType.MOVIE) {
             if (episodeSeasonNumber != null || episodeNumber != null) {
                 throw new IllegalArgumentException("For MOVIE, seasonNumber and episodeNumber must be null.");

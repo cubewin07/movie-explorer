@@ -26,6 +26,18 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     List<Review> findByFilmIdAndTypeAndSeasonNumberIsNullAndEpisodeNumberIsNull(
             Long filmId, FilmType type);
 
+    Page<Review> findByFilmIdAndTypeAndSeasonNumberAndEpisodeNumberIsNull(
+            Long filmId, FilmType type, Integer seasonNumber, Pageable pageable);
+
+    List<Review> findByFilmIdAndTypeAndSeasonNumberAndEpisodeNumberIsNull(
+            Long filmId, FilmType type, Integer seasonNumber);
+
+    Page<Review> findByFilmIdAndTypeAndSeasonNumberIsNullAndEpisodeNumber(
+            Long filmId, FilmType type, Integer episodeNumber, Pageable pageable);
+
+    List<Review> findByFilmIdAndTypeAndSeasonNumberIsNullAndEpisodeNumber(
+            Long filmId, FilmType type, Integer episodeNumber);
+
     Page<Review> findByAnswerTo_Id(Long reviewId, Pageable pageable);
     Page<Review> findByUser(User user, Pageable pageable);
 }
