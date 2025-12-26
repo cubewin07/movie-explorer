@@ -115,12 +115,14 @@ export const useReviewActions = (filmId, type, episodeMetadata = null) => {
       // Build the query key with episodeMetadata to match useReviewsList
       const queryKey = ['reviews', filmId, type, episodeMetadata?.seasonNumber, episodeMetadata?.episodeNumber];
       qc.setQueryData(queryKey, (old) => {
+        console.log(old);
+        console.log(created);
         if (!old) return old;
-        const first = Array.isArray(old.pages?.[0]) ? old.pages[0] : [];
-        return {
-          pageParams: old.pageParams,
-          pages: [[created, ...first], ...old.pages.slice(1)],
-        };
+        const firstOldPage = Array.isArray(old.pages) ? old.pages[0]: [];
+        const newFirstContent = [created, ...firstOldPage.content];
+        const newFirstPage = { ...firstOldPage, content: newFirstContent };
+        const newPages = [newFirstPage, ...old.pages.slice(1)];
+        return { ...old, pages: newPages };
       });
     },
   });
