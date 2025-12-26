@@ -53,10 +53,12 @@ export const useReplies = (reviewId, enabled = false) => {
         params: { reviewId, page: pageParam },
         signal,
       });
-      return res.data; // PageResponse<ReviewsDTO>
+      // Extract content array from PageResponse
+      return res.data.content || []; // List<ReviewsDTO>
     },
     getNextPageParam: (lastPage, pages) => {
-      if (lastPage?.hasMore) {
+      // Check if there are more pages
+      if (Array.isArray(lastPage) && lastPage.length === 20) {
         return pages.length; // next page index
       }
       return undefined;

@@ -331,10 +331,10 @@ export default function Reviews({ filmId, type, episodeMetadata = null }) {
   } = useReviewsList(filmId, type, episodeMetadata);
 
   const { createReview } = useReviewActions(filmId, type, episodeMetadata);
-
+  
   const items = useMemo(() => {
     if (!data?.pages) return [];
-    return data.pages.flat();
+    return data.pages.flatMap(page => page.content);
   }, [data]);
 
   const sortedItems = useMemo(() => {
