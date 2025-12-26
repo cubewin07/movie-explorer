@@ -45,15 +45,29 @@ export const useReviewsList = (filmId, type, episodeMetadata = null) => {
 };
 
 export const useReplies = (reviewId, enabled = false) => {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['replies', reviewId],
     enabled: !!reviewId && enabled,
-    queryFn: async ({ signal }) => {
+    queryFn: async ({ pageParam = 0, signal }) => {
       const res = await instance.get('/reviews/reply', {
-        params: { reviewId },
+        params: { reviewId, page: pageParam },
         signal,
       });
-      return res.data; // List<ReviewsDTO>
+      return res.data; // PageResponse<ReviewsDTO>
+    },
+    getNextPageParam: (lastPage, pages) => {
+      if (lastPage?.hasMore) {
+        return pages.length; // next page index
+      }
+      return undefined;
+    },
+    onError: (err) => {
+      if (err.response) {
+        console.error('REPLIES ERROR:', {
+          status: err.response.status,
+          data: err.response.data,
+        });
+      }
     },
     refetchOnWindowFocus: false,
     staleTime: 1000 * 30,

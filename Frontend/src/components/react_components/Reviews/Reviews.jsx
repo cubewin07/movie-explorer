@@ -21,7 +21,17 @@ function ReviewItem({ item, isOwner, onVote, filmId, type, user }) {
   const [open, setOpen] = useState(false);
   const [replyText, setReplyText] = useState('');
 
-  const { data: replies, isLoading: loadingReplies, isError: errorReplies } = useReplies(item.id, open);
+  const {
+    data: repliesData,
+    isLoading: loadingReplies,
+    isError: errorReplies,
+    fetchNextPage: fetchNextRepliesPage,
+    hasNextPage: hasNextReplies,
+    isFetchingNextPage: isFetchingNextReplies,
+  } = useReplies(item.id, open);
+  
+  const replies = repliesData?.pages?.flat() || [];
+  
   const { createReply, vote, deleteReview } = useReviewActions(filmId, type);
 
   const handleVote = (value) => {
@@ -133,7 +143,7 @@ function ReviewItem({ item, isOwner, onVote, filmId, type, user }) {
                 </div>
               ) : errorReplies ? (
                 <ErrorState title="Failed to load replies" message="Please try again later" fullScreen={false} showHomeButton={false} />
-              ) : Array.isArray(replies) && replies.length > 0 ? (
+              ) : replies.length > 0 ? (
                 <div className="space-y-3">
                   {replies.map((rep) => (
                     <div key={rep.id} className="">
@@ -224,6 +234,21 @@ function ReviewItem({ item, isOwner, onVote, filmId, type, user }) {
                       </div>
                     </div>
                   ))}
+                  
+                  {/* Load more replies button */}
+                  {hasNextReplies && (
+                    <div className="pt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fetchNextRepliesPage()}
+                        disabled={isFetchingNextReplies}
+                        className="w-full"
+                      >
+                        {isFetchingNextReplies ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Load more replies'}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <AnimatePresence mode="wait">
