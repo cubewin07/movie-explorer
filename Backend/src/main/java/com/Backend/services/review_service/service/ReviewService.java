@@ -224,23 +224,15 @@ public class ReviewService {
                 }).toList();
     }
 
-    public List<Long> getIdListReviewsByFilmIdNoPage(Long filmId, FilmType filmType, Integer seasonNumber, Integer episodeNumber) {
+    public long countReviewsByFilmIdNoPage(Long filmId, FilmType filmType, Integer seasonNumber, Integer episodeNumber) {
         if (seasonNumber != null && episodeNumber != null) {
-            return reviewRepository.findByFilmIdAndTypeAndSeasonNumberAndEpisodeNumber(filmId, filmType, seasonNumber, episodeNumber).stream()
-            .map(Review::getId)
-            .toList();
+            return (long) reviewRepository.findByFilmIdAndTypeAndSeasonNumberAndEpisodeNumber(filmId, filmType, seasonNumber, episodeNumber).size();
         } else if (seasonNumber != null && episodeNumber == null) {
-            return reviewRepository.findByFilmIdAndTypeAndSeasonNumberAndEpisodeNumberIsNull(filmId, filmType, seasonNumber).stream()
-            .map(Review::getId)
-            .toList();
+            return (long) reviewRepository.findByFilmIdAndTypeAndSeasonNumberAndEpisodeNumberIsNull(filmId, filmType, seasonNumber).size();
         } else if (seasonNumber == null && episodeNumber != null) {
-            return reviewRepository.findByFilmIdAndTypeAndSeasonNumberIsNullAndEpisodeNumber(filmId, filmType, episodeNumber).stream()
-            .map(Review::getId)
-            .toList();
+            return (long) reviewRepository.findByFilmIdAndTypeAndSeasonNumberIsNullAndEpisodeNumber(filmId, filmType, episodeNumber).size();
         } else {
-            return reviewRepository.findByFilmIdAndType(filmId, filmType).stream()
-            .map(Review::getId)
-            .toList();
+            return (long) reviewRepository.findByFilmIdAndType(filmId, filmType).size();
         }
     }
 }
