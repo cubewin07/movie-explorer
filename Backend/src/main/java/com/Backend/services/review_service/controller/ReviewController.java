@@ -39,10 +39,12 @@ public class ReviewController {
     }
 
     @GetMapping("/reply")
-    public ResponseEntity<List<ReviewsDTO>> getRepliesById(
+    public ResponseEntity<Page<ReviewsDTO>> getRepliesById(
             @RequestParam("reviewId") Long reviewId,
             @AuthenticationPrincipal User user){
-        return ResponseEntity.ok(reviewService.getRepliesByReviewId(reviewId, user));
+        List<ReviewsDTO> replies = reviewService.getRepliesByReviewId(reviewId, user);
+        Long totalElements = reviewService.countRepliesByReviewIdNoPage(reviewId);
+        return ResponseEntity.ok(new PageImpl<>(replies, PageRequest.of(0, 10), totalElements));
     }
 
     @GetMapping("/user")
