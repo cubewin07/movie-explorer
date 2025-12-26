@@ -9,11 +9,14 @@ export const useReviewsList = (filmId, type, episodeMetadata = null) => {
       const params = { filmId, type, page: pageParam };
       
       // Add episode metadata if provided for series reviews
-      if (type === 'SERIES' && episodeMetadata && 
-          typeof episodeMetadata.seasonNumber === 'number' && 
-          typeof episodeMetadata.episodeNumber === 'number') {
-        params.seasonNumber = episodeMetadata.seasonNumber;
-        params.episodeNumber = episodeMetadata.episodeNumber;
+      // Support partial metadata: season-only, episode-only, or both
+      if (type === 'SERIES' && episodeMetadata) {
+        if (typeof episodeMetadata.seasonNumber === 'number') {
+          params.seasonNumber = episodeMetadata.seasonNumber;
+        }
+        if (typeof episodeMetadata.episodeNumber === 'number') {
+          params.episodeNumber = episodeMetadata.episodeNumber;
+        }
       }
       
       const res = await instance.get('/reviews', {
@@ -86,13 +89,19 @@ export const useReviewActions = (filmId, type, episodeMetadata = null) => {
       const payload = { content, filmId, type };
       
       // Add episodeMetadata object if available for series reviews
-      if (type === 'SERIES' && episodeMetadata && 
-          typeof episodeMetadata.seasonNumber === 'number' && 
-          typeof episodeMetadata.episodeNumber === 'number') {
-        payload.episodeMetadata = {
-          seasonNumber: episodeMetadata.seasonNumber,
-          episodeNumber: episodeMetadata.episodeNumber,
-        };
+      // Support partial metadata: season-only, episode-only, or both
+      if (type === 'SERIES' && episodeMetadata) {
+        payload.episodeMetadata = {};
+        if (typeof episodeMetadata.seasonNumber === 'number') {
+          payload.episodeMetadata.seasonNumber = episodeMetadata.seasonNumber;
+        }
+        if (typeof episodeMetadata.episodeNumber === 'number') {
+          payload.episodeMetadata.episodeNumber = episodeMetadata.episodeNumber;
+        }
+        // Only send if we actually have at least one field
+        if (Object.keys(payload.episodeMetadata).length === 0) {
+          delete payload.episodeMetadata;
+        }
       }
       
       const res = await instance.post('/reviews', payload);

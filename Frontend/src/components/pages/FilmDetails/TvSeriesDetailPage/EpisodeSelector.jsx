@@ -7,10 +7,10 @@ import { X, ChevronDown, ChevronUp } from 'lucide-react';
  * EpisodeSelector Modal Component
  * Allows users to select which season/episode to review or review the whole series
  * Features:
- * - Season dropdown selection
- * - Episode selection within season
+ * - Season only selection (any episode in that season)
+ * - Season + Episode selection (specific episode)
  * - Whole series option
- * - Error shaking animation if user tries to submit without selecting
+ * - Flexible: can submit with season only or season+episode
  */
 export default function EpisodeSelector({
     seasons,
@@ -41,24 +41,24 @@ export default function EpisodeSelector({
     };
 
     const handleSelectEpisode = () => {
-        if (!selectedSeason || !selectedEpisode) {
+        if (!selectedSeason) {
             setShowError(true);
             setTimeout(() => setShowError(false), 500);
             return;
         }
 
-        // Validate episode number is within valid range
-        if (selectedEpisode > episodeCount) {
+        // Validate episode number is within valid range if episode is selected
+        if (selectedEpisode && selectedEpisode > episodeCount) {
             setShowError(true);
             setTimeout(() => setShowError(false), 500);
             return;
         }
 
-        // Consistent object structure - no seriesId field
+        // Allow season-only or season+episode selections
         onSelect({
             type: 'specific',
             seasonNumber: selectedSeason,
-            episodeNumber: selectedEpisode,
+            episodeNumber: selectedEpisode, // Can be null for season-only reviews
         });
         onClose?.();
     };
@@ -189,14 +189,14 @@ export default function EpisodeSelector({
                             )}
 
                             {/* Error State - Shaking animation */}
-                            {showError && !selectedEpisode && selectedSeason && (
+                            {showError && !selectedSeason && (
                                 <motion.div
                                     animate={{ x: [-10, 10, -10, 10, 0] }}
                                     transition={{ duration: 0.4 }}
                                     className="p-3 bg-red-100 dark:bg-red-900/20 border border-red-300 dark:border-red-700 rounded-lg"
                                 >
                                     <p className="text-sm text-red-700 dark:text-red-400">
-                                        ⚠️ Please select an episode to continue
+                                        ⚠️ Please select at least a season to continue
                                     </p>
                                 </motion.div>
                             )}
@@ -219,12 +219,11 @@ export default function EpisodeSelector({
                                 >
                                     <Button
                                         onClick={handleSelectEpisode}
-                                        disabled={!selectedEpisode}
                                         className="w-full"
                                     >
                                         {selectedEpisode
-                                            ? `Review Episode ${selectedEpisode}`
-                                            : 'Select Episode'}
+                                            ? `Review S${String(selectedSeason).padStart(2, '0')}E${String(selectedEpisode).padStart(2, '0')}`
+                                            : `Review Season ${selectedSeason}`}
                                     </Button>
                                 </motion.div>
                             )}

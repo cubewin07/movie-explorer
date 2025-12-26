@@ -340,14 +340,29 @@ export default function Reviews({ filmId, type, episodeMetadata = null }) {
   const sortedItems = useMemo(() => {
     let list = Array.isArray(items) ? [...items] : [];
     
-    // Filter by episode if episodeMetadata is provided and has valid values
-    if (type === 'SERIES' && episodeMetadata && 
-        typeof episodeMetadata.seasonNumber === 'number' && 
-        typeof episodeMetadata.episodeNumber === 'number') {
-      list = list.filter(item => 
-        item.episodeSeasonNumber === episodeMetadata.seasonNumber && 
-        item.episodeNumber === episodeMetadata.episodeNumber
-      );
+    // Filter by episode metadata if provided
+    // Support partial matches: season-only, episode-only, or both
+    if (type === 'SERIES' && episodeMetadata) {
+      const hasSeasonNumber = typeof episodeMetadata.seasonNumber === 'number';
+      const hasEpisodeNumber = typeof episodeMetadata.episodeNumber === 'number';
+      
+      if (hasSeasonNumber && hasEpisodeNumber) {
+        // Filter by exact season + episode
+        list = list.filter(item => 
+          item.episodeSeasonNumber === episodeMetadata.seasonNumber && 
+          item.episodeNumber === episodeMetadata.episodeNumber
+        );
+      } else if (hasSeasonNumber) {
+        // Filter by season only (any episode in that season)
+        list = list.filter(item => 
+          item.episodeSeasonNumber === episodeMetadata.seasonNumber
+        );
+      } else if (hasEpisodeNumber) {
+        // Filter by episode only (any season with that episode number)
+        list = list.filter(item => 
+          item.episodeNumber === episodeMetadata.episodeNumber
+        );
+      }
     }
     
     const byDateAsc = (a, b) => {
