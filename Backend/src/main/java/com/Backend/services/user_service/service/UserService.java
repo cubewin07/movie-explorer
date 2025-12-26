@@ -132,10 +132,11 @@ public class UserService {
 
     @Transactional
     @Caching(evict = {
-        @CacheEvict(value = "userMeDTO", allEntries = true),
-        @CacheEvict(value = "userSearch", allEntries = true),
-        @CacheEvict(value = "userId", allEntries = true),
-        @CacheEvict(value = "allUsersDTO", key = "'all'")
+            @CacheEvict(value = "userMeDTO", allEntries = true),
+            @CacheEvict(value = "userSearch", allEntries = true),
+            @CacheEvict(value = "userId", allEntries = true),
+            @CacheEvict(value = "allUsersDTO", key = "'all'"),
+            @CacheEvict(value = "userSearchCache",  allEntries = true)
     })
     public void deleteUserById(Long id) {
         if (!userRepository.existsById(id)) {
