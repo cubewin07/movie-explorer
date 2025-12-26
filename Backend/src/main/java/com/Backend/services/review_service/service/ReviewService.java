@@ -237,6 +237,6 @@ public class ReviewService {
     }
 
     public long countRepliesByReviewIdNoPage(Long reviewId) {
-        return (long) reviewRepository.findByAnswerTo_Id(reviewId, Pageable.unpaged()).getContent().size();
+        return reviewRepository.countByAnswerTo_Id(reviewId);
     }
 }
