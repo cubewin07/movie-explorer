@@ -12,30 +12,30 @@ import java.util.List;
 public interface ReviewRepository extends JpaRepository<Review, Long> {
     Page<Review> findByFilmIdAndType(Long filmId, FilmType filmType, Pageable pageable);
 
-    List<Review> findByFilmIdAndType(Long filmId, FilmType filmType);
+    long countByFilmIdAndType(Long filmId, FilmType filmType);
 
     Page<Review> findByFilmIdAndTypeAndSeasonNumberAndEpisodeNumber(
             Long filmId, FilmType type, Integer seasonNumber, Integer episodeNumber, Pageable pageable);
 
-    List<Review> findByFilmIdAndTypeAndSeasonNumberAndEpisodeNumber(
+    long countByFilmIdAndTypeAndSeasonNumberAndEpisodeNumber(
             Long filmId, FilmType type, Integer seasonNumber, Integer episodeNumber);
 
     Page<Review> findByFilmIdAndTypeAndSeasonNumberIsNullAndEpisodeNumberIsNull(
             Long filmId, FilmType type, Pageable pageable);
 
-    List<Review> findByFilmIdAndTypeAndSeasonNumberIsNullAndEpisodeNumberIsNull(
+    long countByFilmIdAndTypeAndSeasonNumberIsNullAndEpisodeNumberIsNull(
             Long filmId, FilmType type);
 
     Page<Review> findByFilmIdAndTypeAndSeasonNumberAndEpisodeNumberIsNull(
             Long filmId, FilmType type, Integer seasonNumber, Pageable pageable);
 
-    List<Review> findByFilmIdAndTypeAndSeasonNumberAndEpisodeNumberIsNull(
+    long countByFilmIdAndTypeAndSeasonNumberAndEpisodeNumberIsNull(
             Long filmId, FilmType type, Integer seasonNumber);
 
     Page<Review> findByFilmIdAndTypeAndSeasonNumberIsNullAndEpisodeNumber(
             Long filmId, FilmType type, Integer episodeNumber, Pageable pageable);
 
-    List<Review> findByFilmIdAndTypeAndSeasonNumberIsNullAndEpisodeNumber(
+    long countByFilmIdAndTypeAndSeasonNumberIsNullAndEpisodeNumber(
             Long filmId, FilmType type, Integer episodeNumber);
 
     Page<Review> findByAnswerTo_Id(Long reviewId, Pageable pageable);
