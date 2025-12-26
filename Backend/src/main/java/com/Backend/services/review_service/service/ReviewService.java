@@ -226,13 +226,13 @@ public class ReviewService {
 
     public long countReviewsByFilmIdNoPage(Long filmId, FilmType filmType, Integer seasonNumber, Integer episodeNumber) {
         if (seasonNumber != null && episodeNumber != null) {
-            return (long) reviewRepository.findByFilmIdAndTypeAndSeasonNumberAndEpisodeNumber(filmId, filmType, seasonNumber, episodeNumber).size();
+            return reviewRepository.countByFilmIdAndTypeAndSeasonNumberAndEpisodeNumber(filmId, filmType, seasonNumber, episodeNumber);
         } else if (seasonNumber != null && episodeNumber == null) {
-            return (long) reviewRepository.findByFilmIdAndTypeAndSeasonNumberAndEpisodeNumberIsNull(filmId, filmType, seasonNumber).size();
+            return reviewRepository.countByFilmIdAndTypeAndSeasonNumberAndEpisodeNumberIsNull(filmId, filmType, seasonNumber);
         } else if (seasonNumber == null && episodeNumber != null) {
-            return (long) reviewRepository.findByFilmIdAndTypeAndSeasonNumberIsNullAndEpisodeNumber(filmId, filmType, episodeNumber).size();
+            return reviewRepository.countByFilmIdAndTypeAndSeasonNumberIsNullAndEpisodeNumber(filmId, filmType, episodeNumber);
         } else {
-            return (long) reviewRepository.findByFilmIdAndType(filmId, filmType).size();
+            return reviewRepository.countByFilmIdAndType(filmId, filmType);
         }
     }
 
