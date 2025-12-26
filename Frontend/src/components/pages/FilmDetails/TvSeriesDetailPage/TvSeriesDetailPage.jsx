@@ -37,8 +37,6 @@ export default function TvSeriesDetailPage() {
         watchlistData,
     } = useSeriesData(id);
 
-    console.log(series);
-
     const { mutate: addToWatchlist, isPending } = useAddToWatchlist(token);
 
     const handleAddToWatchlist = () => {
