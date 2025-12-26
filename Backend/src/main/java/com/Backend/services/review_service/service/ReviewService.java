@@ -235,4 +235,8 @@ public class ReviewService {
             return (long) reviewRepository.findByFilmIdAndType(filmId, filmType).size();
         }
     }
+
+    public long countRepliesByReviewIdNoPage(Long reviewId) {
+        return (long) reviewRepository.findByAnswerTo_Id(reviewId, Pageable.unpaged()).getContent().size();
+    }
 }

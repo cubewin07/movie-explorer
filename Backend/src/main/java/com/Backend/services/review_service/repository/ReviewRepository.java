@@ -39,5 +39,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
             Long filmId, FilmType type, Integer episodeNumber);
 
     Page<Review> findByAnswerTo_Id(Long reviewId, Pageable pageable);
+    long countByAnswerTo_Id(Long reviewId);
     Page<Review> findByUser(User user, Pageable pageable);
 }
