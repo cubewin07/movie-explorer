@@ -1,13 +1,21 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import instance from '@/lib/instance';
 
-export const useReviewsList = (filmId, type) => {
+export const useReviewsList = (filmId, type, episodeMetadata = null) => {
   return useInfiniteQuery({
-    queryKey: ['reviews', filmId, type],
+    queryKey: ['reviews', filmId, type, episodeMetadata?.seasonNumber, episodeMetadata?.episodeNumber],
     enabled: !!filmId && !!type,
     queryFn: async ({ pageParam = 0, signal }) => {
+      const params = { filmId, type, page: pageParam };
+      
+      // Add episode metadata if provided for series reviews
+      if (type === 'SERIES' && episodeMetadata?.seasonNumber !== null && episodeMetadata?.seasonNumber !== undefined) {
+        params.seasonNumber = episodeMetadata.seasonNumber;
+        params.episodeNumber = episodeMetadata.episodeNumber;
+      }
+      
       const res = await instance.get('/reviews', {
-        params: { filmId, type, page: pageParam },
+        params,
         signal,
       });
       return res.data; // List<ReviewsDTO>
