@@ -9,7 +9,9 @@ export const useReviewsList = (filmId, type, episodeMetadata = null) => {
       const params = { filmId, type, page: pageParam };
       
       // Add episode metadata if provided for series reviews
-      if (type === 'SERIES' && episodeMetadata?.seasonNumber !== null && episodeMetadata?.seasonNumber !== undefined) {
+      if (type === 'SERIES' && episodeMetadata && 
+          typeof episodeMetadata.seasonNumber === 'number' && 
+          typeof episodeMetadata.episodeNumber === 'number') {
         params.seasonNumber = episodeMetadata.seasonNumber;
         params.episodeNumber = episodeMetadata.episodeNumber;
       }
@@ -84,7 +86,9 @@ export const useReviewActions = (filmId, type, episodeMetadata = null) => {
       const payload = { content, filmId, type };
       
       // Add episodeMetadata object if available for series reviews
-      if (type === 'SERIES' && episodeMetadata?.seasonNumber !== null && episodeMetadata?.seasonNumber !== undefined) {
+      if (type === 'SERIES' && episodeMetadata && 
+          typeof episodeMetadata.seasonNumber === 'number' && 
+          typeof episodeMetadata.episodeNumber === 'number') {
         payload.episodeMetadata = {
           seasonNumber: episodeMetadata.seasonNumber,
           episodeNumber: episodeMetadata.episodeNumber,

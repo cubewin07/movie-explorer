@@ -10,7 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
  * - Users can read whole series reviews immediately
  * - Tabs for switching between series reviews and episode reviews
  * - Episode selector modal only appears when user wants to WRITE a review for a specific episode
- * - Prevents accidental reviews by requiring deliberate selection without defaults
+ * - Backend accepts any combination of season/episode numbers
  * - Passes numeric seriesId and episodeMetadata directly to Reviews component
  */
 export default function SeriesReviewsSection({ seriesId, seasons }) {
