@@ -34,8 +34,8 @@ public class ReviewController {
             @AuthenticationPrincipal User user){
 
          List<ReviewsDTO> reviews = reviewService.getReviewsByFilmId(filmId, type, seasonNumber, episodeNumber, page, user);
-         List<Long> totalElements = reviewService.getIdListReviewsByFilmIdNoPage(filmId, type, seasonNumber, episodeNumber);
-         return ResponseEntity.ok(new PageImpl<>(reviews, PageRequest.of(page, 10), totalElements.size()));
+         Long totalElements = reviewService.countReviewsByFilmIdNoPage(filmId, type, seasonNumber, episodeNumber);
+         return ResponseEntity.ok(new PageImpl<>(reviews, PageRequest.of(page, 10), totalElements));
     }
 
     @GetMapping("/reply")
