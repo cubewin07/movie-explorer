@@ -12,6 +12,9 @@ spring:
       idle-timeout: 300000
       max-lifetime: 1700000
       connection-timeout: 30000
+  data:
+    redis:
+      url: ${REDIS_URL}
   jpa:
     hibernate:
       ddl-auto: validate
