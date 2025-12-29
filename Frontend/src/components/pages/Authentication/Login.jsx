@@ -11,6 +11,7 @@ import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import clsx from 'clsx';
 import { useDebounceValidation } from '@/hooks/useDebounceValidation';
+import { inputShakeVariants } from '@/lib/animations';
 
 const schema = z.object({
     email: z
@@ -121,7 +122,11 @@ export default function Login({ onSuccess, onShowRegister, hideHeader }) {
                     <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         Email
                     </Label>
-                    <div className="relative">
+                    <motion.div
+                        className="relative"
+                        variants={inputShakeVariants}
+                        animate={showEmailError || errors.email ? 'shake' : 'normal'}
+                    >
                         <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <Input
                             id="email"
@@ -131,7 +136,7 @@ export default function Login({ onSuccess, onShowRegister, hideHeader }) {
                             })}
                             placeholder="Enter your email"
                         />
-                    </div>
+                    </motion.div>
                     {(showEmailError || errors.email) && (
                         <p className="text-sm text-red-500">{errors.email?.message}</p>
                     )}
@@ -141,7 +146,11 @@ export default function Login({ onSuccess, onShowRegister, hideHeader }) {
                     <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                         Password
                     </Label>
-                    <div className="relative">
+                    <motion.div
+                        className="relative"
+                        variants={inputShakeVariants}
+                        animate={showPasswordError || errors.password ? 'shake' : 'normal'}
+                    >
                         <button
                             type="button"
                             onClick={() => setShowPassword(!showPassword)}
@@ -158,7 +167,7 @@ export default function Login({ onSuccess, onShowRegister, hideHeader }) {
                             })}
                             placeholder="Enter your password"
                         />
-                    </div>
+                    </motion.div>
                     {(showPasswordError || errors.password) && (
                         <p className="text-sm text-red-500">{errors.password?.message}</p>
                     )}
