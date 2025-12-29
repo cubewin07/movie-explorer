@@ -1,0 +1,54 @@
+import { useState, useEffect } from 'react';
+
+/**
+ * Custom hook for handling debounced field validation with error display
+ * @param {string} fieldName - Name of the field to validate
+ * @param {string} fieldValue - Current value of the field
+ * @param {boolean} isDirty - Whether the field has been touched
+ * @param {Function} trigger - React Hook Form trigger function for validation
+ * @param {number} delay - Debounce delay in milliseconds (default: 500)
+ * @returns {boolean} - Whether the field has an error after validation
+ */
+export const useDebounceValidation = (
+    fieldName,
+    fieldValue,
+    isDirty,
+    trigger,
+    delay = 500
+) => {
+    const [typingTimeout, setTypingTimeout] = useState(null);
+    const [showError, setShowError] = useState(false);
+
+    useEffect(() => {
+        // Clear error immediately when user starts typing
+        setShowError(false);
+
+        // Clear existing timeout
+        if (typingTimeout) {
+            clearTimeout(typingTimeout);
+        }
+
+        // Only validate if field has been touched/modified AND has a value
+        if (isDirty && fieldValue && fieldValue.trim() !== '') {
+            const timer = setTimeout(() => {
+                trigger(fieldName).then((isValid) => {
+                    setShowError(!isValid);
+                });
+            }, delay);
+
+            setTypingTimeout(timer);
+        } else if (!fieldValue || fieldValue.trim() === '') {
+            // Reset error state when field is empty
+            setShowError(false);
+        }
+
+        // Cleanup: clear timeout on unmount or when dependencies change
+        return () => {
+            if (typingTimeout) {
+                clearTimeout(typingTimeout);
+            }
+        };
+    }, [fieldValue, fieldName, isDirty, trigger, delay]);
+
+    return showError;
+};

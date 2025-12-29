@@ -10,6 +10,7 @@ import { motion } from 'framer-motion';
 import { Lock, Mail, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import clsx from 'clsx';
+import { useDebounceValidation } from '@/hooks/useDebounceValidation';
 
 const schema = z.object({
     email: z.string().email({ message: 'Invalid email format' }),
@@ -25,10 +26,32 @@ export default function Login({ onSuccess, onShowRegister, hideHeader }) {
         register,
         handleSubmit,
         reset,
-        formState: { errors, isSubmitting },
+        formState: { errors, isSubmitting, dirtyFields },
+        watch,
+        trigger,
     } = useForm({
         resolver: zodResolver(schema),
     });
+
+    const email = watch('email');
+    const password = watch('password');
+
+    // Use debounced validation for better UX
+    const showEmailError = useDebounceValidation(
+        'email',
+        email,
+        dirtyFields.email,
+        trigger,
+        1000
+    );
+
+    const showPasswordError = useDebounceValidation(
+        'password',
+        password,
+        dirtyFields.password,
+        trigger,
+        1000
+    );
 
     const onSubmit = async (data) => {
         setFormError('');
@@ -97,11 +120,15 @@ export default function Login({ onSuccess, onShowRegister, hideHeader }) {
                         <Input
                             id="email"
                             {...register('email')}
-                            className="pl-10 h-12 w-full"
+                            className={clsx('pl-10 h-12 w-full', {
+                                'border-red-500': showEmailError,
+                            })}
                             placeholder="Enter your email"
                         />
                     </div>
-                    {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+                    {showEmailError && errors.email && (
+                        <p className="text-sm text-red-500">{errors.email?.message}</p>
+                    )}
                 </div>
 
                 <div className="space-y-2">
@@ -120,11 +147,15 @@ export default function Login({ onSuccess, onShowRegister, hideHeader }) {
                             id="password"
                             type={showPassword ? 'text' : 'password'}
                             {...register('password')}
-                            className="pr-10 h-12 w-full"
+                            className={clsx('pr-10 h-12 w-full', {
+                                'border-red-500': showPasswordError && errors.password,
+                            })}
                             placeholder="Enter your password"
                         />
                     </div>
-                    {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
+                    {showPasswordError && errors.password && (
+                        <p className="text-sm text-red-500">{errors.password?.message}</p>
+                    )}
                 </div>
 
                 {formError && <p className="text-sm text-red-500 text-center">{formError}</p>}
