@@ -191,7 +191,7 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
                             id="username"
                             {...register('username')}
                             className={clsx('pl-10 h-12', {
-                                'border-red-500': showUsernameError || errors.username,
+                                'border-red-500 focus:border-red-500 focus:ring-red-500': showUsernameError || errors.username,
                             })}
                             placeholder="Enter your username"
                         />
