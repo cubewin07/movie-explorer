@@ -10,10 +10,11 @@ import { motion } from 'framer-motion';
 import { Lock, User, Mail, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import clsx from 'clsx';
+import { useDebounceValidation } from '@/hooks/useDebounceValidation';
 
 const schema = z
     .object({
-        username: z.string().min(2, 'Username is required'),
+        username: z.string().min(3, 'Username is required'),
         email: z.string().email({ message: 'Invalid email format' }),
         password: z.string().min(8, { message: 'Password must be at least 8 characters' }),
         confirmPassword: z.string().min(8),
@@ -34,10 +35,50 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
         register,
         handleSubmit,
         reset,
-        formState: { errors, isSubmitting },
+        formState: { errors, isSubmitting, dirtyFields },
+        watch,
+        trigger,
     } = useForm({
         resolver: zodResolver(schema),
     });
+
+    const username = watch('username');
+    const email = watch('email');
+    const password = watch('password');
+    const confirmPassword = watch('confirmPassword');
+
+    // Use debounced validation for better UX
+    const showUsernameError = useDebounceValidation(
+        'username',
+        username,
+        dirtyFields.username,
+        trigger,
+        500
+    );
+
+    const showEmailError = useDebounceValidation(
+        'email',
+        email,
+        dirtyFields.email,
+        trigger,
+        500
+    );
+
+    const showPasswordError = useDebounceValidation(
+        'password',
+        password,
+        dirtyFields.password,
+        trigger,
+        500
+    );
+
+    const showConfirmPasswordError = useDebounceValidation(
+        'confirmPassword',
+        confirmPassword,
+        dirtyFields.confirmPassword,
+        trigger,
+        500
+    );
 
     const onSubmit = async (data) => {
         setFormError('');
@@ -132,11 +173,15 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
                         <Input
                             id="username"
                             {...register('username')}
-                            className="pl-10 h-12"
+                            className={clsx('pl-10 h-12', {
+                                'border-red-500': showUsernameError,
+                            })}
                             placeholder="Enter your username"
                         />
                     </div>
-                    {errors.username && <p className="text-sm text-red-500">{errors.username.message}</p>}
+                    {showUsernameError && errors.username && (
+                        <p className="text-sm text-red-500">{errors.username.message}</p>
+                    )}
                     {fieldErrors.username && (
                         <p className="text-sm text-red-500">
                             {Array.isArray(fieldErrors.username)
@@ -155,11 +200,15 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
                         <Input
                             id="email"
                             {...register('email')}
-                            className="pl-10 h-12"
+                            className={clsx('pl-10 h-12', {
+                                'border-red-500': showEmailError,
+                            })}
                             placeholder="Enter your email"
                         />
                     </div>
-                    {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
+                    {showEmailError && errors.email && (
+                        <p className="text-sm text-red-500">{errors.email.message}</p>
+                    )}
                     {fieldErrors.email && (
                         <p className="text-sm text-red-500">
                             {Array.isArray(fieldErrors.email) ? fieldErrors.email.join(', ') : fieldErrors.email}
@@ -183,11 +232,15 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
                             id="password"
                             type={showPassword ? 'text' : 'password'}
                             {...register('password')}
-                            className="pr-10 h-12"
+                            className={clsx('pr-10 h-12', {
+                                'border-red-500': showPasswordError,
+                            })}
                             placeholder="Enter your password"
                         />
                     </div>
-                    {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
+                    {showPasswordError && errors.password && (
+                        <p className="text-sm text-red-500">{errors.password.message}</p>
+                    )}
                     {fieldErrors.password && (
                         <p className="text-sm text-red-500">
                             {Array.isArray(fieldErrors.password)
@@ -213,11 +266,15 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
                             id="confirmPassword"
                             type={showConfirmPassword ? 'text' : 'password'}
                             {...register('confirmPassword')}
-                            className="pr-10 h-12"
+                            className={clsx('pr-10 h-12', {
+                                'border-red-500': showConfirmPasswordError,
+                            })}
                             placeholder="Confirm your password"
                         />
                     </div>
-                    {errors.confirmPassword && <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>}
+                    {showConfirmPasswordError && errors.confirmPassword && (
+                        <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
+                    )}
                     {fieldErrors.confirmPassword && (
                         <p className="text-sm text-red-500">
                             {Array.isArray(fieldErrors.confirmPassword)
