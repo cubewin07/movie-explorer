@@ -14,10 +14,22 @@ import { useDebounceValidation } from '@/hooks/useDebounceValidation';
 
 const schema = z
     .object({
-        username: z.string().min(3, 'Username is required'),
-        email: z.string().email({ message: 'Invalid email format' }),
-        password: z.string().min(8, { message: 'Password must be at least 8 characters' }),
-        confirmPassword: z.string().min(8),
+        username: z
+            .string()
+            .min(1, 'Username is required')
+            .min(3, 'Username must be at least 3 characters'),
+        email: z
+            .string()
+            .min(1, 'Email is required')
+            .email({ message: 'Invalid email format' }),
+        password: z
+            .string()
+            .min(1, 'Password is required')
+            .min(8, { message: 'Password must be at least 8 characters' }),
+        confirmPassword: z
+            .string()
+            .min(1, 'Confirm password is required')
+            .min(8),
     })
     .refine((data) => data.password === data.confirmPassword, {
         message: "Passwords don't match",
@@ -174,13 +186,13 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
                             id="username"
                             {...register('username')}
                             className={clsx('pl-10 h-12', {
-                                'border-red-500': showUsernameError,
+                                'border-red-500': showUsernameError || errors.username,
                             })}
                             placeholder="Enter your username"
                         />
                     </div>
-                    {showUsernameError && errors.username && (
-                        <p className="text-sm text-red-500">{errors.username.message}</p>
+                    {(showUsernameError || errors.username) && (
+                        <p className="text-sm text-red-500">{errors.username?.message}</p>
                     )}
                     {fieldErrors.username && (
                         <p className="text-sm text-red-500">
@@ -201,13 +213,13 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
                             id="email"
                             {...register('email')}
                             className={clsx('pl-10 h-12', {
-                                'border-red-500': showEmailError,
+                                'border-red-500': showEmailError || errors.email,
                             })}
                             placeholder="Enter your email"
                         />
                     </div>
-                    {showEmailError && errors.email && (
-                        <p className="text-sm text-red-500">{errors.email.message}</p>
+                    {(showEmailError || errors.email) && (
+                        <p className="text-sm text-red-500">{errors.email?.message}</p>
                     )}
                     {fieldErrors.email && (
                         <p className="text-sm text-red-500">
@@ -233,13 +245,13 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
                             type={showPassword ? 'text' : 'password'}
                             {...register('password')}
                             className={clsx('pr-10 h-12', {
-                                'border-red-500': showPasswordError,
+                                'border-red-500': showPasswordError || errors.password,
                             })}
                             placeholder="Enter your password"
                         />
                     </div>
-                    {showPasswordError && errors.password && (
-                        <p className="text-sm text-red-500">{errors.password.message}</p>
+                    {(showPasswordError || errors.password) && (
+                        <p className="text-sm text-red-500">{errors.password?.message}</p>
                     )}
                     {fieldErrors.password && (
                         <p className="text-sm text-red-500">
@@ -267,13 +279,13 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
                             type={showConfirmPassword ? 'text' : 'password'}
                             {...register('confirmPassword')}
                             className={clsx('pr-10 h-12', {
-                                'border-red-500': showConfirmPasswordError,
+                                'border-red-500': showConfirmPasswordError || errors.confirmPassword,
                             })}
                             placeholder="Confirm your password"
                         />
                     </div>
-                    {showConfirmPasswordError && errors.confirmPassword && (
-                        <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
+                    {(showConfirmPasswordError || errors.confirmPassword) && (
+                        <p className="text-sm text-red-500">{errors.confirmPassword?.message}</p>
                     )}
                     {fieldErrors.confirmPassword && (
                         <p className="text-sm text-red-500">

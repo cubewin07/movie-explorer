@@ -13,8 +13,14 @@ import clsx from 'clsx';
 import { useDebounceValidation } from '@/hooks/useDebounceValidation';
 
 const schema = z.object({
-    email: z.string().email({ message: 'Invalid email format' }),
-    password: z.string().min(8, { message: 'Password must be at least 8 characters' }),
+    email: z
+        .string()
+        .min(1, 'Email is required')
+        .email({ message: 'Invalid email format' }),
+    password: z
+        .string()
+        .min(1, 'Password is required')
+        .min(8, { message: 'Password must be at least 8 characters' }),
 });
 
 export default function Login({ onSuccess, onShowRegister, hideHeader }) {
@@ -121,12 +127,12 @@ export default function Login({ onSuccess, onShowRegister, hideHeader }) {
                             id="email"
                             {...register('email')}
                             className={clsx('pl-10 h-12 w-full', {
-                                'border-red-500': showEmailError,
+                                'border-red-500': showEmailError || errors.email,
                             })}
                             placeholder="Enter your email"
                         />
                     </div>
-                    {showEmailError && errors.email && (
+                    {(showEmailError || errors.email) && (
                         <p className="text-sm text-red-500">{errors.email?.message}</p>
                     )}
                 </div>
@@ -148,12 +154,12 @@ export default function Login({ onSuccess, onShowRegister, hideHeader }) {
                             type={showPassword ? 'text' : 'password'}
                             {...register('password')}
                             className={clsx('pr-10 h-12 w-full', {
-                                'border-red-500': showPasswordError && errors.password,
+                                'border-red-500': showPasswordError || errors.password,
                             })}
                             placeholder="Enter your password"
                         />
                     </div>
-                    {showPasswordError && errors.password && (
+                    {(showPasswordError || errors.password) && (
                         <p className="text-sm text-red-500">{errors.password?.message}</p>
                     )}
                 </div>
