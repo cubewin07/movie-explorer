@@ -83,13 +83,19 @@ public class ChatService {
     }
 
     @Transactional
-    public SimpleChatDTO createChat(Long user1Id, Long user2Id) {
-        log.debug("Creating chat between user IDs: {} and {}", user1Id, user2Id);
+    public SimpleChatDTO createChat(Long otherUserId, User authenticatedUser) {
+        validateNotNull(otherUserId, "Other user ID");
+        validateNotNull(authenticatedUser, "Authenticated user");
         
-        User user1 = findUserById(user1Id);
-        User user2 = findUserById(user2Id);
+        if (otherUserId.equals(authenticatedUser.getId())) {
+            throw new ChatValidationException("Cannot create a chat with the same user");
+        }
+        
+        log.debug("Creating chat between user ID {} and authenticated user {}", otherUserId, authenticatedUser.getId());
+        
+        User otherUser = findUserById(otherUserId);
 
-        return createChat(user1, user2);
+        return createChat(authenticatedUser, otherUser);
     }
 
     @Transactional

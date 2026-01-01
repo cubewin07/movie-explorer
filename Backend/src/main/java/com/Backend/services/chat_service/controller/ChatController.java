@@ -32,7 +32,9 @@ public class ChatController {
 
     @PostMapping("/private")
     public ResponseEntity<SimpleChatDTO> createChat(@RequestBody ChatCreateDTOID chat, @AuthenticationPrincipal User user) {
-        SimpleChatDTO chatDTO = chatService.createChat(chat.user1Id(), chat.user2Id());
+        Long otherUserId = chat.userIds().stream().findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("User ID is required"));
+        SimpleChatDTO chatDTO = chatService.createChat(otherUserId, user);
         return ResponseEntity.ok(chatDTO);
     }
 
