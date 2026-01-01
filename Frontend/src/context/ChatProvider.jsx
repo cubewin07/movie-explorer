@@ -1,8 +1,9 @@
-import { createContext, useState, useContext, useEffect, useRef } from 'react';
+import { createContext, useState, useContext, useEffect, useRef, useCallback } from 'react';
 import { useWebsocket } from '@/context/Websocket/WebsocketProvider';
 import useCreateChat from '@/hooks/chat/useCreateChat';
 import { useAuthen } from './AuthenProvider';
 import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 
 const ChatContext = createContext();
@@ -82,35 +83,103 @@ function ChatProvider({ children }) {
   }, [newChatIds]);
 
   // Function to create a new chat
-  const createChat = (participants) => {
-    // Logic to create a new chat via WebSocket or API
-    // For example, send a message to the server to create a new chat
-    const payload = {}
-    if(!Array.isArray(participants) && participants) {
-        participants = [participants];
+  const createChat = useCallback(async (userIds) => {
+    // 1. Input validation
+    if (!userIds || (Array.isArray(userIds) && userIds.length === 0)) {
+        console.warn("createChat: No user IDs provided");
+        return null;
     }
-    if (stompClientRef.current && stompClientRef.current.connected) {
-        for(var i = 0; i < participants.length; i++) {
-            const id = i + 1;
-            payload['user' + id + 'Id'] = participants[i];
+
+    // 2. WebSocket connection check with proper feedback
+    if (!stompClientRef.current?.connected) {
+        toast.error(
+            "Connection lost. Please check your internet connection.",
+            {
+                description: "WebSocket is not connected"
+            }
+        );
+        return null;
+    }
+
+    // 3. Check for existing chat to prevent duplicates
+    const normalizedIds = Array.isArray(userIds) ? userIds : [userIds];
+    const existingChat = chats.find(chat => {
+        const chatParticipants = new Set(
+            chat.participants?.map(p => p.id) || []
+        );
+        // For 1-on-1 chats, check if same participants
+        if (normalizedIds.length === 1) {
+            return chatParticipants.has(normalizedIds[0]) && 
+                   chatParticipants.size === 2; // 2 = user + other
         }
-        createChatMutation(payload, {
+        // For group chats, check exact match
+        return normalizedIds.every(id => chatParticipants.has(id)) &&
+               chatParticipants.size === normalizedIds.length + 1;
+    });
+
+    if (existingChat) {
+        console.log("Chat already exists, switching to existing chat");
+        setActiveChat(existingChat.id);
+        return existingChat;
+    }
+
+    // 4. Create the chat with proper error handling
+    return new Promise((resolve, reject) => {
+        createChatMutation(normalizedIds, {
             onSuccess: (data) => {
-              queryClient.invalidateQueries({ queryKey: ['userInfo', token] });
-              console.log(data);
-              data.latestMessage = null;
-              setChats((prevChats) => [data,...prevChats]);
-              subscribeToChat(data.id);
-              setActiveChat(data.id);
-              setNewChatIds((prev) => new Set(prev).add(data.id));
-              return data;
+                try {
+                    // Invalidate user info to refresh
+                    queryClient.invalidateQueries({ 
+                        queryKey: ['userInfo', token] 
+                    });
+
+                    // Initialize chat data
+                    const newChat = {
+                        ...data,
+                        latestMessage: null
+                    };
+
+                    // Add to local state
+                    setChats((prevChats) => [newChat, ...prevChats]);
+
+                    // Subscribe to chat messages
+                    subscribeToChat(stompClientRef.current, data.id);
+
+                    // Set as active chat
+                    setActiveChat(data.id);
+
+                    // Mark as new (visual indicator)
+                    setNewChatIds((prev) => new Set(prev).add(data.id));
+
+                    // Show success feedback
+                    toast.success("Chat created successfully", {
+                        duration: 2000
+                    });
+
+                    resolve(newChat);
+                } catch (error) {
+                    console.error("Error processing chat creation response:", error);
+                    reject(error);
+                }
             },
             onError: (error) => {
                 console.error("Failed to create chat:", error);
+                
+                // User-friendly error messages
+                const errorMessage = 
+                    error.response?.data?.message || 
+                    error.message || 
+                    "Failed to create chat";
+
+                toast.error("Failed to create chat", {
+                    description: errorMessage
+                });
+
+                reject(error);
             }
         });
-    }
-  }
+    });
+}, [chats, token, createChatMutation, queryClient, stompClientRef]);
 
   // Function to send a message via WebSocket
   const sendMessage = async (chatId, message) => {
