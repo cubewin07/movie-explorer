@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.Backend.services.chat_service.model.DTO.ChatCreateDTOID;
-import com.Backend.services.chat_service.model.DTO.ChatCreateGroupID;
 import com.Backend.services.chat_service.model.DTO.ChatResponseDTO;
 import com.Backend.services.chat_service.model.DTO.SimpleChatDTO;
 import com.Backend.services.chat_service.service.ChatService;
