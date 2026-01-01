@@ -37,7 +37,7 @@ public class ChatController {
     }
 
     @PostMapping("/group")
-    public ResponseEntity<Long> createGroupChat(@RequestBody ChatCreateGroupID chat) {
+    public ResponseEntity<Long> createGroupChat(@RequestBody ChatCreateDTOID chat) {
         Long chatId = chatService.createGroupChatByIds(chat.userIds()).getId();
         return ResponseEntity.ok(chatId);
     }

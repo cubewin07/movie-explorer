@@ -1,7 +1,8 @@
 package com.Backend.services.chat_service.model.DTO;
 
+import java.util.Set;
+
 public record ChatCreateDTOID(
-    Long user1Id, 
-    Long user2Id
+    Set<Long> userIds
 ) 
 {}
