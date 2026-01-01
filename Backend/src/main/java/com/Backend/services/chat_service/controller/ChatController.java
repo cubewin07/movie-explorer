@@ -31,7 +31,7 @@ public class ChatController {
     private final ChatLookUpHelper chatLookUpHelper;
 
     @PostMapping("/private")
-    public ResponseEntity<SimpleChatDTO> createChat(@RequestBody ChatCreateDTOID chat) {
+    public ResponseEntity<SimpleChatDTO> createChat(@RequestBody ChatCreateDTOID chat, @AuthenticationPrincipal User user) {
         SimpleChatDTO chatDTO = chatService.createChat(chat.user1Id(), chat.user2Id());
         return ResponseEntity.ok(chatDTO);
     }
