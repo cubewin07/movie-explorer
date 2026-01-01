@@ -132,7 +132,7 @@ export default function Login({ onSuccess, onShowRegister, hideHeader }) {
                             id="email"
                             {...register('email')}
                             className={clsx('pl-10 h-12 w-full', {
-                                'border-red-500': showEmailError || errors.email,
+                                'border-red-500 focus-visible: !ring-red-500': showEmailError || errors.email,
                             })}
                             placeholder="Enter your email"
                         />
@@ -163,7 +163,7 @@ export default function Login({ onSuccess, onShowRegister, hideHeader }) {
                             type={showPassword ? 'text' : 'password'}
                             {...register('password')}
                             className={clsx('pr-10 h-12 w-full', {
-                                'border-red-500': showPasswordError || errors.password,
+                                'border-red-500 focus-visible: !ring-red-500': showPasswordError || errors.password,
                             })}
                             placeholder="Enter your password"
                         />
