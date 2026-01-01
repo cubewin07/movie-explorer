@@ -191,7 +191,7 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
                             id="username"
                             {...register('username')}
                             className={clsx('pl-10 h-12', {
-                                'border-red-500 focus:border-red-500 focus:ring-red-500': showUsernameError || errors.username,
+                                'border-red-500 focus-visible:ring-red-500': showUsernameError || errors.username,
                             })}
                             placeholder="Enter your username"
                         />
@@ -222,7 +222,7 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
                             id="email"
                             {...register('email')}
                             className={clsx('pl-10 h-12', {
-                                'border-red-500': showEmailError || errors.email,
+                                'border-red-500 focus-visible: !ring-red-500': showEmailError || errors.email,
                             })}
                             placeholder="Enter your email"
                         />
@@ -258,7 +258,7 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
                             type={showPassword ? 'text' : 'password'}
                             {...register('password')}
                             className={clsx('pr-10 h-12', {
-                                'border-red-500': showPasswordError || errors.password,
+                                'border-red-500 focus-visible: !ring-red-500': showPasswordError || errors.password,
                             })}
                             placeholder="Enter your password"
                         />
@@ -296,7 +296,7 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
                             type={showConfirmPassword ? 'text' : 'password'}
                             {...register('confirmPassword')}
                             className={clsx('pr-10 h-12', {
-                                'border-red-500': showConfirmPasswordError || errors.confirmPassword,
+                                'border-red-500 focus-visible: !ring-red-500': showConfirmPasswordError || errors.confirmPassword,
                             })}
                             placeholder="Confirm your password"
                         />
