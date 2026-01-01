@@ -86,6 +86,9 @@ function ChatProvider({ children }) {
     // Logic to create a new chat via WebSocket or API
     // For example, send a message to the server to create a new chat
     const payload = {}
+    if(!Array.isArray(participants) && participants) {
+        participants = [participants];
+    }
     if (stompClientRef.current && stompClientRef.current.connected) {
         for(var i = 0; i < participants.length; i++) {
             const id = i + 1;
