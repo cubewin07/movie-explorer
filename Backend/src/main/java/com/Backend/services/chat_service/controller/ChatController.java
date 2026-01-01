@@ -2,6 +2,7 @@ package com.Backend.services.chat_service.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,6 +32,7 @@ public class ChatController {
     private final ChatLookUpHelper chatLookUpHelper;
 
     @PostMapping("/private")
+    @Transactional
     public ResponseEntity<SimpleChatDTO> createChat(@RequestBody ChatCreateDTOID chat, @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(chatService.createChat(chat.userIds(), user));
     }

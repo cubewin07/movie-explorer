@@ -13,3 +13,6 @@ spring:
   h2:
     console:
       enabled: true
+  data:
+    redis:
+      url: redis://localhost:6379

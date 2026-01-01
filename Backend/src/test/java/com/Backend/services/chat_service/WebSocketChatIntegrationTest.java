@@ -103,13 +103,15 @@ class WebSocketChatIntegrationTest {
     }
 
     private long createPrivateChat(String token, long user1Id, long user2Id) throws Exception {
-        Map<String, Long> payload = Map.of(
-                "user1Id", user1Id,
-                "user2Id", user2Id
+        Map<String, Object> payload = Map.of(
+                "userIds", List.of(user2Id)
         );
         HttpEntity<String> entity = new HttpEntity<>(objectMapper.writeValueAsString(payload), bearerHeaders(token));
         ResponseEntity<String> response = restTemplate.exchange(baseUrl("/chats/private"), HttpMethod.POST, entity, String.class);
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        if (!response.getStatusCode().equals(HttpStatus.OK)) {
+            log.error("Failed to create chat. Status: {}, Body: {}", response.getStatusCode(), response.getBody());
+            throw new RuntimeException("Failed to create chat: " + response.getBody());
+        }
         SimpleChatDTO chatDTO = objectMapper.readValue(Objects.requireNonNull(response.getBody()), SimpleChatDTO.class);
         return chatDTO.id();
     }

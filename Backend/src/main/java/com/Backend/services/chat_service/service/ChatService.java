@@ -96,9 +96,11 @@ public class ChatService {
         
         log.debug("Creating chat between user ID {} and authenticated user {}", otherUserId, authenticatedUser.getId());
         
+        // Reload both users from database to avoid lazy loading issues with detached entities
+        User authenticatedUserFresh = findUserById(authenticatedUser.getId());
         User otherUser = findUserById(otherUserId);
 
-        return createChat(authenticatedUser, otherUser);
+        return createChat(authenticatedUserFresh, otherUser);
     }
 
     @Transactional
