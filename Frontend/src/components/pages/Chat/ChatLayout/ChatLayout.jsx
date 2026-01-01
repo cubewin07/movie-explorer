@@ -11,7 +11,8 @@ import { ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useChatTabs } from './useChatTabs';
 import { useSidebarContentSelector } from './useSidebarContentSelector.jsx';
-import { TAB_CONFIG } from './chatTabConstants';
+import { TAB_CONFIG, CHAT_TABS } from './chatTabConstants';
+import { useChat } from '@/context/ChatProvider';
 
 export default function ChatLayout() {
   const [showMobileContent, setShowMobileContent] = useState(false);
@@ -19,6 +20,7 @@ export default function ChatLayout() {
   const { activeTab, handleTabChange } = useChatTabs();
   const navigate = useNavigate();
   const { getSidebarContent } = useSidebarContentSelector(activeTab, navigate);
+  const { activeChat, setActiveChat } = useChat();
 
   // Handle screen resize
   useEffect(() => {
@@ -28,8 +30,15 @@ export default function ChatLayout() {
   }, []);
 
   const handleMobileTabChange = (value) => {
+    // If navigating away from Chats, clear activeChat first to avoid redirecting back
+    if (value !== CHAT_TABS.CHATS) {
+      setActiveChat(null);
+    }
     handleTabChange(value, setShowMobileContent);
   };
+
+  // Note: We avoid auto-navigation on activeChat here to prevent flicker.
+  // Navigation to conversations happens explicitly at action call sites.
 
   return (
     <div className="h-[calc(100vh-9.5rem)] flex rounded-md">

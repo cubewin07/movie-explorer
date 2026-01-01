@@ -25,8 +25,8 @@ export const useFriendListActions = () => {
       
       if (chat) {
         console.log("Chat created/opened:", chat.id);
-        // Chat Provider already sets activeChat, so UI will navigate
-        // No additional action needed
+        // Explicitly navigate to the chat conversation
+        navigate(`/friend/chat/${chat.id}`);
       }
     } catch (error) {
       console.error("Error opening chat with friend:", error);

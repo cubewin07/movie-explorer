@@ -43,7 +43,7 @@ export default function ChatConversation() {
     const sendCooldownRef = useRef(0);
     const prevChatId = useRef(chatId);
 
-    const { sendMessage } = useChat();
+    const { activeChat, setActiveChat, sendMessage } = useChat();
     const { user } = useAuthen();
     const { friends } = useWebsocket();
     const { getStatusDisplay: getStatusDisplayHelper } = useHelper();
@@ -92,6 +92,19 @@ export default function ChatConversation() {
     }, [user?.chats, chatId, user?.id]);
 
     const statusDisplay = getStatusDisplayHelper(friendStatus);
+
+    // Ensure activeChat matches the current route chatId
+    useEffect(() => {
+        const idNum = Number(chatId);
+        if (!Number.isNaN(idNum) && activeChat !== idNum) {
+            setActiveChat(idNum);
+        }
+    }, [chatId, activeChat, setActiveChat]);
+
+    // Clear activeChat when leaving this conversation
+    useEffect(() => {
+        return () => setActiveChat(null);
+    }, [setActiveChat]);
 
     // Setup infinite scroll observer
     useEffect(() => {
