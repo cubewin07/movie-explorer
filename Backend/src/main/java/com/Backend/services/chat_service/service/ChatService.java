@@ -83,9 +83,12 @@ public class ChatService {
     }
 
     @Transactional
-    public SimpleChatDTO createChat(Long otherUserId, User authenticatedUser) {
-        validateNotNull(otherUserId, "Other user ID");
+    public SimpleChatDTO createChat(Set<Long> chat, User authenticatedUser) {
+        validateNotNull(chat, "Chat user IDs");
         validateNotNull(authenticatedUser, "Authenticated user");
+
+        Long otherUserId = chat.stream().findFirst()
+            .orElseThrow(() -> new IllegalArgumentException("User ID is required"));
         
         if (otherUserId.equals(authenticatedUser.getId())) {
             throw new ChatValidationException("Cannot create a chat with the same user");
