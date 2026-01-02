@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 
-@Configuration
+// @Configuration
 public class Multilevel_CacheConfig {
 
     @Bean
