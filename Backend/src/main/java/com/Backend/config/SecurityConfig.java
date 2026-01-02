@@ -59,7 +59,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cors = new CorsConfiguration();
-        cors.setAllowedOrigins(java.util.List.of("http://localhost:5173"));
+        cors.setAllowedOrigins(java.util.List.of("http://localhost:5173", "https://cubewin07.github.io/movie-explorer"));
         cors.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         cors.setAllowedHeaders(java.util.List.of("*")); // broaden to all headers to avoid preflight failures
         cors.setAllowCredentials(true);
