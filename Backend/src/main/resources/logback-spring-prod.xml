@@ -2,7 +2,7 @@
     <appender name="JSON_FILE" class="ch.qos.logback.core.FileAppender">
         <file>logs/application.log</file>
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <provider class="net.logstash.logback.composite.loggingevent.TimestampJsonProvider">
+            <provider class="net.logstash.logback.composite.loggingevent.LoggingEventFormattedTimestampJsonProvider">
                 <pattern>yyyy-MM-dd HH:mm:ss.SSS</pattern>
             </provider>
 
