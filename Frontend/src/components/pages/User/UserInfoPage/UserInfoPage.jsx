@@ -9,6 +9,7 @@ import UserProfileSection from './UserProfileSection';
 import UserWatchlistSection from './UserWatchlistSection';
 import { useFriendshipState } from './useFriendshipState';
 import { useFriendshipActions } from './useFriendshipActions';
+import { useChat } from '@/context/ChatProvider';
 
 /**
  * UserInfoPage - Main component for displaying user profile and watchlist
@@ -19,6 +20,7 @@ const UserInfoPage = () => {
   const [isAccepted, setIsAccepted] = useState(false);
   const { userId } = useParams();
   const navigate = useNavigate();
+  const { createChat } = useChat();
 
   const { mutate: fetchUserInfo, data: userInfo, isLoading, isError } = useUserInfo();
   const { films, isLoading: isFilmsLoading, error: filmsError } = useWatchlistFilmData(
@@ -42,6 +44,18 @@ const UserInfoPage = () => {
   const handleRetry = () => {
     if (userId) {
       fetchUserInfo(userId);
+    }
+  };
+
+  const handleMessage = async (user) => {
+    try {
+      if (!user?.id) return;
+      const chat = await createChat(user.id);
+      if (chat?.id) {
+        navigate(`/friend/chat/${chat.id}`);
+      }
+    } catch (e) {
+      toast.error('Could not open chat', { description: 'Please try again' });
     }
   };
 
@@ -144,6 +158,7 @@ const UserInfoPage = () => {
           isLoading={isLoading}
           onBackClick={() => navigate(-1)}
           friendshipActions={friendshipActions}
+          onMessage={handleMessage}
         />
 
         <UserWatchlistSection

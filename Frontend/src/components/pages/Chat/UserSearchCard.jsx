@@ -1,8 +1,8 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Info } from "lucide-react";
+import { Info, MessageCircle } from "lucide-react";
 
-const UserSearchCard = ({ user, compact, onViewDetails }) => {
+const UserSearchCard = ({ user, compact, onViewDetails, onMessage }) => {
   return (
     <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
       <Avatar>
@@ -19,6 +19,14 @@ const UserSearchCard = ({ user, compact, onViewDetails }) => {
         )}
       </div>
       <div className="flex gap-1.5">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 mt-[3px]"
+          onClick={() => onMessage?.(user)}
+        >
+          <MessageCircle className="h-4 w-4" />
+        </Button>
         <Button 
           variant="ghost" 
           size="icon"

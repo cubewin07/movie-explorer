@@ -10,11 +10,13 @@ import useUserSearch from "@/hooks/friend/useUserSearch";
 import useUserInfo from "@/hooks/API/useUserInfo";
 import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
+import { useChat } from "@/context/ChatProvider";
 
 const AddFriendTab = ({ compact }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedQuery, setDebouncedQuery] = useState('');
     const navigate = useNavigate();
+    const { createChat } = useChat();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -28,6 +30,18 @@ const AddFriendTab = ({ compact }) => {
 
   const handleViewDetails = (user) => {
     navigate(`/user/${user.id}`);
+  };
+
+  const handleMessage = async (user) => {
+    try {
+      if (!user?.id) return;
+      const chat = await createChat(user.id);
+      if (chat?.id) {
+        navigate(`/friend/chat/${chat.id}`);
+      }
+    } catch (e) {
+      toast.error('Could not open chat', { description: 'Please try again' });
+    }
   };
 
   return (
@@ -54,6 +68,7 @@ const AddFriendTab = ({ compact }) => {
                 user={user}
                 compact={compact}
                 onViewDetails={handleViewDetails}
+                onMessage={handleMessage}
               />
             ))}
           </div>

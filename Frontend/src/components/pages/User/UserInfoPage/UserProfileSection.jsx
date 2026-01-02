@@ -1,4 +1,4 @@
-import { User, Mail, ArrowLeft } from 'lucide-react';
+import { User, Mail, ArrowLeft, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import FriendshipStatusButton from './FriendshipStatusButton';
 
@@ -11,6 +11,7 @@ const UserProfileSection = ({
   isLoading,
   onBackClick,
   friendshipActions,
+  onMessage,
 }) => {
   const totalWatchlistItems =
     (userInfo.watchlist?.moviesId?.length || 0) + (userInfo.watchlist?.seriesId?.length || 0);
@@ -70,6 +71,7 @@ const UserProfileSection = ({
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4 }}
+            className="flex items-center gap-3"
           >
             <FriendshipStatusButton
               friendshipState={friendshipState}
@@ -79,6 +81,15 @@ const UserProfileSection = ({
               onBlockRequest={friendshipActions.handleBlockRequest}
               onCancelRequest={friendshipActions.handleCancelRequest}
             />
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => onMessage?.(userInfo)}
+              className="px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow hover:shadow-md transition-all flex items-center gap-2"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>Message</span>
+            </motion.button>
           </motion.div>
         </div>
 
