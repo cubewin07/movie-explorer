@@ -6,8 +6,8 @@ RUN chmod +x gradlew
 RUN ./gradlew build -x test
 
 # ---------- Run stage ----------
-From eclipse-temurin:21-jre
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 COPY --from=builder /app/build/libs/*.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "app.jar", "--server.port=${PORT}"]
+# Don't expose specific port - Render handles this
+ENTRYPOINT ["java", "-jar", "app.jar"]
