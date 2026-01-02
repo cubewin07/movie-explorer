@@ -51,3 +51,4 @@ security:
     expiration: ${SECURITY_JWT_EXPIRATION:864000000}
 server:
   port: ${PORT:8080}
+  address: 0.0.0.0
