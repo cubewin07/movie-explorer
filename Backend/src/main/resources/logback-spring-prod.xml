@@ -6,10 +6,16 @@
                 <pattern>yyyy-MM-dd HH:mm:ss.SSS</pattern>
             </provider>
 
-            <provider class="net.logstash.logback.composite.loggingevent.ThreadNameJsonProvider"/>
-            <provider class="net.logstash.logback.composite.loggingevent.LoggerNameJsonProvider"/>
-            <provider class="net.logstash.logback.composite.loggingevent.LogLevelJsonProvider"/>
-            <provider class="net.logstash.logback.composite.loggingevent.MessageJsonProvider"/>
+            <provider class="net.logstash.logback.composite.loggingevent.LoggingEventPatternJsonProvider">
+                <pattern>
+                    {
+                    "thread": "%thread",
+                    "logger": "%logger",
+                    "level": "%level",
+                    "message": "%message"
+                    }
+                </pattern>
+            </provider>
             <provider class="net.logstash.logback.composite.loggingevent.MdcJsonProvider"/>
         </encoder>
     </appender>
