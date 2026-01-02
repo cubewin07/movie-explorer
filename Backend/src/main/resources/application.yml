@@ -4,16 +4,16 @@ spring:
   main:
     web-application-type: servlet
   datasource:
-    url: ${DATABASE_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    driver-class-name: org.postgresql.Driver
-    hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
-      idle-timeout: 300000
-      max-lifetime: 1700000
-      connection-timeout: 30000
+    # url: ${DATABASE_URL}
+    # username: ${DB_USERNAME}
+    # password: ${DB_PASSWORD}
+    # driver-class-name: org.postgresql.Driver
+    # hikari:
+    #   maximum-pool-size: 10
+    #   minimum-idle: 5
+    #   idle-timeout: 300000
+    #   max-lifetime: 1700000
+    #   connection-timeout: 30000
   data:
     redis:
       # url: ${REDIS_URL}
