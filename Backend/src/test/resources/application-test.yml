@@ -15,4 +15,4 @@ spring:
       enabled: true
   data:
     redis:
-      url: redis://localhost:6379
+      url: ${REDIS_URL}
