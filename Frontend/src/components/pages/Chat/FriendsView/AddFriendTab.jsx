@@ -5,20 +5,19 @@ import { Search } from "lucide-react";
 import ErrorState from "@/components/ui/ErrorState";
 import LoadingState from "@/components/ui/LoadingState";
 import UserSearchCard from "../UserSearchCard";
-import { toast } from "sonner";
 import useUserSearch from "@/hooks/friend/useUserSearch";
 import useUserInfo from "@/hooks/API/useUserInfo";
 import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
+import { useFriendListActions } from "@/hooks/friend/useFriendListActions";
 
-/**
- * AddFriendTab Component
- * Allows users to search for and add new friends
- */
 const AddFriendTab = ({ compact }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedQuery, setDebouncedQuery] = useState('');
     const navigate = useNavigate();
+    const { onMessage } = useFriendListActions();
+
+    
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -58,6 +57,7 @@ const AddFriendTab = ({ compact }) => {
                 user={user}
                 compact={compact}
                 onViewDetails={handleViewDetails}
+                onMessage={onMessage}
               />
             ))}
           </div>
@@ -65,7 +65,7 @@ const AddFriendTab = ({ compact }) => {
 
         {searchResults && searchResults?.totalPages === 0 && debouncedQuery && (
           <div className="text-center text-slate-500 dark:text-slate-400 py-8">
-            No users found matching "{debouncedQuery}"
+            No users found matching "{debouncedQuery}" - try a different search
           </div>
         )}
 
