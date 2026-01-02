@@ -5,18 +5,17 @@ import { Search } from "lucide-react";
 import ErrorState from "@/components/ui/ErrorState";
 import LoadingState from "@/components/ui/LoadingState";
 import UserSearchCard from "./UserSearchCard";
-import { toast } from "sonner";
 import useUserSearch from "@/hooks/friend/useUserSearch";
 import useUserInfo from "@/hooks/API/useUserInfo";
 import { useNavigate } from "react-router";
 import { motion } from "framer-motion";
-import { useChat } from "@/context/ChatProvider";
+import { useFriendListActions } from "@/hooks/friend/useFriendListActions";
 
 const AddFriendTab = ({ compact }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [debouncedQuery, setDebouncedQuery] = useState('');
     const navigate = useNavigate();
-    const { createChat } = useChat();
+    const { onMessage } = useFriendListActions();
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -30,18 +29,6 @@ const AddFriendTab = ({ compact }) => {
 
   const handleViewDetails = (user) => {
     navigate(`/user/${user.id}`);
-  };
-
-  const handleMessage = async (user) => {
-    try {
-      if (!user?.id) return;
-      const chat = await createChat(user.id);
-      if (chat?.id) {
-        navigate(`/friend/chat/${chat.id}`);
-      }
-    } catch (e) {
-      toast.error('Could not open chat', { description: 'Please try again' });
-    }
   };
 
   return (
@@ -68,7 +55,7 @@ const AddFriendTab = ({ compact }) => {
                 user={user}
                 compact={compact}
                 onViewDetails={handleViewDetails}
-                onMessage={handleMessage}
+                onMessage={onMessage}
               />
             ))}
           </div>
