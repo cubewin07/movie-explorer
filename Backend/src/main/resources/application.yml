@@ -16,7 +16,7 @@ spring:
       connection-timeout: 30000
   data:
     redis:
-      url: ${REDIS_URL}
+      # url: ${REDIS_URL}
   jpa:
     hibernate:
       ddl-auto: none
