@@ -2,16 +2,15 @@
     <appender name="JSON_FILE" class="ch.qos.logback.core.FileAppender">
         <file>logs/application.log</file>
         <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-            <providers>
-                <timestamp>
-                    <pattern>yyyy-MM-dd HH:mm:ss.SSS</pattern>
-                </timestamp>
-                <threadName/>
-                <loggerName/>
-                <logLevel/>
-                <message/>
-                <mdc/>
-            </providers>
+            <provider class="net.logstash.logback.composite.loggingevent.TimestampJsonProvider">
+                <pattern>yyyy-MM-dd HH:mm:ss.SSS</pattern>
+            </provider>
+
+            <provider class="net.logstash.logback.composite.loggingevent.ThreadNameJsonProvider"/>
+            <provider class="net.logstash.logback.composite.loggingevent.LoggerNameJsonProvider"/>
+            <provider class="net.logstash.logback.composite.loggingevent.LogLevelJsonProvider"/>
+            <provider class="net.logstash.logback.composite.loggingevent.MessageJsonProvider"/>
+            <provider class="net.logstash.logback.composite.loggingevent.MdcJsonProvider"/>
         </encoder>
     </appender>
 
