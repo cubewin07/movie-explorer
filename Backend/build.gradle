@@ -113,9 +113,9 @@ dependencies {
 }
 
 flyway {
-    url = 'jdbc:postgresql://localhost:5432/movie_explorer'
+    url = 'jdbc:postgresql://db.yldmzzbfttruhcqeucic.supabase.co:5432/postgres?sslmode=require'
     user = 'postgres'
-    password = '071208'
+    password = 'Thangcubewin'
     schemas = ['public']
     locations = ['classpath:db/migration']
     cleanDisabled = false
