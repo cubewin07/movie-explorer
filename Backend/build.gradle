@@ -113,9 +113,9 @@ dependencies {
 }
 
 flyway {
-    url = 'jdbc:postgresql://db.yldmzzbfttruhcqeucic.supabase.co:5432/postgres?sslmode=require'
-    user = 'postgres'
-    password = 'Thangcubewin'
+    url = 'jdbc:postgresql://postgres.yldmzzbfttruhcqeucic:Thangcubewin@aws-1-ap-northeast-2.pooler.supabase.com:5432/postgres'
+    // user = 'postgres.yldmzzbfttruhcqeucic'
+    // password = 'Thangcubewin'
     schemas = ['public']
     locations = ['classpath:db/migration']
     cleanDisabled = false
