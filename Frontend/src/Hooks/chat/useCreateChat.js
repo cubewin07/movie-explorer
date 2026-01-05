@@ -38,7 +38,7 @@ const useCreateChat = (token) => {
             });
 
             // Invalidate user info to refresh chat list
-            queryClient.invalidateQueries({ queryKey: ['userInfo', token] });
+            // queryClient.invalidateQueries({ queryKey: ['userInfo', token] });
             
             // Optional: Invalidate chats list if it exists
             queryClient.invalidateQueries({ queryKey: ['chats'] });

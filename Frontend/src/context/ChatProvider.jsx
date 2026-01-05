@@ -129,9 +129,9 @@ function ChatProvider({ children }) {
             onSuccess: (data) => {
                 try {
                     // Invalidate user info to refresh
-                    queryClient.invalidateQueries({ 
-                        queryKey: ['userInfo', token] 
-                    });
+                    // queryClient.invalidateQueries({ 
+                    //    queryKey: ['userInfo', token] 
+                    // });
 
                     // Initialize chat data
                     const newChat = {
