@@ -139,8 +139,13 @@ function ChatProvider({ children }) {
                         latestMessage: null
                     };
 
-                    // Add to local state
-                    setChats((prevChats) => [newChat, ...prevChats]);
+                    // Add to local state if not already present (sync with cache)
+                    setChats((prevChats) => {
+                        if (prevChats.some(c => c.id === newChat.id)) {
+                            return prevChats;
+                        }
+                        return [newChat, ...prevChats];
+                    });
 
                     // Subscribe to chat messages
                     subscribeToChat(stompClientRef.current, data.id);

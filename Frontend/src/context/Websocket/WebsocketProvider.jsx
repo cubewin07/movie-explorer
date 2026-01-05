@@ -38,7 +38,7 @@ function WebsocketProvider({ children }) {
       console.log("WebSocket effect running", user, token, stompClientRef.current);
       
       const stompClient = new Client({
-        brokerURL: `ws://${import.meta.env.VITE_BACKEND_URL}/ws?userId=${user?.id}`,
+        brokerURL: "ws://localhost:8080/ws?userId=" + user?.id ,
         debug: (str) => {
           console.log(str);
         },
