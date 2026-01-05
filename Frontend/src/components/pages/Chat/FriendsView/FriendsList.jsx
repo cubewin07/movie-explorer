@@ -41,7 +41,7 @@ const FriendsList = ({
       
       <ScrollArea className={compact ? 'h-[calc(100vh-16rem)]' : 'h-[calc(100%-8rem)]'}>
         {isLoadingFriends && <LoadingState />}
-        {error && <ErrorState message="Failed to load friends" />}
+        {error && <ErrorState message="Failed to load friends" fullScreen={false}/>}
         {friends && (
           <div className="space-y-2">
             {filteredFriends.map((friend) => {
