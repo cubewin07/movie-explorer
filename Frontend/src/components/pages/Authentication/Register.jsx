@@ -60,13 +60,14 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
     const password = watch('password');
     const confirmPassword = watch('confirmPassword');
 
-    // Use debounced validation for better UX
+    // Use debounced validation for better UX (2 second delay)
     const showUsernameError = useDebounceValidation(
         'username',
         username,
         dirtyFields.username,
         trigger,
-        500
+        errors,
+        2000
     );
 
     const showEmailError = useDebounceValidation(
@@ -74,7 +75,8 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
         email,
         dirtyFields.email,
         trigger,
-        500
+        errors,
+        2000
     );
 
     const showPasswordError = useDebounceValidation(
@@ -82,7 +84,8 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
         password,
         dirtyFields.password,
         trigger,
-        500
+        errors,
+        2000
     );
 
     const showConfirmPasswordError = useDebounceValidation(
@@ -90,7 +93,8 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
         confirmPassword,
         dirtyFields.confirmPassword,
         trigger,
-        500
+        errors,
+        2000
     );
 
     const onSubmit = async (data) => {
@@ -184,19 +188,19 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
                     <motion.div
                         className="relative"
                         variants={inputShakeVariants}
-                        animate={showUsernameError || errors.username ? 'shake' : 'normal'}
+                        animate={showUsernameError ? 'shake' : 'normal'}
                     >
                         <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <Input
                             id="username"
                             {...register('username')}
                             className={clsx('pl-10 h-12', {
-                                'border-red-500 focus-visible:ring-red-500': showUsernameError || errors.username,
+                                'border-red-500 focus-visible:ring-red-500': showUsernameError,
                             })}
                             placeholder="Enter your username"
                         />
                     </motion.div>
-                    {(showUsernameError || errors.username) && (
+                    {showUsernameError && (
                         <p className="text-sm text-red-500">{errors.username?.message}</p>
                     )}
                     {fieldErrors.username && (
@@ -215,19 +219,19 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
                     <motion.div
                         className="relative"
                         variants={inputShakeVariants}
-                        animate={showEmailError || errors.email ? 'shake' : 'normal'}
+                        animate={showEmailError ? 'shake' : 'normal'}
                     >
                         <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <Input
                             id="email"
                             {...register('email')}
                             className={clsx('pl-10 h-12', {
-                                'border-red-500 focus-visible: !ring-red-500': showEmailError || errors.email,
+                                'border-red-500 focus-visible:ring-red-500': showEmailError,
                             })}
                             placeholder="Enter your email"
                         />
                     </motion.div>
-                    {(showEmailError || errors.email) && (
+                    {showEmailError && (
                         <p className="text-sm text-red-500">{errors.email?.message}</p>
                     )}
                     {fieldErrors.email && (
@@ -244,7 +248,7 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
                     <motion.div
                         className="relative"
                         variants={inputShakeVariants}
-                        animate={showPasswordError || errors.password ? 'shake' : 'normal'}
+                        animate={showPasswordError ? 'shake' : 'normal'}
                     >
                         <button
                             type="button"
@@ -258,12 +262,12 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
                             type={showPassword ? 'text' : 'password'}
                             {...register('password')}
                             className={clsx('pr-10 h-12', {
-                                'border-red-500 focus-visible: !ring-red-500': showPasswordError || errors.password,
+                                'border-red-500 focus-visible:ring-red-500': showPasswordError,
                             })}
                             placeholder="Enter your password"
                         />
                     </motion.div>
-                    {(showPasswordError || errors.password) && (
+                    {showPasswordError && (
                         <p className="text-sm text-red-500">{errors.password?.message}</p>
                     )}
                     {fieldErrors.password && (
@@ -282,7 +286,7 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
                     <motion.div
                         className="relative"
                         variants={inputShakeVariants}
-                        animate={showConfirmPasswordError || errors.confirmPassword ? 'shake' : 'normal'}
+                        animate={showConfirmPasswordError ? 'shake' : 'normal'}
                     >
                         <button
                             type="button"
@@ -296,12 +300,12 @@ export default function Register({ onSuccess, onShowLogin, hideHeader }) {
                             type={showConfirmPassword ? 'text' : 'password'}
                             {...register('confirmPassword')}
                             className={clsx('pr-10 h-12', {
-                                'border-red-500 focus-visible: !ring-red-500': showConfirmPasswordError || errors.confirmPassword,
+                                'border-red-500 focus-visible:ring-red-500': showConfirmPasswordError,
                             })}
                             placeholder="Confirm your password"
                         />
                     </motion.div>
-                    {(showConfirmPasswordError || errors.confirmPassword) && (
+                    {showConfirmPasswordError && (
                         <p className="text-sm text-red-500">{errors.confirmPassword?.message}</p>
                     )}
                     {fieldErrors.confirmPassword && (

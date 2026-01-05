@@ -43,13 +43,14 @@ export default function Login({ onSuccess, onShowRegister, hideHeader }) {
     const email = watch('email');
     const password = watch('password');
 
-    // Use debounced validation for better UX
+    // Use debounced validation for better UX (2 second delay)
     const showEmailError = useDebounceValidation(
         'email',
         email,
         dirtyFields.email,
         trigger,
-        1000
+        errors,
+        2000
     );
 
     const showPasswordError = useDebounceValidation(
@@ -57,7 +58,8 @@ export default function Login({ onSuccess, onShowRegister, hideHeader }) {
         password,
         dirtyFields.password,
         trigger,
-        1000
+        errors,
+        2000
     );
 
     const onSubmit = async (data) => {
@@ -125,19 +127,19 @@ export default function Login({ onSuccess, onShowRegister, hideHeader }) {
                     <motion.div
                         className="relative"
                         variants={inputShakeVariants}
-                        animate={showEmailError || errors.email ? 'shake' : 'normal'}
+                        animate={showEmailError ? 'shake' : 'normal'}
                     >
                         <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                         <Input
                             id="email"
                             {...register('email')}
                             className={clsx('pl-10 h-12 w-full', {
-                                'border-red-500 focus-visible: !ring-red-500': showEmailError || errors.email,
+                                'border-red-500 focus-visible:ring-red-500': showEmailError,
                             })}
                             placeholder="Enter your email"
                         />
                     </motion.div>
-                    {(showEmailError || errors.email) && (
+                    {showEmailError && (
                         <p className="text-sm text-red-500">{errors.email?.message}</p>
                     )}
                 </div>
@@ -149,7 +151,7 @@ export default function Login({ onSuccess, onShowRegister, hideHeader }) {
                     <motion.div
                         className="relative"
                         variants={inputShakeVariants}
-                        animate={showPasswordError || errors.password ? 'shake' : 'normal'}
+                        animate={showPasswordError ? 'shake' : 'normal'}
                     >
                         <button
                             type="button"
@@ -163,12 +165,12 @@ export default function Login({ onSuccess, onShowRegister, hideHeader }) {
                             type={showPassword ? 'text' : 'password'}
                             {...register('password')}
                             className={clsx('pr-10 h-12 w-full', {
-                                'border-red-500 focus-visible: !ring-red-500': showPasswordError || errors.password,
+                                'border-red-500 focus-visible:ring-red-500': showPasswordError,
                             })}
                             placeholder="Enter your password"
                         />
                     </motion.div>
-                    {(showPasswordError || errors.password) && (
+                    {showPasswordError && (
                         <p className="text-sm text-red-500">{errors.password?.message}</p>
                     )}
                 </div>
