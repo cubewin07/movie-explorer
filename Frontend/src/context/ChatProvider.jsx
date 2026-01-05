@@ -138,6 +138,21 @@ function ChatProvider({ children }) {
                         ...data,
                         latestMessage: null
                     };
+                    console.log(data)
+
+                    // Update cache immediately to prevent UI flicker/stale data
+                    queryClient.setQueryData(['userInfo', token], (oldUser) => {
+                        if (!oldUser) return oldUser;
+                        
+                        // Check if chat already exists to prevent duplicates
+                        const chatExists = oldUser.chats?.some(chat => chat.id === newChat.id);
+                        if (chatExists) return oldUser;
+
+                        return {
+                            ...oldUser,
+                            chats: [newChat, ...(oldUser.chats || [])]
+                        };
+                    });
 
                     // Add to local state if not already present (sync with cache)
                     setChats((prevChats) => {

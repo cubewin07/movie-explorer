@@ -23,20 +23,6 @@ const useCreateChat = (token) => {
             return response.data;
         },
         onSuccess: (data) => {
-            // Update cache immediately to prevent UI flicker/stale data
-            queryClient.setQueryData(['userInfo', token], (oldUser) => {
-                if (!oldUser) return oldUser;
-                
-                // Check if chat already exists to prevent duplicates
-                const chatExists = oldUser.chats?.some(chat => chat.id === data.id);
-                if (chatExists) return oldUser;
-
-                return {
-                    ...oldUser,
-                    chats: [data, ...(oldUser.chats || [])]
-                };
-            });
-
             // Invalidate user info to refresh chat list
             // queryClient.invalidateQueries({ queryKey: ['userInfo', token] });
             
