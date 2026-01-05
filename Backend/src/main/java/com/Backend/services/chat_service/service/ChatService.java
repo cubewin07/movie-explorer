@@ -14,6 +14,8 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 import com.Backend.exception.ChatValidationException;
 import com.Backend.services.chat_service.model.Chat;
@@ -38,6 +40,9 @@ public class ChatService {
     private final UserLookUpHelper userLookUpHelper;
     private final ApplicationEventPublisher publisher;
     private final MessageService messageService;
+    @Autowired
+    @Lazy
+    private ChatService self;
     
     // ==================== Create Chat Methods ====================
     
@@ -99,8 +104,8 @@ public class ChatService {
         // Reload both users from database to avoid lazy loading issues with detached entities
         User authenticatedUserFresh = findUserById(authenticatedUser.getId());
         User otherUser = findUserById(otherUserId);
-
-        return createChat(authenticatedUserFresh, otherUser);
+        
+        return self.createChat(authenticatedUserFresh, otherUser);
     }
 
     @Transactional
@@ -110,7 +115,7 @@ public class ChatService {
         User user1 = findUserByUsername(username1);
         User user2 = findUserByUsername(username2);
         
-        return createChat(user1, user2);
+        return self.createChat(user1, user2);
     }
     
     // ==================== Create Group Chat Methods ====================
@@ -153,8 +158,10 @@ public class ChatService {
         Set<User> users = fetchUsersByIds(userIds);
         validateGroupChatSize(users);
         
-        return createGroupChat(users);
+        return self.createGroupChat(users);
     }
+
+
 
     // ==================== Getting chat (ChatResponseDTO) ====================
     public ChatResponseDTO gettingChatDTO(Long chatId) {
