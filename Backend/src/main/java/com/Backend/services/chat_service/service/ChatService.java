@@ -280,7 +280,7 @@ public class ChatService {
                 SimpleUserDTO dto = new SimpleUserDTO();
                 dto.setId(user.getId());
                 dto.setEmail(user.getEmail());
-                dto.setUsername(user.getUsername());
+                dto.setUsername(user.getRealUsername());
                 return dto;
             })
             .collect(Collectors.toSet());
