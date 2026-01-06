@@ -466,7 +466,7 @@ export default function ChatConversation() {
 
                                 const message = item.data;
                                 const isLastMessage = index === messageState.groupedMessages.length - 1;
-                                const isSentByUser = (message.senderId ?? message.sender?.id) === user.id;
+                                const isSentByUser = message.senderId === user.id;
                                 const previousMessage = messageState.groupedMessages[index - 1]?.type === 'message' ? messageState.groupedMessages[index - 1].data : null;
                                 const nextMessage = messageState.groupedMessages[index + 1]?.type === 'message' ? messageState.groupedMessages[index + 1].data : null;
                                 const isStart = isGroupStart(message, previousMessage);

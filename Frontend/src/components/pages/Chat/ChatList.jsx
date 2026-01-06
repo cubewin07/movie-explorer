@@ -16,7 +16,7 @@ export default function ChatList() {
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
-  const { chats, newChatIds, chatNotifications, setChatNotifications } = useChat();
+  const { chats, newChatIds } = useChat();
   const { user, token } = useAuthen();
   const { friends } = useWebsocket();
   const { mutate: markMessageAsRead } = useMarkMessageAsRead(token);
@@ -65,16 +65,6 @@ export default function ChatList() {
     });
   }, [filteredChats, newChatIds]);
 
-  const unreadCounts = useMemo(() => {
-    const map = new Map();
-    (chatNotifications || []).forEach(n => {
-      if (n.type === 'chat' && n.read === false) {
-        const id = n.relatedId;
-        map.set(id, (map.get(id) || 0) + 1);
-      }
-    });
-    return map;
-  }, [chatNotifications]);
 
   // Format timestamp to relative time
   const getRelativeTime = (timestamp) => {
@@ -98,7 +88,6 @@ export default function ChatList() {
     navigate(`/friend/chat/${chatId}`);
     markMessageAsRead(chatId);
     markChatNotificationsAsRead.mutate(chatId);
-    setChatNotifications(prev => prev.filter(n => !(n.type === 'chat' && n.relatedId === chatId)));
   }
 
   if (!chats || chats.length === 0) {
@@ -157,11 +146,6 @@ export default function ChatList() {
             sortedChats.map((chat) => {
               const displayInfo = getChatDisplayInfo(chat, user);
               const friendInfo = !displayInfo.isGroup ? getFriendInfo(displayInfo.email, friends) : null;
-              const lm = chat.latestMessage;
-              const senderId = lm?.senderId || lm?.sender?.id;
-              const isRead = lm ? (lm.read ?? lm.isRead ?? true) : true;
-              const hasUnreadNoti = unreadCounts.get(chat.id) > 0;
-              const isUnread = hasUnreadNoti || (!!lm && senderId !== user?.id && isRead === false);
 
               return (
                 <motion.div
@@ -175,7 +159,7 @@ export default function ChatList() {
                     ${
                       chat.id.toString() === activeChatId
                         ? 'bg-blue-200 dark:bg-blue-900 scale-[1.02] shadow-md'
-                        : `${isUnread ? 'bg-indigo-50 dark:bg-slate-800' : ''} hover:bg-slate-100 dark:hover:bg-slate-700 hover:scale-[1.02] hover:shadow-md`
+                        : 'hover:bg-slate-100 dark:hover:bg-slate-700 hover:scale-[1.02] hover:shadow-md'
                     }`}
                   onClick={() => handleClickChat(chat.id)}
                 >
@@ -195,7 +179,7 @@ export default function ChatList() {
                   <div className="flex-1 min-w-0 overflow-hidden">
                     <div className="flex justify-between items-center gap-2 mb-0.5">
                       <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <p className={`${isUnread ? 'font-semibold' : 'font-medium'} text-slate-900 dark:text-slate-100 truncate`}>
+                        <p className="font-medium text-slate-900 dark:text-slate-100 truncate">
                           {displayInfo.name}
                         </p>
                         {/* Friend/Stranger badge */}
@@ -218,14 +202,14 @@ export default function ChatList() {
                         </span>
                       )}
                     </div>
-                    <p className={`text-sm ${isUnread ? 'text-slate-900 dark:text-slate-100 font-medium' : 'text-slate-500 dark:text-slate-400'} truncate overflow-hidden text-ellipsis whitespace-nowrap`}>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 truncate overflow-hidden text-ellipsis whitespace-nowrap">
                       {chat.latestMessage?.content || chat.latestMessage?.text || 'No messages yet'}
                     </p>
                   </div>
                   
-                  {(unreadCounts.get(chat.id) || 0) > 0 && (
+                  {chat.unreadCount > 0 && (
                     <Badge variant="default" className="bg-blue-500 dark:bg-blue-600 flex-shrink-0">
-                      {unreadCounts.get(chat.id)}
+                      {chat.unreadCount}
                     </Badge>
                   )}
                 </motion.div>
