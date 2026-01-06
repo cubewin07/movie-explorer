@@ -83,7 +83,7 @@ export const groupMessagesByDateAndSender = (messages, gapMs = GROUP_GAP_MS) => 
  */
 export const isGroupEnd = (message, nextMessage, gapMs = GROUP_GAP_MS) => {
     if (!nextMessage) return true;
-    if (nextMessage.senderId !== message.senderId) return true;
+    if ((nextMessage.senderId ?? nextMessage.sender?.id) !== (message.senderId ?? message.sender?.id)) return true;
     return (new Date(nextMessage.createdAt) - new Date(message.createdAt)) > gapMs;
 };
 
@@ -96,7 +96,7 @@ export const isGroupEnd = (message, nextMessage, gapMs = GROUP_GAP_MS) => {
  */
 export const isGroupStart = (message, prevMessage, gapMs = GROUP_GAP_MS) => {
     if (!prevMessage) return true;
-    if (prevMessage.senderId !== message.senderId) return true;
+    if ((prevMessage.senderId ?? prevMessage.sender?.id) !== (message.senderId ?? message.sender?.id)) return true;
     return (new Date(message.createdAt) - new Date(prevMessage.createdAt)) > gapMs;
 };
 
@@ -152,7 +152,7 @@ export const getRemainingCharacters = (text, maxLength = MAX_MESSAGE_LENGTH) => 
  * @returns {boolean} True if message is from current user
  */
 export const isSentByUser = (message, userId) => {
-    return message.senderId === userId;
+    return (message.senderId ?? message.sender?.id) === userId;
 };
 
 /**
@@ -192,7 +192,7 @@ export const mergePendingMessages = (serverMessages, pendingMessages) => {
  */
 export const matchesPendingMessage = (pending, server) => {
     return (
-        server.senderId === pending.senderId &&
+        (server.senderId ?? server.sender?.id) === pending.senderId &&
         (server.text || server.content) === (pending.text || pending.content) &&
         Math.abs(new Date(server.createdAt) - new Date(pending.createdAt)) < 30000
     );

@@ -272,17 +272,27 @@ function ChatProvider({ children }) {
               destination ,
               (message) => {
                 const newMessage = JSON.parse(message.body);
-                if(newMessage.type === "markAsRead") {
+                // if(newMessage.type === "markAsRead") {
 
-                  // If the message is a read receipt, do not add it to messages
-                  return;
+                //   // If the message is a read receipt, do not add it to messages
+                //   return;
 
-                }
+                // }
                 queryClient.setQueryData(["chat", chatId, "messages"], (oldData) => {
-                  if (!oldData) return oldData; // Guard against undefined data
-                  console.log(newMessage);
-
-        
+                  const alreadyExists = oldData?.pages?.[0]?.content?.some((m) => m.id === newMessage.id);
+                  if (alreadyExists) return oldData;
+                  if (!oldData) {
+                    return {
+                      pageParams: [0],
+                      pages: [
+                        {
+                          content: [newMessage],
+                          number: 0,
+                          last: true,
+                        },
+                      ],
+                    };
+                  }
                   const updatedPages = oldData.pages.map((page, index) => {
                     if (index === 0) {
                       return {
@@ -292,7 +302,6 @@ function ChatProvider({ children }) {
                     }
                     return page;
                   });
-                  
                   return {
                     ...oldData,
                     pages: updatedPages,
@@ -311,6 +320,34 @@ function ChatProvider({ children }) {
                   const newChats = [...prevChats];
                   newChats.splice(chatIndex, 1);
                   return [updatedChat, ...newChats];
+                });
+
+                queryClient.setQueryData(['userInfo', token], (oldUser) => {
+                  if (!oldUser || !oldUser.chats) return oldUser;
+                  const chatIndex = oldUser.chats.findIndex(c => c.id === Number(chatId));
+                  if (chatIndex === -1) return oldUser;
+                  const senderInfo = (newMessage.sender ?? {
+                    id: newMessage.senderId,
+                    email: user.email,
+                    username: user.username
+                  });
+                  const updatedChat = {
+                    ...oldUser.chats[chatIndex],
+                    latestMessage: {
+                      id: newMessage.id,
+                      content: newMessage.content ?? newMessage.text,
+                      sender: senderInfo,
+                      read: newMessage.isRead ?? (newMessage.senderId !== user.id ? false : true),
+                      createdAt: newMessage.createdAt
+                    }
+                  };
+                  const newChats = [...oldUser.chats];
+                  newChats.splice(chatIndex, 1);
+                  newChats.unshift(updatedChat);
+                  return {
+                    ...oldUser,
+                    chats: newChats
+                  };
                 });
 
               // Add to chat notifications if the message is not from the current user

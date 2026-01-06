@@ -2,7 +2,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_BACKEND_URL, // Adjust as needed
+  baseURL: import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080', // Adjust as needed
   headers: {
     'Content-Type': 'application/json',
   },

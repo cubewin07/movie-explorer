@@ -32,13 +32,21 @@ function WebsocketProvider({ children }) {
         setNotifications(user?.notifications?.filter(noti => noti.type !== 'chat') || []);
     }, [user?.notifications]);
 
+    // Helper to determine WebSocket URL based on environment
+    const getWebSocketUrl = () => {
+        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+        // Replace http/https with ws/wss
+        const wsUrl = backendUrl.replace(/^http/, 'ws');
+        return `${wsUrl}/ws?userId=${user?.id}`;
+    };
+
     // WebSocket connection effect
     useEffect(() => {
       if (!user || !token || stompClientRef.current || isLoadingFriends) return;
       console.log("WebSocket effect running", user, token, stompClientRef.current);
       
       const stompClient = new Client({
-        brokerURL: "ws://localhost:8080/ws?userId=" + user?.id ,
+        brokerURL: getWebSocketUrl(),
         debug: (str) => {
           console.log(str);
         },
@@ -82,6 +90,12 @@ function WebsocketProvider({ children }) {
           console.error('Broker reported error: ' + frame.headers['message']);
           console.error('Additional details: ' + frame.body);
         },
+        onWebSocketClose: (event) => {
+            console.warn("WebSocket connection closed:", event);
+        },
+        onWebSocketError: (event) => {
+            console.error("WebSocket connection error:", event);
+        }
       });
       
       stompClientRef.current = stompClient;
