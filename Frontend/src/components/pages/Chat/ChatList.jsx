@@ -149,6 +149,8 @@ export default function ChatList() {
               const displayInfo = getChatDisplayInfo(chat, user);
               const friendInfo = !displayInfo.isGroup ? getFriendInfo(displayInfo.email, friends) : null;
 
+              const isUnread = !chat?.latestMessage?.read && chat?.latestMessage?.sender?.email !== user?.email && chat?.latestMessage !== null ;
+
               return (
                 <motion.div
                   key={chat.id}
@@ -161,7 +163,7 @@ export default function ChatList() {
                     ${
                       chat.id.toString() === activeChatId
                         ? 'bg-blue-200 dark:bg-blue-900 scale-[1.02] shadow-md'
-                        : 'hover:bg-slate-100 dark:hover:bg-slate-700 hover:scale-[1.02] hover:shadow-md'
+                        : `${isUnread ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-300 dark:ring-blue-600' : ''} hover:bg-slate-100 dark:hover:bg-slate-700 hover:scale-[1.02] hover:shadow-md`
                     }`}
                   onClick={() => handleClickChat(chat.id)}
                 >
@@ -181,7 +183,7 @@ export default function ChatList() {
                   <div className="flex-1 min-w-0 overflow-hidden">
                     <div className="flex justify-between items-center gap-2 mb-0.5">
                       <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <p className="font-medium text-slate-900 dark:text-slate-100 truncate">
+                        <p className={`${isUnread ? 'font-semibold' : 'font-medium'} text-slate-900 dark:text-slate-100 truncate`}>
                           {displayInfo.name}
                         </p>
                         {/* Friend/Stranger badge */}
@@ -199,12 +201,12 @@ export default function ChatList() {
                         )}
                       </div>
                       {chat.latestMessage && (
-                        <span className="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0 whitespace-nowrap">
+                        <span className={`text-xs flex-shrink-0 whitespace-nowrap ${isUnread ? 'text-blue-600 dark:text-blue-400 font-medium' : 'text-slate-500 dark:text-slate-400'}`}>
                           {getRelativeTime(chat.latestMessage.createdAt || chat.latestMessage.timestamp)}
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 truncate overflow-hidden text-ellipsis whitespace-nowrap">
+                    <p className={`text-sm truncate overflow-hidden text-ellipsis whitespace-nowrap ${isUnread ? 'text-slate-800 dark:text-slate-200 font-medium' : 'text-slate-500 dark:text-slate-400'}`}>
                       {chat.latestMessage?.content || chat.latestMessage?.text || 'No messages yet'}
                     </p>
                   </div>
