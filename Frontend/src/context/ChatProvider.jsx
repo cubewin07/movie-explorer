@@ -57,6 +57,41 @@ function ChatProvider({ children }) {
         const newMessage = JSON.parse(message.body);
         console.log(newMessage);
 
+        if (newMessage.type === "confirmMessage") {
+            // Update userInfo cache to reflect the new message in chat list
+            queryClient.setQueryData(['userInfo', token], (oldUser) => {
+                if (!oldUser || !oldUser.chats) return oldUser;
+
+                const chatIndex = oldUser.chats.findIndex(c => c.id === newMessage.chatId);
+                if (chatIndex === -1) return oldUser;
+
+                // Create updated chat with new latest message
+                const updatedChat = {
+                    ...oldUser.chats[chatIndex],
+                    latestMessage: {
+                        id: newMessage.id,
+                        content: newMessage.content,
+                        sender: {
+                            id: user.id,
+                            email: user.email,
+                            username: user.username
+                        },
+                        read: newMessage.isRead,
+                        createdAt: newMessage.createdAt
+                    }
+                };
+
+                // Move updated chat to top
+                const newChats = [...oldUser.chats];
+                newChats.splice(chatIndex, 1);
+                newChats.unshift(updatedChat);
+
+                return {
+                    ...oldUser,
+                    chats: newChats
+                };
+            });
+        }
       }, { id: userWsSubId });
     });
 

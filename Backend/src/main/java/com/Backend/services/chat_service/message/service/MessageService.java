@@ -12,6 +12,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 
 import com.Backend.exception.ChatNotFoundException;
 import com.Backend.exception.MessageValidationException;
@@ -39,6 +41,7 @@ public class MessageService {
     private final MessageRepository messageRepository;
     private final ChatLookUpHelper chatLookUpHelper;
     private final SimpMessagingTemplate template;
+    private final CacheManager cacheManager;
 
     // ==================== Send Message ====================
 
@@ -46,7 +49,6 @@ public class MessageService {
     @Caching(evict = {
         @CacheEvict(value = "messagesDTO", allEntries = true),
         @CacheEvict(value = "latestMessageDTO", key = "#chatId"),
-        @CacheEvict(value = "userMeDTO", allEntries = true)
     })
     public Message sendMessage(String text, Long chatId, User sender) {
         validateMessageText(text);
@@ -64,7 +66,10 @@ public class MessageService {
             
         Message savedMessage = messageRepository.save(message);
         log.info("Message sent successfully with id: {}", savedMessage.getId());
-        
+
+        // Evict userMeDTO for all participants in this chat to refresh latestMessage
+        evictUserMeDTOForParticipants(chat);
+
         return savedMessage;
     }
 
@@ -142,7 +147,6 @@ public class MessageService {
     @Caching(evict = {
         @CacheEvict(value = "chatNotifications", key = "#user.id"),
         @CacheEvict(value = "notifications", key = "#user.id"),
-        @CacheEvict(value = "userMeDTO", key = "#user.email"),
         @CacheEvict(value = "chats", key = "#user.id"),
         @CacheEvict(value = "messagesDTO", allEntries = true)
     })
@@ -172,6 +176,8 @@ public class MessageService {
             template.convertAndSend("/topic/chat/" + chatId, markAsReadDTO);
             log.info("Successfully broadcast mark-as-read notification for chat: {}", chatId);
 
+            // Evict userMeDTO for all participants in this chat to reflect read state
+            evictUserMeDTOForChatId(chatId);
 
         } else {
             log.info("No un-read messages found for chat: {}", chatId);
@@ -218,6 +224,36 @@ public class MessageService {
     private void normalizePageSize(int size) {
         if (size < MIN_PAGE_SIZE) {
             throw new MessageValidationException("Page size must be at least " + MIN_PAGE_SIZE);
+        }
+    }
+
+    // ==================== Cache Eviction Helpers ====================
+    private void evictUserMeDTOForParticipants(Chat chat) {
+        Cache userMeCache = cacheManager.getCache("userMeDTO");
+        if (userMeCache == null || chat == null || chat.getParticipants() == null) return;
+        chat.getParticipants().forEach(p -> {
+            if (p.getEmail() != null) {
+                userMeCache.evict(p.getEmail());
+                log.debug("Evicted userMeDTO cache for email: {}", p.getEmail());
+            }
+        });
+    }
+
+    private void evictUserMeDTOForChatId(Long chatId) {
+        Cache userMeCache = cacheManager.getCache("userMeDTO");
+        if (userMeCache == null) return;
+        try {
+            Set<com.Backend.services.user_service.model.DTO.SimpleUserDTO> participants = chatLookUpHelper.getParticipants(chatId);
+            if (participants != null) {
+                participants.forEach(p -> {
+                    if (p.getEmail() != null) {
+                        userMeCache.evict(p.getEmail());
+                        log.debug("Evicted userMeDTO cache for email: {}", p.getEmail());
+                    }
+                });
+            }
+        } catch (Exception e) {
+            log.warn("Failed to evict userMeDTO for chatId {}: {}", chatId, e.getMessage());
         }
     }
 }

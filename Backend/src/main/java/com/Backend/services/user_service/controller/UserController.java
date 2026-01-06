@@ -39,7 +39,11 @@ public class UserController {
 
     @GetMapping("/me")
     public ResponseEntity<UserMeDTO> getUserById(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(userService.getMeDTO(user));
+        UserMeDTO dto = userService.getMeDTO(user);
+        return ResponseEntity.ok()
+                .header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+                .header("Pragma", "no-cache")
+                .body(dto);
     }
 
     @GetMapping("/search")
