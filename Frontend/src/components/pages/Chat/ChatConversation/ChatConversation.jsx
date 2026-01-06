@@ -234,6 +234,12 @@ export default function ChatConversation() {
             optimistic: true,
         };
 
+        console.log("[WS SEND PREPARE]", {
+            chatId,
+            tempId,
+            text: messageToSend,
+            createdAt: optimisticMessage.createdAt
+        });
         setPendingMessages((prev) => [...prev, optimisticMessage]);
         if (!overrideText) {
             setNewMessage('');
@@ -252,10 +258,25 @@ export default function ChatConversation() {
             messageState.markPendingStatus(tempId, 'failed');
             setIsSending(false);
             showErrorBanner('Message failed to send. Tap retry.');
+            console.warn("[WS SEND TIMEOUT]", {
+                chatId,
+                tempId,
+                text: messageToSend
+            });
         }, MESSAGE_SEND_TIMEOUT);
         
         try {
+            console.log("[WS SEND]", {
+                destination: "/app/chat/" + chatId + "/send",
+                bodyPreview: messageToSend.slice(0, 120),
+                now: new Date().toISOString()
+            });
             await sendMessage(chatId, messageToSend);
+            console.log("[WS SEND OK]", {
+                chatId,
+                tempId,
+                now: new Date().toISOString()
+            });
             setIsSending(false);
         } catch (error) {
             console.error('Failed to send message:', error);
@@ -266,6 +287,11 @@ export default function ChatConversation() {
             messageState.markPendingStatus(tempId, 'failed');
             setIsSending(false);
             showErrorBanner('Message failed to send. Tap retry.');
+            console.error("[WS SEND ERROR]", {
+                chatId,
+                tempId,
+                error: error?.message
+            });
         }
     };
 

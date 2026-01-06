@@ -70,8 +70,10 @@ export default function ChatList() {
   const getRelativeTime = (timestamp) => {
     if (!timestamp) return '';
     
+    const hasTz = typeof timestamp === 'string' && /(?:Z|[+-]\d{2}:\d{2})$/.test(timestamp);
+    const parseTs = (s) => new Date(hasTz ? s : s + 'Z');
     const now = new Date();
-    const messageTime = new Date(timestamp);
+    const messageTime = parseTs(timestamp);
     const diffMs = now - messageTime;
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);

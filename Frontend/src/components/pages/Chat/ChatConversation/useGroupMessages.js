@@ -63,6 +63,12 @@ export function useGroupMessages(messages, pendingMessages, setPendingMessages) 
                         clearTimeout(pendingTimeoutsRef.current[pending.id]);
                         delete pendingTimeoutsRef.current[pending.id];
                     }
+                    console.log("[PENDING MATCH CONFIRMED]", {
+                        pendingId: pending.id,
+                        pendingCreatedAt: pending.createdAt,
+                        serverMessageId: match.id,
+                        serverCreatedAt: match.createdAt
+                    });
                 }
 
                 return !match;

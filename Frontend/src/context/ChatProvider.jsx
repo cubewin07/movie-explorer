@@ -55,7 +55,11 @@ function ChatProvider({ children }) {
     registerOnConnectCallback((stompClient) => {
       stompClient.subscribe("/topic/user/" + user?.id, (message) => {
         const newMessage = JSON.parse(message.body);
-        console.log(newMessage);
+        console.log("[WS ACK RECEIVE]", {
+          destination: "/topic/user/" + user?.id,
+          now: new Date().toISOString(),
+          payload: newMessage
+        });
 
       }, { id: userWsSubId });
     });
@@ -243,11 +247,24 @@ function ChatProvider({ children }) {
                   return;
 
                 }
+                const nowIso = new Date().toISOString();
+                console.log("[WS RECEIVE]", {
+                  destination,
+                  chatId,
+                  now: nowIso,
+                  payload: newMessage
+                });
                 queryClient.setQueryData(["chat", chatId, "messages"], (oldData) => {
                   if (!oldData) return oldData; // Guard against undefined data
-                  console.log(newMessage);
+                  const exists = oldData.pages.some((page) =>
+                    page?.content?.some((m) => m.id === newMessage.id)
+                  );
+                  if (exists) {
+                    console.log("[WS DEDUP] Message already exists in cache:", newMessage.id);
+                    return oldData;
+                  }
 
-        
+      
                   const updatedPages = oldData.pages.map((page, index) => {
                     if (index === 0) {
                       return {

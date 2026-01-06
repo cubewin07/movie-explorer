@@ -1,5 +1,13 @@
 import { MAX_MESSAGE_LENGTH, GROUP_GAP_MS } from './chatConstants';
 
+const hasTimezoneInfo = (s) => typeof s === 'string' && /(?:Z|[+-]\d{2}:\d{2})$/.test(s);
+const toDate = (input) => {
+    if (!input) return new Date(0);
+    if (input instanceof Date) return input;
+    const s = String(input);
+    return new Date(hasTimezoneInfo(s) ? s : s + 'Z');
+};
+
 /**
  * Format a date for message header display
  * @param {Date} date - The date to format
@@ -10,7 +18,7 @@ export const formatDateHeader = (date) => {
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
     
-    const messageDate = new Date(date);
+    const messageDate = toDate(date);
     
     if (messageDate.toDateString() === today.toDateString()) {
         return 'Today';
@@ -53,7 +61,7 @@ export const groupMessagesByDateAndSender = (messages, gapMs = GROUP_GAP_MS) => 
     let currentDate = null;
     
     messages.forEach((message) => {
-        const messageDate = new Date(message.createdAt);
+        const messageDate = toDate(message.createdAt);
         const dateString = messageDate.toDateString();
         
         if (dateString !== currentDate) {
@@ -84,7 +92,7 @@ export const groupMessagesByDateAndSender = (messages, gapMs = GROUP_GAP_MS) => 
 export const isGroupEnd = (message, nextMessage, gapMs = GROUP_GAP_MS) => {
     if (!nextMessage) return true;
     if (nextMessage.senderId !== message.senderId) return true;
-    return (new Date(nextMessage.createdAt) - new Date(message.createdAt)) > gapMs;
+    return (toDate(nextMessage.createdAt) - toDate(message.createdAt)) > gapMs;
 };
 
 /**
@@ -97,7 +105,7 @@ export const isGroupEnd = (message, nextMessage, gapMs = GROUP_GAP_MS) => {
 export const isGroupStart = (message, prevMessage, gapMs = GROUP_GAP_MS) => {
     if (!prevMessage) return true;
     if (prevMessage.senderId !== message.senderId) return true;
-    return (new Date(message.createdAt) - new Date(prevMessage.createdAt)) > gapMs;
+    return (toDate(message.createdAt) - toDate(prevMessage.createdAt)) > gapMs;
 };
 
 /**
@@ -129,7 +137,7 @@ export const validateMessage = (text, maxLength = MAX_MESSAGE_LENGTH) => {
  * @returns {string} Formatted time string
  */
 export const formatMessageTime = (date) => {
-    return new Date(date).toLocaleTimeString([], { 
+    return toDate(date).toLocaleTimeString([], { 
         hour: '2-digit', 
         minute: '2-digit' 
     });
@@ -181,7 +189,7 @@ export const getMessageDisplayName = (message) => {
  */
 export const mergePendingMessages = (serverMessages, pendingMessages) => {
     const merged = [...serverMessages, ...pendingMessages];
-    return merged.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    return merged.sort((a, b) => toDate(a.createdAt) - toDate(b.createdAt));
 };
 
 /**
@@ -191,9 +199,14 @@ export const mergePendingMessages = (serverMessages, pendingMessages) => {
  * @returns {boolean} True if they match
  */
 export const matchesPendingMessage = (pending, server) => {
-    return (
-        server.senderId === pending.senderId &&
-        (server.text || server.content) === (pending.text || pending.content) &&
-        Math.abs(new Date(server.createdAt) - new Date(pending.createdAt)) < 30000
-    );
+    const normalize = (s) => (s ?? '').trim().replace(/\r\n/g, '\n');
+    const pText = normalize(pending.text ?? pending.content);
+    const sText = normalize(server.text ?? server.content);
+    const sameSender = server.senderId === pending.senderId;
+    const textEqual = sText === pText;
+    const serverDate = toDate(server.createdAt);
+    const pendingDate = toDate(pending.createdAt);
+    const timeDiffMs = Math.abs(serverDate.getTime() - pendingDate.getTime());
+    const timeClose = timeDiffMs < 5 * 60 * 1000;
+    return sameSender && textEqual && timeClose;
 };
