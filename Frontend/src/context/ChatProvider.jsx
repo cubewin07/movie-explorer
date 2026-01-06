@@ -271,11 +271,9 @@ function ChatProvider({ children }) {
                       // If chat not found, return previous chats
                       return prevChats;
                   }
-                  // Update latest message and move chat to top
-                  const updatedChat = prevChats[chatIndex];
-                  updatedChat.latestMessage = newMessage;
+                  const current = prevChats[chatIndex];
+                  const updatedChat = { ...current, latestMessage: newMessage };
                   const newChats = [...prevChats];
-
                   newChats.splice(chatIndex, 1);
                   return [updatedChat, ...newChats];
                 });

@@ -59,7 +59,9 @@ export default function ChatList() {
       if (!a.latestMessage && !b.latestMessage) return 0;
       if (!a.latestMessage) return 1;
       if (!b.latestMessage) return -1;
-      return new Date(b.latestMessage.timestamp) - new Date(a.latestMessage.timestamp);
+      const aTime = a.latestMessage?.createdAt || a.latestMessage?.timestamp;
+      const bTime = b.latestMessage?.createdAt || b.latestMessage?.timestamp;
+      return new Date(bTime).getTime() - new Date(aTime).getTime();
     });
   }, [filteredChats, newChatIds]);
 
@@ -196,12 +198,12 @@ export default function ChatList() {
                       </div>
                       {chat.latestMessage && (
                         <span className="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0 whitespace-nowrap">
-                          {getRelativeTime(chat.latestMessage.timestamp)}
+                          {getRelativeTime(chat.latestMessage.createdAt || chat.latestMessage.timestamp)}
                         </span>
                       )}
                     </div>
                     <p className="text-sm text-slate-500 dark:text-slate-400 truncate overflow-hidden text-ellipsis whitespace-nowrap">
-                      {chat.latestMessage?.content || 'No messages yet'}
+                      {chat.latestMessage?.content || chat.latestMessage?.text || 'No messages yet'}
                     </p>
                   </div>
                   
