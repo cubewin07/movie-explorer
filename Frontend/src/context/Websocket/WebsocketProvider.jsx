@@ -36,9 +36,17 @@ function WebsocketProvider({ children }) {
     useEffect(() => {
       if (!user || !token || stompClientRef.current || isLoadingFriends) return;
       console.log("WebSocket effect running", user, token, stompClientRef.current);
+
+      // Helper to determine WebSocket URL based on environment
+    const getWebSocketUrl = () => {
+        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
+        // Replace http/https with ws/wss
+        const wsUrl = backendUrl.replace(/^http/, 'ws');
+        return `${wsUrl}/ws?userId=${user?.id}`;
+    };
       
       const stompClient = new Client({
-        brokerURL: "ws://localhost:8080/ws?userId=" + user?.id ,
+        brokerURL: getWebSocketUrl(),
         debug: (str) => {
           console.log(str);
         },
