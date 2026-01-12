@@ -1,94 +1,161 @@
-# Motion Showcase — Narrative Showcase Page
+# Motion Showcase — System-Level Narrative Showcase
 
 ## Intent
 
-This standalone showcase page exists to **demonstrate how motion improves clarity, presence, and trust** in a real-time chat system.
+This standalone showcase page demonstrates how **motion clarifies structure, intent, feedback, and system state** across a complex interactive application.
 
-The main product prioritizes practicality and performance; this page explores **expressive motion, interaction rhythm, and storytelling**, without altering the production application.
+While the production product prioritizes performance and practicality, this page explores **expressive, intentional motion** as a first-class design tool — revealing how users understand, navigate, and trust the system.
 
-The goal is not to decorate features, but to **reveal system behavior through motion**.
+The objective is not to showcase isolated features, but to **show how motion connects features into a coherent experience**.
 
 ---
 
 ## Scope & Constraints
 
-* No new routes added to the main application
-* Implemented as a standalone static page in a separate folder
-* One clear call-to-action leading into the live application
-* Focused on motion, interaction, and pacing rather than full functionality
+* No new routes added to the production application
+* Implemented as a standalone static landing page in a separate folder
+* One clear call-to-action that navigates into the live product
+* Focused on motion, interaction, and system behavior rather than full functionality
 
 ---
 
-## Narrative Structure (Motion-First)
+## Narrative Structure (System-First)
 
-### Act I — Presence
+### Act I — Orientation
 
-**Question:** *Who’s here right now?*
+**Question:** *Where am I, and how is this space organized?*
 
-* Friends appear progressively with staggered entrance
-* Online presence pulses subtly before UI elements fully resolve
-* Hovering a friend card reveals status transitions and intent
-* Motion establishes awareness before interaction
+* Application shell assembles progressively
+* Navigation items reveal with spatial hierarchy
+* Focus transitions explain layout relationships
+* Scroll and hover introduce affordances naturally
 
-**Focus:** anticipation, awareness
+**Showcases:**
 
----
+* Layout motion
+* Information hierarchy
+* First-time clarity
 
-### Act II — Initiation
-
-**Question:** *How does a conversation begin?*
-
-* Selecting a friend morphs the card into a conversation view
-* Typing indicators animate continuously with natural rhythm
-* Composer input responds to focus with micro-feedback
-* Sending a message animates outward, guiding eye movement
-
-**Focus:** immediacy, responsiveness
+**Focus:** understanding, confidence
 
 ---
 
-### Act III — Continuity
+### Act II — Discovery
 
-**Question:** *What happens when you’re not looking?*
+**Question:** *What can I do here?*
 
-* Unread indicators increment with animated number transitions
-* Returning to a conversation scrolls naturally to unread boundaries
-* New messages briefly highlight, then settle into context
+* Search and exploration UI responds before interaction
+* Result cards animate based on relevance and intent
+* Hover previews hint at outcomes without commitment
+* Selection isolates focus and dims non-essential UI
 
-**Focus:** continuity, reliability
+**Showcases:**
+
+* Discovery flow
+* Progressive disclosure
+* Intent-driven interaction
+
+**Focus:** curiosity, control
 
 ---
 
-### Act IV — Resilience
+### Act III — Connection (Real-Time Core)
 
-**Question:** *How does the system behave under failure?*
+**Question:** *Who am I interacting with right now?*
 
-* Offline state desaturates the interface subtly
-* Messages queue visually rather than failing silently
-* Reconnection restores color and resumes flow
+* Presence communicated through motion, not static indicators
+* Friend selection morphs into an active conversation
+* Typing indicators animate with human rhythm
+* Message flow emphasizes temporal continuity
 
-**Focus:** trust, stability
+**Showcases:**
+
+* Real-time systems
+* Presence and activity
+* Temporal motion
+
+**Focus:** immediacy, liveliness
+
+---
+
+### Act IV — Feedback
+
+**Question:** *Did my action succeed?*
+
+* Loading states show direction and progress
+* Success feedback reinforces outcomes subtly
+* Error states animate to explain cause and resolution
+* Disabled states feel intentional, not broken
+
+**Showcases:**
+
+* Micro-interactions
+* System feedback
+* UX maturity
+
+**Focus:** clarity, reassurance
+
+---
+
+### Act V — Resilience
+
+**Question:** *What happens when things go wrong?*
+
+* Offline transitions desaturate the interface gradually
+* Messages and actions queue visually instead of failing silently
+* Reconnection restores flow and state continuity
+* Recovery is communicated, not hidden
+
+**Showcases:**
+
+* Edge cases
+* Reliability
+* Trust-building motion
+
+**Focus:** stability, confidence
+
+---
+
+### Act VI — Cohesion
+
+**Question:** *Why does everything feel consistent?*
+
+* Repeated motion patterns across features
+* Shared easing, duration, and delay values
+* Before/after comparisons of static vs animated states
+* Motion rules presented as a system, not decoration
+
+**Showcases:**
+
+* Motion design system
+* Consistency
+* Senior-level thinking
+
+**Focus:** harmony, polish
 
 ---
 
 ## Motion as Explanation
 
-A dedicated section contrasts static behavior with animated behavior:
+Motion is used as a **functional layer** to explain:
 
-* Without motion: states are technically correct but unclear
-* With motion: state transitions communicate intent and outcome
+* State transitions
+* Cause and effect
+* Hierarchy and priority
+* System intent
 
-Motion is positioned as a **functional layer**, not visual polish.
+Without motion, the interface remains usable but ambiguous.
+With motion, behavior becomes **self-evident**.
 
 ---
 
 ## Call to Action — The Reveal
 
-The final interaction slows the experience intentionally.
+The final interaction resolves the experience deliberately.
 
-* Background dims
-* Motion resolves
-* A single CTA invites the user to enter the live product
+* Ambient motion slows
+* Background recedes
+* A single call-to-action invites the user forward
 
 **Label:** *Experience it live*
 
@@ -96,6 +163,8 @@ The final interaction slows the experience intentionally.
 
 * Production: [https://cubewin07.github.io/movie-explorer](https://cubewin07.github.io/movie-explorer)
 * Local development: [http://localhost:5173/](http://localhost:5173/)
+
+The live product is positioned as the **culmination**, not an exit.
 
 ---
 
@@ -110,30 +179,30 @@ The final interaction slows the experience intentionally.
 ### Scrolling
 
 * Lenis for consistent scroll easing
-* Motion tied to scroll velocity, not scroll position alone
+* Motion responds to scroll velocity, not position alone
 
 ### Styling
 
 * CSS variables for motion tokens (duration, easing, delay)
-* Utility classes to keep the page portable and maintainable
+* Utility-first classes to keep the page portable
 
 ---
 
 ## Accessibility & Motion Preferences
 
-* Semantic section structure and headings
+* Semantic section structure and logical headings
 * Focus-visible interactive elements
 * ARIA labels where appropriate
-* Respect `prefers-reduced-motion` by disabling non-essential animations
+* Respect `prefers-reduced-motion` by disabling non-essential animation
 
 ---
 
 ## Performance Principles
 
-* Short durations, deliberate delays
-* Limited concurrent animations
+* Short, purposeful durations
+* Limited simultaneous animations
 * Transform-based motion only
-* Lightweight assets and compressed media
+* Lightweight, compressed assets
 
 ---
 
@@ -142,12 +211,13 @@ The final interaction slows the experience intentionally.
 * Motion communicates system behavior clearly
 * Interactions feel intentional and human
 * The experience remains smooth across devices
+* Users understand the product before entering it
 * The CTA naturally leads into the live application
 
 ---
 
 ## Closing Statement
 
-This page does not replace the product.
+This page does not replicate the product.
 
-It **amplifies the thinking behind it** — showing how motion can transform a practical interface into a communicative, trustworthy experience.
+It **reveals the thinking behind it** — demonstrating how motion can unify navigation, interaction, feedback, and real-time systems into a coherent, trustworthy experience.
