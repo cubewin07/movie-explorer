@@ -3,6 +3,7 @@ import { AnimatePresence } from 'framer-motion';
 import { CalendarDays, Star as StarIcon, Tv } from 'lucide-react';
 import Section from './Section';
 import FeaturedHeroSection from './FeaturedHeroSection';
+import IntroSection from './IntroSection';
 import HomeLoadingSkeleton from './HomeLoadingSkeleton';
 import useHomePageData from './useHomePageData';
 import useCarouselItems from './useCarouselItems';
@@ -40,6 +41,9 @@ function Home() {
         <div className="w-full max-w-screen-xl mx-auto flex flex-col gap-8 px-2 sm:px-4 md:px-8">
             {/* Featured Hero Banner */}
             <FeaturedHeroSection featuredContent={featuredContent} />
+
+            {/* Introduction Story Section */}
+            <IntroSection />
 
             {/* Trending Carousel */}
             {carouselItems.length > 0 && (

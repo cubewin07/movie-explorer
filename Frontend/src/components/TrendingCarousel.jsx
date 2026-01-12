@@ -20,25 +20,30 @@ export function TrendingCarousel({ items }) {
         const timer = setInterval(() => {
             setDirection(1);
             setCurrent((prev) => (prev + 1) % items.length);
-        }, 6000);
+        }, 8000); // Increased duration for better readability
         return () => clearInterval(timer);
     }, [items.length]);
 
     const slideVariants = {
         enter: (direction) => ({
-            x: direction > 0 ? 1000 : -1000,
+            x: direction > 0 ? 500 : -500,
             opacity: 0,
-            scale: 0.95,
+            scale: 0.9,
+            rotateY: direction > 0 ? 15 : -15,
         }),
         center: {
+            zIndex: 1,
             x: 0,
             opacity: 1,
             scale: 1,
+            rotateY: 0,
         },
         exit: (direction) => ({
-            x: direction < 0 ? 1000 : -1000,
+            zIndex: 0,
+            x: direction < 0 ? 500 : -500,
             opacity: 0,
-            scale: 0.95,
+            scale: 0.9,
+            rotateY: direction < 0 ? 15 : -15,
         }),
     };
 
@@ -61,16 +66,20 @@ export function TrendingCarousel({ items }) {
     };
 
     const handleLoginSuccess = () => {
-        // Determine if the current item is a TV show or movie
         const isTV = !!items[current].name;
-        // Add to watchlist after successful login
         addToWatchlist({ id: items[current].id, type: isTV ? 'SERIES' : 'MOVIE' });
     };
 
     return (
-        <section className="relative py-8 sm:py-12 md:py-20 bg-gradient-to-r from-blue-100 to-blue-50 rounded-2xl shadow-lg overflow-hidden">
-            <div className="relative max-w-2xl sm:max-w-3xl md:max-w-4xl mx-auto min-h-[320px] sm:min-h-[360px] flex items-center px-2 sm:px-6">
-                <AnimatePresence initial={false} custom={direction}>
+        <section className="relative py-12 sm:py-16 md:py-24 bg-white/5 dark:bg-slate-800/50 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-3xl shadow-2xl overflow-hidden perspective-1000">
+            {/* Animated Background Blobs */}
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden -z-10">
+                <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" />
+                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-pulse delay-1000" />
+            </div>
+
+            <div className="relative max-w-5xl mx-auto min-h-[400px] flex items-center px-4 sm:px-8">
+                <AnimatePresence initial={false} custom={direction} mode="wait">
                     <motion.div
                         key={current}
                         custom={direction}
@@ -79,105 +88,73 @@ export function TrendingCarousel({ items }) {
                         animate="center"
                         exit="exit"
                         transition={{
-                            x: { type: 'spring', stiffness: 300, damping: 30 },
-                            opacity: { duration: 0.4 },
-                            scale: { duration: 0.4 },
+                            x: { type: "spring", stiffness: 200, damping: 30 },
+                            opacity: { duration: 0.6 },
+                            scale: { duration: 0.6 },
+                            rotateY: { duration: 0.6 }
                         }}
-                        className="absolute inset-0 w-full h-full flex items-center"
+                        className="absolute inset-0 w-full h-full flex items-center justify-center"
                     >
-                        <div className="flex flex-col md:flex-row items-center gap-4 sm:gap-8 w-full">
-                            <img
+                        <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12 w-full max-w-4xl">
+                            <motion.img
+                                layoutId={`img-${items[current].id}`}
                                 src={items[current].image}
                                 alt={items[current].title}
-                                className="w-32 sm:w-48 h-48 sm:h-72 object-cover rounded-xl shadow-lg mx-auto md:mx-0"
+                                className="w-48 sm:w-64 h-72 sm:h-96 object-cover rounded-2xl shadow-2xl mx-auto md:mx-0 transform hover:scale-105 transition-transform duration-500"
                             />
-                            <div className="flex-1 min-w-0">
-                                <h2 className="text-xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-2">
+                            <div className="flex-1 min-w-0 text-center md:text-left">
+                                <motion.h2 
+                                    className="text-2xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 leading-tight"
+                                    initial={{ y: 20, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    transition={{ delay: 0.2 }}
+                                >
                                     {items[current].title}
-                                </h2>
-                                {items[current].year && (
-                                    <span className="inline-block bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full mb-2 mr-2">
-                                        {items[current].year}
-                                    </span>
-                                )}
-                                {items[current].rating && (
-                                    <span className="inline-block bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded shadow mb-2">
-                                        ★ {items[current].rating}
-                                    </span>
-                                )}
-                                <p className="text-gray-700 mb-4 text-sm sm:text-base line-clamp-4 sm:line-clamp-5">
-                                    {items[current].description}
-                                </p>
+                                </motion.h2>
+                                
+                                <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-6">
+                                    {items[current].year && (
+                                        <span className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm px-3 py-1 rounded-full font-medium">
+                                            {items[current].year}
+                                        </span>
+                                    )}
+                                    {items[current].rating && (
+                                        <span className="bg-yellow-400/20 text-yellow-600 dark:text-yellow-400 text-sm font-bold px-3 py-1 rounded-full border border-yellow-400/30">
+                                            ★ {items[current].rating}
+                                        </span>
+                                    )}
+                                </div>
 
-                                {items[current].extra && (
-                                    <div className="flex flex-wrap gap-2 mb-4">
-                                        {items[current].extra.map((e, i) => (
-                                            <span
-                                                key={i}
-                                                className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full"
-                                            >
-                                                {e}
-                                            </span>
-                                        ))}
-                                    </div>
-                                )}
+                                <motion.p 
+                                    className="text-gray-600 dark:text-gray-300 mb-8 text-base sm:text-lg line-clamp-4 leading-relaxed"
+                                    initial={{ y: 20, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    transition={{ delay: 0.3 }}
+                                >
+                                    {items[current].description}
+                                </motion.p>
 
                                 {/* Buttons */}
-                                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-4">
-                                    {/* View Details – Gradient + Icon + Hover Glow */}
-                                    <motion.button
+                                <motion.div 
+                                    className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start"
+                                    initial={{ y: 20, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    transition={{ delay: 0.4 }}
+                                >
+                                    <button
                                         onClick={() => navigate(`/movie/${items[current].id}`)}
-                                        className="flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold w-full sm:w-auto text-white bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 shadow-md transition-all duration-300 dark:from-blue-600 dark:to-cyan-600"
-                                        whileHover={{
-                                            scale: 1.08,
-                                            y: -2,
-                                            boxShadow: '0 0 16px 4px rgba(34,211,238,0.25)',
-                                            textShadow: '0 0 8px #22d3ee, 0 0 2px #fff',
-                                        }}
-                                        whileTap={{ scale: 0.96, y: 1 }}
-                                        transition={{ type: 'spring', stiffness: 300, damping: 18 }}
+                                        className="px-8 py-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg hover:shadow-blue-500/30 transition-all duration-300 transform hover:-translate-y-1"
                                     >
-                                        <motion.svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className="h-4 w-4"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                            strokeWidth={2}
-                                            whileHover={{ rotate: [0, 10, -10, 0], scale: [1, 1.15, 1] }}
-                                            transition={{ duration: 0.5, repeat: 0 }}
-                                        >
-                                            <path
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                                d="M15 17h5l-1.405-1.405M21 21l-6-6m0 0a7 7 0 10-9.9 0 7 7 0 009.9 0z"
-                                            />
-                                        </motion.svg>
                                         View Details
-                                    </motion.button>
-
-                                    {/* Add to List – Outline + Icon + Improved Hover */}
+                                    </button>
                                     <button
                                         onClick={() => handleAddToWatchlist()}
-                                        className="flex items-center gap-2 px-5 py-2 border border-blue-500 text-blue-600 
-                   text-sm font-medium rounded-lg bg-transparent w-full sm:w-auto
-                   hover:bg-blue-50 dark:hover:bg-blue-900/20 
-                   hover:shadow transition-all duration-300"
+                                        className="px-8 py-3 rounded-full border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-semibold hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300"
                                         disabled={isPending}
                                     >
-                                        <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            className="h-4 w-4"
-                                            fill="none"
-                                            viewBox="0 0 24 24"
-                                            stroke="currentColor"
-                                            strokeWidth={2}
-                                        >
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                                        </svg>
-                                        {isPending ? 'Adding...' : 'Add to Watchlist'}
+                                        {isPending ? 'Adding...' : 'Add to List'}
                                     </button>
-                                </div>
+                                </motion.div>
                             </div>
                         </div>
                     </motion.div>
@@ -185,26 +162,18 @@ export function TrendingCarousel({ items }) {
             </div>
 
             {/* Navigation */}
-            <div className="flex justify-center items-center gap-4 sm:gap-6 mt-8 relative z-10">
-                <button onClick={prev} className="p-2 rounded-full bg-white/80 hover:bg-blue-100 shadow transition">
-                    <ArrowLeft className="w-5 h-5 text-blue-600" />
+            <div className="absolute bottom-8 right-8 flex gap-4 z-20">
+                <button 
+                    onClick={prev} 
+                    className="p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-gray-800 dark:text-white transition-all hover:scale-110"
+                >
+                    <ArrowLeft className="w-6 h-6" />
                 </button>
-                <div className="flex gap-2">
-                    {items.map((_, idx) => (
-                        <button
-                            key={idx}
-                            onClick={() => {
-                                setDirection(idx > current ? 1 : -1);
-                                setCurrent(idx);
-                            }}
-                            className={`w-3 h-3 rounded-full transition-all ${
-                                idx === current ? 'bg-blue-600 scale-125' : 'bg-blue-200 hover:bg-blue-400'
-                            }`}
-                        />
-                    ))}
-                </div>
-                <button onClick={next} className="p-2 rounded-full bg-white/80 hover:bg-blue-100 shadow transition">
-                    <ArrowRight className="w-5 h-5 text-blue-600" />
+                <button 
+                    onClick={next} 
+                    className="p-3 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/20 text-gray-800 dark:text-white transition-all hover:scale-110"
+                >
+                    <ArrowRight className="w-6 h-6" />
                 </button>
             </div>
 
