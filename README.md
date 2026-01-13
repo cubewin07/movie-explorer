@@ -5,8 +5,8 @@ A full‑stack application for discovering movies/series, managing watchlists, w
 ## Live Demo
 
 - Frontend: https://cubewin07.github.io/movie-explorer
-- Backend API (Render): https://your-render-app.onrender.com
-  - Replace with your actual Render URL; CORS is configured for the GitHub Pages domain
+- Backend API (Render): https://movie-explorer-ktn5.onrender.com
+  (This would take a few minutes to start up on Render's free tier so please be patient for the first request)
 
 ## Highlights
 
