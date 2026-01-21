@@ -3,16 +3,26 @@ import { Film, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import AnimatedAnimeCharacter from './AnimatedCharater';
+import { useState } from 'react';
 
 export default function NotFound() {
     const navigate = useNavigate();
+    const [mouse, setMouse] = useState({ x: 0, y: 0 });
+    const [hoveringButton, setHoveringButton] = useState(false);
 
     const handleGoHome = () => {
         navigate('/');
     };
 
     return (
-        <div className="relative min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-900 px-4 overflow-hidden w-full h-full">
+        <div
+            className="relative min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 dark:from-slate-950 dark:via-purple-950 dark:to-slate-900 px-4 overflow-hidden w-full h-full"
+            onMouseMove={(e) => {
+                const x = (e.clientX / window.innerWidth - 0.5) * 2;
+                const y = (e.clientY / window.innerHeight - 0.5) * 2;
+                setMouse({ x, y });
+            }}
+        >
             {/* Animated background elements */}
             <div className="fixed inset-0 w-full h-full pointer-events-none z-0">
                 {[...Array(12)].map((_, i) => (
@@ -64,30 +74,31 @@ export default function NotFound() {
                             <Film className="w-28 h-28 text-pink-500 dark:text-pink-400 drop-shadow-2xl" />
                         </motion.div>
 
-                        <motion.h1
-                            className="text-8xl sm:text-9xl font-extrabold bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent mb-4 drop-shadow-lg"
-                            initial={{ opacity: 0, y: 50, scale: 0.5 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            transition={{
-                                delay: 0.3,
-                                duration: 0.8,
-                                type: 'spring',
-                                bounce: 0.6,
-                            }}
-                        >
-                            <motion.span
-                                animate={{
-                                    textShadow: [
-                                        '0 0 20px rgba(255,105,180,0.5)',
-                                        '0 0 40px rgba(138,43,226,0.5)',
-                                        '0 0 20px rgba(255,105,180,0.5)',
-                                    ],
-                                }}
-                                transition={{ duration: 2, repeat: Infinity }}
-                            >
-                                404
-                            </motion.span>
-                        </motion.h1>
+                        <div className="mb-4">
+                            <div className="flex items-center gap-2">
+                                {['4', '0', '4'].map((char, idx) => (
+                                    <motion.span
+                                        key={idx}
+                                        className="text-8xl sm:text-9xl font-extrabold bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500 bg-clip-text text-transparent drop-shadow-lg inline-block"
+                                        initial={{ opacity: 0, y: 50, scale: 0.5, rotate: -6 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1, rotate: 0 }}
+                                        transition={{
+                                            delay: 0.2 + idx * 0.1,
+                                            duration: 0.7,
+                                            type: 'spring',
+                                            bounce: 0.5,
+                                        }}
+                                        whileHover={{ y: -6, scale: 1.06, rotate: 3 }}
+                                        style={{
+                                            textShadow:
+                                                '0 0 16px rgba(255,105,180,0.35), 0 0 28px rgba(138,43,226,0.35)',
+                                        }}
+                                    >
+                                        {char}
+                                    </motion.span>
+                                ))}
+                            </div>
+                        </div>
 
                         <motion.p
                             className="text-3xl sm:text-4xl font-bold text-gray-800 dark:text-white mb-6 text-center"
@@ -140,6 +151,8 @@ export default function NotFound() {
                             <Button
                                 className="bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white px-8 py-4 text-xl font-bold rounded-full shadow-xl hover:shadow-2xl transition-all duration-300 transform"
                                 onClick={handleGoHome}
+                                onMouseEnter={() => setHoveringButton(true)}
+                                onMouseLeave={() => setHoveringButton(false)}
                             >
                                 <motion.span
                                     animate={{
@@ -157,7 +170,7 @@ export default function NotFound() {
                         </motion.div>
                     </motion.div>
                 </div>
-                <AnimatedAnimeCharacter />
+                <AnimatedAnimeCharacter mouse={mouse} hover={hoveringButton} />
             </div>
         </div>
     );
