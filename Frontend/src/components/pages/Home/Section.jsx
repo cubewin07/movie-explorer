@@ -75,7 +75,7 @@ function Section({ title, items, isLoading, icon, viewAllType, viewAllSort, genr
       </motion.div>
 
       <div
-        className="relative group"
+        className="relative"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
