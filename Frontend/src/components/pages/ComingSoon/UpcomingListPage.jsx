@@ -126,22 +126,22 @@ export default function UpcomingListPage({ type = 'movie' }) {
                             <motion.div
                                 key={item.id}
                                 ref={ref}
-                                className="group bg-white dark:bg-slate-800 rounded-2xl shadow-md hover:shadow-2xl hover:shadow-blue-300/40 dark:hover:shadow-blue-800/40 overflow-hidden flex flex-col h-full cursor-pointer transition-shadow duration-300"
-                                initial={{ opacity: 0, y: 30, scale: 0.98 }}
-                                whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.5, delay: 0.05 * i }}
-                                whileHover={{ y: -5, scale: 1.02 }}
+                                className="group bg-white dark:bg-slate-800 rounded-2xl shadow-md hover:shadow-xl overflow-hidden flex flex-col h-full cursor-pointer"
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true, margin: "100px" }}
+                                transition={{ duration: 0.3 }}
+                                whileHover={{ y: -5 }}
                                 onClick={() => {
                                     setContext({ ...item, image, genres });
                                     setIsOpen(true);
                                 }}
                             >
                                 <div className="relative h-64 w-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center overflow-hidden">
-                                    <Badge className="absolute top-3 left-3 bg-indigo-600 text-white shadow text-xs font-semibold px-2 py-0.5">
+                                    <Badge className="absolute top-3 left-3 bg-indigo-600 text-white shadow text-xs font-semibold px-2 py-0.5 z-10">
                                         Coming Soon
                                     </Badge>
-                                    <Badge className="absolute top-3 right-3 bg-yellow-500 text-black shadow text-xs font-semibold px-2 py-0.5">
+                                    <Badge className="absolute top-3 right-3 bg-yellow-500 text-black shadow text-xs font-semibold px-2 py-0.5 z-10">
                                         ★ {item.vote_average?.toFixed(1)}
                                     </Badge>
                                     {item.poster_path ? (
