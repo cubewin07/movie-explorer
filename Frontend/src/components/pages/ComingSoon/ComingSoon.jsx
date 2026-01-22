@@ -1,6 +1,6 @@
 import { useContext } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar, Tv, Film, Bell, ArrowRight } from 'lucide-react';
+import { Calendar, Tv, Film, Bell, ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import SkeletonCard from '@/components/ui/skeletonCard';
@@ -11,6 +11,7 @@ import { useUpcomingMovies } from './useUpcomingMovies';
 import { useUpcomingTVSeries } from './useUpcomingTVSeries';
 import UpcomingFeatureCard from './UpcomingFeatureCard';
 import { upcomingFeaturesConfig } from './upcomingFeaturesConfig.jsx';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -43,17 +44,17 @@ export default function ComingSoon() {
                 key={item.id}
                 className="bg-white dark:bg-slate-800 rounded-2xl shadow-md hover:shadow-xl overflow-hidden flex flex-col h-full cursor-pointer"
                 variants={itemVariants}
-                whileHover={{ y: -5, scale: 1.02 }}
+                whileHover={{ y: -5 }}
                 onClick={() => {
                     setContext({ ...item, image, genres });
                     setIsOpen(true);
                 }}
             >
                 <div className="relative h-64 w-full bg-gradient-to-br from-indigo-400 to-blue-600 flex items-center justify-center overflow-hidden">
-                    <Badge className="absolute top-3 left-3 bg-indigo-600 text-white shadow text-xs font-semibold px-2 py-0.5">
+                    <Badge className="absolute top-3 left-3 bg-indigo-600 text-white shadow text-xs font-semibold px-2 py-0.5 z-10">
                         Coming Soon
                     </Badge>
-                    <Badge className="absolute top-3 right-3 bg-yellow-500 text-black shadow text-xs font-semibold px-2 py-0.5">
+                    <Badge className="absolute top-3 right-3 bg-yellow-500 text-black shadow text-xs font-semibold px-2 py-0.5 z-10">
                         ★ {item.vote_average?.toFixed(1)}
                     </Badge>
                     {item.poster_path ? (
@@ -105,6 +106,36 @@ export default function ComingSoon() {
         );
     };
 
+    const renderSeeAllCard = (type) => {
+        const isMovie = type === 'movie';
+        const link = isMovie ? '/coming-soon/movies' : '/coming-soon/tvs';
+        const Icon = isMovie ? Film : Tv;
+
+        return (
+            <motion.div
+                className="bg-white/50 dark:bg-slate-800/50 rounded-2xl shadow-sm border-2 border-dashed border-gray-300 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-slate-800/80 flex flex-col h-full cursor-pointer transition-all duration-300 group"
+                variants={itemVariants}
+                initial="visible"
+                whileHover={{ y: -5 }}
+            >
+                <Link to={link} className="flex flex-col items-center justify-center w-full h-full p-8 text-center">
+                    <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
+                        <Icon className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                        View All Upcoming {isMovie ? 'Movies' : 'TV Shows'}
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                        Discover more upcoming releases
+                    </p>
+                    <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold group-hover:gap-3 transition-all">
+                        See All <ArrowRight className="w-4 h-4" />
+                    </div>
+                </Link>
+            </motion.div>
+        );
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800">
             <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
@@ -130,154 +161,141 @@ export default function ComingSoon() {
                     </p>
                 </motion.div>
 
-                {/* Upcoming Movies */}
-                <motion.section
-                    className="mb-12 sm:mb-16"
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                >
-                    <motion.div className="flex items-center justify-between gap-3 mb-8" variants={itemVariants}>
-                        <div className="flex items-center gap-3">
-                            <Film className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-                                Upcoming Movies
-                            </h2>
+                <Tabs defaultValue="movies" className="w-full">
+                    <div className="sticky top-16 z-40 py-4 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-8 transition-all duration-300">
+                        <div className="flex justify-center">
+                            <TabsList className="grid w-full max-w-md grid-cols-3">
+                                <TabsTrigger value="movies" className="flex items-center gap-2">
+                                    <Film className="w-4 h-4" /> Movies
+                                </TabsTrigger>
+                                <TabsTrigger value="tv" className="flex items-center gap-2">
+                                    <Tv className="w-4 h-4" /> TV Shows
+                                </TabsTrigger>
+                                <TabsTrigger value="features" className="flex items-center gap-2">
+                                    <Sparkles className="w-4 h-4" /> Features
+                                </TabsTrigger>
+                            </TabsList>
                         </div>
-                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                            <Link to="/coming-soon/movies">
-                                <Button variant="outline" className="flex items-center gap-1 group">
-                                    See All 
-                                    <motion.span className="inline-block transition-transform duration-300 group-hover:translate-x-1">
-                                        <ArrowRight className="w-4 h-4" />
-                                    </motion.span>
-                                </Button>
-                            </Link>
-                        </motion.div>
-                    </motion.div>
-                    {isLoadingMovies ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {Array.from({ length: 6 }).map((_, i) => (
-                                <SkeletonCard key={i} delay={i * 0.08} />
-                            ))}
-                        </div>
-                    ) : upcomingMovies.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {upcomingMovies.map((movie) => renderCard(movie, true))}
-                        </div>
-                    ) : (
-                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="col-span-1 sm:col-span-2 lg:col-span-3">
-                            <ErrorState
-                                title="No Upcoming Movies"
-                                message="Check back soon for new movie announcements!"
-                                fullScreen={false}
-                                showHomeButton={false}
-                                onRetry={null}
-                                transparentBg={true}
-                            />
-                        </motion.div>
-                    )}
-                </motion.section>
-
-                {/* Upcoming TV Shows */}
-                <motion.section
-                    className="mb-12 sm:mb-16"
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                >
-                    <motion.div className="flex items-center justify-between gap-3 mb-8" variants={itemVariants}>
-                        <div className="flex items-center gap-3">
-                            <Tv className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-                            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
-                                Upcoming TV Shows
-                            </h2>
-                        </div>
-                        <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                            <Link to="/coming-soon/tvs">
-                                <Button variant="outline" className="flex items-center gap-1 group">
-                                    See All 
-                                    <motion.span className="inline-block transition-transform duration-300 group-hover:translate-x-1">
-                                        <ArrowRight className="w-4 h-4" />
-                                    </motion.span>
-                                </Button>
-                            </Link>
-                        </motion.div>
-                    </motion.div>
-                    {isLoadingUpcomingTV ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {Array.from({ length: 6 }).map((_, i) => (
-                                <SkeletonCard key={i} delay={i * 0.08} />
-                            ))}
-                        </div>
-                    ) : upcomingTVShows.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {upcomingTVShows.map((tv) => renderCard(tv, false))}
-                        </div>
-                    ) : (
-                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="col-span-1 sm:col-span-2 lg:col-span-3">
-                            <ErrorState
-                                title="No Upcoming TV Shows"
-                                message="Stay tuned for new TV show announcements!"
-                                fullScreen={false}
-                                showHomeButton={false}
-                                onRetry={null}
-                                transparentBg={true}
-                            />
-                        </motion.div>
-                    )}
-                </motion.section>
-
-                {/* Upcoming Features */}
-                <motion.section
-                    className="mb-12 sm:mb-16"
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                >
-                    <motion.div
-                        className="text-center mb-8"
-                        variants={itemVariants}
-                        initial={{ opacity: 0, y: -30 }}
-                        animate={{ opacity: 1, y: 0, scale: 1.05 }}
-                        transition={{ type: 'spring', bounce: 0.4, duration: 0.8 }}
-                    >
-                        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">
-                            New Features Coming Soon
-                        </h2>
-                        <p className="text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-                            We're constantly working to bring you the best movie watching experience.
-                        </p>
-                    </motion.div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {upcomingFeaturesConfig.map((feature, index) => (
-                            <UpcomingFeatureCard key={index} feature={feature} index={index} />
-                        ))}
                     </div>
-                </motion.section>
 
-                {/* Call to Action */}
-                <motion.div
-                    className="text-center bg-white dark:bg-slate-800 rounded-2xl p-8 sm:p-12 shadow-lg"
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.5 }}
-                >
-                    <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-4">Stay Updated</h3>
-                    <p className="text-gray-600 dark:text-gray-300 mb-6 max-w-md mx-auto">
-                        Be the first to know when new content and features are available.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                        <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3">
-                            <Bell className="w-4 h-4 mr-2" />
-                            Get Notifications
-                        </Button>
-                        <Button variant="outline" className="px-6 py-3">
-                            <ArrowRight className="w-4 h-4 mr-2" />
-                            Explore Current Content
-                        </Button>
-                    </div>
-                </motion.div>
+                    <TabsContent value="movies">
+                        <motion.section
+                            variants={containerVariants}
+                            initial="hidden"
+                            animate="visible"
+                            className="space-y-8"
+                        >
+                            <div className="sticky top-32 z-30 py-4 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-6 flex items-center justify-between gap-3 shadow-sm rounded-b-xl">
+                                <div className="flex items-center gap-3">
+                                    <Film className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                                        Upcoming Movies
+                                    </h2>
+                                </div>
+                                <Link to="/coming-soon/movies">
+                                    <Button variant="outline" className="flex items-center gap-1 group">
+                                        See All 
+                                        <motion.span className="inline-block transition-transform duration-300 group-hover:translate-x-1">
+                                            <ArrowRight className="w-4 h-4" />
+                                        </motion.span>
+                                    </Button>
+                                </Link>
+                            </div>
+                            
+                            {isLoadingMovies ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {Array.from({ length: 6 }).map((_, i) => (
+                                        <SkeletonCard key={i} delay={i * 0.08} />
+                                    ))}
+                                </div>
+                            ) : upcomingMovies.length > 0 ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {upcomingMovies.map((movie) => renderCard(movie, true))}
+                                    {renderSeeAllCard('movie')}
+                                </div>
+                            ) : (
+                                <ErrorState
+                                    title="No Upcoming Movies"
+                                    message="Check back soon for new movie announcements!"
+                                    fullScreen={false}
+                                    showHomeButton={false}
+                                    onRetry={null}
+                                    transparentBg={true}
+                                />
+                            )}
+                        </motion.section>
+                    </TabsContent>
+
+                    <TabsContent value="tv">
+                        <motion.section
+                            variants={containerVariants}
+                            initial="hidden"
+                            animate="visible"
+                            className="space-y-8"
+                        >
+                            <div className="sticky top-32 z-30 py-4 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-6 flex items-center justify-between gap-3 shadow-sm rounded-b-xl">
+                                <div className="flex items-center gap-3">
+                                    <Tv className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
+                                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                                        Upcoming TV Shows
+                                    </h2>
+                                </div>
+                                <Link to="/coming-soon/tvs">
+                                    <Button variant="outline" className="flex items-center gap-1 group">
+                                        See All 
+                                        <motion.span className="inline-block transition-transform duration-300 group-hover:translate-x-1">
+                                            <ArrowRight className="w-4 h-4" />
+                                        </motion.span>
+                                    </Button>
+                                </Link>
+                            </div>
+
+                            {isLoadingUpcomingTV ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {Array.from({ length: 6 }).map((_, i) => (
+                                        <SkeletonCard key={i} delay={i * 0.08} />
+                                    ))}
+                                </div>
+                            ) : upcomingTVShows.length > 0 ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {upcomingTVShows.map((tv) => renderCard(tv, false))}
+                                    {renderSeeAllCard('tv')}
+                                </div>
+                            ) : (
+                                <ErrorState
+                                    title="No Upcoming TV Shows"
+                                    message="Check back soon for new TV show announcements!"
+                                    fullScreen={false}
+                                    showHomeButton={false}
+                                    onRetry={null}
+                                    transparentBg={true}
+                                />
+                            )}
+                        </motion.section>
+                    </TabsContent>
+
+                    <TabsContent value="features">
+                        <motion.section
+                            variants={containerVariants}
+                            initial="hidden"
+                            animate="visible"
+                            className="space-y-8"
+                        >
+                            <div className="sticky top-32 z-30 py-4 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-6 flex items-center gap-3 shadow-sm rounded-b-xl">
+                                <Sparkles className="w-6 h-6 text-yellow-500" />
+                                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+                                    New Features
+                                </h2>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {upcomingFeaturesConfig.map((feature) => (
+                                    <UpcomingFeatureCard key={feature.id} feature={feature} />
+                                ))}
+                            </div>
+                        </motion.section>
+                    </TabsContent>
+                </Tabs>
             </div>
         </div>
     );
