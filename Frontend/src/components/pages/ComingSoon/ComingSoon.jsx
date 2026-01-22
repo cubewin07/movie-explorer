@@ -145,7 +145,7 @@ export default function ComingSoon() {
                             </h2>
                         </div>
                         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                            <Link to="/discover/movie">
+                            <Link to="/coming-soon/movies">
                                 <Button variant="outline" className="flex items-center gap-1 group">
                                     See All 
                                     <motion.span className="inline-block transition-transform duration-300 group-hover:translate-x-1">
@@ -194,7 +194,7 @@ export default function ComingSoon() {
                             </h2>
                         </div>
                         <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                            <Link to="/discover/tv">
+                            <Link to="/coming-soon/tvs">
                                 <Button variant="outline" className="flex items-center gap-1 group">
                                     See All 
                                     <motion.span className="inline-block transition-transform duration-300 group-hover:translate-x-1">

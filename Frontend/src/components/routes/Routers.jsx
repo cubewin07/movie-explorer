@@ -7,8 +7,7 @@ import Discovery from '../pages/Discovery/Discovery';
 import WatchlistPage from '../pages/Watchlist/WatchlistPage';
 import Settings from '../pages/Settings/Settings';
 import ComingSoon from '../pages/ComingSoon';
-import UpcomingMoviesPage from '../pages/ComingSoon/UpcomingMoviesPage';
-import UpcomingTvSeriesPage from '../pages/ComingSoon/UpcomingTvSeriesPage';
+import UpcomingListPage from '../pages/ComingSoon/UpcomingListPage';
 import HelpSupport from '../pages/HelpSupport/HelpSupport';
 import NotFound from '../pages/NotFound/NotFound';
 import Profile from '../pages/Profile';
@@ -78,18 +77,18 @@ const router = createBrowserRouter(
                     ),
                 },
                 {
-                    path: '/movies/upcoming',
+                    path: '/coming-soon/movies',
                     element: (
                         <PublicRoute>
-                            <UpcomingMoviesPage />
+                            <UpcomingListPage type="movie" />
                         </PublicRoute>
                     ),
                 },
                 {
-                    path: '/tv/upcoming',
+                    path: '/coming-soon/tvs',
                     element: (
                         <PublicRoute>
-                            <UpcomingTvSeriesPage />
+                            <UpcomingListPage type="tv" />
                         </PublicRoute>
                     ),
                 },
