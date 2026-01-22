@@ -3,7 +3,11 @@ import { usePaginatedFetch } from '@/hooks/API/data';
 import { useMovieGenres } from '@/hooks/API/genres';
 
 export const useUpcomingMovies = () => {
-    const { data: upcomingMoviesData, isLoading: isLoadingMovies, error: moviesError } = usePaginatedFetch('movie/upcoming', 1);
+    const { data: upcomingMoviesData, isLoading: isLoadingMovies, error: moviesError } = usePaginatedFetch(
+        'movie/upcoming',
+        1,
+        { region: import.meta.env.VITE_TMDB_REGION || 'US' },
+    );
     const { MovieGenres } = useMovieGenres();
 
     const movieGenreMap = useMemo(() => {
@@ -16,8 +20,8 @@ export const useUpcomingMovies = () => {
     }, [MovieGenres]);
 
     const upcomingMovies = useMemo(() => {
-        const now = new Date();
-        return (upcomingMoviesData?.results || []).filter((m) => new Date(m.release_date) > now);
+        const today = new Date().toISOString().split('T')[0];
+        return (upcomingMoviesData?.results || []).filter((m) => (m.release_date || '') >= today);
     }, [upcomingMoviesData]);
 
     return {

@@ -20,8 +20,7 @@ export const useUpcomingTVSeries = () => {
     }, [TvSeriesGenresRes]);
 
     const upcomingTVShows = useMemo(() => {
-        const now = new Date();
-        return (upcomingTVData?.results || []).filter((tv) => new Date(tv.first_air_date) >= now);
+        return upcomingTVData?.results || [];
     }, [upcomingTVData]);
 
     return {

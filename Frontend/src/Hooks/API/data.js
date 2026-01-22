@@ -50,12 +50,12 @@ export const usePopularTvSeries = (page) => {
     return { popularTvSeries, isLoadingPopularTvSeries, isError };
 };
 
-export const usePaginatedFetch = (url, page) => {
+export const usePaginatedFetch = (url, page, extraParams = {}) => {
     const { data, isLoading, isError } = useQuery({
-        queryKey: [url, page],
+        queryKey: [url, page, extraParams],
         queryFn: async ({ signal }) => {
             const res = await axiosInstance.get(`/${url}`, {
-                params: { language: 'en-US', page },
+                params: { language: 'en-US', page, ...extraParams },
                 signal,
             });
             return res.data;
@@ -102,14 +102,15 @@ export const useSearchOrFallbackContent = (
     return { data, isLoading, isFetching };
 };
 
-export const useInfinitePaginatedFetch = (url, key) => {
+export const useInfinitePaginatedFetch = (url, key, extraParams = {}) => {
     return useInfiniteQuery({
-        queryKey: [key],
+        queryKey: [key, url, extraParams],
         queryFn: async ({ pageParam = 1, signal }) => {
             const res = await axiosInstance.get(`/${url}`, {
                 params: {
                     language: 'en-US',
                     page: pageParam,
+                    ...extraParams,
                 },
                 signal,
             });

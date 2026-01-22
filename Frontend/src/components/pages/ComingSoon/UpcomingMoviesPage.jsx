@@ -19,6 +19,7 @@ export default function UpcomingMoviesPage() {
     const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfinitePaginatedFetch(
         'movie/upcoming',
         'upcoming-movies',
+        { region: import.meta.env.VITE_TMDB_REGION || 'US' },
     );
     const navigate = useNavigate();
     const { setIsOpen, setContext } = useContext(FilmModalContext);
