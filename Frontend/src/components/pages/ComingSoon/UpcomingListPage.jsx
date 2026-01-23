@@ -66,7 +66,7 @@ export default function UpcomingListPage({ type = 'movie' }) {
         <div className="max-w-screen-xl mx-auto px-2 sm:px-4 md:px-8 py-8 min-h-screen">
             <motion.button
                 onClick={() => navigate(-1)}
-                className="sticky top-12 z-40 mb-4 flex items-center gap-2 px-4 py-2 rounded-lg bg-white/80 dark:bg-slate-800/80 border border-gray-200 dark:border-slate-700 shadow hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors"
+                className="sticky top-28 z-40 mb-2 flex items-center gap-2 px-4 py-2 rounded-lg bg-white/80 dark:bg-slate-800/80 border border-gray-200 dark:border-slate-700 shadow hover:bg-blue-50 dark:hover:bg-slate-700 transition-colors"
                 initial={{ opacity: 0, y: -20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -75,15 +75,14 @@ export default function UpcomingListPage({ type = 'movie' }) {
                 <ArrowLeft className="w-5 h-5" />
                 <span className="font-medium">Back</span>
             </motion.button>
-            <div className="sticky top-2 z-40 mb-4">
-                <Breadcrumb
-                    items={[
-                        { name: 'Home', to: '/' },
-                        { name: 'Coming Soon', to: '/coming-soon' },
-                        { name: isMovie ? 'Upcoming Movies' : 'Upcoming TV Series', to: isMovie ? '/coming-soon/movies' : '/coming-soon/tvs' },
-                    ]}
-                />
-            </div>
+            <Breadcrumb
+                items={[
+                    { name: 'Home', to: '/' },
+                    { name: 'Coming Soon', to: '/coming-soon' },
+                    { name: isMovie ? 'Upcoming Movies' : 'Upcoming TV Series', to: isMovie ? '/coming-soon/movies' : '/coming-soon/tvs' },
+                ]}
+                stickyPos = "top-16"
+            />
             <motion.h1
                 className="text-2xl sm:text-3xl font-bold mb-8 flex items-center gap-2"
                 initial={{ opacity: 0, y: 20 }}
