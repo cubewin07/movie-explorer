@@ -216,7 +216,7 @@ const handleDeleteNotification = (e, notificationId) => {
 };
 
 const handleMarkAllAsRead = () => {
-  markAllAsRead.mutate(token, {
+  markAllAsRead.mutate({ token }, {
     onSuccess: () => {
       // Mark all as read locally
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));

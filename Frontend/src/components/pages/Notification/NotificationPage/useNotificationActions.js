@@ -25,7 +25,7 @@ export const useNotificationActionsHook = () => {
 
   const handleMarkAllAsRead = useCallback(
     (token, onSuccess) => {
-      markAllAsRead.mutate(token, {
+      markAllAsRead.mutate({ token }, {
         onSuccess: onSuccess || (() => {}),
       });
     },

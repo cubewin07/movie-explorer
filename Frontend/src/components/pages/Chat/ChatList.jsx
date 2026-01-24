@@ -20,7 +20,7 @@ export default function ChatList() {
   const { user, token } = useAuthen();
   const { friends } = useWebsocket();
   const { mutate: markMessageAsRead } = useMarkMessageAsRead(token);
-  const { markChatNotificationsAsRead } = useNotificationActions(token);
+  const { markChatNotificationsAsRead } = useNotificationActions();
   const { getChatDisplayInfo, getFriendInfo } = useHelper();
 
   // Extract the active chatId from the current path
@@ -89,7 +89,7 @@ export default function ChatList() {
   const handleClickChat = (chatId) => {
     navigate(`/friend/chat/${chatId}`);
     markMessageAsRead(chatId);
-    markChatNotificationsAsRead.mutate(chatId);
+    markChatNotificationsAsRead.mutate({ chatId, token });
   }
 
   if (!chats || chats.length === 0) {
