@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Bell, X, UserPlus, MessageCircle, Check, Trash2, CheckCheck } from "lucide-react";
 import { motion as Motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useNotificationActions } from "@/hooks/notification/useNotificationActions";
 import { useThemeToggle } from "@/hooks/useThemeToggle";
 import { useWebsocket } from "@/context/Websocket/WebsocketProvider";
+import { toast } from "sonner";
 
 function NotificationItem({
   notification,
@@ -16,7 +17,8 @@ function NotificationItem({
   getNotificationColor,
   getTimeAgo,
   handleNotificationClick,
-  handleDeleteNotification
+  handleDeleteNotification,
+  handleMarkUnread
 }) {
   const x = useMotionValue(0);
   const opacity = useTransform(x, [-120, 0], [0, 1]);
@@ -33,6 +35,18 @@ function NotificationItem({
 
   return (
     <motion.li
+      role="listitem"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleNotificationClick(notification);
+        }
+        if (e.key === 'Delete') {
+          e.preventDefault();
+          handleDeleteNotification(e, notification.id);
+        }
+      }}
       initial={{ opacity: 0, x: -20 }}
       animate={{
         opacity: 1,
@@ -101,6 +115,17 @@ function NotificationItem({
         >
           <Trash2 className="w-4 h-4 text-red-500 dark:text-red-400" />
         </button>
+        {notification.read && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleMarkUnread(notification.id);
+            }}
+            className="flex-shrink-0 opacity-0 group-hover:opacity-100 ml-1 px-2 py-1 rounded-lg text-xs border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800"
+          >
+            Mark unread
+          </button>
+        )}
       </motion.div>
 
       {/* Unread blue bar */}
@@ -119,6 +144,7 @@ export default function NotificationBell() {
   const { notifications, setNotifications } = useWebsocket();
   const { markAsRead, markAllAsRead, deleteNotification } = useNotificationActions();
   const navigate = useNavigate();
+  const panelRef = useRef(null);
   useEffect(() => {
     if (!open) return;
     const onKeyDown = (e) => {
@@ -168,6 +194,7 @@ export default function NotificationBell() {
         }
 
         setOpen(false);
+        toast.success('Marked as read');
       },
     }
   );
@@ -182,6 +209,7 @@ const handleDeleteNotification = (e, notificationId) => {
       onSuccess: () => {
         // Remove locally
         setNotifications(prev => prev.filter(n => n.id !== notificationId));
+        toast.success('Notification deleted');
       },
     }
   );
@@ -192,10 +220,17 @@ const handleMarkAllAsRead = () => {
     onSuccess: () => {
       // Mark all as read locally
       setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+      toast.success('All notifications marked as read');
     },
   });
 };
 
+const handleMarkUnread = (notificationId) => {
+  setNotifications(prev =>
+    prev.map(n => n.id === notificationId ? { ...n, read: false } : n)
+  );
+  toast.success('Marked as unread');
+};
 
   const getTimeAgo = (timestamp) => {
     const now = new Date();
@@ -246,6 +281,7 @@ const handleMarkAllAsRead = () => {
           <>
             {/* Backdrop */}
             <Motion.div
+              ref={panelRef}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -272,6 +308,21 @@ const handleMarkAllAsRead = () => {
                 y: -8,
                 scale: 0.98,
                 transition: { duration: 0.15 }
+              }}
+              onKeyDown={(e) => {
+                if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+                const container = e.currentTarget;
+                const items = container.querySelectorAll('[role="listitem"]');
+                if (!items.length) return;
+                const currentIndex = Array.from(items).findIndex((el) => el === document.activeElement);
+                let nextIndex = 0;
+                if (e.key === 'ArrowDown') {
+                  nextIndex = currentIndex < items.length - 1 ? currentIndex + 1 : 0;
+                } else {
+                  nextIndex = currentIndex > 0 ? currentIndex - 1 : items.length - 1;
+                }
+                items[nextIndex].focus();
+                e.preventDefault();
               }}
               className="absolute right-0 mt-3 w-80 md:w-96 bg-white dark:bg-slate-900
                         border border-gray-200 dark:border-slate-800 rounded-xl shadow-2xl 
@@ -343,6 +394,7 @@ const handleMarkAllAsRead = () => {
                           getTimeAgo={getTimeAgo}
                           handleNotificationClick={handleNotificationClick}
                           handleDeleteNotification={handleDeleteNotification}
+                          handleMarkUnread={handleMarkUnread}
                         />
                       ))}
                     </AnimatePresence>

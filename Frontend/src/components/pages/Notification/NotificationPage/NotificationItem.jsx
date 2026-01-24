@@ -1,9 +1,7 @@
-import { motion } from 'framer-motion';
+import { motion as Motion } from 'framer-motion';
 import { Trash2, Check } from 'lucide-react';
 import { getNotificationIcon, getNotificationColor, getTimeAgo, getNotificationTypeLabel, isUnread } from './notificationTypeUtils';
 import { NOTIFICATION_ANIMATION, NOTIFICATION_TRANSITION_DELAY } from './notificationConstants';
-
-const Motion = motion;
 
 /**
  * NotificationItem Component
@@ -15,6 +13,7 @@ const Motion = motion;
  * @param {Function} props.onNotificationClick - Click handler
  * @param {Function} props.onDeleteClick - Delete button click handler
  * @param {Function} props.onSelectToggle - Selection toggle handler
+  onToggleRead,
  * @param {number} props.index - Index for stagger animation
  * @returns {JSX.Element}
  */
@@ -29,7 +28,7 @@ export const NotificationItem = ({
 }) => {
   const isNotificationUnread = isUnread(notification);
   const borderColor = getNotificationColor(notification.type);
-
+ 
   const handleClick = () => {
     if (isSelectionMode) {
       onSelectToggle(notification.id);
@@ -40,6 +39,18 @@ export const NotificationItem = ({
 
   return (
     <Motion.li
+      role="listitem"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleClick();
+        }
+        if (e.key === 'Delete') {
+          e.preventDefault();
+          onDeleteClick(notification.id);
+        }
+      }}
       initial={NOTIFICATION_ANIMATION.initial}
       animate={NOTIFICATION_ANIMATION.animate}
       exit={NOTIFICATION_ANIMATION.exit}
@@ -115,6 +126,19 @@ export const NotificationItem = ({
           </div>
         </div>
 
+        {notification.read && !isSelectionMode && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleRead?.(notification.id, false);
+            }}
+            className="flex-shrink-0 opacity-0 group-hover:opacity-100 ml-1 px-2 py-1 rounded-lg text-xs border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-slate-800"
+          >
+            Mark unread
+          </button>
+        )}
+
+ 
         {/* Delete button */}
         <button
           onClick={(e) => {

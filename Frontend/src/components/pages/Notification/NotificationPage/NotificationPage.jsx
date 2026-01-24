@@ -1,10 +1,13 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { Bell, CheckCheck, Search, Trash2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuthen } from '@/context/AuthenProvider';
 import { Button } from '@/components/ui/button';
 import { useNotification } from '@/hooks/notification/useNotification';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { useNotificationActionsHook } from './useNotificationActions';
 import { NotificationItem } from './NotificationItem';
 import { NotificationEmpty } from './NotificationEmpty';
@@ -27,7 +30,8 @@ export const NotificationPage = () => {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
 
   const { data, isLoading, error } = useNotification();
-  const { user, token } = useAuthen();
+  const { token } = useAuthen();
+  const queryClient = useQueryClient();
   const {
     markAsRead,
     markAllAsRead,
@@ -35,6 +39,8 @@ export const NotificationPage = () => {
     deleteNotificationsByIds,
   } = useNotificationActionsHook();
   const navigate = useNavigate();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmMode, setConfirmMode] = useState(null);
 
   const notifications = data || [];
 
@@ -52,12 +58,12 @@ export const NotificationPage = () => {
     return notifications.filter(
       (n) => matchesFilter(n, filter) && matchesSearch(n, searchQuery)
     );
-  }, [notifications, filter, searchQuery]);
+  }, [notifications, filter, searchQuery, timetick]);
 
   // Calculate unread count
   const unreadCount = useMemo(() => {
     return notifications.filter((n) => isUnread(n)).length;
-  }, [notifications]);
+  }, [notifications, timetick]);
 
   // Handlers
   const handleNotificationClick = useCallback(
@@ -68,6 +74,7 @@ export const NotificationPage = () => {
         } else if (notification.type === 'chat') {
           navigate(`/friend/chat/${notification.relatedId}`);
         }
+        toast.success('Marked as read');
       });
     },
     [markAsRead, navigate, token]
@@ -75,14 +82,26 @@ export const NotificationPage = () => {
 
   const handleDeleteNotification = useCallback(
     (notificationId) => {
-      deleteNotification.mutate(notificationId, token);
+      deleteNotification.mutate(notificationId, token, () => {
+        toast.success('Notification deleted');
+      });
     },
     [deleteNotification, token]
   );
 
   const handleMarkAllAsRead = useCallback(() => {
-    markAllAsRead.mutate(token);
+    markAllAsRead.mutate(token, () => {
+      toast.success('All notifications marked as read');
+    });
   }, [markAllAsRead, token]);
+
+  const handleToggleRead = useCallback((id, read) => {
+    queryClient.setQueryData(['notifications'], (prev) => {
+      if (!prev) return prev;
+      return prev.map((n) => (n.id === id ? { ...n, read } : n));
+    });
+    toast.success(read ? 'Marked as read' : 'Marked as unread');
+  }, [queryClient]);
 
   const handleToggleSelect = useCallback((id) => {
     setSelectedIds((prev) =>
@@ -90,18 +109,13 @@ export const NotificationPage = () => {
     );
   }, []);
 
-  const handleSelectAll = useCallback(() => {
-    setIsSelectionMode(true);
-    setSelectedIds(filteredNotifications.map((n) => n.id));
-  }, [filteredNotifications]);
+  // removed unused handleSelectAll
 
   const handleDeleteSelected = useCallback(() => {
     if (selectedIds.length === 0) return;
-    deleteNotificationsByIds.mutate(selectedIds, token, () => {
-      setSelectedIds([]);
-      setIsSelectionMode(false);
-    });
-  }, [selectedIds, deleteNotificationsByIds, token]);
+    setConfirmMode('selected');
+    setConfirmOpen(true);
+  }, [selectedIds]);
 
   const handleDeleteAll = useCallback(() => {
     let idsToDelete = [];
@@ -117,61 +131,60 @@ export const NotificationPage = () => {
     }
 
     if (idsToDelete.length === 0) return;
-    deleteNotificationsByIds.mutate(idsToDelete, token, () => {
-      setSelectedIds([]);
-    });
-  }, [selectedIds, filter, notifications, filteredNotifications, deleteNotificationsByIds, token]);
+    setConfirmMode({ type: 'all', ids: idsToDelete });
+    setConfirmOpen(true);
+  }, [selectedIds, filter, notifications, filteredNotifications]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
       {/* Loading State */}
       {isLoading && (
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="flex items-center justify-center min-h-screen"
         >
-          <motion.div
+          <Motion.div
             initial={LOADER_ANIMATION.initial}
             animate={LOADER_ANIMATION.animate}
             transition={LOADER_ANIMATION.transition}
             className="text-center"
           >
-            <motion.div
+            <Motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
               className="w-16 h-16 mx-auto mb-4"
             >
               <div className="relative w-full h-full">
-                <motion.div
+                <Motion.div
                   className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-500 border-r-blue-400"
                   animate={{ rotate: 360 }}
                   transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
                 />
-                <motion.div
+                <Motion.div
                   className="absolute inset-1 rounded-full border-2 border-transparent border-b-blue-300"
                   animate={{ rotate: -360 }}
                   transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
                 />
               </div>
-            </motion.div>
-            <motion.p
+            </Motion.div>
+            <Motion.p
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               className="text-gray-500 dark:text-gray-400 font-medium"
             >
               Loading notifications...
-            </motion.p>
-            <motion.div
+            </Motion.p>
+            <Motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
               className="flex justify-center gap-1 mt-3"
             >
               {[0, 1, 2].map((i) => (
-                <motion.div
+                <Motion.div
                   key={i}
                   animate={{ scale: [1, 1.2, 1] }}
                   transition={{
@@ -182,62 +195,62 @@ export const NotificationPage = () => {
                   className="w-2 h-2 bg-blue-500 rounded-full"
                 />
               ))}
-            </motion.div>
-          </motion.div>
-        </motion.div>
+            </Motion.div>
+          </Motion.div>
+        </Motion.div>
       )}
 
       {/* Error State */}
       {error && (
-        <motion.div
+        <Motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="flex items-center justify-center min-h-screen"
         >
-          <motion.div
+          <Motion.div
             initial={LOADER_ANIMATION.initial}
             animate={LOADER_ANIMATION.animate}
             transition={LOADER_ANIMATION.transition}
             className="text-center"
           >
-            <motion.div
+            <Motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.1, duration: 0.4 }}
               className="w-16 h-16 bg-gradient-to-br from-red-100 to-red-50 dark:from-red-900/40 dark:to-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4 relative"
             >
-              <motion.div
+              <Motion.div
                 animate={{ scale: [1, 1.3, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
                 className="absolute inset-0 rounded-full border-2 border-red-300 dark:border-red-700/50"
               />
-              <motion.div
+              <Motion.div
                 initial={{ rotate: -45 }}
                 animate={{ rotate: 0 }}
                 transition={{ delay: 0.2, duration: 0.5 }}
               >
                 <Bell className="w-8 h-8 text-red-500 dark:text-red-400" />
-              </motion.div>
-            </motion.div>
-            <motion.p
+              </Motion.div>
+            </Motion.div>
+            <Motion.p
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               className="text-red-500 dark:text-red-400 font-medium text-lg"
             >
               Failed to load notifications
-            </motion.p>
-            <motion.p
+            </Motion.p>
+            <Motion.p
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
               className="text-gray-500 dark:text-gray-400 text-sm mt-2"
             >
               Please try again later
-            </motion.p>
-          </motion.div>
-        </motion.div>
+            </Motion.p>
+          </Motion.div>
+        </Motion.div>
       )}
 
       {/* Main Content */}
@@ -375,6 +388,7 @@ export const NotificationPage = () => {
                         onNotificationClick={handleNotificationClick}
                         onDeleteClick={handleDeleteNotification}
                         onSelectToggle={handleToggleSelect}
+                        onToggleRead={handleToggleRead}
                         index={index}
                       />
                     ))}
@@ -395,6 +409,42 @@ export const NotificationPage = () => {
           </div>
         </>
       )}
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm deletion</DialogTitle>
+            <DialogDescription>
+              {confirmMode === 'selected'
+                ? `Delete ${selectedIds.length} selected notifications?`
+                : `Delete ${confirmMode?.ids?.length || 0} notifications?`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setConfirmOpen(false)}>Cancel</Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (confirmMode === 'selected') {
+                  deleteNotificationsByIds.mutate(selectedIds, token, () => {
+                    setSelectedIds([]);
+                    setIsSelectionMode(false);
+                    toast.success('Selected notifications deleted');
+                    setConfirmOpen(false);
+                  });
+                } else if (confirmMode?.type === 'all') {
+                  deleteNotificationsByIds.mutate(confirmMode.ids, token, () => {
+                    setSelectedIds([]);
+                    toast.success('Notifications deleted');
+                    setConfirmOpen(false);
+                  });
+                }
+              }}
+            >
+              Delete
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
