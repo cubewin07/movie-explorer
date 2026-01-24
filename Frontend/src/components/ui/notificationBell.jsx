@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { Bell, X, UserPlus, MessageCircle, Check, Trash2, CheckCheck } from "lucide-react";
-import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
+import { motion as Motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuthen } from '@/context/AuthenProvider';
 import { Client } from "@stomp/stompjs";
@@ -13,6 +13,7 @@ function NotificationItem({
   notification,
   isDark,
   getNotificationIcon,
+  getNotificationColor,
   getTimeAgo,
   handleNotificationClick,
   handleDeleteNotification
@@ -49,12 +50,11 @@ function NotificationItem({
       style={{ opacity }}
       className="relative"
     >
-      {/* Red delete background */}
-      {/* <div className="absolute inset-0 flex justify-end items-center pr-4 pointer-events-none">
+      <div className="absolute inset-0 flex justify-end items-center pr-4 pointer-events-none">
         <div className="bg-red-600 text-white rounded-full p-2 pointer-events-none">
           <Trash2 className="w-4 h-4" />
         </div>
-      </div> */}
+      </div>
 
       {/* Draggable container */}
       <motion.div
@@ -64,11 +64,9 @@ function NotificationItem({
         dragDirectionLock
         onPanEnd={onPanEnd}
         onClick={() => handleNotificationClick(notification)}
-        className="
-          group relative px-4 py-3 border-l-4 cursor-pointer 
+        className={`group relative px-4 py-3 border-l-4 ${getNotificationColor(notification.type)} cursor-pointer 
           border-b border-gray-100 dark:border-slate-800 
-          flex gap-3 items-start
-        "
+          flex gap-3 items-start`}
       >
         {/* Icon */}
         <div className="flex-shrink-0 mt-0.5">
@@ -116,11 +114,19 @@ function NotificationItem({
 
 export default function NotificationBell() {
   const [open, setOpen] = useState(false);
-  const [isDark, setIsDark] = useThemeToggle();
-  const { user, token } = useAuthen();
+  const [isDark] = useThemeToggle();
+  const { token } = useAuthen();
   const { notifications, setNotifications } = useWebsocket();
   const { markAsRead, markAllAsRead, deleteNotification } = useNotificationActions();
   const navigate = useNavigate();
+  useEffect(() => {
+    if (!open) return;
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [open]);
 
   const getNotificationIcon = (type) => {
     switch (type) {
@@ -158,9 +164,7 @@ export default function NotificationBell() {
         if (notification.type === 'friendRequest') {
           navigate(`/user/${notification.relatedId}`);
         } else if (notification.type === 'chat') {
-          // TODO: Navigate to chat with the specific chat ID
-          console.log('Navigate to chat:', notification.relatedId);
-          // navigate(`/messages/${notification.relatedId}`);
+          navigate(`/friend/chat/${notification.relatedId}`);
         }
 
         setOpen(false);
@@ -214,33 +218,34 @@ const handleMarkAllAsRead = () => {
   return (
     <div className="relative">
       {/* Bell button */}
-      <motion.button
+      <Motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setOpen((prev) => !prev)}
+        aria-label="Notifications"
         className="relative p-2 rounded-xl hover:bg-slate-800 dark:hover:bg-slate-700 transition-colors"
       >
         <Bell className="w-6 h-6 text-gray-300 dark:text-gray-400" />
         <AnimatePresence>
           {unreadCount > 0 && (
-            <motion.span
+            <Motion.span
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0 }}
               className="absolute -top-1 -right-1 bg-red-500 text-white text-xs min-w-[18px] h-[18px] flex items-center justify-center rounded-full font-semibold shadow-lg"
             >
               {unreadCount > 9 ? '9+' : unreadCount}
-            </motion.span>
+            </Motion.span>
           )}
         </AnimatePresence>
-      </motion.button>
+      </Motion.button>
 
       {/* Dropdown notification list */}
       <AnimatePresence>
         {open && (
           <>
             {/* Backdrop */}
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -249,7 +254,7 @@ const handleMarkAllAsRead = () => {
             />
 
             {/* Notification Panel */}
-            <motion.div
+            <Motion.div
               initial={{ opacity: 0, y: -8, scale: 0.98 }}
               animate={{
                 opacity: 1,
@@ -303,7 +308,7 @@ const handleMarkAllAsRead = () => {
 
               {/* Notification List */}
               {Object.entries(grouped).length === 0 ? (
-                <motion.li
+                <Motion.li
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
@@ -314,7 +319,7 @@ const handleMarkAllAsRead = () => {
                   </div>
                   <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">No notifications yet</p>
                   <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">We'll notify you when something happens</p>
-                </motion.li>
+                </Motion.li>
               ) : (
                 Object.entries(grouped).map(([section, items]) => {
                   if (items.length === 0) return (null);
@@ -334,6 +339,7 @@ const handleMarkAllAsRead = () => {
                           notification={notification}
                           isDark={isDark}
                           getNotificationIcon={getNotificationIcon}
+                          getNotificationColor={getNotificationColor}
                           getTimeAgo={getTimeAgo}
                           handleNotificationClick={handleNotificationClick}
                           handleDeleteNotification={handleDeleteNotification}
@@ -356,7 +362,7 @@ const handleMarkAllAsRead = () => {
                     View all notifications
                   </button>
                 </div>
-            </motion.div>
+            </Motion.div>
           </>
         )}
       </AnimatePresence>

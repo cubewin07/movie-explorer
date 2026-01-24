@@ -1,7 +1,9 @@
 import { motion } from 'framer-motion';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Check } from 'lucide-react';
 import { getNotificationIcon, getNotificationColor, getTimeAgo, getNotificationTypeLabel, isUnread } from './notificationTypeUtils';
 import { NOTIFICATION_ANIMATION, NOTIFICATION_TRANSITION_DELAY } from './notificationConstants';
+
+const Motion = motion;
 
 /**
  * NotificationItem Component
@@ -37,7 +39,7 @@ export const NotificationItem = ({
   };
 
   return (
-    <motion.li
+    <Motion.li
       initial={NOTIFICATION_ANIMATION.initial}
       animate={NOTIFICATION_ANIMATION.animate}
       exit={NOTIFICATION_ANIMATION.exit}
@@ -60,7 +62,7 @@ export const NotificationItem = ({
     >
       <div className="flex gap-4">
         {/* Icon/Checkbox */}
-        <div className="flex-shrink-0 mt-0.5">
+        <div className="flex-shrink-0 mt-0.5 relative">
           <div
             className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
               isNotificationUnread
@@ -70,6 +72,11 @@ export const NotificationItem = ({
           >
             {getNotificationIcon(notification.type)}
           </div>
+          {isSelectionMode && isSelected && (
+            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-blue-500 text-white flex items-center justify-center shadow-md">
+              <Check className="w-3 h-3" />
+            </span>
+          )}
         </div>
 
         {/* Content */}
@@ -119,7 +126,7 @@ export const NotificationItem = ({
           <Trash2 className="w-4 h-4 text-red-500 dark:text-red-400" />
         </button>
       </div>
-    </motion.li>
+    </Motion.li>
   );
 };
 
