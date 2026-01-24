@@ -8,7 +8,7 @@ import {
  * Provides clean API for notification operations
  * @returns {Object} Notification action mutations
  */
-export const useNotificationActionsHook = () => {
+export const useNotificationActionsHookHelper = () => {
   const { markAsRead, markAllAsRead, deleteNotification, deleteNotificationsByIds } =
     useNotificationActions();
 
@@ -76,4 +76,4 @@ export const useNotificationActionsHook = () => {
   };
 };
 
-export default useNotificationActionsHook;
+export default useNotificationActionsHookHelper;

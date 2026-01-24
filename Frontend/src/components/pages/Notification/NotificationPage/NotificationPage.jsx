@@ -8,7 +8,7 @@ import { useNotification } from '@/hooks/notification/useNotification';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { useNotificationActionsHook } from './useNotificationActions';
+import { useNotificationActionsHookHelper } from './useNotificationActionsHelper';
 import { NotificationItem } from './NotificationItem';
 import { NotificationEmpty } from './NotificationEmpty';
 import { matchesFilter, matchesSearch, isUnread } from './notificationTypeUtils';
@@ -37,7 +37,7 @@ export const NotificationPage = () => {
     markAllAsRead,
     deleteNotification,
     deleteNotificationsByIds,
-  } = useNotificationActionsHook();
+  } = useNotificationActionsHookHelper();
   const navigate = useNavigate();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmMode, setConfirmMode] = useState(null);

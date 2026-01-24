@@ -6,7 +6,7 @@ export { NotificationItem } from './NotificationItem';
 export { NotificationEmpty } from './NotificationEmpty';
 
 // Hooks
-export { useNotificationActionsHook, useNotificationActionsHook as useNotificationActions } from './useNotificationActions';
+export { useNotificationActionsHookHelper, useNotificationActionsHookHelper as useNotificationActionsHelper } from './useNotificationActionsHelper';
 
 // Utilities
 export {
