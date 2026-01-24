@@ -1,9 +1,8 @@
 import { useEffect, useState, useRef } from "react";
 import { Bell, X, UserPlus, MessageCircle, Check, Trash2, CheckCheck } from "lucide-react";
-import { motion as Motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuthen } from '@/context/AuthenProvider';
-import { Client } from "@stomp/stompjs";
 import { Button } from "@/components/ui/button";
 import { useNotificationActions } from "@/hooks/notification/useNotificationActions";
 import { useThemeToggle } from "@/hooks/useThemeToggle";
@@ -253,7 +252,7 @@ const handleMarkUnread = (notificationId) => {
   return (
     <div className="relative">
       {/* Bell button */}
-      <Motion.button
+      <motion.button
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setOpen((prev) => !prev)}
@@ -263,24 +262,24 @@ const handleMarkUnread = (notificationId) => {
         <Bell className="w-6 h-6 text-gray-300 dark:text-gray-400" />
         <AnimatePresence>
           {unreadCount > 0 && (
-            <Motion.span
+            <motion.span
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0 }}
               className="absolute -top-1 -right-1 bg-red-500 text-white text-xs min-w-[18px] h-[18px] flex items-center justify-center rounded-full font-semibold shadow-lg"
             >
               {unreadCount > 9 ? '9+' : unreadCount}
-            </Motion.span>
+            </motion.span>
           )}
         </AnimatePresence>
-      </Motion.button>
+      </motion.button>
 
       {/* Dropdown notification list */}
       <AnimatePresence>
         {open && (
           <>
             {/* Backdrop */}
-            <Motion.div
+      <motion.div
               ref={panelRef}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -290,7 +289,7 @@ const handleMarkUnread = (notificationId) => {
             />
 
             {/* Notification Panel */}
-            <Motion.div
+            <motion.div
               initial={{ opacity: 0, y: -8, scale: 0.98 }}
               animate={{
                 opacity: 1,
@@ -359,7 +358,7 @@ const handleMarkUnread = (notificationId) => {
 
               {/* Notification List */}
               {Object.entries(grouped).length === 0 ? (
-                <Motion.li
+    <motion.li
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
@@ -370,7 +369,7 @@ const handleMarkUnread = (notificationId) => {
                   </div>
                   <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">No notifications yet</p>
                   <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">We'll notify you when something happens</p>
-                </Motion.li>
+    </motion.li>
               ) : (
                 Object.entries(grouped).map(([section, items]) => {
                   if (items.length === 0) return (null);
@@ -414,7 +413,7 @@ const handleMarkUnread = (notificationId) => {
                     View all notifications
                   </button>
                 </div>
-            </Motion.div>
+      </motion.div>
           </>
         )}
       </AnimatePresence>

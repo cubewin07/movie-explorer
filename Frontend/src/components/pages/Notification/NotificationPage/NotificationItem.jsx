@@ -1,4 +1,4 @@
-import { motion as Motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Trash2, Check } from 'lucide-react';
 import { getNotificationIcon, getNotificationColor, getTimeAgo, getNotificationTypeLabel, isUnread } from './notificationTypeUtils';
 import { NOTIFICATION_ANIMATION, NOTIFICATION_TRANSITION_DELAY } from './notificationConstants';
@@ -38,7 +38,7 @@ export const NotificationItem = ({
   };
 
   return (
-    <Motion.li
+    <motion.li
       role="listitem"
       tabIndex={0}
       onKeyDown={(e) => {
@@ -150,7 +150,7 @@ export const NotificationItem = ({
           <Trash2 className="w-4 h-4 text-red-500 dark:text-red-400" />
         </button>
       </div>
-    </Motion.li>
+    </motion.li>
   );
 };
 

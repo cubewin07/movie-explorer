@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { Bell, CheckCheck, Search, Trash2 } from 'lucide-react';
-import { motion as Motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuthen } from '@/context/AuthenProvider';
 import { Button } from '@/components/ui/button';
@@ -139,52 +139,52 @@ export const NotificationPage = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-slate-950">
       {/* Loading State */}
       {isLoading && (
-        <Motion.div
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="flex items-center justify-center min-h-screen"
         >
-          <Motion.div
+          <motion.div
             initial={LOADER_ANIMATION.initial}
             animate={LOADER_ANIMATION.animate}
             transition={LOADER_ANIMATION.transition}
             className="text-center"
           >
-            <Motion.div
+            <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
               className="w-16 h-16 mx-auto mb-4"
             >
               <div className="relative w-full h-full">
-                <Motion.div
+                <motion.div
                   className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-500 border-r-blue-400"
                   animate={{ rotate: 360 }}
                   transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
                 />
-                <Motion.div
+                <motion.div
                   className="absolute inset-1 rounded-full border-2 border-transparent border-b-blue-300"
                   animate={{ rotate: -360 }}
                   transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
                 />
               </div>
-            </Motion.div>
-            <Motion.p
+            </motion.div>
+            <motion.p
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               className="text-gray-500 dark:text-gray-400 font-medium"
             >
               Loading notifications...
-            </Motion.p>
-            <Motion.div
+            </motion.p>
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
               className="flex justify-center gap-1 mt-3"
             >
               {[0, 1, 2].map((i) => (
-                <Motion.div
+                <motion.div
                   key={i}
                   animate={{ scale: [1, 1.2, 1] }}
                   transition={{
@@ -195,62 +195,62 @@ export const NotificationPage = () => {
                   className="w-2 h-2 bg-blue-500 rounded-full"
                 />
               ))}
-            </Motion.div>
-          </Motion.div>
-        </Motion.div>
+            </motion.div>
+          </motion.div>
+        </motion.div>
       )}
 
       {/* Error State */}
       {error && (
-        <Motion.div
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="flex items-center justify-center min-h-screen"
         >
-          <Motion.div
+          <motion.div
             initial={LOADER_ANIMATION.initial}
             animate={LOADER_ANIMATION.animate}
             transition={LOADER_ANIMATION.transition}
             className="text-center"
           >
-            <Motion.div
+            <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.1, duration: 0.4 }}
               className="w-16 h-16 bg-gradient-to-br from-red-100 to-red-50 dark:from-red-900/40 dark:to-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4 relative"
             >
-              <Motion.div
+              <motion.div
                 animate={{ scale: [1, 1.3, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
                 className="absolute inset-0 rounded-full border-2 border-red-300 dark:border-red-700/50"
               />
-              <Motion.div
+              <motion.div
                 initial={{ rotate: -45 }}
                 animate={{ rotate: 0 }}
                 transition={{ delay: 0.2, duration: 0.5 }}
               >
                 <Bell className="w-8 h-8 text-red-500 dark:text-red-400" />
-              </Motion.div>
-            </Motion.div>
-            <Motion.p
+              </motion.div>
+            </motion.div>
+            <motion.p
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               className="text-red-500 dark:text-red-400 font-medium text-lg"
             >
               Failed to load notifications
-            </Motion.p>
-            <Motion.p
+            </motion.p>
+            <motion.p
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
               className="text-gray-500 dark:text-gray-400 text-sm mt-2"
             >
               Please try again later
-            </Motion.p>
-          </Motion.div>
-        </Motion.div>
+            </motion.p>
+          </motion.div>
+        </motion.div>
       )}
 
       {/* Main Content */}
