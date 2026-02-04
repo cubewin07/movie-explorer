@@ -182,6 +182,8 @@ public class UserService {
         dto.setId(user.getId());
         dto.setEmail(user.getEmail());
         dto.setUsername(user.getRealUsername());
+        dto.setRole(user.getRole() != null ? user.getRole().name() : ROLE.ROLE_USER.name());
+        dto.setIsAdmin(user.getRole() != null && user.getRole().equals(ROLE.ROLE_ADMIN));
 
         // Watchlist
         if (user.getWatchlist() != null) {

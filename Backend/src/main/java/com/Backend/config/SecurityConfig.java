@@ -19,6 +19,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.web.cors.*;
 import org.springframework.security.config.Customizer;
+import org.springframework.http.HttpMethod;
 
 
 import lombok.RequiredArgsConstructor;
@@ -41,8 +42,7 @@ public class SecurityConfig {
                     auth
                             .requestMatchers("/user/register").permitAll()
                             .requestMatchers("/user/authenticate").permitAll()
-                            .requestMatchers("/reviews").permitAll()
-                            .requestMatchers("/reviews/reply").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/reviews/**").permitAll()
                             .requestMatchers("/actuator/**").permitAll()
                             .requestMatchers("/ws/**").permitAll()
                             .requestMatchers("/swagger-ui/**").permitAll()

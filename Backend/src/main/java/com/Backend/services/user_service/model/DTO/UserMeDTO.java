@@ -15,6 +15,8 @@ public class UserMeDTO {
     private Long id;
     private String email;
     private String username;
+    private String role;
+    private Boolean isAdmin;
 
     private WatchlistDTO watchlist;
     private List<NotificationDTO> notifications;
