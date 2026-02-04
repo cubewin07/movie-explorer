@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { motion } from 'framer-motion';
+import { Crown, ShieldOff } from 'lucide-react';
 
 function useDebounced(value, delay = 400) {
   const [debounced, setDebounced] = useState(value);
@@ -76,20 +78,23 @@ export default function UsersTab() {
     setPage(0);
   }, [debouncedSearch]);
 
-  const header = useMemo(() => (
-    <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
-      <div className="flex-1">
-        <Input
-          placeholder="Search by username or email"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+  const header = useMemo(
+    () => (
+      <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-4">
+        <div className="flex-1">
+          <Input
+            placeholder="Search by username or email"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <div className="text-sm text-muted-foreground">
+          {isFetching ? 'Refreshing...' : null}
+        </div>
       </div>
-      <div className="text-sm text-muted-foreground">
-        {isFetching ? 'Refreshing...' : null}
-      </div>
-    </div>
-  ), [search, isFetching]);
+    ),
+    [search, isFetching]
+  );
 
   if (isError) {
     const msg = error?.response?.data?.message || 'Failed to load users';
@@ -129,7 +134,7 @@ export default function UsersTab() {
               content.map((u) => {
                 const isAdmin = String(u.role || '').toUpperCase().includes('ADMIN');
                 return (
-                  <tr key={u.id} className="border-t">
+                  <tr key={u.id} className="border-t hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-2">{u.username}</td>
                     <td className="px-4 py-2">{u.email}</td>
                     <td className="px-4 py-2">
@@ -140,13 +145,30 @@ export default function UsersTab() {
                     <td className="px-4 py-2">
                       <div className="flex justify-end">
                         {isAdmin ? (
-                          <Button variant="outline" size="sm" onClick={() => handleDemote(u)}>
-                            Demote
-                          </Button>
+                          <motion.div whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDemote(u)}
+                              disabled={roleMutation.isPending}
+                              className="border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300 dark:hover:bg-amber-900/20 transition-all"
+                            >
+                              <ShieldOff className="mr-1.5 h-4 w-4" />
+                              Demote
+                            </Button>
+                          </motion.div>
                         ) : (
-                          <Button size="sm" onClick={() => handlePromote(u)}>
-                            Promote
-                          </Button>
+                          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.96 }}>
+                            <Button
+                              size="sm"
+                              onClick={() => handlePromote(u)}
+                              disabled={roleMutation.isPending}
+                              className="bg-gradient-to-r from-violet-500 via-fuchsia-500 to-rose-500 text-white shadow-md hover:from-violet-600 hover:via-fuchsia-600 hover:to-rose-600 focus-visible:ring-2 focus-visible:ring-fuchsia-400/50 transition-all"
+                            >
+                              <Crown className="mr-1.5 h-4 w-4" />
+                              Promote
+                            </Button>
+                          </motion.div>
                         )}
                       </div>
                     </td>
@@ -181,7 +203,11 @@ export default function UsersTab() {
           </p>
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfirm(null)}>Cancel</Button>
-            <Button onClick={confirmAction} disabled={roleMutation.isPending}>
+            <Button
+              onClick={confirmAction}
+              disabled={roleMutation.isPending}
+              className="bg-gradient-to-r from-emerald-500 to-teal-500 text-white hover:from-emerald-600 hover:to-teal-600 transition-colors"
+            >
               {roleMutation.isPending ? 'Updating...' : 'Confirm'}
             </Button>
           </DialogFooter>
@@ -190,4 +216,3 @@ export default function UsersTab() {
     </div>
   );
 }
-
