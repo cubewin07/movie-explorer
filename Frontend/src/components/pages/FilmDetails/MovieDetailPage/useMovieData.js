@@ -1,7 +1,8 @@
 import { useMovieDetails, useMovieTrailer, useMovieCredits } from '@/hooks/API/data';
 import { useAuthen } from '@/context/AuthenProvider';
 import useAddToWatchlist from '@/hooks/watchList/useAddtoWatchList';
-import { useState } from 'react';
+import useWatchlist from '@/hooks/watchList/useWatchList';
+import { useMemo, useState } from 'react';
 
 /**
  * Custom hook for managing movie detail data
@@ -13,6 +14,7 @@ export function useMovieData(movieId) {
 
     // Fetch movie details
     const { movie, isLoading, isError } = useMovieDetails(movieId);
+    const { data: watchlist } = useWatchlist();
 
     // Fetch trailer
     const { trailerUrl, isLoadingTrailer } = useMovieTrailer(movieId);
@@ -26,6 +28,12 @@ export function useMovieData(movieId) {
 
     // Watchlist operations
     const { mutate: addToWatchlist, isPending } = useAddToWatchlist(token);
+
+    const isInWatchlist = useMemo(() => {
+        if (!movie?.id || !watchlist) return false;
+        const movies = Array.isArray(watchlist?.moviesId) ? watchlist.moviesId : [];
+        return movies.includes(movie.id);
+    }, [movie?.id, watchlist]);
 
     // Extract genres
     const genres = movie?.genres?.map((g) => g.name) || [];
@@ -52,12 +60,17 @@ export function useMovieData(movieId) {
             setShowLoginModal(true);
             return;
         }
+        if (isInWatchlist) {
+            return;
+        }
         addToWatchlist({ id: movie.id, type: 'MOVIE' });
     };
 
     // Handle login success and add to watchlist
     const handleLoginSuccess = () => {
-        addToWatchlist({ id: movie.id, type: 'MOVIE' });
+        if (!isInWatchlist) {
+            addToWatchlist({ id: movie.id, type: 'MOVIE' });
+        }
     };
 
     return {
@@ -83,6 +96,7 @@ export function useMovieData(movieId) {
         addToWatchlist: handleAddToWatchlist,
         loginSuccess: handleLoginSuccess,
         isPending,
+        isInWatchlist,
         showLoginModal,
         setShowLoginModal,
     };

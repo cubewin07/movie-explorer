@@ -31,6 +31,7 @@ export default function MovieDetailPage() {
         isErrorCredits,
         addToWatchlist,
         isPending,
+        isInWatchlist,
         showLoginModal,
         setShowLoginModal,
         loginSuccess,
@@ -59,6 +60,7 @@ export default function MovieDetailPage() {
                 trailerUrl={trailerUrl}
                 isLoadingTrailer={isLoadingTrailer}
                 isPending={isPending}
+                isInWatchlist={isInWatchlist}
                 onAddToWatchlist={addToWatchlist}
             />
 

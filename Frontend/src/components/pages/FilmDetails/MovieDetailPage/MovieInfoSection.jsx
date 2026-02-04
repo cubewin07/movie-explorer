@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Play, Plus, Share, Star, Clock, Calendar, Users } from 'lucide-react';
+import { Play, Plus, Share, Star, Clock, Calendar, Users, Loader2, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 /**
@@ -14,6 +14,7 @@ export function MovieInfoSection({
     trailerUrl,
     isLoadingTrailer,
     isPending,
+    isInWatchlist,
     onAddToWatchlist,
 }) {
     return (
@@ -162,11 +163,25 @@ export function MovieInfoSection({
 
                         <Button
                             variant="outline"
-                            className="border-slate-400 dark:border-slate-600 text-slate-800 dark:text-white hover:bg-blue-100 hover:text-blue-800 dark:hover:bg-slate-800 dark:hover:text-white disabled:bg-blue-100 disabled:text-blue-800 px-6 py-2 text-sm sm:text-base w-full sm:w-auto"
+                            className={`border-slate-400 dark:border-slate-600 text-slate-800 dark:text-white hover:bg-blue-100 hover:text-blue-800 dark:hover:bg-slate-800 dark:hover:text-white disabled:bg-blue-100 disabled:text-blue-800 px-6 py-2 text-sm sm:text-base w-full sm:w-auto ${isInWatchlist ? 'cursor-not-allowed' : ''}`}
                             onClick={onAddToWatchlist}
-                            disabled={isPending}
+                            disabled={isPending || isInWatchlist}
+                            aria-busy={isPending}
+                            aria-disabled={isInWatchlist}
                         >
-                            <Plus className="w-4 h-4 mr-2" /> Add to Watchlist
+                            {isPending ? (
+                                <>
+                                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Adding...
+                                </>
+                            ) : isInWatchlist ? (
+                                <>
+                                    <Check className="w-4 h-4 mr-2" /> In Watchlist
+                                </>
+                            ) : (
+                                <>
+                                    <Plus className="w-4 h-4 mr-2" /> Add to Watchlist
+                                </>
+                            )}
                         </Button>
 
                         <Button

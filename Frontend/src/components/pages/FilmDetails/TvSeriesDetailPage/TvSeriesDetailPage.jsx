@@ -1,5 +1,5 @@
 import { useParams } from 'react-router-dom';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import FancyLoader from '@/components/ui/FancyLoader';
 import ErrorState from '@/components/ui/ErrorState';
@@ -9,6 +9,7 @@ import { useAuthen } from '@/context/AuthenProvider';
 import useAddToWatchlist from '@/hooks/watchList/useAddtoWatchList';
 import { LoginNotificationModal } from '@/components/react_components/Modal/LoginNotificationModal';
 import { useSeriesData } from '@/components/pages/FilmDetails/TvSeriesDetailPage/useSeriesData';
+import useWatchlist from '@/hooks/watchList/useWatchList';
 
 import SeriesInfoSection from './SeriesInfoSection';
 import SeriesStatsSection from './SeriesStatsSection';
@@ -38,17 +39,28 @@ export default function TvSeriesDetailPage() {
     } = useSeriesData(id);
 
     const { mutate: addToWatchlist, isPending } = useAddToWatchlist(token);
+    const { data: watchlist } = useWatchlist();
+    const isInWatchlist = useMemo(() => {
+        if (!series?.id || !watchlist) return false;
+        const seriesIds = Array.isArray(watchlist?.seriesId) ? watchlist.seriesId : [];
+        return seriesIds.includes(series.id);
+    }, [series?.id, watchlist]);
 
     const handleAddToWatchlist = () => {
         if (!user) {
             setShowLoginModal(true);
             return;
         }
+        if (isInWatchlist) {
+            return;
+        }
         addToWatchlist({ id: series.id, type: 'SERIES' });
     };
 
     const handleLoginSuccess = () => {
-        addToWatchlist({ id: series.id, type: 'SERIES' });
+        if (!isInWatchlist) {
+            addToWatchlist({ id: series.id, type: 'SERIES' });
+        }
     };
 
     if (isLoading) {
@@ -89,6 +101,7 @@ export default function TvSeriesDetailPage() {
                 isLoadingTrailer={isLoadingTrailer}
                 onAddToWatchlist={handleAddToWatchlist}
                 onWatchlistPending={isPending}
+                isInWatchlist={isInWatchlist}
             />
 
             {/* Tabs */}

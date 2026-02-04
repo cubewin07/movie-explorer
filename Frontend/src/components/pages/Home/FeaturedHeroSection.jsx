@@ -1,17 +1,19 @@
-import { useState, useRef } from 'react';
+import { useMemo, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
-import { Play, Plus, ChevronDown, Info } from 'lucide-react';
+import { Play, Plus, ChevronDown, Info, Loader2, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthen } from '@/context/AuthenProvider';
 import { LoginNotificationModal } from '@/components/react_components/Modal/LoginNotificationModal';
 import useAddToWatchlist from '@/hooks/watchList/useAddtoWatchList';
+import useWatchlist from '@/hooks/watchList/useWatchList';
 
 function FeaturedHeroSection({ featuredContent }) {
     const navigate = useNavigate();
     const containerRef = useRef(null);
     const { user, token } = useAuthen();
     const { mutate: addToWatchlist } = useAddToWatchlist(token);
+    const { data: watchlist } = useWatchlist();
     const [showLoginModal, setShowLoginModal] = useState(false);
     const [selectedItem, setSelectedItem] = useState(null);
     const [addingId, setAddingId] = useState(null);
@@ -47,7 +49,7 @@ function FeaturedHeroSection({ featuredContent }) {
             setAddingId(selectedItem.id);
             const isTV = !!selectedItem.name;
             addToWatchlist(
-                { id: selectedItem.id, type: isTV ? 'TV' : 'MOVIE' },
+                { id: selectedItem.id, type: isTV ? 'SERIES' : 'MOVIE' },
                 {
                     onSettled: () => setAddingId(null),
                 }
@@ -57,6 +59,17 @@ function FeaturedHeroSection({ featuredContent }) {
     };
 
     if (!featuredContent) return null;
+
+    const isTV = !!featuredContent?.name;
+    const isInWatchlist = useMemo(() => {
+        if (!watchlist || !featuredContent?.id) return false;
+        if (isTV) {
+            const seriesIds = Array.isArray(watchlist?.seriesId) ? watchlist.seriesId : [];
+            return seriesIds.includes(featuredContent.id);
+        }
+        const movieIds = Array.isArray(watchlist?.moviesId) ? watchlist.moviesId : [];
+        return movieIds.includes(featuredContent.id);
+    }, [watchlist, featuredContent?.id, isTV]);
 
     return (
         <>
@@ -127,10 +140,26 @@ function FeaturedHeroSection({ featuredContent }) {
                                     px-8 py-6 rounded-full text-lg font-medium
                                     transition-all duration-300
                                 "
-                                disabled={addingId === featuredContent.id}
+                                disabled={addingId === featuredContent.id || isInWatchlist}
+                                aria-busy={addingId === featuredContent.id}
+                                aria-disabled={isInWatchlist}
                             >
-                                <Plus className="w-5 h-5 mr-2" />
-                                {addingId === featuredContent.id ? 'Adding...' : 'Add to List'}
+                                {addingId === featuredContent.id ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                                        Adding...
+                                    </>
+                                ) : isInWatchlist ? (
+                                    <>
+                                        <Check className="w-5 h-5 mr-2" />
+                                        In Watchlist
+                                    </>
+                                ) : (
+                                    <>
+                                        <Plus className="w-5 h-5 mr-2" />
+                                        Add to List
+                                    </>
+                                )}
                             </Button>
                             <Button
                                 variant="ghost"

@@ -1,10 +1,12 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import useAddToWatchlist from '@/hooks/watchList/useAddtoWatchList';
 import { useAuthen } from '@/context/AuthenProvider';
 import { LoginNotificationModal } from '@/components/react_components/Modal/LoginNotificationModal';
+import useWatchlist from '@/hooks/watchList/useWatchList';
+import { Loader2, Check, Plus } from 'lucide-react';
 
 export function TrendingCarousel({ items }) {
     const [current, setCurrent] = useState(0);
@@ -13,6 +15,7 @@ export function TrendingCarousel({ items }) {
 
     const { user, token } = useAuthen();
     const { mutate: addToWatchlist, isPending } = useAddToWatchlist(token);
+    const { data: watchlist } = useWatchlist();
 
     const navigate = useNavigate();
 
@@ -62,6 +65,13 @@ export function TrendingCarousel({ items }) {
             return;
         }
         const isTV = !!items[current].name;
+        if (isTV) {
+            const sIds = Array.isArray(watchlist?.seriesId) ? watchlist.seriesId : [];
+            if (sIds.includes(items[current].id)) return;
+        } else {
+            const mIds = Array.isArray(watchlist?.moviesId) ? watchlist.moviesId : [];
+            if (mIds.includes(items[current].id)) return;
+        }
         addToWatchlist({ id: items[current].id, type: isTV ? 'SERIES' : 'MOVIE' });
     };
 
@@ -150,9 +160,25 @@ export function TrendingCarousel({ items }) {
                                     <button
                                         onClick={() => handleAddToWatchlist()}
                                         className="px-8 py-3 rounded-full border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-semibold hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300"
-                                        disabled={isPending}
+                                        disabled={isPending || (watchlist && ((!!items[current].name ? (watchlist.seriesId || []).includes(items[current].id) : (watchlist.moviesId || []).includes(items[current].id))))}
+                                        aria-busy={isPending}
                                     >
-                                        {isPending ? 'Adding...' : 'Add to List'}
+                                        {isPending ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 inline-block mr-2 animate-spin" />
+                                                Adding...
+                                            </>
+                                        ) : watchlist && ((!!items[current].name ? (watchlist.seriesId || []).includes(items[current].id) : (watchlist.moviesId || []).includes(items[current].id))) ? (
+                                            <>
+                                                <Check className="w-4 h-4 inline-block mr-2" />
+                                                In Watchlist
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Plus className="w-4 h-4 inline-block mr-2" />
+                                                Add to List
+                                            </>
+                                        )}
                                     </button>
                                 </motion.div>
                             </div>
