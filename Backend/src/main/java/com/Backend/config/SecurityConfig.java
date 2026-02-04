@@ -40,6 +40,7 @@ public class SecurityConfig {
         http.csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth ->
                     auth
+                            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                             .requestMatchers("/user/register").permitAll()
                             .requestMatchers("/user/authenticate").permitAll()
                             .requestMatchers(HttpMethod.GET, "/reviews/**").permitAll()
@@ -61,10 +62,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration cors = new CorsConfiguration();
-        cors.setAllowedOrigins(java.util.List.of("http://localhost:5173", "https://cubewin07.github.io/movie-explorer"));
+        cors.setAllowedOrigins(java.util.List.of("http://localhost:5173", "https://cubewin07.github.io"));
         cors.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         cors.setAllowedHeaders(java.util.List.of("*")); // broaden to all headers to avoid preflight failures
-        cors.setAllowCredentials(true);
+        cors.setAllowCredentials(false);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", cors);
         return source;
