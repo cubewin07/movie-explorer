@@ -6,6 +6,8 @@ import com.Backend.services.user_service.model.DTO.AuthenticateDTO;
 import com.Backend.services.user_service.model.DTO.RegisterDTO;
 import com.Backend.services.user_service.model.DTO.UpdateUserDTO;
 import com.Backend.services.user_service.model.User;
+import com.Backend.services.user_service.model.ROLE;
+import com.Backend.services.user_service.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.Backend.services.watchlist_service.model.WatchlistPosting;
 import com.Backend.services.FilmType;
@@ -50,6 +52,9 @@ class SpringControllerTest {
 
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private UserRepository userRepository;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -139,6 +144,9 @@ class SpringControllerTest {
         // Register two users
         register("john", "john@example.com", "password123");
         register("jane", "jane@example.com", "password123");
+        User john = userRepository.findByEmail("john@example.com").orElseThrow();
+        john.setRole(ROLE.ROLE_ADMIN);
+        userRepository.save(john);
         // Authenticate to get a token
         String token = authenticate("john@example.com", "password123");
         
