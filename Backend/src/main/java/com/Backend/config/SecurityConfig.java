@@ -47,6 +47,7 @@ public class SecurityConfig {
                             .requestMatchers("/ws/**").permitAll()
                             .requestMatchers("/swagger-ui/**").permitAll()
                             .requestMatchers("/v3/api-docs/**").permitAll()
+                            .requestMatchers("/user/all").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .cors(Customizer.withDefaults())
@@ -67,7 +68,7 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", cors);
         return source;
     }   
-    
+
     @Bean
     public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService) {
         DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
