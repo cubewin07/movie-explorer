@@ -133,7 +133,11 @@ export default function SeriesInfoSection({
 
                     <Button
                         variant="outline"
-                        className={`border-slate-400 dark:border-slate-600 text-slate-800 dark:text-white hover:bg-blue-100 hover:text-blue-800 dark:hover:bg-slate-800 dark:hover:text-white disabled:bg-blue-100 disabled:text-blue-800 px-6 py-2 text-sm sm:text-base w-full sm:w-auto ${isInWatchlist ? 'cursor-not-allowed' : ''}`}
+                        className={`px-6 py-2 text-sm sm:text-base w-full sm:w-auto ${
+                            isInWatchlist
+                                ? 'border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/20 disabled:bg-emerald-100 disabled:text-emerald-800 dark:disabled:bg-emerald-900/30 dark:disabled:text-emerald-300 cursor-not-allowed'
+                                : 'border-slate-400 dark:border-slate-600 text-slate-800 dark:text-white hover:bg-blue-100 hover:text-blue-800 dark:hover:bg-slate-800 dark:hover:text-white disabled:bg-blue-100 disabled:text-blue-800'
+                        }`}
                         onClick={onAddToWatchlist}
                         disabled={onWatchlistPending || isInWatchlist}
                         aria-busy={onWatchlistPending}
