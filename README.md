@@ -27,6 +27,7 @@ A full‑stack application for discovering movies/series, managing watchlists, w
   - Observe notifications and unread states on the chat list
   - Add a movie to watchlist from Home and view profile stats
   - Write a review and reply; navigate episode metadata
+  - Optional (if your account is an admin): open /admin to demo user management and stats
 - Technical notes to highlight while demoing:
   - Membership checks on every chat/messages call
   - WebSocket handshake sets Principal from email, topic routing per user/chat
@@ -149,6 +150,28 @@ A full‑stack application for discovering movies/series, managing watchlists, w
   - [RedisCacheConfig.java](file:///Users/letanthang/learning_software/React_projects/movie-explorer/Backend/src/main/java/com/Backend/cache/RedisCacheConfig.java#L13-L21)
   - [KryoRedisSerializer.java](file:///Users/letanthang/learning_software/React_projects/movie-explorer/Backend/src/main/java/com/Backend/cache/KryoRedisSerializer.java#L27-L37)
 
+## Admin Dashboard
+
+- Access
+  - Route: /admin protected by an admin‑only gate; non‑admins see an access message
+  - Frontend guard: [AdminRoute.jsx](file:///Users/letanthang/learning_software/React_projects/movie-explorer/Frontend/src/components/routes/AdminRoute.jsx)
+  - Backend authorization: [SecurityConfig.java](file:///Users/letanthang/learning_software/React_projects/movie-explorer/Backend/src/main/java/com/Backend/config/SecurityConfig.java) restricts `/admin/**` to ROLE_ADMIN
+- Features
+  - Users: Search/paginate, promote to ROLE_ADMIN or demote to ROLE_USER with confirmation. Backend prevents demoting the last remaining admin.
+  - Stats: Summary cards and charts (users, admins, online, reviews, chats/messages, friendships, watchlist breakdown).
+- Frontend components
+  - [AdminDashboard.jsx](file:///Users/letanthang/learning_software/React_projects/movie-explorer/Frontend/src/components/pages/Admin/AdminDashboard.jsx)
+  - [UsersTab.jsx](file:///Users/letanthang/learning_software/React_projects/movie-explorer/Frontend/src/components/pages/Admin/UsersTab.jsx)
+  - [StatsTab.jsx](file:///Users/letanthang/learning_software/React_projects/movie-explorer/Frontend/src/components/pages/Admin/StatsTab.jsx)
+  - Route setup in [Routers.jsx](file:///Users/letanthang/learning_software/React_projects/movie-explorer/Frontend/src/components/routes/Routers.jsx)
+- Backend endpoints and logic
+  - [AdminController.java](file:///Users/letanthang/learning_software/React_projects/movie-explorer/Backend/src/main/java/com/Backend/services/admin_service/controller/AdminController.java)
+  - [AdminService.java](file:///Users/letanthang/learning_software/React_projects/movie-explorer/Backend/src/main/java/com/Backend/services/admin_service/service/AdminService.java)
+    - Includes safeguard: cannot demote the last remaining admin
+  - DTOs: [AdminUserDTO.java](file:///Users/letanthang/learning_software/React_projects/movie-explorer/Backend/src/main/java/com/Backend/services/admin_service/model/AdminUserDTO.java), [AdminStatsDTO.java](file:///Users/letanthang/learning_software/React_projects/movie-explorer/Backend/src/main/java/com/Backend/services/admin_service/model/AdminStatsDTO.java)
+- Local dev tip
+  - New accounts register as ROLE_USER. To access /admin locally the first time, set your user’s role to ROLE_ADMIN directly in the database for your account.
+
 ## Frontend Architecture
 
 - Auth & Session
@@ -231,6 +254,10 @@ A full‑stack application for discovering movies/series, managing watchlists, w
   - GET `/watchlist`
   - POST `/watchlist`
   - DELETE `/watchlist?id=...&type=...`
+ - Admin
+  - GET `/admin/users?query=...&page=...&size=...`
+  - PATCH `/admin/users/{id}/role` body: `{ "role": "ROLE_ADMIN" | "ROLE_USER" }`
+  - GET `/admin/stats/summary`
 
 ## Deployment Notes
 
