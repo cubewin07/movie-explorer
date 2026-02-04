@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { SidebarLink, useSidebar } from '@/components/ui/Sidebar.jsx';
-import { Home, Users, Compass, Clock, User, List, Settings, LogOut, HelpCircle, Bookmark } from 'lucide-react';
+import { Home, Users, Compass, Clock, User, List, Settings, LogOut, HelpCircle, Bookmark, Shield } from 'lucide-react';
 import { useThemeToggle } from '@/hooks/useThemeToggle';
 import { useChat } from '@/context/ChatProvider';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -158,6 +158,12 @@ function LeftSidebarContent({ handleThemeToggle, setLoginOpen, setRegisterOpen }
                         link={{ icon: <HelpCircle className="h-5 w-5" />, label: 'Help & Support', href: '/help' }}
                         active={pathname.startsWith('/help')}
                     />
+                    {user && (user.isAdmin === true || String(user.role || '').toUpperCase().includes('ADMIN')) && (
+                        <SidebarLink
+                            link={{ icon: <Shield className="h-5 w-5" />, label: 'Admin', href: '/admin' }}
+                            active={pathname.startsWith('/admin')}
+                        />
+                    )}
                     {user && (
                         <SidebarLink
                             link={{ icon: <LogOut className="h-5 w-5" />, label: 'Logout', href: '#' }}

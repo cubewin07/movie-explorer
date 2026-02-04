@@ -20,6 +20,8 @@ import FriendsView from '../pages/Chat/FriendsView';
 import ChatPlaceholder from '../pages/Chat/ChatPlaceholder';
 import UserInfoPage from '../pages/User/UserInfoPage';
 import { NotificationPage as NotificationsPage } from '../pages/Notification/NotificationPage';
+import AdminRoute from './AdminRoute';
+import AdminDashboard from '../pages/Admin/AdminDashboard';
 
 const router = createBrowserRouter(
     [
@@ -170,6 +172,16 @@ const router = createBrowserRouter(
                     element: (
                         <ProtectedRoute>
                             <NotificationsPage />
+                        </ProtectedRoute>
+                    ),
+                },
+                {
+                    path: '/admin',
+                    element: (
+                        <ProtectedRoute>
+                            <AdminRoute>
+                                <AdminDashboard />
+                            </AdminRoute>
                         </ProtectedRoute>
                     ),
                 },
