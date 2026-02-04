@@ -47,4 +47,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     Page<Review> findByAnswerTo_Id(Long reviewId, Pageable pageable);
     long countByAnswerTo_Id(Long reviewId);
     Page<Review> findByUser(User user, Pageable pageable);
+
+    long countByAnswerToIsNotNull();
 }

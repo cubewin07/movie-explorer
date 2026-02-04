@@ -38,4 +38,7 @@ public interface FriendRepo extends JpaRepository<Friend, FriendIdEb> {
             OR (f.user1 = :user2 AND f.user2 = :user1)
             """)
     boolean existsFriendshipBetween(@Param("user1") User user1, @Param("user2") User user2);
+
+    @Query("SELECT COUNT(f) FROM Friend f WHERE f.status = :status")
+    long countByStatus(@Param("status") Status status);
 }

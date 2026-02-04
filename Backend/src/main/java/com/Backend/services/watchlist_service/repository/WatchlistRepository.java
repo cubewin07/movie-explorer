@@ -19,4 +19,10 @@ public interface WatchlistRepository extends JpaRepository<Watchlist, Long> {
 
     @Query("SELECT w FROM Watchlist w JOIN FETCH w.seriesId s WHERE s = :seriesId")
     List<Watchlist> findBySeriesId(@Param("seriesId")Long seriesId);
+
+    @Query(value = "SELECT COUNT(*) FROM watchlist_movies", nativeQuery = true)
+    long countAllWatchlistedMovies();
+
+    @Query(value = "SELECT COUNT(*) FROM watchlist_series", nativeQuery = true)
+    long countAllWatchlistedSeries();
 }

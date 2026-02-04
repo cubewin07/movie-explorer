@@ -75,4 +75,8 @@ public class STOMPEventListener {
     public Set<String> getSessionIds(String username) {
         return userSessionMap.getOrDefault(username, ConcurrentHashMap.newKeySet());
     }
+
+    public int getOnlineUserCount() {
+        return userSessionMap.size();
+    }
 }
