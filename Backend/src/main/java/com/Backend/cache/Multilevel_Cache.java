@@ -33,12 +33,17 @@ public class Multilevel_Cache implements Cache {
         }
 
         // If not in local cache, try remote cache
-        ValueWrapper remoteValue = remote.get(key);
-        if (remoteValue != null) {
-            // Store in local cache for future access
-            local.put(key, remoteValue.get());
+        try {
+            ValueWrapper remoteValue = remote.get(key);
+            if (remoteValue != null) {
+                // Store in local cache for future access
+                local.put(key, remoteValue.get());
+            }
+            return remoteValue; 
+        } catch (RuntimeException e) {
+            log.warn("Remote cache get failed for key {}. Falling back to local. {}", key, e.toString());
+            return null;
         }
-        return remoteValue;
     }
 
     @Override
@@ -50,12 +55,17 @@ public class Multilevel_Cache implements Cache {
         }
 
         // If not in local cache, try remote cache
-        T remoteValue = remote.get(key, type);
-        if (remoteValue != null) {
-            // Store in local cache for future access
-            local.put(key, remoteValue);
+        try {
+            T remoteValue = remote.get(key, type);
+            if (remoteValue != null) {
+                // Store in local cache for future access
+                local.put(key, remoteValue);
+            }
+            return remoteValue;
+        } catch (RuntimeException e) {
+            log.warn("Remote cache get(type) failed for key {}. Falling back to local. {}", key, e.toString());
+            return null;
         }
-        return remoteValue;
     }
 
     @Override
@@ -70,13 +80,17 @@ public class Multilevel_Cache implements Cache {
             }
 
             // Next try remote cache
-            ValueWrapper remoteWrapper = remote.get(key);
-            if (remoteWrapper != null) {
-                @SuppressWarnings("unchecked")
-                T value = (T) remoteWrapper.get();
-                // Populate local cache for faster subsequent access
-                local.put(key, value);
-                return value;
+            try {
+                ValueWrapper remoteWrapper = remote.get(key);
+                if (remoteWrapper != null) {
+                    @SuppressWarnings("unchecked")
+                    T value = (T) remoteWrapper.get();
+                    // Populate local cache for faster subsequent access
+                    local.put(key, value);
+                    return value;
+                }
+            } catch (RuntimeException e) {
+                log.warn("Remote cache get(wrapper) failed for key {}. Proceeding to load. {}", key, e.toString());
             }
 
             // Not found in either cache -> load
@@ -92,14 +106,22 @@ public class Multilevel_Cache implements Cache {
     @Override
     public void put(@NonNull Object key, @Nullable Object value) {
         // Update both caches
-        remote.put(key, value);
+        try {
+            remote.put(key, value);
+        } catch (RuntimeException e) {
+            log.warn("Remote cache put failed for key {}. Continuing with local. {}", key, e.toString());
+        }
         local.put(key, value);
     }
 
     @Override
     public void evict(@NonNull Object key) {
         // Remove from both caches
-        remote.evict(key);
+        try {
+            remote.evict(key);
+        } catch (RuntimeException e) {
+            log.warn("Remote cache evict failed for key {}. Continuing with local. {}", key, e.toString());
+        }
         local.evict(key);
         log.info("Evicted key {} from both caches", key);
     }
@@ -107,7 +129,11 @@ public class Multilevel_Cache implements Cache {
     @Override
     public void clear() {
         // Clear both caches
-        remote.clear();
+        try {
+            remote.clear();
+        } catch (RuntimeException e) {
+            log.warn("Remote cache clear failed. Continuing with local. {}", e.toString());
+        }
         local.clear();
     }
 }

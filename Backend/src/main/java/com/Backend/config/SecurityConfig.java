@@ -67,7 +67,7 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", cors);
         return source;
     }   
-
+    
     @Bean
     public AuthenticationProvider authenticationProvider(UserDetailsService userDetailsService) {
         DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
