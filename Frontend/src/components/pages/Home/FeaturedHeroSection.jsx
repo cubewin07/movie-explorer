@@ -76,7 +76,7 @@ function FeaturedHeroSection({ featuredContent }) {
         <>
             <section 
                 ref={containerRef}
-                className="relative h-[85vh] min-h-[600px] w-full overflow-hidden rounded-3xl shadow-2xl mb-12 group"
+                className="relative h-[85vh] min-h-[520px] sm:min-h-[560px] md:min-h-[600px] w-full overflow-hidden rounded-3xl shadow-2xl mb-12 group"
             >
                 {/* Parallax Background */}
                 <motion.div 
@@ -85,7 +85,7 @@ function FeaturedHeroSection({ featuredContent }) {
                 >
                     <motion.img
                         src={`https://image.tmdb.org/t/p/original${featuredContent.backdrop_path}`}
-                        alt={featuredContent.title}
+                        alt={featuredContent.title || featuredContent.name}
                         className="w-full h-full object-cover"
                         initial={{ scale: 1.1 }}
                         animate={{ scale: 1 }}
@@ -127,10 +127,10 @@ function FeaturedHeroSection({ featuredContent }) {
                             transition={{ duration: 0.8, delay: 0.4, ease: "easeOut" }}
                         >
                             <Button
-                                onClick={() => navigate(`/movie/${featuredContent.id}`)}
+                                onClick={() => navigate(`/${isTV ? 'tv' : 'movie'}/${featuredContent.id}`)}
                                 className="bg-white text-black hover:bg-gray-200 px-8 py-6 rounded-full text-lg font-bold shadow-[0_0_20px_rgba(255,255,255,0.3)] transition-all duration-300 hover:scale-105"
                             >
-                                <Play className="w-5 h-5 mr-2 fill-black" /> Watch Trailer
+                                <Info className="w-5 h-5 mr-2" /> View Details
                             </Button>
                             <Button
                                 variant="outline"
@@ -161,13 +161,6 @@ function FeaturedHeroSection({ featuredContent }) {
                                         Add to List
                                     </>
                                 )}
-                            </Button>
-                            <Button
-                                variant="ghost"
-                                onClick={() => navigate(`/movie/${featuredContent.id}`)}
-                                className="text-white hover:bg-white/10 px-6 py-6 rounded-full text-lg font-medium backdrop-blur-sm"
-                            >
-                                <Info className="w-5 h-5 mr-2" /> More Info
                             </Button>
                         </motion.div>
                     </div>

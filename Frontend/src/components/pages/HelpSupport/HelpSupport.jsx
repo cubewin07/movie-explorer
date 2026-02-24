@@ -40,7 +40,7 @@ export default function HelpSupport() {
                     <Breadcrumb
                         items={[
                             { name: 'Home', to: '/' },
-                            { name: 'Help & Support', to: '/help-support' },
+                            { name: 'Help & Support', to: '/help' },
                         ]}
                     />
                 </div>
@@ -54,7 +54,7 @@ export default function HelpSupport() {
                 >
                     <motion.div
                         className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-6"
-                        whileHover={{ scale: 1.1, rotate: 360 }}
+                        whileHover={{ scale: 1.06 }}
                         transition={{ duration: 0.3 }}
                     >
                         <HelpCircle className="w-8 h-8 text-white" />
