@@ -27,6 +27,7 @@ function FeaturedHeroSection({ featuredContent }) {
     const y = useTransform(scrollYProgress, [0, 1], ["0%", "20%"]);
     const opacity = useTransform(scrollYProgress, [0, 0.8], [1, 0]);
     const scale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
+    const indicatorOpacity = useTransform(scrollYProgress, [0, 0.05], [1, 0]);
 
     const handleAddToWatchlist = (item) => {
         if (!user) {
@@ -175,9 +176,7 @@ function FeaturedHeroSection({ featuredContent }) {
                 {/* Scroll Indicator */}
                 <motion.div 
                     className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/50"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 1.5, duration: 1 }}
+                    style={{ opacity: indicatorOpacity }}
                 >
                     <span className="text-xs tracking-widest uppercase">Scroll to Discover</span>
                     <motion.div
