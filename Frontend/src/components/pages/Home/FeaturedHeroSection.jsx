@@ -107,7 +107,7 @@ function FeaturedHeroSection({ featuredContent }) {
                                 FEATURED HIGHLIGHT
                             </span>
                             <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight drop-shadow-2xl">
-                                {featuredContent.title}
+                                {featuredContent.title || featuredContent.name}
                             </h1>
                         </motion.div>
 
@@ -158,7 +158,7 @@ function FeaturedHeroSection({ featuredContent }) {
                                 ) : (
                                     <>
                                         <Plus className="w-5 h-5 mr-2" />
-                                        Add to List
+                                        Add to Watchlist
                                     </>
                                 )}
                             </Button>
