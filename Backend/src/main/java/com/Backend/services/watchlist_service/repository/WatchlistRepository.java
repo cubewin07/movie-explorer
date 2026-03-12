@@ -4,25 +4,17 @@ import com.Backend.services.watchlist_service.model.Watchlist;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 
-import java.util.List;
 import java.util.Optional;
 
 public interface WatchlistRepository extends JpaRepository<Watchlist, Long> {
 
-    @EntityGraph(attributePaths = {"seriesId", "moviesId"})
+    @EntityGraph(attributePaths = {"items", "items.film"})
     Optional<Watchlist> findByUserId(Long userId);
 
-    @Query("SELECT w FROM Watchlist w JOIN FETCH w.moviesId m WHERE m = :movieId")
-    List<Watchlist> findByMoviesId(@Param("movieId")Long movieId);
-
-    @Query("SELECT w FROM Watchlist w JOIN FETCH w.seriesId s WHERE s = :seriesId")
-    List<Watchlist> findBySeriesId(@Param("seriesId")Long seriesId);
-
-    @Query(value = "SELECT COUNT(*) FROM watchlist_movies", nativeQuery = true)
+    @Query(value = "SELECT COUNT(*) FROM watchlist_items wi JOIN film f ON wi.internal_film_id = f.internal_id WHERE f.type = 'MOVIE'", nativeQuery = true)
     long countAllWatchlistedMovies();
 
-    @Query(value = "SELECT COUNT(*) FROM watchlist_series", nativeQuery = true)
+    @Query(value = "SELECT COUNT(*) FROM watchlist_items wi JOIN film f ON wi.internal_film_id = f.internal_id WHERE f.type = 'SERIES'", nativeQuery = true)
     long countAllWatchlistedSeries();
 }

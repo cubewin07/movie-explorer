@@ -1,0 +1,75 @@
+package com.Backend.services.film_service.service;
+
+import com.Backend.services.FilmType;
+import com.Backend.services.film_service.model.Film;
+import com.Backend.services.film_service.model.TmdbFilmResponse;
+import com.Backend.services.film_service.repository.FilmRepository;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.Objects;
+import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class FilmService {
+
+    private final FilmRepository filmRepository;
+    private final TmdbClient tmdbClient;
+
+    public Optional<Film> findByTmdbIdAndType(Long tmdbId, FilmType type) {
+        return filmRepository.findByFilmIdAndType(tmdbId, type);
+    }
+
+    @Transactional
+    public Film getOrCreateFilm(Long tmdbId, FilmType type) {
+        Optional<Film> existing = filmRepository.findByFilmIdAndType(tmdbId, type);
+        if (existing.isPresent()) {
+            return existing.get();
+        }
+        TmdbFilmResponse response = tmdbClient.fetchFilmDetails(tmdbId, type);
+        Film film = buildFilm(tmdbId, type, response);
+        try {
+            return filmRepository.save(Objects.requireNonNull(film, "film"));
+        } catch (DataIntegrityViolationException ex) {
+            log.debug("Film already inserted for tmdbId={} type={}", tmdbId, type);
+            return filmRepository.findByFilmIdAndType(tmdbId, type)
+                    .orElseThrow(() -> ex);
+        }
+    }
+
+    private Film buildFilm(Long tmdbId, FilmType type, TmdbFilmResponse response) {
+        String title = response != null && StringUtils.hasText(response.getTitle())
+                ? response.getTitle()
+                : response != null ? response.getName() : null;
+        LocalDate releaseDate = parseDate(response != null ? response.getReleaseDate() : null);
+        if (releaseDate == null) {
+            releaseDate = parseDate(response != null ? response.getFirstAirDate() : null);
+        }
+        return Film.builder()
+                .filmId(tmdbId)
+                .type(type)
+                .title(title)
+                .rating(response != null ? response.getVoteAverage() : null)
+                .date(releaseDate)
+                .backgroundImg(response != null ? response.getBackdropPath() : null)
+                .build();
+    }
+
+    private LocalDate parseDate(String value) {
+        if (!StringUtils.hasText(value)) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(value);
+        } catch (DateTimeParseException ex) {
+            return null;
+        }
+    }
+}

@@ -60,3 +60,9 @@ security:
 server:
   port: ${PORT:8080}
   address: 0.0.0.0
+
+tmdb:
+  api:
+    base-url: https://api.themoviedb.org/3
+    api-key: ${TMDB_API_KEY:}
+    auth-token: ${TMDB_AUTH_TOKEN:}

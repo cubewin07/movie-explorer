@@ -1,0 +1,62 @@
+package com.Backend.services.film_service.model;
+
+import com.Backend.services.FilmType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import java.time.LocalDate;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+@Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Table(
+    name = "film",
+    indexes = {
+        @Index(name = "idx_film_tmdb_type", columnList = "film_id, type")
+    },
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uq_film_tmdb_type", columnNames = {"film_id", "type"})
+    }
+)
+public class Film {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "internal_id")
+    @EqualsAndHashCode.Include
+    private Long internalId;
+
+    @Column(name = "film_id", nullable = false)
+    private Long filmId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false)
+    private FilmType type;
+
+    @Column(name = "title")
+    private String title;
+
+    @Column(name = "rating")
+    private Double rating;
+
+    @Column(name = "date")
+    private LocalDate date;
+
+    @Column(name = "background_img")
+    private String backgroundImg;
+}
