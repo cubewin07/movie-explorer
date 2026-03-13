@@ -2,6 +2,10 @@ package com.Backend.services.user_service;
 
 import com.Backend.services.notification_service.model.NotificationDTO;
 import com.Backend.services.notification_service.service.NotificationService;
+import com.Backend.services.film_service.model.Film;
+import com.Backend.services.film_service.model.TmdbFilmResponse;
+import com.Backend.services.film_service.repository.FilmRepository;
+import com.Backend.services.film_service.service.TmdbClient;
 import com.Backend.services.user_service.model.DTO.AuthenticateDTO;
 import com.Backend.services.user_service.model.DTO.RegisterDTO;
 import com.Backend.services.user_service.model.DTO.UpdateUserDTO;
@@ -9,7 +13,9 @@ import com.Backend.services.user_service.model.User;
 import com.Backend.services.user_service.model.ROLE;
 import com.Backend.services.user_service.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.Backend.services.watchlist_service.model.WatchlistItemId;
 import com.Backend.services.watchlist_service.model.WatchlistPosting;
+import com.Backend.services.watchlist_service.repository.WatchlistItemRepository;
 import com.Backend.services.FilmType;
 import com.Backend.services.friend_service.model.EmailBody;
 import com.Backend.services.friend_service.model.Status;
@@ -23,6 +29,7 @@ import org.junit.jupiter.api.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
@@ -38,6 +45,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -55,6 +63,15 @@ class SpringControllerTest {
 
     @Autowired
     private UserRepository userRepository;
+
+        @Autowired
+        private FilmRepository filmRepository;
+
+        @Autowired
+        private WatchlistItemRepository watchlistItemRepository;
+
+        @MockBean
+        private TmdbClient tmdbClient;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -136,6 +153,26 @@ class SpringControllerTest {
                         .param("type", FilmType.SERIES.name())) // "MOVIE"
                 .andExpect(status().isOk());
     }
+
+        private TmdbFilmResponse movieResponse(long id) {
+                TmdbFilmResponse response = new TmdbFilmResponse();
+                response.setId(id);
+                response.setTitle("Movie " + id);
+                response.setReleaseDate("2020-01-01");
+                response.setVoteAverage(7.5);
+                response.setBackdropPath("/backdrop-movie.jpg");
+                return response;
+        }
+
+        private TmdbFilmResponse seriesResponse(long id) {
+                TmdbFilmResponse response = new TmdbFilmResponse();
+                response.setId(id);
+                response.setName("Series " + id);
+                response.setFirstAirDate("2021-01-01");
+                response.setVoteAverage(8.1);
+                response.setBackdropPath("/backdrop-series.jpg");
+                return response;
+        }
     
     @Test
     @Order(1)
@@ -253,6 +290,7 @@ class SpringControllerTest {
         System.out.println( "watchlist_get_add_remove_flow" );
         register("wluser", "wl@example.com", "password123");
         String token = authenticate("wl@example.com", "password123");
+                Long userId = getUserId(token);
         
         // Initially empty
         mockMvc.perform(get("/watchlist")
@@ -262,24 +300,42 @@ class SpringControllerTest {
         .andExpect(jsonPath("$.seriesId", hasSize(0)));
         
         // Add movie and series
-        addMovie(token, 101L);
-        addSeries(token, 202L);
+        long movieId = 101L;
+        long seriesId = 202L;
+        when(tmdbClient.fetchFilmDetails(movieId, FilmType.MOVIE)).thenReturn(movieResponse(movieId));
+        when(tmdbClient.fetchFilmDetails(seriesId, FilmType.SERIES)).thenReturn(seriesResponse(seriesId));
+        addMovie(token, movieId);
+        addSeries(token, seriesId);
         
         mockMvc.perform(get("/watchlist")
         .header("Authorization", bearer(token)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.moviesId", contains(101)))
         .andExpect(jsonPath("$.seriesId", contains(202)));
+
+        Film movieFilm = filmRepository.findByFilmIdAndType(movieId, FilmType.MOVIE).orElseThrow();
+        Film seriesFilm = filmRepository.findByFilmIdAndType(seriesId, FilmType.SERIES).orElseThrow();
+        assertThat(watchlistItemRepository.existsById(new WatchlistItemId(userId, movieFilm.getInternalId())))
+                .isTrue();
+        assertThat(watchlistItemRepository.existsById(new WatchlistItemId(userId, seriesFilm.getInternalId())))
+                .isTrue();
         
         // Remove them
-        removeMovie(token, 101L);
-        removeSeries(token, 202L);
+        removeMovie(token, movieId);
+        removeSeries(token, seriesId);
         
         mockMvc.perform(get("/watchlist")
         .header("Authorization", bearer(token)))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.moviesId", not(hasItem(101))))
         .andExpect(jsonPath("$.seriesId", not(hasItem(202))));
+
+        assertThat(watchlistItemRepository.existsById(new WatchlistItemId(userId, movieFilm.getInternalId())))
+                .isFalse();
+        assertThat(watchlistItemRepository.existsById(new WatchlistItemId(userId, seriesFilm.getInternalId())))
+                .isFalse();
+        assertThat(filmRepository.findByFilmIdAndType(movieId, FilmType.MOVIE)).isPresent();
+        assertThat(filmRepository.findByFilmIdAndType(seriesId, FilmType.SERIES)).isPresent();
     }
 
     // Friend test

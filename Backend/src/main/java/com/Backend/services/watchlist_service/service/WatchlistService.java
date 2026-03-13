@@ -99,9 +99,12 @@ public class WatchlistService {
         }
 
         WatchlistItemId itemId = new WatchlistItemId(watchlist.getUserId(), film.getInternalId());
-        boolean removed = watchlistItemRepository.existsById(itemId);
+        boolean removed = false;
+        if (watchlist.getItems() != null) {
+            removed = watchlist.getItems().removeIf(item -> itemId.equals(item.getId()));
+        }
         if (removed) {
-            watchlistItemRepository.deleteById(itemId);
+            watchlistRepository.save(watchlist);
             log.info("Film tmdbId: {} successfully removed from watchlist for user: {}", posting.id(), user.getUsername());
         } else {
             log.warn("Film tmdbId: {} was not found in watchlist for user: {}", posting.id(), user.getUsername());
