@@ -102,6 +102,8 @@ public class WatchlistService {
         boolean removed = false;
         if (watchlist.getItems() != null) {
             removed = watchlist.getItems().removeIf(item -> itemId.equals(item.getId()));
+            // Using orphanRemoval because it updates the watchlist items in memory and avoids an extra delete query, but we still need to call save to update the watchlist's last modified time
+            // Using deleteById only deletes the item in the database but doesn't update the in-memory watchlist collection, which can lead to stale data being returned until the cache expires
         }
         if (removed) {
             watchlistRepository.save(watchlist);
