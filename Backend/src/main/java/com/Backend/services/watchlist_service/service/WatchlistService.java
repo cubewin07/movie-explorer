@@ -3,6 +3,7 @@ package com.Backend.services.watchlist_service.service;
 import com.Backend.exception.DuplicateWatchlistItemException;
 import com.Backend.exception.WatchlistNotFoundException;
 import com.Backend.services.FilmType;
+import com.Backend.services.director_service.service.DirectorService;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.film_service.service.FilmService;
 import com.Backend.services.user_service.model.User;
@@ -33,6 +34,7 @@ public class WatchlistService {
     private final WatchlistRepository watchlistRepository;
     private final WatchlistItemRepository watchlistItemRepository;
     private final FilmService filmService;
+    private final DirectorService directorService;
 
     @Cacheable(value = "watchlist", key = "#user.id")
     @Transactional
@@ -68,6 +70,11 @@ public class WatchlistService {
                 .orElseThrow(() -> new WatchlistNotFoundException("Watchlist for user id " + user.getId() + " not found"));
 
         Film film = filmService.getOrCreateFilm(posting.id(), posting.type());
+        try {
+            directorService.syncDirectorsForFilm(posting.id(), posting.type(), film);
+        } catch (RuntimeException ex) {
+            log.warn("Failed to sync directors for tmdbId={} type={}", posting.id(), posting.type(), ex);
+        }
         WatchlistItemId itemId = new WatchlistItemId(watchlist.getUserId(), film.getInternalId());
 
         if (watchlistItemRepository.existsById(itemId)) {

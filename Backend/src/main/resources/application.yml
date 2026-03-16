@@ -66,3 +66,6 @@ tmdb:
     base-url: https://api.themoviedb.org/3
     api-key: ${TMDB_API_KEY:}
     auth-token: ${TMDB_AUTH_TOKEN:}
+    retry:
+      attempts: ${TMDB_API_RETRY_ATTEMPTS:3}
+      backoff-ms: ${TMDB_API_RETRY_BACKOFF_MS:200}
