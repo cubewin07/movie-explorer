@@ -137,10 +137,12 @@ export default function EpisodeCard({ episode, index, isClickable, onEpisodeClic
   );
 
   return isMissing ? (
-    <Tooltip>
-      <TooltipTrigger asChild>{episodeCard}</TooltipTrigger>
-      <TooltipContent side="top">Episode not yet released</TooltipContent>
-    </Tooltip>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>{episodeCard}</TooltipTrigger>
+        <TooltipContent side="top">Episode not yet released</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   ) : (
     episodeCard
   );
