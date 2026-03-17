@@ -208,6 +208,32 @@ A full‑stack application for discovering movies/series, managing watchlists, w
   - Install: `npm install`
   - Dev server: `npm run dev`
 
+## Schema Blueprint (Master)
+
+- Source file: [db-schema-master.sql](db-schema-master.sql)
+- Purpose:
+  - This file is the single readable view of the product data model.
+  - It combines what is already live in the database with what is planned next.
+  - It is written for both engineering review and technical portfolio review.
+
+- What a reader should understand quickly:
+  - Domain coverage: accounts, social graph, chat, watchlist, reviews, and recommendation features.
+  - Evolution path: sections are grouped by rollout phase (existing core, film/director expansion, planned recommendation weights).
+  - Data quality and safety: foreign keys, composite keys, and unique constraints are explicit and co-located with each table.
+
+- Maturity view:
+  - Stable in production (via Flyway): core app tables and film/director mapping.
+  - In active rollout/testing: recommendation base tables and user weight tables.
+
+- Why this helps recruiters and reviewers:
+  - You can evaluate the architecture without running the project.
+  - You can see how relational modeling decisions support product features.
+  - You can follow how the schema is staged from initial launch to recommendation system growth.
+
+- Technical note (optional):
+  - Flyway remains the deployment mechanism in [Backend/src/main/resources/db/migration](Backend/src/main/resources/db/migration).
+  - The master schema can also be executed in psql when needed for validation.
+
 ## Testing & Quality
 
 - Backend integration tests for WebSocket chat and notifications
