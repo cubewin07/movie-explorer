@@ -2,6 +2,7 @@ package com.Backend.services.user_service.model;
 
 import com.Backend.services.chat_service.model.Chat;
 import com.Backend.services.chat_service.message.model.Message;
+import com.Backend.services.director_service.model.UserDirectorWeight;
 import com.Backend.services.friend_service.model.Friend;
 import com.Backend.services.notification_service.model.Notification;
 import com.Backend.services.watchlist_service.model.Watchlist;
@@ -115,6 +116,11 @@ public class User implements UserDetails {
     @JsonManagedReference(value = "user-sent-messages")
     @NotNull(message = "Sent messages list cannot be null")
     private Set<Message> sentMessages = new HashSet<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @JsonIgnore
+    @Builder.Default
+    private Set<UserDirectorWeight> directorWeights = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
     private ROLE role;

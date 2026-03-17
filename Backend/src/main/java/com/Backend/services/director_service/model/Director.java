@@ -9,6 +9,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.HashSet;
 import java.util.Set;
@@ -51,4 +52,10 @@ public class Director {
     @ToString.Exclude
     @Builder.Default
     private Set<Film> films = new HashSet<>();
+
+    @OneToMany(mappedBy = "director", orphanRemoval = true)
+    @JsonIgnore
+    @ToString.Exclude
+    @Builder.Default
+    private Set<UserDirectorWeight> userWeights = new HashSet<>();
 }

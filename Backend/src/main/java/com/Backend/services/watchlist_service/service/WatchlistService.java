@@ -4,6 +4,7 @@ import com.Backend.exception.DuplicateWatchlistItemException;
 import com.Backend.exception.WatchlistNotFoundException;
 import com.Backend.services.FilmType;
 import com.Backend.services.director_service.service.DirectorService;
+import com.Backend.services.director_service.service.DirectorWeightService;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.film_service.service.FilmService;
 import com.Backend.services.user_service.model.User;
@@ -35,6 +36,7 @@ public class WatchlistService {
     private final WatchlistItemRepository watchlistItemRepository;
     private final FilmService filmService;
     private final DirectorService directorService;
+    private final DirectorWeightService directorWeightService;
 
     @Cacheable(value = "watchlist", key = "#user.id")
     @Transactional
@@ -87,6 +89,7 @@ public class WatchlistService {
                 .film(film)
                 .build();
         watchlistItemRepository.save(Objects.requireNonNull(item, "watchlist item"));
+        directorWeightService.adjustWeightsForFilm(watchlist.getUser(), film, 1L);
         log.info("Film tmdbId: {} successfully added to watchlist for user: {}", posting.id(), user.getUsername());
     }
 
@@ -114,6 +117,7 @@ public class WatchlistService {
         }
         if (removed) {
             watchlistRepository.save(watchlist);
+            directorWeightService.adjustWeightsForFilm(watchlist.getUser(), film, -1L);
             log.info("Film tmdbId: {} successfully removed from watchlist for user: {}", posting.id(), user.getUsername());
         } else {
             log.warn("Film tmdbId: {} was not found in watchlist for user: {}", posting.id(), user.getUsername());

@@ -1,0 +1,76 @@
+package com.Backend.services.director_service.service;
+
+import com.Backend.services.director_service.model.Director;
+import com.Backend.services.director_service.model.UserDirectorWeight;
+import com.Backend.services.director_service.model.UserDirectorWeightId;
+import com.Backend.services.director_service.repository.UserDirectorWeightRepository;
+import com.Backend.services.film_service.model.Film;
+import com.Backend.services.user_service.model.User;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+public class DirectorWeightService {
+
+    private final UserDirectorWeightRepository userDirectorWeightRepository;
+
+    @Transactional
+    public void adjustWeightsForFilm(User user, Film film, long delta) {
+        if (user == null || user.getId() == null || film == null || delta == 0) {
+            return;
+        }
+        Set<Director> directors = film.getDirectors();
+        if (directors == null || directors.isEmpty()) {
+            return;
+        }
+        for (Director director : directors) {
+            adjustWeight(user, director, delta);
+        }
+    }
+
+    @Transactional
+    public void adjustWeight(User user, Director director, long delta) {
+        if (user == null || user.getId() == null || director == null || director.getDirectorId() == null || delta == 0) {
+            return;
+        }
+
+        UserDirectorWeightId id = new UserDirectorWeightId(user.getId(), director.getDirectorId());
+        UserDirectorWeight current = userDirectorWeightRepository.findById(id).orElse(null);
+
+        if (current == null) {
+            if (delta <= 0) {
+                return;
+            }
+            UserDirectorWeight created = UserDirectorWeight.builder()
+                    .id(id)
+                    .user(user)
+                    .director(director)
+                    .weight(delta)
+                    .build();
+                userDirectorWeightRepository.save(Objects.requireNonNull(created, "director weight"));
+            return;
+        }
+
+        long nextWeight = current.getWeight() + delta;
+        if (nextWeight <= 0) {
+            userDirectorWeightRepository.delete(current);
+            return;
+        }
+
+        current.setWeight(nextWeight);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserDirectorWeight> getWeightsForUser(Long userId) {
+        if (userId == null) {
+            return Collections.emptyList();
+        }
+        return userDirectorWeightRepository.findAllByUser_Id(userId);
+    }
+}
