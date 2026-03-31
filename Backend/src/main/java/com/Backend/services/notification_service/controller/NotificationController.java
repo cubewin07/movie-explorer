@@ -1,10 +1,17 @@
 package com.Backend.services.notification_service.controller;
 
+import com.Backend.exception.ErrorRes;
 import com.Backend.services.notification_service.model.AllReadRecord;
 import com.Backend.services.notification_service.model.ListNotificationDTO;
 import com.Backend.services.notification_service.model.NotificationDTO;
 import com.Backend.services.notification_service.service.NotificationService;
 import com.Backend.services.user_service.model.User;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,16 +24,33 @@ import java.util.Set;
 @RestController
 @RequestMapping("/notifications")
 @RequiredArgsConstructor
+@Tag(name = "Notifications", description = "Notification management APIs")
 public class NotificationController {
     private final NotificationService notificationService;
 
     @PutMapping("/read")
+    @Operation(summary = "Mark specific notifications as read")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Notifications marked as read"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(implementation = ErrorRes.class))),
+            @ApiResponse(responseCode = "403", description = "Not allowed to modify the notification", content = @Content(schema = @Schema(implementation = ErrorRes.class))),
+            @ApiResponse(responseCode = "404", description = "Notification not found", content = @Content(schema = @Schema(implementation = ErrorRes.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ErrorRes.class)))
+    })
     public ResponseEntity<Map<String, String>> markSpecificAsRead(@AuthenticationPrincipal User user, @RequestBody AllReadRecord listOfIds) throws AccessDeniedException {
         notificationService.markNotificationAsRead(user, listOfIds.ids());
         return ResponseEntity.ok(Map.of("message", "Marked your specific notifications as read"));
     }
 
     @PutMapping("/read/{id}")
+    @Operation(summary = "Mark one notification as read")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Notification marked as read"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(implementation = ErrorRes.class))),
+            @ApiResponse(responseCode = "403", description = "Not allowed to modify the notification", content = @Content(schema = @Schema(implementation = ErrorRes.class))),
+            @ApiResponse(responseCode = "404", description = "Notification not found", content = @Content(schema = @Schema(implementation = ErrorRes.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ErrorRes.class)))
+    })
     public ResponseEntity<Map<String, String>> markAsRead(@AuthenticationPrincipal User user, @PathVariable("id") Long id) throws AccessDeniedException {
         notificationService.markNotificationAsRead(user, id);
         return ResponseEntity.ok(Map.of("message", "Marked notification as read"));
@@ -34,12 +58,25 @@ public class NotificationController {
 
 
     @PutMapping("/allRead")
+    @Operation(summary = "Mark all notifications as read")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "All notifications marked as read"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(implementation = ErrorRes.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ErrorRes.class)))
+        })
     public ResponseEntity<Map<String, String>> markAllAsRead(@AuthenticationPrincipal User user) {
         notificationService.markAllNotificationAsRead(user);
         return ResponseEntity.ok(Map.of("message", "Marked all notifications as read"));
     }
 
     @PutMapping("/chat/{chatId}/read")
+    @Operation(summary = "Mark chat notifications as read")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Chat notifications marked as read"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(implementation = ErrorRes.class))),
+            @ApiResponse(responseCode = "404", description = "Chat not found", content = @Content(schema = @Schema(implementation = ErrorRes.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ErrorRes.class)))
+        })
     public ResponseEntity<Map<String, String>> markChatNotificationAsRead(@AuthenticationPrincipal User user, @PathVariable("chatId") Long chatId) {
         notificationService.markChatNotificationAsRead(user, chatId);
         String message = "Marked notifications of chat with id: " + chatId + " as read";
@@ -47,12 +84,26 @@ public class NotificationController {
     }
 
     @DeleteMapping("/delete/{id}")
+    @Operation(summary = "Delete a notification")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Notification deleted successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(implementation = ErrorRes.class))),
+            @ApiResponse(responseCode = "403", description = "Not allowed to delete the notification", content = @Content(schema = @Schema(implementation = ErrorRes.class))),
+            @ApiResponse(responseCode = "404", description = "Notification not found", content = @Content(schema = @Schema(implementation = ErrorRes.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ErrorRes.class)))
+        })
     public ResponseEntity<Map<String, String>> deleteNotification(@AuthenticationPrincipal User user, @PathVariable("id") Long id) throws AccessDeniedException {
         notificationService.deleteNotification(user, id);
         return ResponseEntity.ok(Map.of("message", "Deleted notification"));
     }
 
     @DeleteMapping("/deleteListNotifications")
+    @Operation(summary = "Delete multiple notifications")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Notifications deleted successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(implementation = ErrorRes.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ErrorRes.class)))
+        })
     public ResponseEntity<Map<String, String>> deleteListNotifications(
             @RequestBody ListNotificationDTO listNot,
             @AuthenticationPrincipal User user
@@ -62,6 +113,12 @@ public class NotificationController {
     }
 
     @GetMapping()
+    @Operation(summary = "Get current user notifications")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Notifications returned successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(implementation = ErrorRes.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ErrorRes.class)))
+    })
     public ResponseEntity<Set<NotificationDTO>> getNotifications(@AuthenticationPrincipal User user) {
         return ResponseEntity.ok(notificationService.getNotifications(user));
     }
