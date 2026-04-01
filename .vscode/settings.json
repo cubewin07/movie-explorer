@@ -1,4 +1,10 @@
 {
     "java.compile.nullAnalysis.mode": "automatic",
-    "java.configuration.updateBuildConfiguration": "automatic"
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "chat.tools.terminal.autoApprove": {
+        "/^perl -pi -e 's/\\^ \\{4\\}\\(Operation\\\\\\(\\)/    @Operation\\(/; s/\\^ \\{4\\}\\(ApiResponses\\\\\\(\\)/    @ApiResponses\\(/' Backend/src/main/java/com/Backend/services/admin_service/controller/AdminController\\.java Backend/src/main/java/com/Backend/services/review_service/controller/ReviewController\\.java Backend/src/main/java/com/Backend/services/user_service/controller/UserController\\.java Backend/src/main/java/com/Backend/services/notification_service/controller/NotificationController\\.java$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
 }
