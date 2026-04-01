@@ -52,9 +52,10 @@ public class DirectorSyncTaskService {
         int nextAttempt = Math.max(0, task.getAttempts()) + 1;
         DirectorSyncRetryDecision decision = directorSyncRetryPolicy.decide(error, nextAttempt);
 
-        task.setTmdbId(tmdbId);
+
         task.setLastErrorCode(decision.errorCode());
         task.setLastErrorMessage(decision.errorMessage());
+        
 
         if (decision.retryable() && nextAttempt < task.getMaxAttempts()) {
             task.setStatus(nextAttempt <= 1 ? DirectorSyncTaskStatus.PENDING : DirectorSyncTaskStatus.RETRYING);
