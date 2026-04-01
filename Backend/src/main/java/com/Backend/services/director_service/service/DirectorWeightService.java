@@ -6,6 +6,8 @@ import com.Backend.services.director_service.model.UserDirectorWeightId;
 import com.Backend.services.director_service.repository.UserDirectorWeightRepository;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.user_service.model.User;
+import com.Backend.services.watchlist_service.model.WatchlistItem;
+import com.Backend.services.watchlist_service.repository.WatchlistItemRepository;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -19,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DirectorWeightService {
 
     private final UserDirectorWeightRepository userDirectorWeightRepository;
+    private final WatchlistItemRepository watchlistItemRepository;
 
     @Transactional
     public void adjustWeightsForFilm(User user, Film film, long delta) {
@@ -64,6 +67,30 @@ public class DirectorWeightService {
         }
 
         current.setWeight(nextWeight);
+    }
+
+    @Transactional
+    public void backfillWeightsForFilm(Film film) {
+        if (film == null || film.getInternalId() == null || !Boolean.TRUE.equals(film.getDirectorSyncCompleted())) {
+            return;
+        }
+        Set<Director> directors = film.getDirectors();
+        if (directors == null || directors.isEmpty()) {
+            return;
+        }
+        List<WatchlistItem> items = watchlistItemRepository.findAllByFilm_InternalId(film.getInternalId());
+        for (WatchlistItem item : items) {
+            if (item == null || item.getWatchlist() == null) {
+                continue;
+            }
+            User user = item.getWatchlist().getUser();
+            if (user == null || user.getId() == null) {
+                continue;
+            }
+            for (Director director : directors) {
+                adjustWeight(user, director, 1L);
+            }
+        }
     }
 
     @Transactional(readOnly = true)

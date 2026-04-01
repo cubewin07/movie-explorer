@@ -4,6 +4,7 @@ import com.Backend.exception.DuplicateWatchlistItemException;
 import com.Backend.exception.WatchlistNotFoundException;
 import com.Backend.services.FilmType;
 import com.Backend.services.director_service.service.DirectorService;
+import com.Backend.services.director_service.service.DirectorSyncTaskService;
 import com.Backend.services.director_service.service.DirectorWeightService;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.film_service.service.FilmService;
@@ -36,6 +37,7 @@ public class WatchlistService {
     private final WatchlistItemRepository watchlistItemRepository;
     private final FilmService filmService;
     private final DirectorService directorService;
+    private final DirectorSyncTaskService directorSyncTaskService;
     private final DirectorWeightService directorWeightService;
 
     @Cacheable(value = "watchlist", key = "#user.id")
@@ -72,9 +74,16 @@ public class WatchlistService {
                 .orElseThrow(() -> new WatchlistNotFoundException("Watchlist for user id " + user.getId() + " not found"));
 
         Film film = filmService.getOrCreateFilm(posting.id(), posting.type());
+        boolean wasSynced = Boolean.TRUE.equals(film.getDirectorSyncCompleted());
+        boolean syncSucceeded = false;
         try {
             directorService.syncDirectorsForFilm(posting.id(), posting.type(), film);
+            film.setDirectorSyncCompleted(true);
+            syncSucceeded = true;
         } catch (RuntimeException ex) {
+            if (!wasSynced) {
+                directorSyncTaskService.enqueueRetry(film, posting.id(), ex);
+            }
             log.warn("Failed to sync directors for tmdbId={} type={}", posting.id(), posting.type(), ex);
         }
         WatchlistItemId itemId = new WatchlistItemId(watchlist.getUserId(), film.getInternalId());
@@ -89,7 +98,12 @@ public class WatchlistService {
                 .film(film)
                 .build();
         watchlistItemRepository.save(Objects.requireNonNull(item, "watchlist item"));
-        directorWeightService.adjustWeightsForFilm(watchlist.getUser(), film, 1L);
+
+        if (!wasSynced && syncSucceeded) {
+            directorWeightService.backfillWeightsForFilm(film);
+        } else if (Boolean.TRUE.equals(film.getDirectorSyncCompleted())) {
+            directorWeightService.adjustWeightsForFilm(watchlist.getUser(), film, 1L);
+        }
         log.info("Film tmdbId: {} successfully added to watchlist for user: {}", posting.id(), user.getUsername());
     }
 
@@ -117,7 +131,9 @@ public class WatchlistService {
         }
         if (removed) {
             watchlistRepository.save(watchlist);
-            directorWeightService.adjustWeightsForFilm(watchlist.getUser(), film, -1L);
+            if (Boolean.TRUE.equals(film.getDirectorSyncCompleted())) {
+                directorWeightService.adjustWeightsForFilm(watchlist.getUser(), film, -1L);
+            }
             log.info("Film tmdbId: {} successfully removed from watchlist for user: {}", posting.id(), user.getUsername());
         } else {
             log.warn("Film tmdbId: {} was not found in watchlist for user: {}", posting.id(), user.getUsername());
