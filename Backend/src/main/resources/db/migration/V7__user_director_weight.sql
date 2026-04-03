@@ -1,9 +1,15 @@
+create table if not exists user_film_reference (
+    user_id bigint not null,
+    primary key (user_id),
+    constraint fk_user_film_reference_user foreign key (user_id) references users(id)
+);
+
 create table if not exists user_director_weight (
     user_id bigint not null,
     director_id bigint not null,
     weight bigint not null,
     primary key (user_id, director_id),
-    constraint fk_user_director_weight_user foreign key (user_id) references users,
+    constraint fk_user_director_weight_user foreign key (user_id) references user_film_reference(user_id),
     constraint fk_user_director_weight_director foreign key (director_id) references director
 );
 

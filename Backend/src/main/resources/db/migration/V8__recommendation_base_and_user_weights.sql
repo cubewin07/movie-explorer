@@ -1,8 +1,3 @@
-create table if not exists user_film_reference (
-    user_id bigint not null,
-    primary key (user_id),
-    constraint fk_user_film_reference_user foreign key (user_id) references users(id)
-);
 
 create table if not exists genre (
     genre_id bigint not null,

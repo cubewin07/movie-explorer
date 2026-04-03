@@ -6,5 +6,5 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserDirectorWeightRepository extends JpaRepository<UserDirectorWeight, UserDirectorWeightId> {
-    List<UserDirectorWeight> findAllByUser_Id(Long userId);
+    List<UserDirectorWeight> findAllByUserReference_User_Id(Long userId);
 }

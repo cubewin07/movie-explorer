@@ -6,6 +6,8 @@ import com.Backend.services.director_service.model.UserDirectorWeightId;
 import com.Backend.services.director_service.repository.UserDirectorWeightRepository;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.user_service.model.User;
+import com.Backend.services.user_service.model.UserFilmReference;
+import com.Backend.services.user_service.repository.UserFilmReferenceRepository;
 import com.Backend.services.watchlist_service.model.WatchlistItem;
 import com.Backend.services.watchlist_service.repository.WatchlistItemRepository;
 import java.util.Collections;
@@ -21,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DirectorWeightService {
 
     private final UserDirectorWeightRepository userDirectorWeightRepository;
+    private final UserFilmReferenceRepository userFilmReferenceRepository;
     private final WatchlistItemRepository watchlistItemRepository;
 
     @Transactional
@@ -43,6 +46,12 @@ public class DirectorWeightService {
             return;
         }
 
+        userFilmReferenceRepository.ensureUserFilmReference(user.getId());
+        UserFilmReference userReference = userFilmReferenceRepository.findById(user.getId()).orElse(null);
+        if (userReference == null) {
+            return;
+        }
+
         UserDirectorWeightId id = new UserDirectorWeightId(user.getId(), director.getDirectorId());
         UserDirectorWeight current = userDirectorWeightRepository.findById(id).orElse(null);
 
@@ -52,7 +61,7 @@ public class DirectorWeightService {
             }
             UserDirectorWeight created = UserDirectorWeight.builder()
                     .id(id)
-                    .user(user)
+                    .userReference(userReference)
                     .director(director)
                     .weight(delta)
                     .build();
@@ -98,6 +107,6 @@ public class DirectorWeightService {
         if (userId == null) {
             return Collections.emptyList();
         }
-        return userDirectorWeightRepository.findAllByUser_Id(userId);
+        return userDirectorWeightRepository.findAllByUserReference_User_Id(userId);
     }
 }

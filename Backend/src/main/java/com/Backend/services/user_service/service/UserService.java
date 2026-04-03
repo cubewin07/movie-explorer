@@ -91,6 +91,9 @@ public class UserService {
         user.setWatchlist(new Watchlist());
         user.getWatchlist().setUser(user);      
 
+        user.setUserFilmReference(new UserFilmReference());
+        user.getUserFilmReference().setUser(user);
+
         userRepository.save(user);
 
         log.info("User registered: id={}", user.getId());

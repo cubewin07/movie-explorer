@@ -6,6 +6,8 @@ import com.Backend.services.genre_service.model.UserGenreWeight;
 import com.Backend.services.genre_service.model.UserGenreWeightId;
 import com.Backend.services.genre_service.repository.UserGenreWeightRepository;
 import com.Backend.services.user_service.model.User;
+import com.Backend.services.user_service.model.UserFilmReference;
+import com.Backend.services.user_service.repository.UserFilmReferenceRepository;
 import com.Backend.services.watchlist_service.model.WatchlistItem;
 import com.Backend.services.watchlist_service.repository.WatchlistItemRepository;
 import java.util.Collections;
@@ -21,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class GenreWeightService {
 
     private final UserGenreWeightRepository userGenreWeightRepository;
+    private final UserFilmReferenceRepository userFilmReferenceRepository;
     private final WatchlistItemRepository watchlistItemRepository;
 
     @Transactional
@@ -48,7 +51,11 @@ public class GenreWeightService {
             return;
         }
 
-        userGenreWeightRepository.ensureUserFilmReference(user.getId());
+        userFilmReferenceRepository.ensureUserFilmReference(user.getId());
+        UserFilmReference userReference = userFilmReferenceRepository.findById(user.getId()).orElse(null);
+        if (userReference == null) {
+            return;
+        }
 
         UserGenreWeightId id = new UserGenreWeightId(user.getId(), genre.getGenreId());
         UserGenreWeight current = userGenreWeightRepository.findById(id).orElse(null);
@@ -59,7 +66,7 @@ public class GenreWeightService {
             }
             UserGenreWeight created = UserGenreWeight.builder()
                     .id(id)
-                    .user(user)
+                    .userReference(userReference)
                     .genre(genre)
                     .type(genre.getType())
                     .weight(delta)
@@ -107,6 +114,6 @@ public class GenreWeightService {
         if (userId == null) {
             return Collections.emptyList();
         }
-        return userGenreWeightRepository.findAllByUser_Id(userId);
+        return userGenreWeightRepository.findAllByUserReference_User_Id(userId);
     }
 }

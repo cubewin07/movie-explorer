@@ -6,6 +6,8 @@ import com.Backend.services.keyword_service.model.UserKeywordWeightId;
 import com.Backend.services.keyword_service.repository.UserKeywordWeightRepository;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.user_service.model.User;
+import com.Backend.services.user_service.model.UserFilmReference;
+import com.Backend.services.user_service.repository.UserFilmReferenceRepository;
 import com.Backend.services.watchlist_service.model.WatchlistItem;
 import com.Backend.services.watchlist_service.repository.WatchlistItemRepository;
 import java.util.Collections;
@@ -21,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class KeywordWeightService {
 
     private final UserKeywordWeightRepository userKeywordWeightRepository;
+    private final UserFilmReferenceRepository userFilmReferenceRepository;
     private final WatchlistItemRepository watchlistItemRepository;
 
     @Transactional
@@ -48,7 +51,11 @@ public class KeywordWeightService {
             return;
         }
 
-        userKeywordWeightRepository.ensureUserFilmReference(user.getId());
+        userFilmReferenceRepository.ensureUserFilmReference(user.getId());
+        UserFilmReference userReference = userFilmReferenceRepository.findById(user.getId()).orElse(null);
+        if (userReference == null) {
+            return;
+        }
 
         UserKeywordWeightId id = new UserKeywordWeightId(user.getId(), keyword.getKeywordId());
         UserKeywordWeight current = userKeywordWeightRepository.findById(id).orElse(null);
@@ -59,7 +66,7 @@ public class KeywordWeightService {
             }
             UserKeywordWeight created = UserKeywordWeight.builder()
                     .id(id)
-                    .user(user)
+                    .userReference(userReference)
                     .keyword(keyword)
                     .type(keyword.getType())
                     .weight(delta)
@@ -107,6 +114,6 @@ public class KeywordWeightService {
         if (userId == null) {
             return Collections.emptyList();
         }
-        return userKeywordWeightRepository.findAllByUser_Id(userId);
+        return userKeywordWeightRepository.findAllByUserReference_User_Id(userId);
     }
 }
