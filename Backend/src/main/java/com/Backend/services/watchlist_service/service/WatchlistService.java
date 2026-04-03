@@ -8,6 +8,9 @@ import com.Backend.services.director_service.service.DirectorSyncTaskService;
 import com.Backend.services.director_service.service.DirectorWeightService;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.film_service.service.FilmService;
+import com.Backend.services.keyword_service.service.KeywordService;
+import com.Backend.services.keyword_service.service.KeywordSyncTaskService;
+import com.Backend.services.keyword_service.service.KeywordWeightService;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.watchlist_service.model.Watchlist;
 import com.Backend.services.watchlist_service.model.WatchlistDTO;
@@ -39,6 +42,9 @@ public class WatchlistService {
     private final DirectorService directorService;
     private final DirectorSyncTaskService directorSyncTaskService;
     private final DirectorWeightService directorWeightService;
+    private final KeywordService keywordService;
+    private final KeywordSyncTaskService keywordSyncTaskService;
+    private final KeywordWeightService keywordWeightService;
 
     @Cacheable(value = "watchlist", key = "#user.id")
     @Transactional
@@ -74,18 +80,32 @@ public class WatchlistService {
                 .orElseThrow(() -> new WatchlistNotFoundException("Watchlist for user id " + user.getId() + " not found"));
 
         Film film = filmService.getOrCreateFilm(posting.id(), posting.type());
-        boolean wasSynced = Boolean.TRUE.equals(film.getDirectorSyncCompleted());
-        boolean syncSucceeded = false;
+        boolean wasDirectorSynced = Boolean.TRUE.equals(film.getDirectorSyncCompleted());
+        boolean directorSyncSucceeded = false;
         try {
             directorService.syncDirectorsForFilm(posting.id(), posting.type(), film);
             film.setDirectorSyncCompleted(true);
-            syncSucceeded = true;
+            directorSyncSucceeded = true;
         } catch (RuntimeException ex) {
-            if (!wasSynced) {
+            if (!wasDirectorSynced) {
                 directorSyncTaskService.enqueueRetry(film, posting.id(), ex);
             }
             log.warn("Failed to sync directors for tmdbId={} type={}", posting.id(), posting.type(), ex);
         }
+
+        boolean wasKeywordSynced = Boolean.TRUE.equals(film.getKeywordSyncCompleted());
+        boolean keywordSyncSucceeded = false;
+        try {
+            keywordService.syncKeywordsForFilm(posting.id(), posting.type(), film);
+            film.setKeywordSyncCompleted(true);
+            keywordSyncSucceeded = true;
+        } catch (RuntimeException ex) {
+            if (!wasKeywordSynced) {
+                keywordSyncTaskService.enqueueRetry(film, posting.id(), ex);
+            }
+            log.warn("Failed to sync keywords for tmdbId={} type={}", posting.id(), posting.type(), ex);
+        }
+
         WatchlistItemId itemId = new WatchlistItemId(watchlist.getUserId(), film.getInternalId());
 
         if (watchlistItemRepository.existsById(itemId)) {
@@ -99,10 +119,16 @@ public class WatchlistService {
                 .build();
         watchlistItemRepository.save(Objects.requireNonNull(item, "watchlist item"));
 
-        if (!wasSynced && syncSucceeded) {
+        if (!wasDirectorSynced && directorSyncSucceeded) {
             directorWeightService.backfillWeightsForFilm(film);
         } else if (Boolean.TRUE.equals(film.getDirectorSyncCompleted())) {
             directorWeightService.adjustWeightsForFilm(watchlist.getUser(), film, 1L);
+        }
+
+        if (!wasKeywordSynced && keywordSyncSucceeded) {
+            keywordWeightService.backfillWeightsForFilm(film);
+        } else if (Boolean.TRUE.equals(film.getKeywordSyncCompleted())) {
+            keywordWeightService.adjustWeightsForFilm(watchlist.getUser(), film, 1L);
         }
         log.info("Film tmdbId: {} successfully added to watchlist for user: {}", posting.id(), user.getUsername());
     }
@@ -133,6 +159,9 @@ public class WatchlistService {
             watchlistRepository.save(watchlist);
             if (Boolean.TRUE.equals(film.getDirectorSyncCompleted())) {
                 directorWeightService.adjustWeightsForFilm(watchlist.getUser(), film, -1L);
+            }
+            if (Boolean.TRUE.equals(film.getKeywordSyncCompleted())) {
+                keywordWeightService.adjustWeightsForFilm(watchlist.getUser(), film, -1L);
             }
             log.info("Film tmdbId: {} successfully removed from watchlist for user: {}", posting.id(), user.getUsername());
         } else {

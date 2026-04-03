@@ -2,6 +2,7 @@ package com.Backend.services.film_service.model;
 
 import com.Backend.services.FilmType;
 import com.Backend.services.director_service.model.Director;
+import com.Backend.services.keyword_service.model.Keyword;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -70,9 +71,19 @@ public class Film {
     @Builder.Default
     private Boolean directorSyncCompleted = false;
 
+    @Column(name = "keyword_sync_completed", nullable = false)
+    @Builder.Default
+    private Boolean keywordSyncCompleted = false;
+
     @ManyToMany(mappedBy = "films")
     @JsonIgnore
     @ToString.Exclude
     @Builder.Default
     private Set<Director> directors = new HashSet<>();
+
+    @ManyToMany(mappedBy = "films")
+    @JsonIgnore
+    @ToString.Exclude
+    @Builder.Default
+    private Set<Keyword> keywords = new HashSet<>();
 }

@@ -3,6 +3,7 @@ package com.Backend.services.film_service.service;
 import com.Backend.services.FilmType;
 import com.Backend.services.film_service.model.TmdbCreditsResponse;
 import com.Backend.services.film_service.model.TmdbFilmResponse;
+import com.Backend.services.film_service.model.TmdbKeywordsResponse;
 import java.util.Objects;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
@@ -77,6 +78,25 @@ public class TmdbClient {
                 .block(), "credits");
     }
 
+    @Cacheable(value = "tmdbKeywords", key = "{#tmdbId, #type.name()}")
+    public TmdbKeywordsResponse fetchKeywords(Long tmdbId, FilmType type) {
+        if (!useAuthToken && !StringUtils.hasText(apiKey)) {
+            throw new IllegalStateException("TMDB API key or auth token is missing");
+        }
+        String path = type == FilmType.MOVIE ? "/movie/{id}/keywords" : "/tv/{id}/keywords";
+        return executeWithRetry(() -> webClient.get()
+                .uri(uriBuilder -> {
+                    uriBuilder.path(path);
+                    if (!useAuthToken && StringUtils.hasText(apiKey)) {
+                        uriBuilder.queryParam("api_key", apiKey);
+                    }
+                    return uriBuilder.build(tmdbId);
+                })
+                .retrieve()
+                .bodyToMono(TmdbKeywordsResponse.class)
+                .block(), "keywords");
+    }
+
     private <T> T executeWithRetry(Supplier<T> call, String operation) {
         RuntimeException lastError = null;
         for (int attempt = 1; attempt <= retryAttempts; attempt++) {
@@ -98,6 +118,9 @@ public class TmdbClient {
                 }
                 log.warn("TMDB {} attempt {}/{} failed, retrying", operation, attempt, retryAttempts);
             }
+        }
+        if (lastError == null) {
+            throw new IllegalStateException("TMDB " + operation + " failed without an exception");
         }
         throw lastError;
     }
