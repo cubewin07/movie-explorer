@@ -1,6 +1,6 @@
-package com.Backend.services.director_service.service;
+package com.Backend.services.sync_service.service;
 
-import com.Backend.services.director_service.model.DirectorSyncRetryDecision;
+import com.Backend.services.sync_service.model.SyncRetryDecision;
 import java.time.Duration;
 import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.http.HttpStatus;
@@ -9,9 +9,9 @@ import org.springframework.web.reactive.function.client.WebClientRequestExceptio
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @Component
-public class DirectorSyncRetryPolicy {
+public class SyncRetryPolicy {
 
-    public DirectorSyncRetryDecision decide(Throwable error, int nextAttempt) {
+    public SyncRetryDecision decide(Throwable error, int nextAttempt) {
         Throwable root = rootCause(error);
         String message = buildMessage(root);
 
@@ -19,33 +19,36 @@ public class DirectorSyncRetryPolicy {
             HttpStatus status = HttpStatus.resolve(responseEx.getStatusCode().value());
             if (status == HttpStatus.TOO_MANY_REQUESTS) {
                 Duration fromHeader = retryAfterDuration(responseEx.getHeaders().getFirst("Retry-After"));
-                Duration delay = fromHeader != null ? fromHeader : cappedBackoff(Duration.ofMinutes(1), nextAttempt, Duration.ofMinutes(15));
-                return new DirectorSyncRetryDecision(true, addJitter(delay), "TMDB_429", message);
+                Duration delay = fromHeader != null
+                        ? fromHeader
+                        : cappedBackoff(Duration.ofMinutes(1), nextAttempt, Duration.ofMinutes(15));
+                return new SyncRetryDecision(true, addJitter(delay), "TMDB_429", message);
             }
             if (status != null && status.is5xxServerError()) {
                 Duration delay = cappedBackoff(Duration.ofSeconds(30), nextAttempt, Duration.ofMinutes(15));
-                return new DirectorSyncRetryDecision(true, addJitter(delay), "TMDB_5XX", message);
+                return new SyncRetryDecision(true, addJitter(delay), "TMDB_5XX", message);
             }
             if (status == HttpStatus.UNAUTHORIZED || status == HttpStatus.FORBIDDEN) {
-                return new DirectorSyncRetryDecision(false, Duration.ZERO, "TMDB_AUTH", message);
+                return new SyncRetryDecision(false, Duration.ZERO, "TMDB_AUTH", message);
             }
             if (status == HttpStatus.NOT_FOUND) {
-                return new DirectorSyncRetryDecision(false, Duration.ZERO, "TMDB_NOT_FOUND", message);
+                return new SyncRetryDecision(false, Duration.ZERO, "TMDB_NOT_FOUND", message);
             }
-            return new DirectorSyncRetryDecision(false, Duration.ZERO, "TMDB_CLIENT_" + responseEx.getStatusCode().value(), message);
+            return new SyncRetryDecision(false, Duration.ZERO,
+                    "TMDB_CLIENT_" + responseEx.getStatusCode().value(), message);
         }
 
         if (root instanceof WebClientRequestException) {
             Duration delay = cappedBackoff(Duration.ofSeconds(30), nextAttempt, Duration.ofMinutes(10));
-            return new DirectorSyncRetryDecision(true, addJitter(delay), "TMDB_NETWORK", message);
+            return new SyncRetryDecision(true, addJitter(delay), "TMDB_NETWORK", message);
         }
 
         if (isTransientDatabaseError(root)) {
             Duration delay = cappedBackoff(Duration.ofSeconds(5), nextAttempt, Duration.ofMinutes(5));
-            return new DirectorSyncRetryDecision(true, addJitter(delay), "DB_TRANSIENT", message);
+            return new SyncRetryDecision(true, addJitter(delay), "DB_TRANSIENT", message);
         }
 
-        return new DirectorSyncRetryDecision(false, Duration.ZERO, "UNKNOWN", message);
+        return new SyncRetryDecision(false, Duration.ZERO, "UNKNOWN", message);
     }
 
     private Duration retryAfterDuration(String retryAfter) {

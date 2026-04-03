@@ -1,4 +1,4 @@
-package com.Backend.services.keyword_service.model;
+package com.Backend.services.sync_service.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -24,15 +24,15 @@ import lombok.NoArgsConstructor;
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Table(
-    name = "keyword_sync_task",
+    name = "sync_task",
     indexes = {
-        @Index(name = "idx_keyword_sync_task_status_next_retry", columnList = "status, next_retry_at")
+        @Index(name = "idx_sync_task_status_next_retry", columnList = "status, next_retry_at")
     },
     uniqueConstraints = {
-        @UniqueConstraint(name = "uq_keyword_sync_task_film", columnNames = {"film_internal_id"})
+        @UniqueConstraint(name = "uq_sync_task_film_category", columnNames = {"film_internal_id", "sync_category"})
     }
 )
-public class KeywordSyncTask {
+public class SyncTask {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,8 +46,12 @@ public class KeywordSyncTask {
     private Long tmdbId;
 
     @Enumerated(EnumType.STRING)
+    @Column(name = "sync_category", nullable = false)
+    private SyncCategory syncCategory;
+
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
-    private KeywordSyncTaskStatus status;
+    private SyncTaskStatus status;
 
     @Column(name = "attempts", nullable = false)
     private Integer attempts;

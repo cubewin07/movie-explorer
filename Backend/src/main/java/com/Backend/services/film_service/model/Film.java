@@ -75,6 +75,10 @@ public class Film {
     @Builder.Default
     private Boolean keywordSyncCompleted = false;
 
+    @Column(name = "genre_sync_completed", nullable = false)
+    @Builder.Default
+    private Boolean genreSyncCompleted = false;
+
     @ManyToMany(mappedBy = "films")
     @JsonIgnore
     @ToString.Exclude

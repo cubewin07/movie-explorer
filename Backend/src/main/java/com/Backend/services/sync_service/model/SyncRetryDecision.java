@@ -1,8 +1,8 @@
-package com.Backend.services.keyword_service.model;
+package com.Backend.services.sync_service.model;
 
 import java.time.Duration;
 
-public record KeywordSyncRetryDecision(
+public record SyncRetryDecision(
         boolean retryable,
         Duration delay,
         String errorCode,
