@@ -2,6 +2,7 @@ package com.Backend.services.film_service.model;
 
 import com.Backend.services.FilmType;
 import com.Backend.services.director_service.model.Director;
+import com.Backend.services.genre_service.model.Genre;
 import com.Backend.services.keyword_service.model.Keyword;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
@@ -90,4 +91,10 @@ public class Film {
     @ToString.Exclude
     @Builder.Default
     private Set<Keyword> keywords = new HashSet<>();
+
+    @ManyToMany(mappedBy = "films")
+    @JsonIgnore
+    @ToString.Exclude
+    @Builder.Default
+    private Set<Genre> genres = new HashSet<>();
 }

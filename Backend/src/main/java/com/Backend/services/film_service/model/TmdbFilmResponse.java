@@ -2,6 +2,8 @@ package com.Backend.services.film_service.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Data;
 
 @Data
@@ -22,4 +24,13 @@ public class TmdbFilmResponse {
 
     @JsonProperty("backdrop_path")
     private String backdropPath;
+
+    private List<GenreItem> genres = new ArrayList<>();
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class GenreItem {
+        private Long id;
+        private String name;
+    }
 }

@@ -97,6 +97,25 @@ public class TmdbClient {
                 .block(), "keywords");
     }
 
+    @Cacheable(value = "tmdbGenres", key = "{#tmdbId, #type.name()}")
+    public TmdbFilmResponse fetchGenres(Long tmdbId, FilmType type) {
+        if (!useAuthToken && !StringUtils.hasText(apiKey)) {
+            throw new IllegalStateException("TMDB API key or auth token is missing");
+        }
+        String path = type == FilmType.MOVIE ? "/movie/{id}" : "/tv/{id}";
+        return executeWithRetry(() -> webClient.get()
+                .uri(uriBuilder -> {
+                    uriBuilder.path(path);
+                    if (!useAuthToken && StringUtils.hasText(apiKey)) {
+                        uriBuilder.queryParam("api_key", apiKey);
+                    }
+                    return uriBuilder.build(tmdbId);
+                })
+                .retrieve()
+                .bodyToMono(TmdbFilmResponse.class)
+                .block(), "genres");
+    }
+
     private <T> T executeWithRetry(Supplier<T> call, String operation) {
         RuntimeException lastError = null;
         for (int attempt = 1; attempt <= retryAttempts; attempt++) {

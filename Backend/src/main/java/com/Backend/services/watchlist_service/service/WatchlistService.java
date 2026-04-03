@@ -6,6 +6,7 @@ import com.Backend.services.FilmType;
 import com.Backend.services.director_service.service.DirectorWeightService;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.film_service.service.FilmService;
+import com.Backend.services.genre_service.service.GenreWeightService;
 import com.Backend.services.keyword_service.service.KeywordWeightService;
 import com.Backend.services.sync_service.model.SyncAttemptResult;
 import com.Backend.services.sync_service.model.SyncCategory;
@@ -41,6 +42,7 @@ public class WatchlistService {
     private final FilmSyncTaskService filmSyncTaskService;
     private final DirectorWeightService directorWeightService;
     private final KeywordWeightService keywordWeightService;
+    private final GenreWeightService genreWeightService;
 
     @Cacheable(value = "watchlist", key = "#user.id")
     @Transactional
@@ -78,6 +80,7 @@ public class WatchlistService {
         Film film = filmService.getOrCreateFilm(posting.id(), posting.type());
         SyncAttemptResult directorSync = filmSyncTaskService.syncNowOrQueue(film, posting.id(), SyncCategory.DIRECTOR);
         SyncAttemptResult keywordSync = filmSyncTaskService.syncNowOrQueue(film, posting.id(), SyncCategory.KEYWORD);
+        SyncAttemptResult genreSync = filmSyncTaskService.syncNowOrQueue(film, posting.id(), SyncCategory.GENRE);
 
         WatchlistItemId itemId = new WatchlistItemId(watchlist.getUserId(), film.getInternalId());
 
@@ -102,6 +105,12 @@ public class WatchlistService {
             keywordWeightService.backfillWeightsForFilm(film);
         } else if (Boolean.TRUE.equals(film.getKeywordSyncCompleted())) {
             keywordWeightService.adjustWeightsForFilm(watchlist.getUser(), film, 1L);
+        }
+
+        if (!genreSync.wasSynced() && genreSync.syncSucceeded()) {
+            genreWeightService.backfillWeightsForFilm(film);
+        } else if (Boolean.TRUE.equals(film.getGenreSyncCompleted())) {
+            genreWeightService.adjustWeightsForFilm(watchlist.getUser(), film, 1L);
         }
         log.info("Film tmdbId: {} successfully added to watchlist for user: {}", posting.id(), user.getUsername());
     }
@@ -135,6 +144,9 @@ public class WatchlistService {
             }
             if (Boolean.TRUE.equals(film.getKeywordSyncCompleted())) {
                 keywordWeightService.adjustWeightsForFilm(watchlist.getUser(), film, -1L);
+            }
+            if (Boolean.TRUE.equals(film.getGenreSyncCompleted())) {
+                genreWeightService.adjustWeightsForFilm(watchlist.getUser(), film, -1L);
             }
             log.info("Film tmdbId: {} successfully removed from watchlist for user: {}", posting.id(), user.getUsername());
         } else {

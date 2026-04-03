@@ -3,6 +3,7 @@ package com.Backend.services.user_service.model;
 import com.Backend.services.chat_service.model.Chat;
 import com.Backend.services.chat_service.message.model.Message;
 import com.Backend.services.director_service.model.UserDirectorWeight;
+import com.Backend.services.genre_service.model.UserGenreWeight;
 import com.Backend.services.keyword_service.model.UserKeywordWeight;
 import com.Backend.services.friend_service.model.Friend;
 import com.Backend.services.notification_service.model.Notification;
@@ -127,6 +128,11 @@ public class User implements UserDetails {
     @JsonIgnore
     @Builder.Default
     private Set<UserKeywordWeight> keywordWeights = new HashSet<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @JsonIgnore
+    @Builder.Default
+    private Set<UserGenreWeight> genreWeights = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
     private ROLE role;
