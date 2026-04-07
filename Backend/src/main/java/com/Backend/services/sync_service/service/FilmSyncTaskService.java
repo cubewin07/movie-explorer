@@ -73,9 +73,10 @@ public class FilmSyncTaskService {
             processor.markSyncCompleted(film);
             return new SyncAttemptResult(wasSynced, true);
         } catch (RuntimeException ex) {
-            if (!wasSynced) {
+                // If sync fails, we enqueue a retry task and log the error.
+                // No need to check if wasSynced is true anymore as we already return early in that case.
                 enqueueRetry(film, tmdbId, category, ex);
-            }
+                
             log.warn("Failed to sync category={} for filmInternalId={} tmdbId={} type={}",
                     category, film.getInternalId(), tmdbId, film.getType(), ex);
             return new SyncAttemptResult(wasSynced, false);
