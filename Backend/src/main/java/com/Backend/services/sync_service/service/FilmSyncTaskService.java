@@ -61,6 +61,10 @@ public class FilmSyncTaskService {
 
         boolean wasSynced = processor.isSyncCompleted(film);
 
+        if(wasSynced) {
+            return new SyncAttemptResult(true, true);
+        }
+
         try {
             if (film.getType() == null) {
                 throw new IllegalStateException("Film type is missing for sync category " + category);
