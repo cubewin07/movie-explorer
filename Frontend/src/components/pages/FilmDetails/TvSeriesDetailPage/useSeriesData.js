@@ -1,7 +1,7 @@
 import { useTVSeriesDetails, useTVSeriesTrailer, useTvSeriesCredits } from '../../../../hooks/API/data';
 import { useSimilarRecommendations } from '@/hooks/API/recommendations';
 
-export function useSeriesData(id, token) {
+export function useSeriesData(id) {
     const { series, isLoading, isError } = useTVSeriesDetails(id);
     const { trailerUrl, isLoadingTrailer } = useTVSeriesTrailer(id);
     const { credits, isLoading: isLoadingCredits, isError: isErrorCredits } = useTvSeriesCredits(id);
@@ -9,7 +9,7 @@ export function useSeriesData(id, token) {
         similarItems,
         isLoadingSimilar,
         isErrorSimilar,
-    } = useSimilarRecommendations(id, 'SERIES', !!token);
+    } = useSimilarRecommendations(id, 'SERIES');
 
     const cast = credits?.cast?.slice(0, 10) || [];
     const crew = credits?.crew?.slice(0, 5) || [];

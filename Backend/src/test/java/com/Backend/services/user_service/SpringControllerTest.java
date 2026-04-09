@@ -9,6 +9,7 @@ import com.Backend.services.director_service.repository.DirectorRepository;
 import com.Backend.services.director_service.repository.UserDirectorWeightRepository;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.film_service.model.TmdbFilmResponse;
+import com.Backend.services.film_service.model.TmdbSimilarItem;
 import com.Backend.services.film_service.repository.FilmRepository;
 import com.Backend.services.film_service.service.TmdbClient;
 import com.Backend.services.genre_service.model.Genre;
@@ -1162,5 +1163,28 @@ class SpringControllerTest {
                         .header("Authorization", bearer(token)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @Test
+    @Order(24)
+    @DisplayName("Anonymous GET /recommendations/similar returns similar items without auth")
+    void anonymous_getSimilar_returnsItems_without_authentication() throws Exception {
+        long filmId = 880001L;
+        List<TmdbSimilarItem> similarItems = List.of(
+                new TmdbSimilarItem(880002L, "Similar Movie A", "2022-04-12", "/similar-a.jpg"),
+                new TmdbSimilarItem(880003L, "Similar Movie B", "2020-07-09", "/similar-b.jpg")
+        );
+
+        when(tmdbClient.fetchSimilar(filmId, FilmType.MOVIE)).thenReturn(similarItems);
+
+        mockMvc.perform(get("/recommendations/similar")
+                        .param("filmId", String.valueOf(filmId))
+                        .param("type", FilmType.MOVIE.name()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andExpect(jsonPath("$[0].tmdbId").value(880002L))
+                .andExpect(jsonPath("$[0].title").value("Similar Movie A"))
+                .andExpect(jsonPath("$[0].dateValue").value("2022-04-12"))
+                .andExpect(jsonPath("$[0].backgroundImg").value("/similar-a.jpg"));
     }
 }

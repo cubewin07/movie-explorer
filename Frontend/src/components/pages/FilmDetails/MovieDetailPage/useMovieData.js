@@ -32,7 +32,7 @@ export function useMovieData(movieId) {
         similarItems,
         isLoadingSimilar,
         isErrorSimilar,
-    } = useSimilarRecommendations(movieId, 'MOVIE', !!token);
+    } = useSimilarRecommendations(movieId, 'MOVIE');
 
     // Watchlist operations
     const { mutate: addToWatchlist, isPending } = useAddToWatchlist(token);
@@ -106,7 +106,6 @@ export function useMovieData(movieId) {
 
         // Watchlist
         user,
-        token,
         addToWatchlist: handleAddToWatchlist,
         loginSuccess: handleLoginSuccess,
         isPending,

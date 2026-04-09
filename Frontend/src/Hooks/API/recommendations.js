@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import instance from '@/lib/instance';
-
 export const useSimilarRecommendations = (filmId, type, enabled = true) => {
     const normalizedFilmId = Number(filmId);
     const isValidFilmId = Number.isInteger(normalizedFilmId) && normalizedFilmId > 0;

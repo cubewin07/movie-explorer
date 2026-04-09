@@ -44,6 +44,7 @@ public class SecurityConfig {
                             .requestMatchers("/user/register").permitAll()
                             .requestMatchers("/user/authenticate").permitAll()
                             .requestMatchers(HttpMethod.GET, "/reviews/**").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/recommendations/similar").permitAll()
                             .requestMatchers("/actuator/**").permitAll()
                             .requestMatchers("/ws/**").permitAll()
                             .requestMatchers("/swagger-ui/**").permitAll()

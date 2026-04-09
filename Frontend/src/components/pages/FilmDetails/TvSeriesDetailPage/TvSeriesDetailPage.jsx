@@ -41,7 +41,7 @@ export default function TvSeriesDetailPage() {
         similarItems,
         isLoadingSimilar,
         isErrorSimilar,
-    } = useSeriesData(id, token);
+    } = useSeriesData(id);
 
     const { mutate: addToWatchlist, isPending } = useAddToWatchlist(token);
     const { data: watchlist } = useWatchlist();
@@ -194,7 +194,6 @@ export default function TvSeriesDetailPage() {
                             items={similarItems}
                             isLoading={isLoadingSimilar}
                             isError={isErrorSimilar}
-                            requiresAuth={!token}
                             mediaType="tv"
                         />
                     </TabsContent>

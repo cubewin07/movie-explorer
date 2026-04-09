@@ -43,19 +43,17 @@ public class RecommendationController {
     }
 
     @GetMapping("/similar")
-    @Operation(summary = "Get similar films and schedule recommendation sync after delay")
+    @Operation(summary = "Get similar films and schedule recommendation sync after delay (public)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Similar films returned successfully"),
             @ApiResponse(responseCode = "400", description = "Invalid request parameters", content = @Content(schema = @Schema(implementation = ErrorRes.class))),
-            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(implementation = ErrorRes.class))),
             @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ErrorRes.class)))
     })
     public ResponseEntity<List<TmdbSimilarItem>> getSimilarAndScheduleRecommendationSync(
             @RequestParam("filmId") Long filmId,
-            @RequestParam("type") FilmType type,
-            @AuthenticationPrincipal User user
+            @RequestParam("type") FilmType type
     ) {
-        if (filmId == null || type == null || user == null) {
+        if (filmId == null || type == null) {
             throw new IllegalArgumentException("filmId and type are required");
         }
         return ResponseEntity.ok(recommendationService.getSimilarAndScheduleRecommendationSync(filmId, type));

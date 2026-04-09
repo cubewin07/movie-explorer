@@ -38,7 +38,6 @@ export default function MovieDetailPage() {
         addToWatchlist,
         isPending,
         isInWatchlist,
-        token,
         showLoginModal,
         setShowLoginModal,
         loginSuccess,
@@ -138,7 +137,6 @@ export default function MovieDetailPage() {
                             items={similarItems}
                             isLoading={isLoadingSimilar}
                             isError={isErrorSimilar}
-                            requiresAuth={!token}
                             mediaType="movie"
                         />
                     </TabsContent>
