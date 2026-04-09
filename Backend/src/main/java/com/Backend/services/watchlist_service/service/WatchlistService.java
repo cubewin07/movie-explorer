@@ -78,15 +78,15 @@ public class WatchlistService {
                 .orElseThrow(() -> new WatchlistNotFoundException("Watchlist for user id " + user.getId() + " not found"));
 
         Film film = filmService.getOrCreateFilm(posting.id(), posting.type());
-        SyncAttemptResult directorSync = filmSyncTaskService.syncNowOrQueue(film, posting.id(), SyncCategory.DIRECTOR);
-        SyncAttemptResult keywordSync = filmSyncTaskService.syncNowOrQueue(film, posting.id(), SyncCategory.KEYWORD);
-        SyncAttemptResult genreSync = filmSyncTaskService.syncNowOrQueue(film, posting.id(), SyncCategory.GENRE);
-
         WatchlistItemId itemId = new WatchlistItemId(watchlist.getUserId(), film.getInternalId());
 
         if (watchlistItemRepository.existsById(itemId)) {
             throw new DuplicateWatchlistItemException("Movie/Series already in watchlist");
         }
+
+        SyncAttemptResult directorSync = filmSyncTaskService.syncNowOrQueue(film, posting.id(), SyncCategory.DIRECTOR);
+        SyncAttemptResult keywordSync = filmSyncTaskService.syncNowOrQueue(film, posting.id(), SyncCategory.KEYWORD);
+        SyncAttemptResult genreSync = filmSyncTaskService.syncNowOrQueue(film, posting.id(), SyncCategory.GENRE);
 
         WatchlistItem item = WatchlistItem.builder()
                 .id(itemId)
@@ -94,6 +94,9 @@ public class WatchlistService {
                 .film(film)
                 .build();
         watchlistItemRepository.save(Objects.requireNonNull(item, "watchlist item"));
+
+        // Recommendation ingestion is queue-first to protect add-to-watchlist latency and TMDB budget.
+        filmSyncTaskService.enqueuePendingSync(film, posting.id(), SyncCategory.RECOMMENDATION);
 
         if (!directorSync.wasSynced() && directorSync.syncSucceeded()) {
             directorWeightService.backfillWeightsForFilm(film);

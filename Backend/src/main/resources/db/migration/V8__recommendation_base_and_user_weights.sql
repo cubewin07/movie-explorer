@@ -63,3 +63,5 @@ create index if not exists idx_user_genre_weight_user on user_genre_weight (user
 create index if not exists idx_user_genre_weight_genre on user_genre_weight (genre_id);
 create index if not exists idx_user_keyword_weight_user on user_keyword_weight (user_id);
 create index if not exists idx_user_keyword_weight_keyword on user_keyword_weight (keyword_id);
+create index if not exists idx_recommendation_film on recommendation (film_id);
+create index if not exists idx_recommendation_recommended_film on recommendation (recommended_film_id);

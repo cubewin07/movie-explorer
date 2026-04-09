@@ -4,7 +4,11 @@ import com.Backend.services.FilmType;
 import com.Backend.services.film_service.model.TmdbCreditsResponse;
 import com.Backend.services.film_service.model.TmdbFilmResponse;
 import com.Backend.services.film_service.model.TmdbKeywordsResponse;
+import com.Backend.services.film_service.model.TmdbMovieSimilarResponse;
+import com.Backend.services.film_service.model.TmdbSimilarItem;
+import com.Backend.services.film_service.model.TmdbTvSimilarResponse;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +26,12 @@ public class TmdbClient {
     private final boolean useAuthToken;
     private final int retryAttempts;
     private final long retryBackoffMs;
+    private final long rateLimitCapacity;
+    private final long rateLimitRefillTokens;
+    private final long rateLimitRefillPeriodNanos;
+    private final Object rateLimitMonitor = new Object();
+    private double availableTokens;
+    private long lastRefillNanos;
 
     public TmdbClient(
             WebClient.Builder builder,
@@ -29,11 +39,22 @@ public class TmdbClient {
             @Value("${tmdb.api.api-key:}") String apiKey,
             @Value("${tmdb.api.auth-token:}") String authToken,
             @Value("${tmdb.api.retry.attempts:3}") int retryAttempts,
-            @Value("${tmdb.api.retry.backoff-ms:200}") long retryBackoffMs) {
+            @Value("${tmdb.api.retry.backoff-ms:200}") long retryBackoffMs,
+            @Value("${tmdb.api.rate-limit.capacity:40}") long rateLimitCapacity,
+            @Value("${tmdb.api.rate-limit.refill-tokens:40}") long rateLimitRefillTokens,
+            @Value("${tmdb.api.rate-limit.refill-period-seconds:10}") long rateLimitRefillPeriodSeconds) {
         this.apiKey = apiKey;
         this.useAuthToken = StringUtils.hasText(authToken);
         this.retryAttempts = Math.max(1, retryAttempts);
         this.retryBackoffMs = Math.max(0L, retryBackoffMs);
+
+        this.rateLimitCapacity = Math.max(1L, rateLimitCapacity);
+        this.rateLimitRefillTokens = Math.max(1L, rateLimitRefillTokens);
+        long safeRefillSeconds = Math.max(1L, rateLimitRefillPeriodSeconds);
+        this.rateLimitRefillPeriodNanos = safeRefillSeconds * 1_000_000_000L;
+        this.availableTokens = this.rateLimitCapacity;
+        this.lastRefillNanos = System.nanoTime();
+
         WebClient.Builder webClientBuilder = builder.baseUrl(Objects.requireNonNull(baseUrl, "tmdb.api.base-url"));
         if (this.useAuthToken) {
             webClientBuilder.defaultHeader("Authorization", "Bearer " + authToken);
@@ -116,10 +137,77 @@ public class TmdbClient {
                 .block(), "genres");
     }
 
+    @Cacheable(value = "tmdbSimilar", key = "{#tmdbId, #type.name()}")
+    public java.util.List<TmdbSimilarItem> fetchSimilar(Long tmdbId, FilmType type) {
+        if (!useAuthToken && !StringUtils.hasText(apiKey)) {
+            throw new IllegalStateException("TMDB API key or auth token is missing");
+        }
+
+        if (type == FilmType.MOVIE) {
+            TmdbMovieSimilarResponse response = executeWithRetry(() -> webClient.get()
+                    .uri(uriBuilder -> {
+                        uriBuilder.path("/movie/{id}/similar");
+                        if (!useAuthToken && StringUtils.hasText(apiKey)) {
+                            uriBuilder.queryParam("api_key", apiKey);
+                        }
+                        return uriBuilder.build(tmdbId);
+                    })
+                    .retrieve()
+                    .bodyToMono(TmdbMovieSimilarResponse.class)
+                    .block(), "similar-movie");
+
+            if (response == null || response.getResults() == null) {
+                return java.util.List.of();
+            }
+            return response.getResults().stream()
+                    .filter(item -> item != null && item.getId() != null)
+                    .map(item -> new TmdbSimilarItem(
+                            item.getId(),
+                            item.getTitle(),
+                            item.getReleaseDate(),
+                            item.getBackdropPath()
+                    ))
+                    .collect(Collectors.toList());
+        }
+
+        TmdbTvSimilarResponse response = executeWithRetry(() -> webClient.get()
+                .uri(uriBuilder -> {
+                    uriBuilder.path("/tv/{id}/similar");
+                    if (!useAuthToken && StringUtils.hasText(apiKey)) {
+                        uriBuilder.queryParam("api_key", apiKey);
+                    }
+                    return uriBuilder.build(tmdbId);
+                })
+                .retrieve()
+                .bodyToMono(TmdbTvSimilarResponse.class)
+                .block(), "similar-tv");
+
+        if (response == null || response.getResults() == null) {
+            return java.util.List.of();
+        }
+        return response.getResults().stream()
+                .filter(item -> item != null && item.getId() != null)
+                .map(item -> new TmdbSimilarItem(
+                        item.getId(),
+                        item.getName(),
+                        item.getFirstAirDate(),
+                        item.getBackdropPath()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    public double getAvailableTokens() {
+        synchronized (rateLimitMonitor) {
+            refillTokensLocked();
+            return availableTokens;
+        }
+    }
+
     private <T> T executeWithRetry(Supplier<T> call, String operation) {
         RuntimeException lastError = null;
         for (int attempt = 1; attempt <= retryAttempts; attempt++) {
             try {
+                consumeRateLimitToken();
                 return call.get();
             } catch (RuntimeException ex) {
                 lastError = ex;
@@ -142,5 +230,46 @@ public class TmdbClient {
             throw new IllegalStateException("TMDB " + operation + " failed without an exception");
         }
         throw lastError;
+    }
+
+    private void consumeRateLimitToken() {
+        while (true) {
+            long waitMillis;
+            synchronized (rateLimitMonitor) {
+                refillTokensLocked();
+                if (availableTokens >= 1.0d) {
+                    availableTokens -= 1.0d;
+                    return;
+                }
+
+                double missingTokens = 1.0d - availableTokens;
+                double nanosPerToken = (double) rateLimitRefillPeriodNanos / (double) rateLimitRefillTokens;
+                waitMillis = Math.max(1L, (long) Math.ceil((missingTokens * nanosPerToken) / 1_000_000.0d));
+            }
+
+            try {
+                Thread.sleep(Math.min(250L, waitMillis));
+            } catch (InterruptedException interrupted) {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException("TMDB rate limiter wait interrupted", interrupted);
+            }
+        }
+    }
+
+    private void refillTokensLocked() {
+        long nowNanos = System.nanoTime();
+        long elapsedNanos = nowNanos - lastRefillNanos;
+        if (elapsedNanos <= 0L) {
+            return;
+        }
+
+        double replenished = ((double) elapsedNanos * (double) rateLimitRefillTokens)
+                / (double) rateLimitRefillPeriodNanos;
+        if (replenished <= 0.0d) {
+            return;
+        }
+
+        availableTokens = Math.min((double) rateLimitCapacity, availableTokens + replenished);
+        lastRefillNanos = nowNanos;
     }
 }

@@ -7,6 +7,9 @@ alter table film
 alter table film
     add column if not exists genre_sync_completed boolean not null default false;
 
+alter table film
+    add column if not exists recommendation_sync_completed boolean not null default false;
+
 create table if not exists sync_task (
     id bigserial primary key,
     film_internal_id bigint not null,
