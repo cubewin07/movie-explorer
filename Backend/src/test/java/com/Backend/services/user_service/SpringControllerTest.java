@@ -2,15 +2,35 @@ package com.Backend.services.user_service;
 
 import com.Backend.services.notification_service.model.NotificationDTO;
 import com.Backend.services.notification_service.service.NotificationService;
+import com.Backend.services.director_service.model.Director;
+import com.Backend.services.director_service.model.UserDirectorWeight;
+import com.Backend.services.director_service.model.UserDirectorWeightId;
+import com.Backend.services.director_service.repository.DirectorRepository;
+import com.Backend.services.director_service.repository.UserDirectorWeightRepository;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.film_service.model.TmdbFilmResponse;
 import com.Backend.services.film_service.repository.FilmRepository;
 import com.Backend.services.film_service.service.TmdbClient;
+import com.Backend.services.genre_service.model.Genre;
+import com.Backend.services.genre_service.model.UserGenreWeight;
+import com.Backend.services.genre_service.model.UserGenreWeightId;
+import com.Backend.services.genre_service.repository.GenreRepository;
+import com.Backend.services.genre_service.repository.UserGenreWeightRepository;
+import com.Backend.services.keyword_service.model.Keyword;
+import com.Backend.services.keyword_service.model.UserKeywordWeight;
+import com.Backend.services.keyword_service.model.UserKeywordWeightId;
+import com.Backend.services.keyword_service.repository.KeywordRepository;
+import com.Backend.services.keyword_service.repository.UserKeywordWeightRepository;
+import com.Backend.services.recommendation_service.model.Recommendation;
+import com.Backend.services.recommendation_service.model.RecommendationId;
+import com.Backend.services.recommendation_service.repository.RecommendationRepository;
 import com.Backend.services.user_service.model.DTO.AuthenticateDTO;
 import com.Backend.services.user_service.model.DTO.RegisterDTO;
 import com.Backend.services.user_service.model.DTO.UpdateUserDTO;
 import com.Backend.services.user_service.model.User;
+import com.Backend.services.user_service.model.UserFilmReference;
 import com.Backend.services.user_service.model.ROLE;
+import com.Backend.services.user_service.repository.UserFilmReferenceRepository;
 import com.Backend.services.user_service.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.Backend.services.watchlist_service.model.WatchlistItemId;
@@ -37,6 +57,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -69,6 +90,30 @@ class SpringControllerTest {
 
         @Autowired
         private WatchlistItemRepository watchlistItemRepository;
+
+        @Autowired
+        private RecommendationRepository recommendationRepository;
+
+        @Autowired
+        private DirectorRepository directorRepository;
+
+        @Autowired
+        private GenreRepository genreRepository;
+
+        @Autowired
+        private KeywordRepository keywordRepository;
+
+        @Autowired
+        private UserFilmReferenceRepository userFilmReferenceRepository;
+
+        @Autowired
+        private UserDirectorWeightRepository userDirectorWeightRepository;
+
+        @Autowired
+        private UserGenreWeightRepository userGenreWeightRepository;
+
+        @Autowired
+        private UserKeywordWeightRepository userKeywordWeightRepository;
 
         @MockBean
         private TmdbClient tmdbClient;
@@ -946,5 +991,176 @@ class SpringControllerTest {
                 .andExpect(jsonPath("$.content[?(@.id==%s)].content", replyId).value(hasItem("Reply shown to anonymous")))
                 .andExpect(jsonPath("$.content[?(@.id==%s)].likedByMe", replyId).value(hasItem(false)))
                 .andExpect(jsonPath("$.content[?(@.id==%s)].disLikedByMe", replyId).value(hasItem(false)));
+    }
+
+    @Test
+    @Order(22)
+    @DisplayName("GET /recommendations ranks candidates by normalized weighted score and recency boost")
+    void recommendations_ranked_by_weighted_normalized_score_with_recency_boost() throws Exception {
+        String email = "recommend_logic_a@example.com";
+        register("recommend_logic_a", email, "password123");
+        String token = authenticate(email, "password123");
+        Long userId = getUserId(token);
+
+        long sourceTmdbId = 700001L;
+        when(tmdbClient.fetchFilmDetails(sourceTmdbId, FilmType.MOVIE)).thenReturn(movieResponse(sourceTmdbId));
+        addMovie(token, sourceTmdbId);
+        Film sourceFilm = filmRepository.findByFilmIdAndType(sourceTmdbId, FilmType.MOVIE).orElseThrow();
+
+        Film candidateFresh = filmRepository.save(Film.builder()
+                .filmId(700002L)
+                .type(FilmType.MOVIE)
+                .title("Candidate Fresh")
+                .rating(6.0)
+                .date(LocalDate.now().minusDays(20))
+                .backgroundImg("/candidate-fresh.jpg")
+                .build());
+        Film candidateOld = filmRepository.save(Film.builder()
+                .filmId(700003L)
+                .type(FilmType.MOVIE)
+                .title("Candidate Old")
+                .rating(9.0)
+                .date(LocalDate.now().minusDays(900))
+                .backgroundImg("/candidate-old.jpg")
+                .build());
+
+        Director directorLow = Director.builder().directorId(710001L).name("Director Low").build();
+        directorLow.getFilms().add(candidateFresh);
+        directorLow = directorRepository.save(directorLow);
+
+        Director directorHigh = Director.builder().directorId(710002L).name("Director High").build();
+        directorHigh.getFilms().add(candidateOld);
+        directorHigh = directorRepository.save(directorHigh);
+
+        Genre genreHigh = Genre.builder().genreId(720001L).name("Genre High").type(FilmType.MOVIE).build();
+        genreHigh.getFilms().add(candidateFresh);
+        genreHigh = genreRepository.save(genreHigh);
+
+        Genre genreLow = Genre.builder().genreId(720002L).name("Genre Low").type(FilmType.MOVIE).build();
+        genreLow.getFilms().add(candidateOld);
+        genreLow = genreRepository.save(genreLow);
+
+        Keyword keywordHigh = Keyword.builder().keywordId(730001L).name("Keyword High").type(FilmType.MOVIE).build();
+        keywordHigh.getFilms().add(candidateFresh);
+        keywordHigh = keywordRepository.save(keywordHigh);
+
+        Keyword keywordLow = Keyword.builder().keywordId(730002L).name("Keyword Low").type(FilmType.MOVIE).build();
+        keywordLow.getFilms().add(candidateOld);
+        keywordLow = keywordRepository.save(keywordLow);
+
+        User persistedUser = userRepository.findById(userId).orElseThrow();
+        UserFilmReference userReference = userFilmReferenceRepository.save(UserFilmReference.builder()
+                .userId(userId)
+                .user(persistedUser)
+                .build());
+
+        userDirectorWeightRepository.save(UserDirectorWeight.builder()
+                .id(new UserDirectorWeightId(userId, directorLow.getDirectorId()))
+                .userReference(userReference)
+                .director(directorLow)
+                .weight(1L)
+                .build());
+        userDirectorWeightRepository.save(UserDirectorWeight.builder()
+                .id(new UserDirectorWeightId(userId, directorHigh.getDirectorId()))
+                .userReference(userReference)
+                .director(directorHigh)
+                .weight(9L)
+                .build());
+
+        userGenreWeightRepository.save(UserGenreWeight.builder()
+                .id(new UserGenreWeightId(userId, genreHigh.getGenreId()))
+                .userReference(userReference)
+                .genre(genreHigh)
+                .type(FilmType.MOVIE)
+                .weight(8L)
+                .build());
+        userGenreWeightRepository.save(UserGenreWeight.builder()
+                .id(new UserGenreWeightId(userId, genreLow.getGenreId()))
+                .userReference(userReference)
+                .genre(genreLow)
+                .type(FilmType.MOVIE)
+                .weight(1L)
+                .build());
+
+        userKeywordWeightRepository.save(UserKeywordWeight.builder()
+                .id(new UserKeywordWeightId(userId, keywordHigh.getKeywordId()))
+                .userReference(userReference)
+                .keyword(keywordHigh)
+                .type(FilmType.MOVIE)
+                .weight(10L)
+                .build());
+        userKeywordWeightRepository.save(UserKeywordWeight.builder()
+                .id(new UserKeywordWeightId(userId, keywordLow.getKeywordId()))
+                .userReference(userReference)
+                .keyword(keywordLow)
+                .type(FilmType.MOVIE)
+                .weight(1L)
+                .build());
+
+        recommendationRepository.save(Recommendation.builder()
+                .id(new RecommendationId(sourceFilm.getInternalId(), candidateFresh.getInternalId()))
+                .build());
+        recommendationRepository.save(Recommendation.builder()
+                .id(new RecommendationId(sourceFilm.getInternalId(), candidateOld.getInternalId()))
+                .build());
+        recommendationRepository.save(Recommendation.builder()
+                .id(new RecommendationId(sourceFilm.getInternalId(), sourceFilm.getInternalId()))
+                .build());
+
+        MvcResult result = mockMvc.perform(get("/recommendations")
+                        .header("Authorization", bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
+                .andReturn();
+
+        List<Map<String, Object>> ranked = objectMapper.readValue(result.getResponse().getContentAsString(), List.class);
+        assertThat(ranked).hasSize(2);
+
+        Number topId = (Number) ranked.get(0).get("internalFilmId");
+        Number secondId = (Number) ranked.get(1).get("internalFilmId");
+        assertThat(topId.longValue()).isEqualTo(candidateFresh.getInternalId());
+        assertThat(secondId.longValue()).isEqualTo(candidateOld.getInternalId());
+
+        double topScore = ((Number) ranked.get(0).get("score")).doubleValue();
+        double secondScore = ((Number) ranked.get(1).get("score")).doubleValue();
+        assertThat(topScore).isGreaterThan(secondScore);
+
+        double topKeyword = ((Number) ranked.get(0).get("keywordScore")).doubleValue();
+        double topGenre = ((Number) ranked.get(0).get("genreScore")).doubleValue();
+        double topDirector = ((Number) ranked.get(0).get("directorScore")).doubleValue();
+        double topRating = ((Number) ranked.get(0).get("ratingScore")).doubleValue();
+        double topBoost = ((Number) ranked.get(0).get("recencyBoost")).doubleValue();
+
+        assertThat(topKeyword).isCloseTo(10.0, within(0.0001));
+        assertThat(topGenre).isCloseTo(10.0, within(0.0001));
+        assertThat(topDirector).isCloseTo(0.0, within(0.0001));
+        assertThat(topRating).isCloseTo(0.0, within(0.0001));
+        assertThat(topBoost).isGreaterThan(0.0);
+
+        double secondBoost = ((Number) ranked.get(1).get("recencyBoost")).doubleValue();
+        assertThat(secondBoost).isCloseTo(0.0, within(0.0001));
+
+        List<Long> returnedIds = ranked.stream()
+                .map(row -> ((Number) row.get("internalFilmId")).longValue())
+                .toList();
+        assertThat(returnedIds).doesNotContain(sourceFilm.getInternalId());
+    }
+
+    @Test
+    @Order(23)
+    @DisplayName("GET /recommendations returns empty list when user has no candidate links")
+    void recommendations_empty_when_no_candidate_links() throws Exception {
+        String email = "recommend_logic_empty@example.com";
+        register("recommend_logic_empty", email, "password123");
+        String token = authenticate(email, "password123");
+
+        long sourceTmdbId = 700101L;
+        when(tmdbClient.fetchFilmDetails(sourceTmdbId, FilmType.MOVIE)).thenReturn(movieResponse(sourceTmdbId));
+        addMovie(token, sourceTmdbId);
+
+        mockMvc.perform(get("/recommendations")
+                        .header("Authorization", bearer(token)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
     }
 }
