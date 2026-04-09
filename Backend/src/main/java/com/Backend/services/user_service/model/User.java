@@ -116,6 +116,10 @@ public class User implements UserDetails {
     @NotNull(message = "Sent messages list cannot be null")
     private Set<Message> sentMessages = new HashSet<>();
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private UserFilmReference userFilmReference;
+
     @Enumerated(EnumType.STRING)
     private ROLE role;
 
@@ -146,6 +150,13 @@ public class User implements UserDetails {
         this.watchlist = watchlist;
         if(watchlist.getUser() != this) {
             watchlist.setUser(this);
+        }
+    }
+
+    public void setUserFilmReference(UserFilmReference userFilmReference) {
+        this.userFilmReference = userFilmReference;
+        if (userFilmReference != null && userFilmReference.getUser() != this) {
+            userFilmReference.setUser(this);
         }
     }
 }

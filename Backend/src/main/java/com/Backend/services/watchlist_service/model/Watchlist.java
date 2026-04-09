@@ -2,8 +2,17 @@ package com.Backend.services.watchlist_service.model;
 
 import com.Backend.services.user_service.model.User;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Index;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.MapsId;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -33,15 +42,9 @@ public class Watchlist {
     @JsonBackReference(value = "user-watchlist")
     private User user;
 
-    @ElementCollection
-    @CollectionTable(name = "watchlist_series", joinColumns = @JoinColumn(name = "watchlist_id"))
-    @Column(name = "series_id")
-    private Set<Long> seriesId = new HashSet<>();
-
-    @ElementCollection
-    @CollectionTable(name = "watchlist_movies", joinColumns = @JoinColumn(name = "watchlist_id"))
-    @Column(name = "movie_id")
-    private Set<Long> moviesId = new HashSet<>();
+    @OneToMany(mappedBy = "watchlist", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Set<WatchlistItem> items = new HashSet<>();
 
     public void setUser(User user) {
         this.user = user;
@@ -50,11 +53,11 @@ public class Watchlist {
         }
     }
 
-    public void addSeriesId(Long seriesId) {
-        this.seriesId.add(seriesId);
+    public void addItem(WatchlistItem item) {
+        this.items.add(item);
     }
 
-    public void addMoviesId(Long moviesId) {
-        this.moviesId.add(moviesId);
+    public void removeItem(WatchlistItem item) {
+        this.items.remove(item);
     }
 }

@@ -1,6 +1,13 @@
 package com.Backend.services.chat_service.message.controller;
 
+import com.Backend.exception.ErrorRes;
 import com.Backend.services.chat_service.message.dto.MessageDTOPage;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.data.domain.Page;
 
 import org.springframework.data.domain.PageImpl;
@@ -29,12 +36,21 @@ import java.nio.file.AccessDeniedException;
 @RestController
 @RequestMapping("/messages")
 @RequiredArgsConstructor
+@Tag(name = "Messages", description = "Chat message APIs")
 public class MessageController {
 
     private final MessageService messageService;
     private final ChatLookUpHelper chatLookUpHelper;
 
     @GetMapping
+    @Operation(summary = "Get messages in a chat")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Messages returned successfully"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(implementation = ErrorRes.class))),
+            @ApiResponse(responseCode = "403", description = "User is not a participant of the chat", content = @Content(schema = @Schema(implementation = ErrorRes.class))),
+            @ApiResponse(responseCode = "404", description = "Chat not found", content = @Content(schema = @Schema(implementation = ErrorRes.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ErrorRes.class)))
+    })
     public ResponseEntity<Page<MessageDTO>> getMessages(
         @AuthenticationPrincipal User user,
         @RequestParam("chatId") Long chatId, 
@@ -60,6 +76,14 @@ public class MessageController {
     }
 
     @PostMapping("/mark-as-read")
+    @Operation(summary = "Mark chat messages as read")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Messages marked as read"),
+            @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(schema = @Schema(implementation = ErrorRes.class))),
+            @ApiResponse(responseCode = "403", description = "User is not a participant of the chat", content = @Content(schema = @Schema(implementation = ErrorRes.class))),
+            @ApiResponse(responseCode = "404", description = "Chat not found", content = @Content(schema = @Schema(implementation = ErrorRes.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ErrorRes.class)))
+    })
     public ResponseEntity<Void> markMessagesAsRead(@AuthenticationPrincipal User user, @RequestParam("chatId") Long chatId) throws AccessDeniedException {
         // Enforce membership before mutating chat data
         Set<SimpleUserDTO> participants = chatLookUpHelper.getParticipants(chatId);

@@ -8,8 +8,11 @@ import com.Backend.services.notification_service.model.NotificationDTO;
 import com.Backend.services.user_service.model.*;
 import com.Backend.services.user_service.model.DTO.*;
 import com.Backend.services.user_service.repository.UserRepository;
+import com.Backend.services.FilmType;
+import com.Backend.services.film_service.model.Film;
 import com.Backend.services.watchlist_service.model.Watchlist;
 import com.Backend.services.watchlist_service.model.WatchlistDTO;
+import com.Backend.services.watchlist_service.model.WatchlistItem;
 import com.Backend.springSecurity.jwtAuthentication.JwtService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -87,6 +90,9 @@ public class UserService {
 
         user.setWatchlist(new Watchlist());
         user.getWatchlist().setUser(user);      
+
+        user.setUserFilmReference(new UserFilmReference());
+        user.getUserFilmReference().setUser(user);
 
         userRepository.save(user);
 
@@ -187,17 +193,7 @@ public class UserService {
 
         // Watchlist
         if (user.getWatchlist() != null) {
-            Set<Long> seriesIds = user.getWatchlist().getSeriesId() != null
-                    ? new HashSet<>(user.getWatchlist().getSeriesId())
-                    : new HashSet<>();
-
-            Set<Long> moviesIds = user.getWatchlist().getMoviesId() != null
-                    ? new HashSet<>(user.getWatchlist().getMoviesId())
-                    : new HashSet<>();
-            dto.setWatchlist(new WatchlistDTO(
-                    moviesIds,
-                    seriesIds
-            ));
+            dto.setWatchlist(buildWatchlistDTO(user.getWatchlist()));
         }
 
         // Notifications
@@ -278,28 +274,43 @@ public class UserService {
             log.info("Fetching info for friend id={} from database", id);
             Status status = friendService.getFriendStatus(principal, id);
             User info = lookUpHelper.getUserById(id);
-            Set<Long> moviesId= info.getWatchlist().getMoviesId();
-            Set<Long> seriesId= info.getWatchlist().getSeriesId();
             return GetInfoDTO.builder()
                     .id(info.getId())
                     .email(info.getEmail())
                     .username(info.getRealUsername())
                     .status(status)
-                    .watchlist(new WatchlistDTO(moviesId, seriesId))
+                                        .watchlist(buildWatchlistDTO(info.getWatchlist()))
                     .build();
         } else {
             log.info("No friend ship found for user id={} and friend id={}", principal.getId(), id);
             User info = lookUpHelper.getUserById(id);
-            Set<Long> moviesId= info.getWatchlist().getMoviesId();
-            Set<Long> seriesId= info.getWatchlist().getSeriesId();
             return GetInfoDTO.builder()
                     .id(info.getId())
                     .email(info.getEmail())
                     .username(info.getRealUsername())
-                    .watchlist(new WatchlistDTO(moviesId, seriesId))
+                                        .watchlist(buildWatchlistDTO(info.getWatchlist()))
                     .build();
         }
     }
+
+        private WatchlistDTO buildWatchlistDTO(Watchlist watchlist) {
+                Set<Long> moviesIds = new HashSet<>();
+                Set<Long> seriesIds = new HashSet<>();
+                if (watchlist != null && watchlist.getItems() != null) {
+                        for (WatchlistItem item : watchlist.getItems()) {
+                                Film film = item.getFilm();
+                                if (film == null || film.getType() == null) {
+                                        continue;
+                                }
+                                if (film.getType() == FilmType.MOVIE) {
+                                        moviesIds.add(film.getFilmId());
+                                } else if (film.getType() == FilmType.SERIES) {
+                                        seriesIds.add(film.getFilmId());
+                                }
+                        }
+                }
+                return new WatchlistDTO(moviesIds, seriesIds);
+        }
 
     // ====Helper===
     @Cacheable(value = "userSearchCache", key = "#query + - + #userId")
