@@ -22,8 +22,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class TmdbClient {
 
     private final WebClient webClient;
-    private final String apiKey;
-    private final boolean useAuthToken;
+    private final String apiToken;
     private final int retryAttempts;
     private final long retryBackoffMs;
     private final long rateLimitCapacity;
@@ -36,15 +35,13 @@ public class TmdbClient {
     public TmdbClient(
             WebClient.Builder builder,
             @Value("${tmdb.api.base-url}") String baseUrl,
-            @Value("${tmdb.api.api-key:}") String apiKey,
-            @Value("${tmdb.api.auth-token:}") String authToken,
+            @Value("${tmdb.api.api-token:}") String apiToken,
             @Value("${tmdb.api.retry.attempts:3}") int retryAttempts,
             @Value("${tmdb.api.retry.backoff-ms:200}") long retryBackoffMs,
             @Value("${tmdb.api.rate-limit.capacity:40}") long rateLimitCapacity,
             @Value("${tmdb.api.rate-limit.refill-tokens:40}") long rateLimitRefillTokens,
             @Value("${tmdb.api.rate-limit.refill-period-seconds:10}") long rateLimitRefillPeriodSeconds) {
-        this.apiKey = apiKey;
-        this.useAuthToken = StringUtils.hasText(authToken);
+        this.apiToken = apiToken;
         this.retryAttempts = Math.max(1, retryAttempts);
         this.retryBackoffMs = Math.max(0L, retryBackoffMs);
 
@@ -56,23 +53,20 @@ public class TmdbClient {
         this.lastRefillNanos = System.nanoTime();
 
         WebClient.Builder webClientBuilder = builder.baseUrl(Objects.requireNonNull(baseUrl, "tmdb.api.base-url"));
-        if (this.useAuthToken) {
-            webClientBuilder.defaultHeader("Authorization", "Bearer " + authToken);
+        if (StringUtils.hasText(this.apiToken)) {
+            webClientBuilder.defaultHeader("Authorization", "Bearer " + this.apiToken);
         }
         this.webClient = webClientBuilder.build();
     }
 
     public TmdbFilmResponse fetchFilmDetails(Long tmdbId, FilmType type) {
-        if (!useAuthToken && !StringUtils.hasText(apiKey)) {
-            throw new IllegalStateException("TMDB API key or auth token is missing");
+        if (!StringUtils.hasText(apiToken)) {
+            throw new IllegalStateException("TMDB API token is missing");
         }
         String path = type == FilmType.MOVIE ? "/movie/{id}" : "/tv/{id}";
         return executeWithRetry(() -> webClient.get()
                 .uri(uriBuilder -> {
                     uriBuilder.path(path);
-                    if (!useAuthToken && StringUtils.hasText(apiKey)) {
-                        uriBuilder.queryParam("api_key", apiKey);
-                    }
                     return uriBuilder.build(tmdbId);
                 })
                 .retrieve()
@@ -82,16 +76,13 @@ public class TmdbClient {
 
     @Cacheable(value = "tmdbCredits", key = "{#tmdbId, #type.name()}")
     public TmdbCreditsResponse fetchCredits(Long tmdbId, FilmType type) {
-        if (!useAuthToken && !StringUtils.hasText(apiKey)) {
-            throw new IllegalStateException("TMDB API key or auth token is missing");
+        if (!StringUtils.hasText(apiToken)) {
+            throw new IllegalStateException("TMDB API token is missing");
         }
         String path = type == FilmType.MOVIE ? "/movie/{id}/credits" : "/tv/{id}/credits";
         return executeWithRetry(() -> webClient.get()
                 .uri(uriBuilder -> {
                     uriBuilder.path(path);
-                    if (!useAuthToken && StringUtils.hasText(apiKey)) {
-                        uriBuilder.queryParam("api_key", apiKey);
-                    }
                     return uriBuilder.build(tmdbId);
                 })
                 .retrieve()
@@ -101,16 +92,13 @@ public class TmdbClient {
 
     @Cacheable(value = "tmdbKeywords", key = "{#tmdbId, #type.name()}")
     public TmdbKeywordsResponse fetchKeywords(Long tmdbId, FilmType type) {
-        if (!useAuthToken && !StringUtils.hasText(apiKey)) {
-            throw new IllegalStateException("TMDB API key or auth token is missing");
+        if (!StringUtils.hasText(apiToken)) {
+            throw new IllegalStateException("TMDB API token is missing");
         }
         String path = type == FilmType.MOVIE ? "/movie/{id}/keywords" : "/tv/{id}/keywords";
         return executeWithRetry(() -> webClient.get()
                 .uri(uriBuilder -> {
                     uriBuilder.path(path);
-                    if (!useAuthToken && StringUtils.hasText(apiKey)) {
-                        uriBuilder.queryParam("api_key", apiKey);
-                    }
                     return uriBuilder.build(tmdbId);
                 })
                 .retrieve()
@@ -120,16 +108,13 @@ public class TmdbClient {
 
     @Cacheable(value = "tmdbGenres", key = "{#tmdbId, #type.name()}")
     public TmdbFilmResponse fetchGenres(Long tmdbId, FilmType type) {
-        if (!useAuthToken && !StringUtils.hasText(apiKey)) {
-            throw new IllegalStateException("TMDB API key or auth token is missing");
+        if (!StringUtils.hasText(apiToken)) {
+            throw new IllegalStateException("TMDB API token is missing");
         }
         String path = type == FilmType.MOVIE ? "/movie/{id}" : "/tv/{id}";
         return executeWithRetry(() -> webClient.get()
                 .uri(uriBuilder -> {
                     uriBuilder.path(path);
-                    if (!useAuthToken && StringUtils.hasText(apiKey)) {
-                        uriBuilder.queryParam("api_key", apiKey);
-                    }
                     return uriBuilder.build(tmdbId);
                 })
                 .retrieve()
@@ -139,17 +124,14 @@ public class TmdbClient {
 
     @Cacheable(value = "tmdbSimilar", key = "{#tmdbId, #type.name()}")
     public java.util.List<TmdbSimilarItem> fetchSimilar(Long tmdbId, FilmType type) {
-        if (!useAuthToken && !StringUtils.hasText(apiKey)) {
-            throw new IllegalStateException("TMDB API key or auth token is missing");
+        if (!StringUtils.hasText(apiToken)) {
+            throw new IllegalStateException("TMDB API token is missing");
         }
 
         if (type == FilmType.MOVIE) {
             TmdbMovieSimilarResponse response = executeWithRetry(() -> webClient.get()
                     .uri(uriBuilder -> {
                         uriBuilder.path("/movie/{id}/similar");
-                        if (!useAuthToken && StringUtils.hasText(apiKey)) {
-                            uriBuilder.queryParam("api_key", apiKey);
-                        }
                         return uriBuilder.build(tmdbId);
                     })
                     .retrieve()
@@ -173,9 +155,6 @@ public class TmdbClient {
         TmdbTvSimilarResponse response = executeWithRetry(() -> webClient.get()
                 .uri(uriBuilder -> {
                     uriBuilder.path("/tv/{id}/similar");
-                    if (!useAuthToken && StringUtils.hasText(apiKey)) {
-                        uriBuilder.queryParam("api_key", apiKey);
-                    }
                     return uriBuilder.build(tmdbId);
                 })
                 .retrieve()
