@@ -83,3 +83,6 @@ recommendation:
     scheduler:
       max-tasks-per-tick: ${RECOMMENDATION_SYNC_SCHEDULER_MAX_TASKS_PER_TICK:5}
       reserved-tokens: ${RECOMMENDATION_SYNC_SCHEDULER_RESERVED_TOKENS:6}
+  scoring:
+    new-release-days: ${RECOMMENDATION_SCORING_NEW_RELEASE_DAYS:365}
+    new-release-boost: ${RECOMMENDATION_SCORING_NEW_RELEASE_BOOST:0.5}

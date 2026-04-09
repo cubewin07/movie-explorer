@@ -10,6 +10,9 @@ import org.springframework.data.repository.query.Param;
 
 public interface RecommendationRepository extends JpaRepository<Recommendation, RecommendationId> {
 
+        @Query("select r.id.recommendedFilmId from Recommendation r where r.id.filmId in :filmIds")
+        Set<Long> findRecommendedFilmIdsByFilmIds(@Param("filmIds") Collection<Long> filmIds);
+
     @Query("select r.id.recommendedFilmId from Recommendation r "
             + "where r.id.filmId = :filmId and r.id.recommendedFilmId in :recommendedFilmIds")
     Set<Long> findExistingRecommendedFilmIds(
