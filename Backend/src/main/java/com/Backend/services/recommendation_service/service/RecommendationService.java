@@ -1,5 +1,6 @@
 package com.Backend.services.recommendation_service.service;
 
+import com.Backend.services.FilmType;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.film_service.model.TmdbSimilarItem;
 import com.Backend.services.film_service.service.FilmService;
@@ -11,6 +12,8 @@ import com.Backend.services.sync_service.model.LocalBudgetDeferException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -45,18 +48,44 @@ public class RecommendationService {
     @Value("${recommendation.sync.allow-partial-bootstrap:true}")
     private boolean allowPartialBootstrap;
 
+    @Value("${recommendation.sync.similar-followup-delay-ms:10000}")
+    private long similarFollowupDelayMs;
+
+    public List<TmdbSimilarItem> getSimilarAndScheduleRecommendationSync(Long tmdbId, FilmType type) {
+        if (tmdbId == null || type == null) {
+            return List.of();
+        }
+
+        List<TmdbSimilarItem> similarItems = tmdbClient.fetchSimilar(tmdbId, type);
+        if (similarItems == null || similarItems.isEmpty()) {
+            return List.of();
+        }
+
+        List<TmdbSimilarItem> similarItemsSnapshot = List.copyOf(similarItems);
+        long delayMs = Math.max(0L, similarFollowupDelayMs);
+
+        CompletableFuture.runAsync(() -> {
+            try {
+                Film sourceFilm = filmService.findByTmdbIdAndType(tmdbId, type)
+                        .orElseGet(() -> filmService.getOrCreateFilm(tmdbId, type));
+                syncRecommendationsFromSimilarItems(tmdbId, sourceFilm, similarItemsSnapshot, 0);
+            } catch (LocalBudgetDeferException ex) {
+                log.debug("Deferred delayed recommendation sync for tmdbId={} type={} reason={}",
+                        tmdbId, type, ex.getMessage());
+            } catch (RuntimeException ex) {
+                log.warn("Failed delayed recommendation sync for tmdbId={} type={}", tmdbId, type, ex);
+            }
+        }, CompletableFuture.delayedExecutor(delayMs, TimeUnit.MILLISECONDS));
+
+        return similarItems;
+    }
+
     @Transactional(noRollbackFor = LocalBudgetDeferException.class)
     public void syncRecommendationsForFilm(Long tmdbId, Film sourceFilm) {
         if (sourceFilm == null || sourceFilm.getInternalId() == null || sourceFilm.getType() == null || tmdbId == null) {
             return;
         }
 
-        int maxCandidates = Math.max(0, maxSimilarPerFilm);
-        if (maxCandidates == 0) {
-            return;
-        }
-
-        int requestBudget = Math.max(1, maxRequestsPerRun);
         if (tmdbClient.getAvailableTokens() < 1.0d) {
             throw localBudgetDefer(
                     "LOCAL_BUDGET_DEFERRED",
@@ -68,6 +97,26 @@ public class RecommendationService {
         if (similarItems == null || similarItems.isEmpty()) {
             return;
         }
+
+        syncRecommendationsFromSimilarItems(tmdbId, sourceFilm, similarItems, 1);
+    }
+
+    private void syncRecommendationsFromSimilarItems(
+            Long tmdbId,
+            Film sourceFilm,
+            List<TmdbSimilarItem> similarItems,
+            int initialRequestsUsed
+    ) {
+        if (sourceFilm == null || sourceFilm.getInternalId() == null || sourceFilm.getType() == null || tmdbId == null) {
+            return;
+        }
+
+        int maxCandidates = Math.max(0, maxSimilarPerFilm);
+        if (maxCandidates == 0 || similarItems == null || similarItems.isEmpty()) {
+            return;
+        }
+
+        int requestBudget = Math.max(1, maxRequestsPerRun);
 
         Long sourceFilmInternalId = sourceFilm.getInternalId();
         Set<Long> candidateTmdbIds = similarItems.stream()
@@ -89,7 +138,7 @@ public class RecommendationService {
                 filmsByTmdbId.values()
         );
 
-        int requestsUsed = 1;
+        int requestsUsed = Math.max(0, initialRequestsUsed);
         boolean budgetExhausted = false;
         Set<Long> newRecommendationTargets = new LinkedHashSet<>();
         List<Recommendation> recommendationsToInsert = new ArrayList<>();
