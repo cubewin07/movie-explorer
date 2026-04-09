@@ -17,6 +17,9 @@ import CastCrewSection from './CastCrewSection';
 import SeasonsSection from './SeasonsSection';
 import SeriesReviewsSection from './SeriesReviewsSection';
 import DetailsSection from './DetailsSection';
+import SimilarTitlesSection from '../SimilarTitlesSection';
+
+const Motion = motion;
 
 export default function TvSeriesDetailPage() {
     const { id } = useParams();
@@ -35,8 +38,10 @@ export default function TvSeriesDetailPage() {
         crew,
         isLoadingCredits,
         isErrorCredits,
-        watchlistData,
-    } = useSeriesData(id);
+        similarItems,
+        isLoadingSimilar,
+        isErrorSimilar,
+    } = useSeriesData(id, token);
 
     const { mutate: addToWatchlist, isPending } = useAddToWatchlist(token);
     const { data: watchlist } = useWatchlist();
@@ -185,7 +190,13 @@ export default function TvSeriesDetailPage() {
 
                     {/* Similar Tab */}
                     <TabsContent value="similar">
-                        <p className="text-slate-600 dark:text-slate-300">Similar shows coming soon.</p>
+                        <SimilarTitlesSection
+                            items={similarItems}
+                            isLoading={isLoadingSimilar}
+                            isError={isErrorSimilar}
+                            requiresAuth={!token}
+                            mediaType="tv"
+                        />
                     </TabsContent>
                 </Tabs>
             </div>

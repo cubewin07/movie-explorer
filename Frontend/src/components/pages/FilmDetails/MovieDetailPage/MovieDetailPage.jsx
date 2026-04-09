@@ -10,6 +10,9 @@ import { useMovieData } from './useMovieData';
 import { MovieInfoSection } from './MovieInfoSection';
 import { MovieCastCrewSection } from './MovieCastCrewSection';
 import { MovieReviewsSection } from './MovieReviewsSection';
+import SimilarTitlesSection from '../SimilarTitlesSection';
+
+const Motion = motion;
 
 /**
  * MovieDetailPage Component
@@ -29,9 +32,13 @@ export default function MovieDetailPage() {
         crew,
         isLoadingCredits,
         isErrorCredits,
+        similarItems,
+        isLoadingSimilar,
+        isErrorSimilar,
         addToWatchlist,
         isPending,
         isInWatchlist,
+        token,
         showLoginModal,
         setShowLoginModal,
         loginSuccess,
@@ -127,7 +134,13 @@ export default function MovieDetailPage() {
 
                     {/* Similar Tab */}
                     <TabsContent value="similar">
-                        <p className="text-slate-600 dark:text-slate-300">Similar movies coming soon.</p>
+                        <SimilarTitlesSection
+                            items={similarItems}
+                            isLoading={isLoadingSimilar}
+                            isError={isErrorSimilar}
+                            requiresAuth={!token}
+                            mediaType="movie"
+                        />
                     </TabsContent>
                 </Tabs>
             </div>

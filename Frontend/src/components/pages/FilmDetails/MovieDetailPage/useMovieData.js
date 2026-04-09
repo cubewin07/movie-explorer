@@ -1,4 +1,5 @@
 import { useMovieDetails, useMovieTrailer, useMovieCredits } from '@/hooks/API/data';
+import { useSimilarRecommendations } from '@/hooks/API/recommendations';
 import { useAuthen } from '@/context/AuthenProvider';
 import useAddToWatchlist from '@/hooks/watchList/useAddtoWatchList';
 import useWatchlist from '@/hooks/watchList/useWatchList';
@@ -25,6 +26,13 @@ export function useMovieData(movieId) {
         isLoading: isLoadingCredits, 
         isError: isErrorCredits 
     } = useMovieCredits(movieId);
+
+    // Fetch similar recommendations from backend endpoint
+    const {
+        similarItems,
+        isLoadingSimilar,
+        isErrorSimilar,
+    } = useSimilarRecommendations(movieId, 'MOVIE', !!token);
 
     // Watchlist operations
     const { mutate: addToWatchlist, isPending } = useAddToWatchlist(token);
@@ -91,8 +99,14 @@ export function useMovieData(movieId) {
         isLoadingCredits,
         isErrorCredits,
 
+        // Similar recommendations
+        similarItems,
+        isLoadingSimilar,
+        isErrorSimilar,
+
         // Watchlist
         user,
+        token,
         addToWatchlist: handleAddToWatchlist,
         loginSuccess: handleLoginSuccess,
         isPending,
