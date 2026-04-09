@@ -79,6 +79,7 @@ recommendation:
     max-similar-per-film: ${RECOMMENDATION_SYNC_MAX_SIMILAR_PER_FILM:20}
     max-requests-per-run: ${RECOMMENDATION_SYNC_MAX_REQUESTS_PER_RUN:8}
     defer-delay-ms: ${RECOMMENDATION_SYNC_DEFER_DELAY_MS:5000}
+    similar-followup-delay-ms: ${RECOMMENDATION_SYNC_SIMILAR_FOLLOWUP_DELAY_MS:10000}
     allow-partial-bootstrap: ${RECOMMENDATION_SYNC_ALLOW_PARTIAL_BOOTSTRAP:true}
     scheduler:
       max-tasks-per-tick: ${RECOMMENDATION_SYNC_SCHEDULER_MAX_TASKS_PER_TICK:5}
