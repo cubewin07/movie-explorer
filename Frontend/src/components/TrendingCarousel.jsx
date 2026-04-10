@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect, useMemo } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -15,9 +15,18 @@ export function TrendingCarousel({ items }) {
 
     const { user, token } = useAuthen();
     const { mutate: addToWatchlist, isPending } = useAddToWatchlist(token);
-    const { data: watchlist } = useWatchlist();
+    const { data: watchlist, refetch: refetchWatchlist } = useWatchlist({ enabled: false });
 
     const navigate = useNavigate();
+
+    const isCurrentInWatchlist = useMemo(() => {
+        const currentItem = items[current];
+        if (!watchlist || !currentItem) return false;
+
+        const listKey = currentItem.name ? 'seriesId' : 'moviesId';
+        const ids = Array.isArray(watchlist[listKey]) ? watchlist[listKey] : [];
+        return ids.includes(currentItem.id);
+    }, [watchlist, items, current]);
 
     useEffect(() => {
         const timer = setInterval(() => {
@@ -59,17 +68,29 @@ export function TrendingCarousel({ items }) {
         setCurrent((prev) => (prev - 1 + items.length) % items.length);
     };
 
-    const handleAddToWatchlist = () => {
+    const handleAddToWatchlist = async () => {
         if (!user) {
             setShowLoginModal(true);
             return;
         }
+
+        // Lazy-load watchlist only when user interacts, avoiding homepage fetch on initial render.
+        let watchlistSnapshot = watchlist;
+        if (!watchlistSnapshot) {
+            try {
+                const result = await refetchWatchlist();
+                watchlistSnapshot = result?.data;
+            } catch {
+                watchlistSnapshot = null;
+            }
+        }
+
         const isTV = !!items[current].name;
         if (isTV) {
-            const sIds = Array.isArray(watchlist?.seriesId) ? watchlist.seriesId : [];
+            const sIds = Array.isArray(watchlistSnapshot?.seriesId) ? watchlistSnapshot.seriesId : [];
             if (sIds.includes(items[current].id)) return;
         } else {
-            const mIds = Array.isArray(watchlist?.moviesId) ? watchlist.moviesId : [];
+            const mIds = Array.isArray(watchlistSnapshot?.moviesId) ? watchlistSnapshot.moviesId : [];
             if (mIds.includes(items[current].id)) return;
         }
         addToWatchlist({ id: items[current].id, type: isTV ? 'SERIES' : 'MOVIE' });
@@ -90,7 +111,7 @@ export function TrendingCarousel({ items }) {
 
             <div className="relative max-w-5xl mx-auto min-h-[400px] flex items-center px-4 sm:px-8">
                 <AnimatePresence initial={false} custom={direction} mode="wait">
-                    <motion.div
+                    <Motion.div
                         key={current}
                         custom={direction}
                         variants={slideVariants}
@@ -106,21 +127,21 @@ export function TrendingCarousel({ items }) {
                         className="absolute inset-0 w-full h-full flex items-center justify-center"
                     >
                         <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12 w-full max-w-4xl">
-                            <motion.img
+                            <Motion.img
                                 layoutId={`img-${items[current].id}`}
                                 src={items[current].image}
                                 alt={items[current].title}
                                 className="w-48 sm:w-64 h-72 sm:h-96 object-cover rounded-2xl shadow-2xl mx-auto md:mx-0 transform hover:scale-105 transition-transform duration-500"
                             />
                             <div className="flex-1 min-w-0 text-center md:text-left">
-                                <motion.h2 
+                                <Motion.h2 
                                     className="text-2xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4 leading-tight"
                                     initial={{ y: 20, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
                                     transition={{ delay: 0.2 }}
                                 >
                                     {items[current].title}
-                                </motion.h2>
+                                </Motion.h2>
                                 
                                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-6">
                                     {items[current].year && (
@@ -135,17 +156,17 @@ export function TrendingCarousel({ items }) {
                                     )}
                                 </div>
 
-                                <motion.p 
+                                <Motion.p 
                                     className="text-gray-600 dark:text-gray-300 mb-8 text-base sm:text-lg line-clamp-4 leading-relaxed"
                                     initial={{ y: 20, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
                                     transition={{ delay: 0.3 }}
                                 >
                                     {items[current].description}
-                                </motion.p>
+                                </Motion.p>
 
                                 {/* Buttons */}
-                                <motion.div 
+                                <Motion.div 
                                     className="flex flex-col sm:flex-row gap-4 justify-center md:justify-start"
                                     initial={{ y: 20, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
@@ -160,7 +181,7 @@ export function TrendingCarousel({ items }) {
                                     <button
                                         onClick={() => handleAddToWatchlist()}
                                         className="px-8 py-3 rounded-full border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 font-semibold hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-300"
-                                        disabled={isPending || (watchlist && ((!!items[current].name ? (watchlist.seriesId || []).includes(items[current].id) : (watchlist.moviesId || []).includes(items[current].id))))}
+                                        disabled={isPending || isCurrentInWatchlist}
                                         aria-busy={isPending}
                                     >
                                         {isPending ? (
@@ -168,7 +189,7 @@ export function TrendingCarousel({ items }) {
                                                 <Loader2 className="w-4 h-4 inline-block mr-2 animate-spin" />
                                                 Adding...
                                             </>
-                                        ) : watchlist && ((!!items[current].name ? (watchlist.seriesId || []).includes(items[current].id) : (watchlist.moviesId || []).includes(items[current].id))) ? (
+                                        ) : isCurrentInWatchlist ? (
                                             <>
                                                 <Check className="w-4 h-4 inline-block mr-2" />
                                                 In Watchlist
@@ -180,10 +201,10 @@ export function TrendingCarousel({ items }) {
                                             </>
                                         )}
                                     </button>
-                                </motion.div>
+                                </Motion.div>
                             </div>
                         </div>
-                    </motion.div>
+                    </Motion.div>
                 </AnimatePresence>
             </div>
 
