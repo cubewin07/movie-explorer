@@ -46,8 +46,8 @@ public class RecommendationQueryService {
     private static final double BASE_GENRE_WEIGHT_FACTOR = 0.30d;
     private static final double BASE_LANGUAGE_WEIGHT_FACTOR = 0.10d;
 
-    private static final double BONUS_DIRECTOR_WEIGHT_FACTOR = 0.05d;
-    private static final double BONUS_CAST_WEIGHT_FACTOR = 0.03d;
+    private static final double BONUS_DIRECTOR_WEIGHT_FACTOR = 0.03d;
+    private static final double BONUS_CAST_WEIGHT_FACTOR = 0.05d;
     private static final double BONUS_CREW_WEIGHT_FACTOR = 0.02d;
     private static final double BONUS_FILM_RATING_WEIGHT_FACTOR = 0.10d;
 
