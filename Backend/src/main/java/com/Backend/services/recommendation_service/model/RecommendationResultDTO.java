@@ -14,6 +14,7 @@ public record RecommendationResultDTO(
         Double score,
         Double keywordScore,
         Double genreScore,
+        Double languageScore,
         Double directorScore,
         Double ratingScore,
         Double recencyBoost

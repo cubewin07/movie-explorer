@@ -9,6 +9,8 @@ import com.Backend.services.genre_service.model.UserGenreWeight;
 import com.Backend.services.genre_service.repository.UserGenreWeightRepository;
 import com.Backend.services.keyword_service.model.UserKeywordWeight;
 import com.Backend.services.keyword_service.repository.UserKeywordWeightRepository;
+import com.Backend.services.language_service.model.UserLanguageWeight;
+import com.Backend.services.language_service.repository.UserLanguageWeightRepository;
 import com.Backend.services.recommendation_service.model.RecommendationResultDTO;
 import com.Backend.services.recommendation_service.repository.RecommendationRepository;
 import com.Backend.services.user_service.model.User;
@@ -22,6 +24,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -34,10 +37,12 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class RecommendationQueryService {
 
-    private static final double KEYWORD_WEIGHT_FACTOR = 0.40d;
-    private static final double GENRE_WEIGHT_FACTOR = 0.30d;
-    private static final double DIRECTOR_WEIGHT_FACTOR = 0.15d;
-    private static final double FILM_RATING_WEIGHT_FACTOR = 0.15d;
+    private static final double BASE_KEYWORD_WEIGHT_FACTOR = 0.60d;
+    private static final double BASE_GENRE_WEIGHT_FACTOR = 0.30d;
+    private static final double BASE_LANGUAGE_WEIGHT_FACTOR = 0.10d;
+
+    private static final double BONUS_DIRECTOR_WEIGHT_FACTOR = 0.05d;
+    private static final double BONUS_FILM_RATING_WEIGHT_FACTOR = 0.10d;
 
     private final WatchlistRepository watchlistRepository;
     private final RecommendationRepository recommendationRepository;
@@ -45,6 +50,7 @@ public class RecommendationQueryService {
     private final UserDirectorWeightRepository userDirectorWeightRepository;
     private final UserGenreWeightRepository userGenreWeightRepository;
     private final UserKeywordWeightRepository userKeywordWeightRepository;
+    private final UserLanguageWeightRepository userLanguageWeightRepository;
 
     @Value("${recommendation.scoring.new-release-days:365}")
     private int newReleaseDays;
@@ -100,10 +106,11 @@ public class RecommendationQueryService {
         Map<Long, Double> directorWeights = buildDirectorWeightMap(user.getId());
         Map<FilmType, Map<Long, Double>> genreWeights = buildGenreWeightMap(user.getId());
         Map<FilmType, Map<Long, Double>> keywordWeights = buildKeywordWeightMap(user.getId());
+        Map<String, Double> languageWeights = buildLanguageWeightMap(user.getId());
 
         List<RawCandidateScore> rawScores = new ArrayList<>(candidateByInternalId.size());
         for (Film candidate : candidateByInternalId.values()) {
-            rawScores.add(buildRawScore(candidate, directorWeights, genreWeights, keywordWeights));
+            rawScores.add(buildRawScore(candidate, directorWeights, genreWeights, keywordWeights, languageWeights));
         }
 
         if (rawScores.isEmpty()) {
@@ -112,6 +119,7 @@ public class RecommendationQueryService {
 
         MinMax keywordRange = minMax(rawScores.stream().map(RawCandidateScore::keywordRaw).toList());
         MinMax genreRange = minMax(rawScores.stream().map(RawCandidateScore::genreRaw).toList());
+        MinMax languageRange = minMax(rawScores.stream().map(RawCandidateScore::languageRaw).toList());
         MinMax directorRange = minMax(rawScores.stream().map(RawCandidateScore::directorRaw).toList());
         MinMax ratingRange = minMax(rawScores.stream().map(RawCandidateScore::ratingRaw).toList());
 
@@ -119,22 +127,28 @@ public class RecommendationQueryService {
         for (RawCandidateScore raw : rawScores) {
             double keywordScore = normalizeToTen(raw.keywordRaw(), keywordRange.min(), keywordRange.max());
             double genreScore = normalizeToTen(raw.genreRaw(), genreRange.min(), genreRange.max());
+                double languageScore = normalizeToTen(raw.languageRaw(), languageRange.min(), languageRange.max());
             double directorScore = normalizeToTen(raw.directorRaw(), directorRange.min(), directorRange.max());
             double ratingScore = normalizeToTen(raw.ratingRaw(), ratingRange.min(), ratingRange.max());
             double recencyBoostValue = computeRecencyBoost(raw.film().getDate());
 
-            double finalScore =
-                    (keywordScore * KEYWORD_WEIGHT_FACTOR)
-                    + (genreScore * GENRE_WEIGHT_FACTOR)
-                    + (directorScore * DIRECTOR_WEIGHT_FACTOR)
-                    + (ratingScore * FILM_RATING_WEIGHT_FACTOR)
-                    + recencyBoostValue;
+                double baseScore =
+                    (keywordScore * BASE_KEYWORD_WEIGHT_FACTOR)
+                    + (genreScore * BASE_GENRE_WEIGHT_FACTOR)
+                    + (languageScore * BASE_LANGUAGE_WEIGHT_FACTOR);
+
+                double bonusScore =
+                    (1 + directorScore * BONUS_DIRECTOR_WEIGHT_FACTOR)
+                    * (1 + ratingScore * BONUS_FILM_RATING_WEIGHT_FACTOR);
+
+                double finalScore = baseScore + bonusScore + recencyBoostValue;
 
             scoredCandidates.add(new ScoredCandidate(
                     raw.film(),
                     finalScore,
                     keywordScore,
                     genreScore,
+                    languageScore,
                     directorScore,
                     ratingScore,
                     recencyBoostValue
@@ -165,6 +179,7 @@ public class RecommendationQueryService {
                 scoredCandidate.score(),
                 scoredCandidate.keywordScore(),
                 scoredCandidate.genreScore(),
+                scoredCandidate.languageScore(),
                 scoredCandidate.directorScore(),
                 scoredCandidate.ratingScore(),
                 scoredCandidate.recencyBoost()
@@ -175,7 +190,8 @@ public class RecommendationQueryService {
             Film film,
             Map<Long, Double> directorWeights,
             Map<FilmType, Map<Long, Double>> genreWeights,
-            Map<FilmType, Map<Long, Double>> keywordWeights
+            Map<FilmType, Map<Long, Double>> keywordWeights,
+            Map<String, Double> languageWeights
     ) {
         FilmType type = film.getType();
         Map<Long, Double> typeGenreWeights = type == null ? Map.of() : genreWeights.getOrDefault(type, Map.of());
@@ -193,9 +209,10 @@ public class RecommendationQueryService {
                 film.getKeywords().stream().map(k -> k.getKeywordId()).filter(Objects::nonNull).toList(),
                 typeKeywordWeights
         );
+        double languageRaw = resolveLanguageWeight(film, languageWeights);
         double ratingRaw = safeDouble(film.getRating());
 
-        return new RawCandidateScore(film, keywordRaw, genreRaw, directorRaw, ratingRaw);
+        return new RawCandidateScore(film, keywordRaw, genreRaw, languageRaw, directorRaw, ratingRaw);
     }
 
     private Map<Long, Double> buildDirectorWeightMap(Long userId) {
@@ -248,6 +265,35 @@ public class RecommendationQueryService {
                     .merge(keywordId, value, (left, right) -> left + right);
         }
         return weightsByType;
+    }
+
+    private Map<String, Double> buildLanguageWeightMap(Long userId) {
+        Map<String, Double> weights = new HashMap<>();
+        for (UserLanguageWeight weight : userLanguageWeightRepository.findAllByUserReference_User_Id(userId)) {
+            if (weight == null) {
+                continue;
+            }
+            String languageCode = weight.getId() != null
+                    ? normalizeLanguageCode(weight.getId().getLanguageCode())
+                    : null;
+            if (languageCode == null) {
+                continue;
+            }
+            double value = safeLong(weight.getWeight());
+            weights.merge(languageCode, value, (left, right) -> left + right);
+        }
+        return weights;
+    }
+
+    private double resolveLanguageWeight(Film film, Map<String, Double> languageWeights) {
+        if (film == null || languageWeights == null || languageWeights.isEmpty()) {
+            return 0.0d;
+        }
+        String languageCode = normalizeLanguageCode(film.getOriginalLanguage());
+        if (languageCode == null) {
+            return 0.0d;
+        }
+        return languageWeights.getOrDefault(languageCode, 0.0d);
     }
 
     private double averageWeight(Collection<Long> ids, Map<Long, Double> weights) {
@@ -311,10 +357,19 @@ public class RecommendationQueryService {
         return value == null ? 0.0d : value;
     }
 
+    private String normalizeLanguageCode(String value) {
+        if (value == null) {
+            return null;
+        }
+        String normalized = value.trim().toLowerCase(Locale.ROOT);
+        return normalized.isEmpty() ? null : normalized;
+    }
+
     private record RawCandidateScore(
             Film film,
             double keywordRaw,
             double genreRaw,
+            double languageRaw,
             double directorRaw,
             double ratingRaw
     ) {
@@ -328,6 +383,7 @@ public class RecommendationQueryService {
             double score,
             double keywordScore,
             double genreScore,
+            double languageScore,
             double directorScore,
             double ratingScore,
             double recencyBoost
