@@ -8,6 +8,7 @@ import com.Backend.services.film_service.model.Film;
 import com.Backend.services.film_service.service.FilmService;
 import com.Backend.services.genre_service.service.GenreWeightService;
 import com.Backend.services.keyword_service.service.KeywordWeightService;
+import com.Backend.services.language_service.service.LanguageWeightService;
 import com.Backend.services.sync_service.model.SyncAttemptResult;
 import com.Backend.services.sync_service.model.SyncCategory;
 import com.Backend.services.sync_service.service.FilmSyncTaskService;
@@ -43,6 +44,7 @@ public class WatchlistService {
     private final DirectorWeightService directorWeightService;
     private final KeywordWeightService keywordWeightService;
     private final GenreWeightService genreWeightService;
+    private final LanguageWeightService languageWeightService;
 
     @Cacheable(value = "watchlist", key = "#user.id")
     @Transactional
@@ -115,6 +117,8 @@ public class WatchlistService {
         } else if (Boolean.TRUE.equals(film.getGenreSyncCompleted())) {
             genreWeightService.adjustWeightsForFilm(watchlist.getUser(), film, 1L);
         }
+
+        languageWeightService.adjustWeightsForFilm(watchlist.getUser(), film, 1L);
         log.info("Film tmdbId: {} successfully added to watchlist for user: {}", posting.id(), user.getUsername());
     }
 
@@ -151,6 +155,7 @@ public class WatchlistService {
             if (Boolean.TRUE.equals(film.getGenreSyncCompleted())) {
                 genreWeightService.adjustWeightsForFilm(watchlist.getUser(), film, -1L);
             }
+            languageWeightService.adjustWeightsForFilm(watchlist.getUser(), film, -1L);
             log.info("Film tmdbId: {} successfully removed from watchlist for user: {}", posting.id(), user.getUsername());
         } else {
             log.warn("Film tmdbId: {} was not found in watchlist for user: {}", posting.id(), user.getUsername());

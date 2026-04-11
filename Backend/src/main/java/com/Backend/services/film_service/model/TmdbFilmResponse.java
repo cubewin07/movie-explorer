@@ -25,6 +25,9 @@ public class TmdbFilmResponse {
     @JsonProperty("backdrop_path")
     private String backdropPath;
 
+    @JsonProperty("original_language")
+    private String originalLanguage;
+
     private List<GenreItem> genres = new ArrayList<>();
 
     @Data

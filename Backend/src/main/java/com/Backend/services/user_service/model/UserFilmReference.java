@@ -3,6 +3,7 @@ package com.Backend.services.user_service.model;
 import com.Backend.services.director_service.model.UserDirectorWeight;
 import com.Backend.services.genre_service.model.UserGenreWeight;
 import com.Backend.services.keyword_service.model.UserKeywordWeight;
+import com.Backend.services.language_service.model.UserLanguageWeight;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -59,4 +60,10 @@ public class UserFilmReference {
     @ToString.Exclude
     @Builder.Default
     private Set<UserGenreWeight> genreWeights = new HashSet<>();
+
+    @OneToMany(mappedBy = "userReference", orphanRemoval = true)
+    @JsonIgnore
+    @ToString.Exclude
+    @Builder.Default
+    private Set<UserLanguageWeight> languageWeights = new HashSet<>();
 }

@@ -68,6 +68,9 @@ public class Film {
     @Column(name = "background_img")
     private String backgroundImg;
 
+    @Column(name = "original_language", length = 16)
+    private String originalLanguage;
+
     @Column(name = "director_sync_completed", nullable = false)
     @Builder.Default
     private Boolean directorSyncCompleted = false;

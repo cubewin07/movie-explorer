@@ -8,6 +8,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -119,6 +120,7 @@ public class FilmService {
                 .rating(response != null ? response.getVoteAverage() : null)
                 .date(releaseDate)
                 .backgroundImg(response != null ? response.getBackdropPath() : null)
+            .originalLanguage(normalizeLanguageCode(response != null ? response.getOriginalLanguage() : null))
                 .build();
     }
 
@@ -143,6 +145,11 @@ public class FilmService {
         if (StringUtils.hasText(response.getBackdropPath()) || film.getBackgroundImg() == null) {
             film.setBackgroundImg(response.getBackdropPath());
         }
+
+        String originalLanguage = normalizeLanguageCode(response.getOriginalLanguage());
+        if (originalLanguage != null || film.getOriginalLanguage() == null) {
+            film.setOriginalLanguage(originalLanguage);
+        }
     }
 
     private LocalDate parseDate(String value) {
@@ -154,5 +161,12 @@ public class FilmService {
         } catch (DateTimeParseException ex) {
             return null;
         }
+    }
+
+    private String normalizeLanguageCode(String value) {
+        if (!StringUtils.hasText(value)) {
+            return null;
+        }
+        return value.trim().toLowerCase(Locale.ROOT);
     }
 }
