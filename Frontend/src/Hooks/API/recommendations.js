@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import instance from '@/lib/instance';
+
 export const useSimilarRecommendations = (filmId, type, enabled = true) => {
     const normalizedFilmId = Number(filmId);
     const isValidFilmId = Number.isInteger(normalizedFilmId) && normalizedFilmId > 0;
@@ -31,5 +32,29 @@ export const useSimilarRecommendations = (filmId, type, enabled = true) => {
         similarItems,
         isLoadingSimilar,
         isErrorSimilar,
+    };
+};
+
+export const useMemberRecommendations = (enabled = true) => {
+    const {
+        data: memberRecommendations = [],
+        isLoading: isLoadingMemberRecommendations,
+        isError: isErrorMemberRecommendations,
+    } = useQuery({
+        queryKey: ['memberRecommendations'],
+        enabled,
+        queryFn: async ({ signal }) => {
+            const { data } = await instance.get('/recommendations', { signal });
+            return Array.isArray(data) ? data : [];
+        },
+        staleTime: 1000 * 60 * 3,
+        refetchOnWindowFocus: false,
+        refetchOnReconnect: false,
+    });
+
+    return {
+        memberRecommendations,
+        isLoadingMemberRecommendations,
+        isErrorMemberRecommendations,
     };
 };

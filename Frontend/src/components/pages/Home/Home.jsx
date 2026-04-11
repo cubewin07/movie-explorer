@@ -7,6 +7,7 @@ import IntroSection from './IntroSection';
 import HomeLoadingSkeleton from './HomeLoadingSkeleton';
 import useHomePageData from './useHomePageData';
 import useCarouselItems from './useCarouselItems';
+import MemberRecommendationsSection from './MemberRecommendationsSection';
 import { TrendingCarousel } from '@/components/TrendingCarousel';
 import { FilmModalContext } from '@/context/FilmModalProvider';
 
@@ -53,6 +54,8 @@ function Home() {
                     </AnimatePresence>
                 </section>
             )}
+
+            <MemberRecommendationsSection />
 
             {/* New Releases */}
             <Section
