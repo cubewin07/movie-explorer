@@ -9,7 +9,20 @@ import lombok.Data;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TmdbCreditsResponse {
+    private List<CastMember> cast = new ArrayList<>();
     private List<CrewMember> crew = new ArrayList<>();
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class CastMember {
+        private Long id;
+        private String name;
+        private String character;
+        @JsonProperty("known_for_department")
+        private String department;
+        @JsonProperty("profile_path")
+        private String profilePath;
+    }
 
     @Data
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -19,5 +32,7 @@ public class TmdbCreditsResponse {
         private String job;
         @JsonProperty("known_for_department")
         private String department;
+        @JsonProperty("profile_path")
+        private String profilePath;
     }
 }

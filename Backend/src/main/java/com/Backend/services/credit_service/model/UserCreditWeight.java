@@ -1,4 +1,4 @@
-package com.Backend.services.director_service.model;
+package com.Backend.services.credit_service.model;
 
 import com.Backend.services.user_service.model.UserFilmReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -23,17 +23,18 @@ import lombok.NoArgsConstructor;
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Table(
-    name = "user_director_weight",
+    name = "user_credit_weight",
     indexes = {
-        @Index(name = "idx_user_director_weight_user", columnList = "user_id"),
-        @Index(name = "idx_user_director_weight_director", columnList = "director_id")
+        @Index(name = "idx_user_credit_weight_user", columnList = "user_id"),
+        @Index(name = "idx_user_credit_weight_credit", columnList = "credit_id"),
+        @Index(name = "idx_user_credit_weight_role", columnList = "role_id")
     }
 )
-public class UserDirectorWeight {
+public class UserCreditWeight {
 
     @EmbeddedId
     @EqualsAndHashCode.Include
-    private UserDirectorWeightId id;
+    private UserCreditWeightId id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("userId")
@@ -42,10 +43,16 @@ public class UserDirectorWeight {
     private UserFilmReference userReference;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("directorId")
-    @JoinColumn(name = "director_id", nullable = false)
+    @MapsId("creditId")
+    @JoinColumn(name = "credit_id", nullable = false)
     @JsonIgnore
-    private Director director;
+    private Credit credit;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @MapsId("roleId")
+    @JoinColumn(name = "role_id", nullable = false)
+    @JsonIgnore
+    private Role role;
 
     private Long weight;
 }

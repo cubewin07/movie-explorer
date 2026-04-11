@@ -1,7 +1,7 @@
 package com.Backend.services.sync_service.model;
 
 public enum SyncCategory {
-    DIRECTOR,
+    CREDITS,
     KEYWORD,
     GENRE,
     RECOMMENDATION

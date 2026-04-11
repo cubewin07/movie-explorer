@@ -1,4 +1,4 @@
-package com.Backend.services.director_service.model;
+package com.Backend.services.credit_service.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
@@ -11,12 +11,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Embeddable
-public class UserDirectorWeightId implements Serializable {
+public class UserCreditWeightId implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Column(name = "user_id")
     private Long userId;
 
-    @Column(name = "director_id")
-    private Long directorId;
+    @Column(name = "credit_id")
+    private Long creditId;
+
+    @Column(name = "role_id")
+    private Long roleId;
 }

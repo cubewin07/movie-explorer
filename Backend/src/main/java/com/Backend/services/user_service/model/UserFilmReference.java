@@ -1,6 +1,6 @@
 package com.Backend.services.user_service.model;
 
-import com.Backend.services.director_service.model.UserDirectorWeight;
+import com.Backend.services.credit_service.model.UserCreditWeight;
 import com.Backend.services.genre_service.model.UserGenreWeight;
 import com.Backend.services.keyword_service.model.UserKeywordWeight;
 import com.Backend.services.language_service.model.UserLanguageWeight;
@@ -47,7 +47,7 @@ public class UserFilmReference {
     @JsonIgnore
     @ToString.Exclude
     @Builder.Default
-    private Set<UserDirectorWeight> directorWeights = new HashSet<>();
+    private Set<UserCreditWeight> creditWeights = new HashSet<>();
 
     @OneToMany(mappedBy = "userReference", orphanRemoval = true)
     @JsonIgnore

@@ -1,14 +1,10 @@
-package com.Backend.services.director_service.model;
+package com.Backend.services.credit_service.model;
 
-import com.Backend.services.film_service.model.Film;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import java.util.HashSet;
@@ -27,35 +23,36 @@ import lombok.ToString;
 @Builder
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Table(
-    name = "director",
+    name = "credit",
     indexes = {
-        @Index(name = "idx_director_name", columnList = "name")
+        @Index(name = "idx_credit_name", columnList = "name")
     }
 )
-public class Director {
+public class Credit {
 
     @Id
-    @Column(name = "director_id")
+    @Column(name = "credit_id")
     @EqualsAndHashCode.Include
-    private Long directorId;
+    private Long creditsId;
 
     @Column(name = "name", nullable = false)
     private String name;
 
-    @ManyToMany
-    @JoinTable(
-        name = "director_film",
-        joinColumns = @JoinColumn(name = "director_id"),
-        inverseJoinColumns = @JoinColumn(name = "internal_film_id")
-    )
-    @JsonIgnore
-    @ToString.Exclude
-    @Builder.Default
-    private Set<Film> films = new HashSet<>();
+    @Column(name = "department")
+    private String department;
 
-    @OneToMany(mappedBy = "director", orphanRemoval = true)
+    @Column(name = "profile_path")
+    private String profilePath;
+
+    @OneToMany(mappedBy = "credit", orphanRemoval = true)
     @JsonIgnore
     @ToString.Exclude
     @Builder.Default
-    private Set<UserDirectorWeight> userWeights = new HashSet<>();
+    private Set<FilmRole> filmRoles = new HashSet<>();
+
+    @OneToMany(mappedBy = "credit", orphanRemoval = true)
+    @JsonIgnore
+    @ToString.Exclude
+    @Builder.Default
+    private Set<UserCreditWeight> userWeights = new HashSet<>();
 }

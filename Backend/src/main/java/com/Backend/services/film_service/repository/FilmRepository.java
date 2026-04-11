@@ -13,6 +13,6 @@ public interface FilmRepository extends JpaRepository<Film, Long> {
 
     List<Film> findByFilmIdInAndType(Collection<Long> filmIds, FilmType type);
 
-    @EntityGraph(attributePaths = {"directors", "keywords", "genres"})
+    @EntityGraph(attributePaths = {"filmRoles", "filmRoles.credit", "filmRoles.role", "keywords", "genres"})
     List<Film> findAllByInternalIdIn(Collection<Long> internalIds);
 }

@@ -2,11 +2,16 @@ package com.Backend.services.user_service;
 
 import com.Backend.services.notification_service.model.NotificationDTO;
 import com.Backend.services.notification_service.service.NotificationService;
-import com.Backend.services.director_service.model.Director;
-import com.Backend.services.director_service.model.UserDirectorWeight;
-import com.Backend.services.director_service.model.UserDirectorWeightId;
-import com.Backend.services.director_service.repository.DirectorRepository;
-import com.Backend.services.director_service.repository.UserDirectorWeightRepository;
+import com.Backend.services.credit_service.model.Credit;
+import com.Backend.services.credit_service.model.FilmRole;
+import com.Backend.services.credit_service.model.Role;
+import com.Backend.services.credit_service.model.RoleGroup;
+import com.Backend.services.credit_service.model.UserCreditWeight;
+import com.Backend.services.credit_service.model.UserCreditWeightId;
+import com.Backend.services.credit_service.repository.CreditRepository;
+import com.Backend.services.credit_service.repository.FilmRoleRepository;
+import com.Backend.services.credit_service.repository.RoleRepository;
+import com.Backend.services.credit_service.repository.UserCreditWeightRepository;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.film_service.model.TmdbFilmResponse;
 import com.Backend.services.film_service.model.TmdbSimilarItem;
@@ -96,7 +101,13 @@ class SpringControllerTest {
         private RecommendationRepository recommendationRepository;
 
         @Autowired
-        private DirectorRepository directorRepository;
+        private CreditRepository creditRepository;
+
+        @Autowired
+        private FilmRoleRepository filmRoleRepository;
+
+        @Autowired
+        private RoleRepository roleRepository;
 
         @Autowired
         private GenreRepository genreRepository;
@@ -108,7 +119,7 @@ class SpringControllerTest {
         private UserFilmReferenceRepository userFilmReferenceRepository;
 
         @Autowired
-        private UserDirectorWeightRepository userDirectorWeightRepository;
+        private UserCreditWeightRepository userCreditWeightRepository;
 
         @Autowired
         private UserGenreWeightRepository userGenreWeightRepository;
@@ -1025,13 +1036,34 @@ class SpringControllerTest {
                 .backgroundImg("/candidate-old.jpg")
                 .build());
 
-        Director directorLow = Director.builder().directorId(710001L).name("Director Low").build();
-        directorLow.getFilms().add(candidateFresh);
-        directorLow = directorRepository.save(directorLow);
+        Role directorRole = roleRepository.findByRoleCode("DIRECTOR")
+                .orElseGet(() -> roleRepository.save(Role.builder()
+                        .roleCode("DIRECTOR")
+                        .roleName("Director")
+                        .roleGroup(RoleGroup.CREW)
+                        .build()));
 
-        Director directorHigh = Director.builder().directorId(710002L).name("Director High").build();
-        directorHigh.getFilms().add(candidateOld);
-        directorHigh = directorRepository.save(directorHigh);
+        Credit directorLow = creditRepository.save(Credit.builder()
+                .creditsId(710001L)
+                .name("Director Low")
+                .build());
+        Credit directorHigh = creditRepository.save(Credit.builder()
+                .creditsId(710002L)
+                .name("Director High")
+                .build());
+
+        filmRoleRepository.save(FilmRole.builder()
+                .film(candidateFresh)
+                .credit(directorLow)
+                .role(directorRole)
+                .jobName("Director")
+                .build());
+        filmRoleRepository.save(FilmRole.builder()
+                .film(candidateOld)
+                .credit(directorHigh)
+                .role(directorRole)
+                .jobName("Director")
+                .build());
 
         Genre genreHigh = Genre.builder().genreId(720001L).name("Genre High").type(FilmType.MOVIE).build();
         genreHigh.getFilms().add(candidateFresh);
@@ -1055,16 +1087,18 @@ class SpringControllerTest {
                 .user(persistedUser)
                 .build());
 
-        userDirectorWeightRepository.save(UserDirectorWeight.builder()
-                .id(new UserDirectorWeightId(userId, directorLow.getDirectorId()))
+        userCreditWeightRepository.save(UserCreditWeight.builder()
+                .id(new UserCreditWeightId(userId, directorLow.getCreditsId(), directorRole.getRoleId()))
                 .userReference(userReference)
-                .director(directorLow)
+                .credit(directorLow)
+                .role(directorRole)
                 .weight(1L)
                 .build());
-        userDirectorWeightRepository.save(UserDirectorWeight.builder()
-                .id(new UserDirectorWeightId(userId, directorHigh.getDirectorId()))
+        userCreditWeightRepository.save(UserCreditWeight.builder()
+                .id(new UserCreditWeightId(userId, directorHigh.getCreditsId(), directorRole.getRoleId()))
                 .userReference(userReference)
-                .director(directorHigh)
+                .credit(directorHigh)
+                .role(directorRole)
                 .weight(9L)
                 .build());
 

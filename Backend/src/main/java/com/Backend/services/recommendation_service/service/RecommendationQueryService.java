@@ -1,8 +1,9 @@
 package com.Backend.services.recommendation_service.service;
 
 import com.Backend.services.FilmType;
-import com.Backend.services.director_service.model.UserDirectorWeight;
-import com.Backend.services.director_service.repository.UserDirectorWeightRepository;
+import com.Backend.services.credit_service.model.FilmRole;
+import com.Backend.services.credit_service.model.UserCreditWeight;
+import com.Backend.services.credit_service.repository.UserCreditWeightRepository;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.film_service.repository.FilmRepository;
 import com.Backend.services.genre_service.model.UserGenreWeight;
@@ -37,17 +38,23 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class RecommendationQueryService {
 
+    private static final String ROLE_CODE_DIRECTOR = "DIRECTOR";
+    private static final String ROLE_CODE_CAST = "CAST";
+    private static final String ROLE_CODE_CREW = "CREW";
+
     private static final double BASE_KEYWORD_WEIGHT_FACTOR = 0.60d;
     private static final double BASE_GENRE_WEIGHT_FACTOR = 0.30d;
     private static final double BASE_LANGUAGE_WEIGHT_FACTOR = 0.10d;
 
     private static final double BONUS_DIRECTOR_WEIGHT_FACTOR = 0.05d;
+    private static final double BONUS_CAST_WEIGHT_FACTOR = 0.03d;
+    private static final double BONUS_CREW_WEIGHT_FACTOR = 0.02d;
     private static final double BONUS_FILM_RATING_WEIGHT_FACTOR = 0.10d;
 
     private final WatchlistRepository watchlistRepository;
     private final RecommendationRepository recommendationRepository;
     private final FilmRepository filmRepository;
-    private final UserDirectorWeightRepository userDirectorWeightRepository;
+    private final UserCreditWeightRepository userCreditWeightRepository;
     private final UserGenreWeightRepository userGenreWeightRepository;
     private final UserKeywordWeightRepository userKeywordWeightRepository;
     private final UserLanguageWeightRepository userLanguageWeightRepository;
@@ -103,14 +110,17 @@ public class RecommendationQueryService {
             return List.of();
         }
 
-        Map<Long, Double> directorWeights = buildDirectorWeightMap(user.getId());
+        Map<String, Map<Long, Double>> creditWeightsByRole = buildCreditWeightMapByRole(user.getId());
+        Map<Long, Double> directorWeights = creditWeightsByRole.getOrDefault(ROLE_CODE_DIRECTOR, Map.of());
+        Map<Long, Double> castWeights = creditWeightsByRole.getOrDefault(ROLE_CODE_CAST, Map.of());
+        Map<Long, Double> crewWeights = creditWeightsByRole.getOrDefault(ROLE_CODE_CREW, Map.of());
         Map<FilmType, Map<Long, Double>> genreWeights = buildGenreWeightMap(user.getId());
         Map<FilmType, Map<Long, Double>> keywordWeights = buildKeywordWeightMap(user.getId());
         Map<String, Double> languageWeights = buildLanguageWeightMap(user.getId());
 
         List<RawCandidateScore> rawScores = new ArrayList<>(candidateByInternalId.size());
         for (Film candidate : candidateByInternalId.values()) {
-            rawScores.add(buildRawScore(candidate, directorWeights, genreWeights, keywordWeights, languageWeights));
+            rawScores.add(buildRawScore(candidate, directorWeights, castWeights, crewWeights, genreWeights, keywordWeights, languageWeights));
         }
 
         if (rawScores.isEmpty()) {
@@ -121,27 +131,33 @@ public class RecommendationQueryService {
         MinMax genreRange = minMax(rawScores.stream().map(RawCandidateScore::genreRaw).toList());
         MinMax languageRange = minMax(rawScores.stream().map(RawCandidateScore::languageRaw).toList());
         MinMax directorRange = minMax(rawScores.stream().map(RawCandidateScore::directorRaw).toList());
+        MinMax castRange = minMax(rawScores.stream().map(RawCandidateScore::castRaw).toList());
+        MinMax crewRange = minMax(rawScores.stream().map(RawCandidateScore::crewRaw).toList());
         MinMax ratingRange = minMax(rawScores.stream().map(RawCandidateScore::ratingRaw).toList());
 
         List<ScoredCandidate> scoredCandidates = new ArrayList<>(rawScores.size());
         for (RawCandidateScore raw : rawScores) {
             double keywordScore = normalizeToTen(raw.keywordRaw(), keywordRange.min(), keywordRange.max());
             double genreScore = normalizeToTen(raw.genreRaw(), genreRange.min(), genreRange.max());
-                double languageScore = normalizeToTen(raw.languageRaw(), languageRange.min(), languageRange.max());
+            double languageScore = normalizeToTen(raw.languageRaw(), languageRange.min(), languageRange.max());
             double directorScore = normalizeToTen(raw.directorRaw(), directorRange.min(), directorRange.max());
+            double castScore = normalizeToTen(raw.castRaw(), castRange.min(), castRange.max());
+            double crewScore = normalizeToTen(raw.crewRaw(), crewRange.min(), crewRange.max());
             double ratingScore = normalizeToTen(raw.ratingRaw(), ratingRange.min(), ratingRange.max());
             double recencyBoostValue = computeRecencyBoost(raw.film().getDate());
 
-                double baseScore =
+            double baseScore =
                     (keywordScore * BASE_KEYWORD_WEIGHT_FACTOR)
                     + (genreScore * BASE_GENRE_WEIGHT_FACTOR)
                     + (languageScore * BASE_LANGUAGE_WEIGHT_FACTOR);
 
-                double bonusScore =
-                    (1 + directorScore * BONUS_DIRECTOR_WEIGHT_FACTOR)
-                    * (1 + ratingScore * BONUS_FILM_RATING_WEIGHT_FACTOR);
+            double bonusScore =
+                    (1 + ratingScore * BONUS_FILM_RATING_WEIGHT_FACTOR)
+                            * (1 + castScore * BONUS_CAST_WEIGHT_FACTOR)
+                            * (1 + crewScore * BONUS_CREW_WEIGHT_FACTOR)
+                            * (1 + directorScore * BONUS_DIRECTOR_WEIGHT_FACTOR);
 
-                double finalScore = baseScore + bonusScore + recencyBoostValue;
+            double finalScore = baseScore * bonusScore + recencyBoostValue;
 
             scoredCandidates.add(new ScoredCandidate(
                     raw.film(),
@@ -189,6 +205,8 @@ public class RecommendationQueryService {
     private RawCandidateScore buildRawScore(
             Film film,
             Map<Long, Double> directorWeights,
+            Map<Long, Double> castWeights,
+            Map<Long, Double> crewWeights,
             Map<FilmType, Map<Long, Double>> genreWeights,
             Map<FilmType, Map<Long, Double>> keywordWeights,
             Map<String, Double> languageWeights
@@ -197,10 +215,9 @@ public class RecommendationQueryService {
         Map<Long, Double> typeGenreWeights = type == null ? Map.of() : genreWeights.getOrDefault(type, Map.of());
         Map<Long, Double> typeKeywordWeights = type == null ? Map.of() : keywordWeights.getOrDefault(type, Map.of());
 
-        double directorRaw = averageWeight(
-                film.getDirectors().stream().map(d -> d.getDirectorId()).filter(Objects::nonNull).toList(),
-                directorWeights
-        );
+        double directorRaw = averageRoleWeight(film, ROLE_CODE_DIRECTOR, directorWeights);
+        double castRaw = averageRoleWeight(film, ROLE_CODE_CAST, castWeights);
+        double crewRaw = averageRoleWeight(film, ROLE_CODE_CREW, crewWeights);
         double genreRaw = averageWeight(
                 film.getGenres().stream().map(g -> g.getGenreId()).filter(Objects::nonNull).toList(),
                 typeGenreWeights
@@ -212,23 +229,25 @@ public class RecommendationQueryService {
         double languageRaw = resolveLanguageWeight(film, languageWeights);
         double ratingRaw = safeDouble(film.getRating());
 
-        return new RawCandidateScore(film, keywordRaw, genreRaw, languageRaw, directorRaw, ratingRaw);
+        return new RawCandidateScore(film, keywordRaw, genreRaw, languageRaw, directorRaw, castRaw, crewRaw, ratingRaw);
     }
 
-    private Map<Long, Double> buildDirectorWeightMap(Long userId) {
-        Map<Long, Double> weights = new HashMap<>();
-        for (UserDirectorWeight weight : userDirectorWeightRepository.findAllByUserReference_User_Id(userId)) {
+    private Map<String, Map<Long, Double>> buildCreditWeightMapByRole(Long userId) {
+        Map<String, Map<Long, Double>> weightsByRole = new HashMap<>();
+        for (UserCreditWeight weight : userCreditWeightRepository.findAllByUserReference_User_Id(userId)) {
             if (weight == null) {
                 continue;
             }
-            Long directorId = weight.getId() != null ? weight.getId().getDirectorId() : null;
-            if (directorId == null) {
+            Long creditId = weight.getId() != null ? weight.getId().getCreditId() : null;
+            String roleCode = weight.getRole() != null ? normalizeRoleCode(weight.getRole().getRoleCode()) : null;
+            if (creditId == null || roleCode == null) {
                 continue;
             }
             double value = safeLong(weight.getWeight());
-            weights.merge(directorId, value, (left, right) -> left + right);
+            weightsByRole.computeIfAbsent(roleCode, ignored -> new HashMap<>())
+                    .merge(creditId, value, (left, right) -> left + right);
         }
-        return weights;
+        return weightsByRole;
     }
 
     private Map<FilmType, Map<Long, Double>> buildGenreWeightMap(Long userId) {
@@ -294,6 +313,32 @@ public class RecommendationQueryService {
             return 0.0d;
         }
         return languageWeights.getOrDefault(languageCode, 0.0d);
+    }
+
+    private double averageRoleWeight(Film film, String roleCode, Map<Long, Double> weights) {
+        if (film == null || roleCode == null || film.getFilmRoles() == null || film.getFilmRoles().isEmpty()) {
+            return 0.0d;
+        }
+
+        List<Long> creditIds = film.getFilmRoles().stream()
+                .filter(Objects::nonNull)
+                .filter(filmRole -> hasRoleCode(filmRole, roleCode))
+                .map(FilmRole::getCredit)
+                .filter(Objects::nonNull)
+                .map(credit -> credit.getCreditsId())
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+
+        return averageWeight(creditIds, weights);
+    }
+
+    private boolean hasRoleCode(FilmRole filmRole, String roleCode) {
+        if (filmRole == null || filmRole.getRole() == null || roleCode == null) {
+            return false;
+        }
+        String currentRoleCode = normalizeRoleCode(filmRole.getRole().getRoleCode());
+        return roleCode.equals(currentRoleCode);
     }
 
     private double averageWeight(Collection<Long> ids, Map<Long, Double> weights) {
@@ -365,12 +410,22 @@ public class RecommendationQueryService {
         return normalized.isEmpty() ? null : normalized;
     }
 
+    private String normalizeRoleCode(String value) {
+        if (value == null) {
+            return null;
+        }
+        String normalized = value.trim().toUpperCase(Locale.ROOT);
+        return normalized.isEmpty() ? null : normalized;
+    }
+
     private record RawCandidateScore(
             Film film,
             double keywordRaw,
             double genreRaw,
             double languageRaw,
             double directorRaw,
+            double castRaw,
+            double crewRaw,
             double ratingRaw
     ) {
     }

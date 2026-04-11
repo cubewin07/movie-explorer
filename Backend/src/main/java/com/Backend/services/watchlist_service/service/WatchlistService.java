@@ -3,7 +3,7 @@ package com.Backend.services.watchlist_service.service;
 import com.Backend.exception.DuplicateWatchlistItemException;
 import com.Backend.exception.WatchlistNotFoundException;
 import com.Backend.services.FilmType;
-import com.Backend.services.director_service.service.DirectorWeightService;
+import com.Backend.services.credit_service.service.CreditWeightService;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.film_service.service.FilmService;
 import com.Backend.services.genre_service.service.GenreWeightService;
@@ -41,7 +41,7 @@ public class WatchlistService {
     private final WatchlistItemRepository watchlistItemRepository;
     private final FilmService filmService;
     private final FilmSyncTaskService filmSyncTaskService;
-    private final DirectorWeightService directorWeightService;
+    private final CreditWeightService creditWeightService;
     private final KeywordWeightService keywordWeightService;
     private final GenreWeightService genreWeightService;
     private final LanguageWeightService languageWeightService;
@@ -86,7 +86,7 @@ public class WatchlistService {
             throw new DuplicateWatchlistItemException("Movie/Series already in watchlist");
         }
 
-        SyncAttemptResult directorSync = filmSyncTaskService.syncNowOrQueue(film, posting.id(), SyncCategory.DIRECTOR);
+        SyncAttemptResult creditsSync = filmSyncTaskService.syncNowOrQueue(film, posting.id(), SyncCategory.CREDITS);
         SyncAttemptResult keywordSync = filmSyncTaskService.syncNowOrQueue(film, posting.id(), SyncCategory.KEYWORD);
         SyncAttemptResult genreSync = filmSyncTaskService.syncNowOrQueue(film, posting.id(), SyncCategory.GENRE);
 
@@ -100,10 +100,10 @@ public class WatchlistService {
         // Recommendation ingestion is queue-first to protect add-to-watchlist latency and TMDB budget.
         filmSyncTaskService.enqueuePendingSync(film, posting.id(), SyncCategory.RECOMMENDATION);
 
-        if (!directorSync.wasSynced() && directorSync.syncSucceeded()) {
-            directorWeightService.backfillWeightsForFilm(film);
-        } else if (Boolean.TRUE.equals(film.getDirectorSyncCompleted())) {
-            directorWeightService.adjustWeightsForFilm(watchlist.getUser(), film, 1L);
+        if (!creditsSync.wasSynced() && creditsSync.syncSucceeded()) {
+            creditWeightService.backfillWeightsForFilm(film);
+        } else if (Boolean.TRUE.equals(film.getCreditsSyncCompleted())) {
+            creditWeightService.adjustWeightsForFilm(watchlist.getUser(), film, 1L);
         }
 
         if (!keywordSync.wasSynced() && keywordSync.syncSucceeded()) {
@@ -146,8 +146,8 @@ public class WatchlistService {
         }
         if (removed) {
             watchlistRepository.save(watchlist);
-            if (Boolean.TRUE.equals(film.getDirectorSyncCompleted())) {
-                directorWeightService.adjustWeightsForFilm(watchlist.getUser(), film, -1L);
+            if (Boolean.TRUE.equals(film.getCreditsSyncCompleted())) {
+                creditWeightService.adjustWeightsForFilm(watchlist.getUser(), film, -1L);
             }
             if (Boolean.TRUE.equals(film.getKeywordSyncCompleted())) {
                 keywordWeightService.adjustWeightsForFilm(watchlist.getUser(), film, -1L);

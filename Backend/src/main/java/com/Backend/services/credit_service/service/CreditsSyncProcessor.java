@@ -1,4 +1,4 @@
-package com.Backend.services.director_service.service;
+package com.Backend.services.credit_service.service;
 
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.sync_service.model.SyncCategory;
@@ -8,25 +8,25 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class DirectorSyncProcessor implements FilmSyncProcessor {
+public class CreditsSyncProcessor implements FilmSyncProcessor {
 
-    private final DirectorService directorService;
-    private final DirectorWeightService directorWeightService;
+    private final CreditService creditService;
+    private final CreditWeightService creditWeightService;
 
     @Override
     public SyncCategory getCategory() {
-        return SyncCategory.DIRECTOR;
+        return SyncCategory.CREDITS;
     }
 
     @Override
     public boolean isSyncCompleted(Film film) {
-        return film != null && Boolean.TRUE.equals(film.getDirectorSyncCompleted());
+        return film != null && Boolean.TRUE.equals(film.getCreditsSyncCompleted());
     }
 
     @Override
     public void markSyncCompleted(Film film) {
         if (film != null) {
-            film.setDirectorSyncCompleted(true);
+            film.setCreditsSyncCompleted(true);
         }
     }
 
@@ -35,11 +35,12 @@ public class DirectorSyncProcessor implements FilmSyncProcessor {
         if (film == null || film.getType() == null) {
             return;
         }
-        directorService.syncDirectorsForFilm(tmdbId, film.getType(), film);
+        Long sourceTmdbId = tmdbId != null ? tmdbId : film.getFilmId();
+        creditService.syncCreditsForFilm(sourceTmdbId, film.getType(), film);
     }
 
     @Override
     public void backfillWeightsForFilm(Film film) {
-        directorWeightService.backfillWeightsForFilm(film);
+        creditWeightService.backfillWeightsForFilm(film);
     }
 }

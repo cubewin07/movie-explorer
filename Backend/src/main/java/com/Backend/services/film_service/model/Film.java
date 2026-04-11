@@ -1,7 +1,7 @@
 package com.Backend.services.film_service.model;
 
 import com.Backend.services.FilmType;
-import com.Backend.services.director_service.model.Director;
+import com.Backend.services.credit_service.model.FilmRole;
 import com.Backend.services.genre_service.model.Genre;
 import com.Backend.services.keyword_service.model.Keyword;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -14,6 +14,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDate;
@@ -71,9 +72,9 @@ public class Film {
     @Column(name = "original_language", length = 16)
     private String originalLanguage;
 
-    @Column(name = "director_sync_completed", nullable = false)
+    @Column(name = "credits_sync_completed", nullable = false)
     @Builder.Default
-    private Boolean directorSyncCompleted = false;
+    private Boolean creditsSyncCompleted = false;
 
     @Column(name = "keyword_sync_completed", nullable = false)
     @Builder.Default
@@ -87,11 +88,11 @@ public class Film {
     @Builder.Default
     private Boolean recommendationSyncCompleted = false;
 
-    @ManyToMany(mappedBy = "films")
+    @OneToMany(mappedBy = "film", orphanRemoval = true)
     @JsonIgnore
     @ToString.Exclude
     @Builder.Default
-    private Set<Director> directors = new HashSet<>();
+    private Set<FilmRole> filmRoles = new HashSet<>();
 
     @ManyToMany(mappedBy = "films")
     @JsonIgnore
