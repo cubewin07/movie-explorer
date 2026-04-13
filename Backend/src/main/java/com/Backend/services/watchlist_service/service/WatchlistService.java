@@ -86,10 +86,6 @@ public class WatchlistService {
             throw new DuplicateWatchlistItemException("Movie/Series already in watchlist");
         }
 
-        SyncAttemptResult creditsSync = filmSyncTaskService.syncNowOrQueue(film, posting.id(), SyncCategory.CREDITS);
-        SyncAttemptResult keywordSync = filmSyncTaskService.syncNowOrQueue(film, posting.id(), SyncCategory.KEYWORD);
-        SyncAttemptResult genreSync = filmSyncTaskService.syncNowOrQueue(film, posting.id(), SyncCategory.GENRE);
-
         WatchlistItem item = WatchlistItem.builder()
                 .id(itemId)
                 .watchlist(watchlist)
@@ -97,8 +93,17 @@ public class WatchlistService {
                 .build();
         watchlistItemRepository.save(Objects.requireNonNull(item, "watchlist item"));
 
+        SyncAttemptResult creditsSync = attemptImmediateSyncNonBlocking(film, posting.id(), SyncCategory.CREDITS, user);
+        SyncAttemptResult keywordSync = attemptImmediateSyncNonBlocking(film, posting.id(), SyncCategory.KEYWORD, user);
+        SyncAttemptResult genreSync = attemptImmediateSyncNonBlocking(film, posting.id(), SyncCategory.GENRE, user);
+
         // Recommendation ingestion is queue-first to protect add-to-watchlist latency and TMDB budget.
-        filmSyncTaskService.enqueuePendingSync(film, posting.id(), SyncCategory.RECOMMENDATION);
+        try {
+            filmSyncTaskService.enqueuePendingSync(film, posting.id(), SyncCategory.RECOMMENDATION);
+        } catch (RuntimeException ex) {
+            log.error("Failed to enqueue recommendation sync for userId={} filmInternalId={} tmdbId={}",
+                    user.getId(), film.getInternalId(), posting.id(), ex);
+        }
 
         if (!creditsSync.wasSynced() && creditsSync.syncSucceeded()) {
             creditWeightService.backfillWeightsForFilm(film);
@@ -119,7 +124,54 @@ public class WatchlistService {
         }
 
         languageWeightService.adjustWeightsForFilm(watchlist.getUser(), film, 1L);
+
+        logImmediateSyncSummary(user, film, posting.id(), creditsSync, keywordSync, genreSync);
         log.info("Film tmdbId: {} successfully added to watchlist for user: {}", posting.id(), user.getUsername());
+    }
+
+    private SyncAttemptResult attemptImmediateSyncNonBlocking(
+            Film film,
+            Long tmdbId,
+            SyncCategory category,
+            User user
+    ) {
+        try {
+            return filmSyncTaskService.syncNowOrQueue(film, tmdbId, category);
+        } catch (RuntimeException ex) {
+            log.error("Immediate sync crashed for category={} userId={} filmInternalId={} tmdbId={}",
+                    category, user.getId(), film != null ? film.getInternalId() : null, tmdbId, ex);
+            return SyncAttemptResult.failedWithoutRetry(false, "IMMEDIATE_SYNC_CRASH", ex.getMessage());
+        }
+    }
+
+    private void logImmediateSyncSummary(
+            User user,
+            Film film,
+            Long tmdbId,
+            SyncAttemptResult credits,
+            SyncAttemptResult keyword,
+            SyncAttemptResult genre
+    ) {
+        if (credits.failedPermanently() || keyword.failedPermanently() || genre.failedPermanently()) {
+            log.error("Sync permanent failure after add-to-watchlist userId={} filmInternalId={} tmdbId={} creditsCode={} keywordCode={} genreCode={}",
+                    user.getId(),
+                    film != null ? film.getInternalId() : null,
+                    tmdbId,
+                    credits.errorCode(),
+                    keyword.errorCode(),
+                    genre.errorCode());
+            return;
+        }
+
+        if (!credits.syncSucceeded() || !keyword.syncSucceeded() || !genre.syncSucceeded()) {
+            log.warn("Sync deferred after add-to-watchlist userId={} filmInternalId={} tmdbId={} creditsCode={} keywordCode={} genreCode={}",
+                    user.getId(),
+                    film != null ? film.getInternalId() : null,
+                    tmdbId,
+                    credits.errorCode(),
+                    keyword.errorCode(),
+                    genre.errorCode());
+        }
     }
 
     @Transactional

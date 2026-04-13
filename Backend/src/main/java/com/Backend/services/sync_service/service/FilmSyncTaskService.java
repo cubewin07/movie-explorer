@@ -10,15 +10,18 @@ import com.Backend.services.sync_service.model.SyncRetryDecision;
 import com.Backend.services.sync_service.model.SyncTask;
 import com.Backend.services.sync_service.model.SyncTaskStatus;
 import com.Backend.services.sync_service.repository.SyncTaskRepository;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,18 +69,18 @@ public class FilmSyncTaskService {
     @Transactional
     public SyncAttemptResult syncNowOrQueue(Film film, Long tmdbId, SyncCategory category) {
         if (film == null || film.getInternalId() == null || tmdbId == null || category == null) {
-            return new SyncAttemptResult(false, false);
+            return SyncAttemptResult.invalidInput("Missing sync input (film/tmdbId/category)");
         }
         FilmSyncProcessor processor = processors.get(category);
         if (processor == null) {
             log.warn("No sync processor is configured for category={}", category);
-            return new SyncAttemptResult(false, false);
+            return SyncAttemptResult.unsupportedCategory("No sync processor configured for category " + category);
         }
 
         boolean wasSynced = processor.isSyncCompleted(film);
 
-        if(wasSynced) {
-            return new SyncAttemptResult(true, true);
+        if (wasSynced) {
+            return SyncAttemptResult.alreadySynced();
         }
 
         try {
@@ -86,16 +89,36 @@ public class FilmSyncTaskService {
             }
             processor.syncForFilm(tmdbId, film);
             processor.markSyncCompleted(film);
-            return new SyncAttemptResult(wasSynced, true);
+            return SyncAttemptResult.synced(wasSynced);
         } catch (RuntimeException ex) {
-                // If sync fails, we enqueue a retry task and log the error.
-                // No need to check if wasSynced is true anymore as we already return early in that case.
-                enqueueRetry(film, tmdbId, category, ex);
-                
+            SyncRetryEnqueueResult retryResult = enqueueRetry(film, tmdbId, category, ex);
+
             log.warn("Failed to sync category={} for filmInternalId={} tmdbId={} type={}",
                     category, film.getInternalId(), tmdbId, film.getType(), ex);
-            return new SyncAttemptResult(wasSynced, false);
+            return toAttemptResult(wasSynced, retryResult);
         }
+    }
+
+    private SyncAttemptResult toAttemptResult(boolean wasSynced, SyncRetryEnqueueResult retryResult) {
+        if (retryResult.failedPermanently()) {
+            return SyncAttemptResult.failedPermanently(
+                    wasSynced,
+                    retryResult.errorCode(),
+                    retryResult.errorMessage()
+            );
+        }
+        if (retryResult.retryScheduled()) {
+            return SyncAttemptResult.retryScheduled(
+                    wasSynced,
+                    retryResult.errorCode(),
+                    retryResult.errorMessage()
+            );
+        }
+        return SyncAttemptResult.failedWithoutRetry(
+                wasSynced,
+                retryResult.errorCode(),
+                retryResult.errorMessage()
+        );
     }
 
     @Transactional
@@ -143,44 +166,121 @@ public class FilmSyncTaskService {
         task.setLastErrorCode(null);
         task.setLastErrorMessage(null);
 
-        syncTaskRepository.save(task);
+        saveTaskWithConflictRecovery(task);
     }
 
     @Transactional
-    public void enqueueRetry(Film film, Long tmdbId, SyncCategory category, RuntimeException error) {
+    private SyncRetryEnqueueResult enqueueRetry(Film film, Long tmdbId, SyncCategory category, RuntimeException error) {
         if (film == null || film.getInternalId() == null || tmdbId == null || category == null) {
-            return;
+            return new SyncRetryEnqueueResult(false, true, "INVALID_INPUT", "Missing sync input for retry enqueue");
         }
 
-        SyncTask task = syncTaskRepository
-                .findByFilmInternalIdAndSyncCategory(film.getInternalId(), category)
-                .orElseGet(() -> SyncTask.builder()
-                        .filmInternalId(film.getInternalId())
-                        .tmdbId(tmdbId)
-                        .syncCategory(category)
-                        .attempts(0)
-                        .maxAttempts(Math.max(1, defaultMaxAttempts))
-                        .status(SyncTaskStatus.PENDING)
-                        .build());
+        try {
+            SyncTask task = syncTaskRepository
+                    .findByFilmInternalIdAndSyncCategory(film.getInternalId(), category)
+                    .orElseGet(() -> SyncTask.builder()
+                            .filmInternalId(film.getInternalId())
+                            .tmdbId(tmdbId)
+                            .syncCategory(category)
+                            .attempts(0)
+                            .maxAttempts(Math.max(1, defaultMaxAttempts))
+                            .status(SyncTaskStatus.PENDING)
+                            .build());
 
-        int nextAttempt = Math.max(0, task.getAttempts()) + 1;
-        SyncRetryDecision decision = syncRetryPolicy.decide(error, nextAttempt);
+            if (task.getMaxAttempts() == null || task.getMaxAttempts() < 1) {
+                task.setMaxAttempts(Math.max(1, defaultMaxAttempts));
+            }
+            if (task.getAttempts() == null || task.getAttempts() < 0) {
+                task.setAttempts(0);
+            }
 
-        task.setAttempts(nextAttempt);
-        task.setTmdbId(tmdbId);
-        task.setSyncCategory(category);
-        task.setLastErrorCode(decision.errorCode());
-        task.setLastErrorMessage(decision.errorMessage());
+            int nextAttempt = task.getAttempts() + 1;
+            SyncRetryDecision decision = toRetryDecision(error, nextAttempt);
 
-        if (decision.retryable() && nextAttempt < task.getMaxAttempts()) {
-            task.setStatus(nextAttempt <= 1 ? SyncTaskStatus.PENDING : SyncTaskStatus.RETRYING);
-            task.setNextRetryAt(Instant.now().plus(decision.delay()));
-        } else {
-            task.setStatus(SyncTaskStatus.FAILED_PERMANENT);
-            task.setNextRetryAt(null);
+            task.setAttempts(nextAttempt);
+            task.setTmdbId(tmdbId);
+            task.setSyncCategory(category);
+            task.setLastErrorCode(decision.errorCode());
+            task.setLastErrorMessage(decision.errorMessage());
+
+            boolean retryable = decision.retryable() && nextAttempt < task.getMaxAttempts();
+            if (retryable) {
+                task.setStatus(nextAttempt <= 1 ? SyncTaskStatus.PENDING : SyncTaskStatus.RETRYING);
+                task.setNextRetryAt(Instant.now().plus(decision.delay()));
+            } else {
+                task.setStatus(SyncTaskStatus.FAILED_PERMANENT);
+                task.setNextRetryAt(null);
+                logPermanentFailure(
+                        category,
+                        task.getFilmInternalId(),
+                        tmdbId,
+                        nextAttempt,
+                        task.getMaxAttempts(),
+                        decision.errorCode(),
+                        decision.errorMessage(),
+                        error
+                );
+            }
+
+            SyncTask savedTask = saveTaskWithConflictRecovery(task);
+            boolean scheduled = savedTask.getStatus() == SyncTaskStatus.PENDING || savedTask.getStatus() == SyncTaskStatus.RETRYING;
+            boolean permanent = savedTask.getStatus() == SyncTaskStatus.FAILED_PERMANENT;
+            return new SyncRetryEnqueueResult(
+                    scheduled,
+                    permanent,
+                    savedTask.getLastErrorCode(),
+                    savedTask.getLastErrorMessage()
+            );
+        } catch (RuntimeException ex) {
+            log.error(
+                    "Failed to enqueue retry for category={} filmInternalId={} tmdbId={} errorClass={} reason={}",
+                    category,
+                    film.getInternalId(),
+                    tmdbId,
+                    ex.getClass().getSimpleName(),
+                    ex.getMessage(),
+                    ex
+            );
+            return new SyncRetryEnqueueResult(false, false, "RETRY_ENQUEUE_FAILED", ex.getMessage());
         }
+    }
 
-        syncTaskRepository.save(task);
+    private SyncRetryDecision toRetryDecision(RuntimeException error, int nextAttempt) {
+        if (error instanceof LocalBudgetDeferException defer) {
+            Duration delay = defer.getRetryDelay() == null ? Duration.ofSeconds(5) : defer.getRetryDelay();
+            return new SyncRetryDecision(true, delay, defer.getErrorCode(), defer.getMessage());
+        }
+        return syncRetryPolicy.decide(error, nextAttempt);
+    }
+
+    private SyncTask saveTaskWithConflictRecovery(SyncTask task) {
+        try {
+            return syncTaskRepository.save(Objects.requireNonNull(task, "sync task"));
+        } catch (DataIntegrityViolationException ex) {
+            if (task.getFilmInternalId() == null || task.getSyncCategory() == null) {
+                throw ex;
+            }
+            SyncTask existing = syncTaskRepository
+                    .findByFilmInternalIdAndSyncCategory(task.getFilmInternalId(), task.getSyncCategory())
+                    .orElseThrow(() -> ex);
+
+            existing.setTmdbId(task.getTmdbId());
+            existing.setSyncCategory(task.getSyncCategory());
+            existing.setStatus(task.getStatus());
+            existing.setAttempts(task.getAttempts());
+            existing.setMaxAttempts(task.getMaxAttempts());
+            existing.setNextRetryAt(task.getNextRetryAt());
+            existing.setLastErrorCode(task.getLastErrorCode());
+            existing.setLastErrorMessage(task.getLastErrorMessage());
+
+            log.debug(
+                    "Recovered sync_task save conflict for category={} filmInternalId={} tmdbId={}",
+                    existing.getSyncCategory(),
+                    existing.getFilmInternalId(),
+                    existing.getTmdbId()
+            );
+            return syncTaskRepository.save(Objects.requireNonNull(existing, "existing sync task"));
+        }
     }
 
     @Scheduled(fixedDelayString = "${sync.retry.fixed-delay-ms:30000}")
@@ -254,6 +354,16 @@ public class FilmSyncTaskService {
             task.setLastErrorCode("FILM_NOT_FOUND");
             task.setLastErrorMessage("Missing film reference for retry task");
             task.setNextRetryAt(null);
+            logPermanentFailure(
+                    task.getSyncCategory(),
+                    null,
+                    task.getTmdbId(),
+                    task.getAttempts(),
+                    task.getMaxAttempts(),
+                    task.getLastErrorCode(),
+                    task.getLastErrorMessage(),
+                    null
+            );
             return;
         }
 
@@ -263,6 +373,16 @@ public class FilmSyncTaskService {
             task.setLastErrorCode("FILM_NOT_FOUND");
             task.setLastErrorMessage("Film no longer exists for retry task");
             task.setNextRetryAt(null);
+            logPermanentFailure(
+                    task.getSyncCategory(),
+                    filmInternalId,
+                    task.getTmdbId(),
+                    task.getAttempts(),
+                    task.getMaxAttempts(),
+                    task.getLastErrorCode(),
+                    task.getLastErrorMessage(),
+                    null
+            );
             return;
         }
 
@@ -273,6 +393,16 @@ public class FilmSyncTaskService {
             task.setLastErrorCode("SYNC_CATEGORY_UNSUPPORTED");
             task.setLastErrorMessage("No sync processor configured for category " + category);
             task.setNextRetryAt(null);
+            logPermanentFailure(
+                    category,
+                    task.getFilmInternalId(),
+                    task.getTmdbId(),
+                    task.getAttempts(),
+                    task.getMaxAttempts(),
+                    task.getLastErrorCode(),
+                    task.getLastErrorMessage(),
+                    null
+            );
             return;
         }
 
@@ -284,6 +414,16 @@ public class FilmSyncTaskService {
                 task.setLastErrorCode("FILM_TYPE_MISSING");
                 task.setLastErrorMessage("Film type is missing for retry task");
                 task.setNextRetryAt(null);
+                logPermanentFailure(
+                        category,
+                        task.getFilmInternalId(),
+                        task.getTmdbId(),
+                        task.getAttempts(),
+                        task.getMaxAttempts(),
+                        task.getLastErrorCode(),
+                        task.getLastErrorMessage(),
+                        null
+                );
                 return;
             }
 
@@ -308,8 +448,15 @@ public class FilmSyncTaskService {
             log.debug("Deferred sync for category={} filmInternalId={} tmdbId={} reason={}",
                     category, task.getFilmInternalId(), task.getTmdbId(), ex.getMessage());
         } catch (RuntimeException ex) {
-            int nextAttempt = Math.max(0, task.getAttempts()) + 1;
-            SyncRetryDecision decision = syncRetryPolicy.decide(ex, nextAttempt);
+            if (task.getAttempts() == null || task.getAttempts() < 0) {
+                task.setAttempts(0);
+            }
+            if (task.getMaxAttempts() == null || task.getMaxAttempts() < 1) {
+                task.setMaxAttempts(Math.max(1, defaultMaxAttempts));
+            }
+
+            int nextAttempt = task.getAttempts() + 1;
+            SyncRetryDecision decision = toRetryDecision(ex, nextAttempt);
 
             task.setAttempts(nextAttempt);
             task.setLastErrorCode(decision.errorCode());
@@ -318,13 +465,74 @@ public class FilmSyncTaskService {
             if (decision.retryable() && nextAttempt < task.getMaxAttempts()) {
                 task.setStatus(SyncTaskStatus.RETRYING);
                 task.setNextRetryAt(Instant.now().plus(decision.delay()));
+                log.warn("Sync retry scheduled for category={} filmInternalId={} tmdbId={} attempt={} nextRetryAt={} code={}",
+                        category,
+                        task.getFilmInternalId(),
+                        task.getTmdbId(),
+                        nextAttempt,
+                        task.getNextRetryAt(),
+                        task.getLastErrorCode(),
+                        ex);
             } else {
                 task.setStatus(SyncTaskStatus.FAILED_PERMANENT);
                 task.setNextRetryAt(null);
+                logPermanentFailure(
+                        category,
+                        task.getFilmInternalId(),
+                        task.getTmdbId(),
+                        nextAttempt,
+                        task.getMaxAttempts(),
+                        task.getLastErrorCode(),
+                        task.getLastErrorMessage(),
+                        ex
+                );
             }
-
-            log.warn("Sync retry failed for category={} filmInternalId={} tmdbId={} attempt={} status={}",
-                    category, task.getFilmInternalId(), task.getTmdbId(), nextAttempt, task.getStatus(), ex);
         }
+    }
+
+    private void logPermanentFailure(
+            SyncCategory category,
+            Long filmInternalId,
+            Long tmdbId,
+            Integer attempts,
+            Integer maxAttempts,
+            String errorCode,
+            String errorMessage,
+            Throwable error
+    ) {
+        String safeMessage = errorMessage == null ? "n/a" : errorMessage;
+        if (error == null) {
+            log.error(
+                    "Sync FAILED_PERMANENT category={} filmInternalId={} tmdbId={} attempts={} maxAttempts={} code={} reason={}",
+                    category,
+                    filmInternalId,
+                    tmdbId,
+                    attempts,
+                    maxAttempts,
+                    errorCode,
+                    safeMessage
+            );
+            return;
+        }
+
+        log.error(
+                "Sync FAILED_PERMANENT category={} filmInternalId={} tmdbId={} attempts={} maxAttempts={} code={} reason={}",
+                category,
+                filmInternalId,
+                tmdbId,
+                attempts,
+                maxAttempts,
+                errorCode,
+                safeMessage,
+                error
+        );
+    }
+
+    private record SyncRetryEnqueueResult(
+            boolean retryScheduled,
+            boolean failedPermanently,
+            String errorCode,
+            String errorMessage
+    ) {
     }
 }

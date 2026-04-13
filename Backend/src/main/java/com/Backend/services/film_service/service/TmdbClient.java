@@ -7,6 +7,8 @@ import com.Backend.services.film_service.model.TmdbKeywordsResponse;
 import com.Backend.services.film_service.model.TmdbMovieSimilarResponse;
 import com.Backend.services.film_service.model.TmdbSimilarItem;
 import com.Backend.services.film_service.model.TmdbTvSimilarResponse;
+import com.Backend.services.sync_service.model.SyncRetryDecision;
+import com.Backend.services.sync_service.service.SyncRetryPolicy;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.function.Supplier;
@@ -22,6 +24,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 public class TmdbClient {
 
     private final WebClient webClient;
+    private final SyncRetryPolicy syncRetryPolicy;
     private final String apiToken;
     private final int retryAttempts;
     private final long retryBackoffMs;
@@ -34,6 +37,7 @@ public class TmdbClient {
 
     public TmdbClient(
             WebClient.Builder builder,
+            SyncRetryPolicy syncRetryPolicy,
             @Value("${tmdb.api.base-url}") String baseUrl,
             @Value("${tmdb.api.api-token:}") String apiToken,
             @Value("${tmdb.api.retry.attempts:3}") int retryAttempts,
@@ -41,6 +45,7 @@ public class TmdbClient {
             @Value("${tmdb.api.rate-limit.capacity:40}") long rateLimitCapacity,
             @Value("${tmdb.api.rate-limit.refill-tokens:40}") long rateLimitRefillTokens,
             @Value("${tmdb.api.rate-limit.refill-period-seconds:10}") long rateLimitRefillPeriodSeconds) {
+        this.syncRetryPolicy = syncRetryPolicy;
         this.apiToken = apiToken;
         this.retryAttempts = Math.max(1, retryAttempts);
         this.retryBackoffMs = Math.max(0L, retryBackoffMs);
@@ -193,6 +198,18 @@ public class TmdbClient {
                 if (attempt >= retryAttempts) {
                     break;
                 }
+
+                SyncRetryDecision decision = syncRetryPolicy.decide(ex, attempt + 1);
+                if (!decision.retryable()) {
+                    log.warn("TMDB {} attempt {}/{} failed and is non-retryable (code={}): {}",
+                            operation,
+                            attempt,
+                            retryAttempts,
+                            decision.errorCode(),
+                            decision.errorMessage());
+                    break;
+                }
+
                 long backoff = retryBackoffMs * (1L << Math.max(0, attempt - 1));
                 if (backoff > 0L) {
                     try {
@@ -202,7 +219,7 @@ public class TmdbClient {
                         throw new IllegalStateException("TMDB retry interrupted", interrupted);
                     }
                 }
-                log.warn("TMDB {} attempt {}/{} failed, retrying", operation, attempt, retryAttempts);
+                log.warn("TMDB {} attempt {}/{} failed with code={}, retrying", operation, attempt, retryAttempts, decision.errorCode());
             }
         }
         if (lastError == null) {
