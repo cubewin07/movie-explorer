@@ -60,12 +60,20 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -126,6 +134,9 @@ class SpringControllerTest {
 
         @Autowired
         private UserKeywordWeightRepository userKeywordWeightRepository;
+
+        @Autowired
+        private PlatformTransactionManager transactionManager;
 
         @MockBean
         private TmdbClient tmdbClient;
@@ -1221,4 +1232,114 @@ class SpringControllerTest {
                 .andExpect(jsonPath("$[0].dateValue").value("2022-04-12"))
                 .andExpect(jsonPath("$[0].backgroundImg").value("/similar-a.jpg"));
     }
+
+        @Test
+        @Order(25)
+        @DisplayName("Concurrent credit weight add/remove keeps expected net weight")
+        void concurrent_credit_weight_add_remove_keeps_expected_net_weight() throws Exception {
+                String email = "concurrency_credit@example.com";
+                register("concurrency_credit", email, "password123");
+                String token = authenticate(email, "password123");
+                Long userId = getUserId(token);
+
+                UserFilmReference userReference = userFilmReferenceRepository.findById(userId).orElseThrow();
+
+                long creditId = 900_000L + ThreadLocalRandom.current().nextLong(10_000L);
+                Credit credit = creditRepository.saveAndFlush(Credit.builder()
+                                .creditsId(creditId)
+                                .name("Concurrent Credit")
+                                .department("Acting")
+                                .build());
+
+                String roleCode = "ROLE_CONC_" + System.nanoTime();
+                Role role = roleRepository.saveAndFlush(Role.builder()
+                                .roleCode(roleCode)
+                                .roleName("Actor")
+                                .roleGroup(RoleGroup.CAST)
+                                .build());
+
+                int baselineWeight = 1_000;
+                UserCreditWeightId weightId = new UserCreditWeightId(userId, credit.getCreditsId(), role.getRoleId());
+                userCreditWeightRepository.saveAndFlush(UserCreditWeight.builder()
+                                .id(weightId)
+                                .userReference(userReference)
+                                .credit(credit)
+                                .role(role)
+                                .weight((long) baselineWeight)
+                                .build());
+
+                int pairs = 250;
+                int totalOperations = pairs * 2;
+
+                TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+                ExecutorService pool = Executors.newFixedThreadPool(16);
+                CountDownLatch done = new CountDownLatch(totalOperations);
+                AtomicReference<Throwable> failure = new AtomicReference<>();
+
+                for (int i = 0; i < pairs; i++) {
+                        pool.submit(() -> applyConcurrentCreditWeightDelta(
+                                        transactionTemplate,
+                                        userId,
+                                        credit.getCreditsId(),
+                                        role.getRoleId(),
+                                        1L,
+                                        done,
+                                        failure
+                        ));
+                        pool.submit(() -> applyConcurrentCreditWeightDelta(
+                                        transactionTemplate,
+                                        userId,
+                                        credit.getCreditsId(),
+                                        role.getRoleId(),
+                                        -1L,
+                                        done,
+                                        failure
+                        ));
+                }
+
+                assertThat(done.await(90, TimeUnit.SECONDS)).isTrue();
+                pool.shutdown();
+                assertThat(pool.awaitTermination(15, TimeUnit.SECONDS)).isTrue();
+
+                if (failure.get() != null) {
+                        fail("Concurrent weight adjustment failed", failure.get());
+                }
+
+                Long finalWeight = userCreditWeightRepository.findById(weightId)
+                                .map(UserCreditWeight::getWeight)
+                                .orElse(null);
+                assertThat(finalWeight).isEqualTo((long) baselineWeight);
+        }
+
+        private void applyConcurrentCreditWeightDelta(
+                        TransactionTemplate transactionTemplate,
+                        Long userId,
+                        Long creditId,
+                        Long roleId,
+                        long delta,
+                        CountDownLatch done,
+                        AtomicReference<Throwable> failure
+        ) {
+                try {
+                        transactionTemplate.executeWithoutResult(status -> {
+                                int updated = userCreditWeightRepository.incrementWeight(userId, creditId, roleId, delta);
+                                if (updated == 0 && delta <= 0) {
+                                        return;
+                                }
+
+                                if (updated == 0) {
+                                        int inserted = userCreditWeightRepository.insertIfAbsent(userId, creditId, roleId, delta);
+                                        if (inserted == 0) {
+                                                userCreditWeightRepository.incrementWeight(userId, creditId, roleId, delta);
+                                        }
+                                }
+
+                                userCreditWeightRepository.deleteIfNonPositive(userId, creditId, roleId);
+                        });
+                } catch (Throwable ex) {
+                        failure.compareAndSet(null, ex);
+                } finally {
+                        done.countDown();
+                }
+        }
 }
