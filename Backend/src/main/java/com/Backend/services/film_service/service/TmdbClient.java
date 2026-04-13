@@ -1,5 +1,6 @@
 package com.Backend.services.film_service.service;
 
+import com.Backend.exception.TmdbClientException;
 import com.Backend.services.FilmType;
 import com.Backend.services.film_service.model.TmdbCreditsResponse;
 import com.Backend.services.film_service.model.TmdbFilmResponse;
@@ -22,6 +23,11 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Slf4j
 @Service
 public class TmdbClient {
+
+    private static final String ERROR_CODE_TOKEN_MISSING = "TMDB_TOKEN_MISSING";
+    private static final String ERROR_CODE_RETRY_INTERRUPTED = "TMDB_RETRY_INTERRUPTED";
+    private static final String ERROR_CODE_NO_EXCEPTION = "TMDB_OPERATION_FAILED_WITHOUT_CAUSE";
+    private static final String ERROR_CODE_RATE_LIMIT_INTERRUPTED = "TMDB_RATE_LIMIT_INTERRUPTED";
 
     private final WebClient webClient;
     private final SyncRetryPolicy syncRetryPolicy;
@@ -65,9 +71,7 @@ public class TmdbClient {
     }
 
     public TmdbFilmResponse fetchFilmDetails(Long tmdbId, FilmType type) {
-        if (!StringUtils.hasText(apiToken)) {
-            throw new IllegalStateException("TMDB API token is missing");
-        }
+        ensureApiTokenConfigured();
         String path = type == FilmType.MOVIE ? "/movie/{id}" : "/tv/{id}";
         return executeWithRetry(() -> webClient.get()
                 .uri(uriBuilder -> {
@@ -81,9 +85,7 @@ public class TmdbClient {
 
     @Cacheable(value = "tmdbCredits", key = "{#tmdbId, #type.name()}")
     public TmdbCreditsResponse fetchCredits(Long tmdbId, FilmType type) {
-        if (!StringUtils.hasText(apiToken)) {
-            throw new IllegalStateException("TMDB API token is missing");
-        }
+        ensureApiTokenConfigured();
         String path = type == FilmType.MOVIE ? "/movie/{id}/credits" : "/tv/{id}/credits";
         return executeWithRetry(() -> webClient.get()
                 .uri(uriBuilder -> {
@@ -97,9 +99,7 @@ public class TmdbClient {
 
     @Cacheable(value = "tmdbKeywords", key = "{#tmdbId, #type.name()}")
     public TmdbKeywordsResponse fetchKeywords(Long tmdbId, FilmType type) {
-        if (!StringUtils.hasText(apiToken)) {
-            throw new IllegalStateException("TMDB API token is missing");
-        }
+        ensureApiTokenConfigured();
         String path = type == FilmType.MOVIE ? "/movie/{id}/keywords" : "/tv/{id}/keywords";
         return executeWithRetry(() -> webClient.get()
                 .uri(uriBuilder -> {
@@ -113,9 +113,7 @@ public class TmdbClient {
 
     @Cacheable(value = "tmdbGenres", key = "{#tmdbId, #type.name()}")
     public TmdbFilmResponse fetchGenres(Long tmdbId, FilmType type) {
-        if (!StringUtils.hasText(apiToken)) {
-            throw new IllegalStateException("TMDB API token is missing");
-        }
+        ensureApiTokenConfigured();
         String path = type == FilmType.MOVIE ? "/movie/{id}" : "/tv/{id}";
         return executeWithRetry(() -> webClient.get()
                 .uri(uriBuilder -> {
@@ -129,9 +127,7 @@ public class TmdbClient {
 
     @Cacheable(value = "tmdbSimilar", key = "{#tmdbId, #type.name()}")
     public java.util.List<TmdbSimilarItem> fetchSimilar(Long tmdbId, FilmType type) {
-        if (!StringUtils.hasText(apiToken)) {
-            throw new IllegalStateException("TMDB API token is missing");
-        }
+        ensureApiTokenConfigured();
 
         if (type == FilmType.MOVIE) {
             TmdbMovieSimilarResponse response = executeWithRetry(() -> webClient.get()
@@ -216,14 +212,21 @@ public class TmdbClient {
                         Thread.sleep(backoff);
                     } catch (InterruptedException interrupted) {
                         Thread.currentThread().interrupt();
-                        throw new IllegalStateException("TMDB retry interrupted", interrupted);
+                        throw new TmdbClientException(
+                                ERROR_CODE_RETRY_INTERRUPTED,
+                                "TMDB retry interrupted",
+                                interrupted
+                        );
                     }
                 }
                 log.warn("TMDB {} attempt {}/{} failed with code={}, retrying", operation, attempt, retryAttempts, decision.errorCode());
             }
         }
         if (lastError == null) {
-            throw new IllegalStateException("TMDB " + operation + " failed without an exception");
+            throw new TmdbClientException(
+                    ERROR_CODE_NO_EXCEPTION,
+                    "TMDB " + operation + " failed without an exception"
+            );
         }
         throw lastError;
     }
@@ -247,8 +250,18 @@ public class TmdbClient {
                 Thread.sleep(Math.min(250L, waitMillis));
             } catch (InterruptedException interrupted) {
                 Thread.currentThread().interrupt();
-                throw new IllegalStateException("TMDB rate limiter wait interrupted", interrupted);
+                throw new TmdbClientException(
+                        ERROR_CODE_RATE_LIMIT_INTERRUPTED,
+                        "TMDB rate limiter wait interrupted",
+                        interrupted
+                );
             }
+        }
+    }
+
+    private void ensureApiTokenConfigured() {
+        if (!StringUtils.hasText(apiToken)) {
+            throw new TmdbClientException(ERROR_CODE_TOKEN_MISSING, "TMDB API token is missing");
         }
     }
 

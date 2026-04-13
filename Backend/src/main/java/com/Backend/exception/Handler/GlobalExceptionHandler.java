@@ -24,6 +24,8 @@ import com.Backend.exception.FriendRequestAlreadyExistsException;
 import com.Backend.exception.FriendshipNotFoundException;
 import com.Backend.exception.MessageNotFoundException;
 import com.Backend.exception.NotAuthorizedToModifyFriendshipException;
+import com.Backend.exception.SyncProcessingException;
+import com.Backend.exception.TmdbClientException;
 import com.Backend.exception.UserNotFoundException;
 import com.Backend.exception.WatchlistNotFoundException;
 import com.Backend.exception.ChatValidationException;
@@ -125,6 +127,30 @@ public class GlobalExceptionHandler {
                 Instant.now().toString());
         return new ResponseEntity<>(errorRes, status);
     }
+
+        @ExceptionHandler(SyncProcessingException.class)
+        public ResponseEntity<ErrorRes> handleSyncProcessingException(SyncProcessingException ex) {
+        HttpStatus status = HttpStatus.INTERNAL_SERVER_ERROR;
+        ErrorRes errorRes = new ErrorRes(
+            status.value(),
+            ex.getMessage(),
+            "Sync processing error: " + ex.getErrorCode(),
+            Instant.now().toString());
+        return new ResponseEntity<>(errorRes, status);
+        }
+
+        @ExceptionHandler(TmdbClientException.class)
+        public ResponseEntity<ErrorRes> handleTmdbClientException(TmdbClientException ex) {
+        HttpStatus status = "TMDB_TOKEN_MISSING".equals(ex.getErrorCode())
+            ? HttpStatus.INTERNAL_SERVER_ERROR
+            : HttpStatus.BAD_GATEWAY;
+        ErrorRes errorRes = new ErrorRes(
+            status.value(),
+            ex.getMessage(),
+            "TMDB client error: " + ex.getErrorCode(),
+            Instant.now().toString());
+        return new ResponseEntity<>(errorRes, status);
+        }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorRes> handleException(Exception ex) {
