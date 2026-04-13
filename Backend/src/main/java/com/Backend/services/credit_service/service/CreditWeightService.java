@@ -4,17 +4,14 @@ import com.Backend.services.credit_service.model.Credit;
 import com.Backend.services.credit_service.model.FilmRole;
 import com.Backend.services.credit_service.model.Role;
 import com.Backend.services.credit_service.model.UserCreditWeight;
-import com.Backend.services.credit_service.model.UserCreditWeightId;
 import com.Backend.services.credit_service.repository.UserCreditWeightRepository;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.user_service.model.User;
-import com.Backend.services.user_service.model.UserFilmReference;
 import com.Backend.services.user_service.repository.UserFilmReferenceRepository;
 import com.Backend.services.watchlist_service.model.WatchlistItem;
 import com.Backend.services.watchlist_service.repository.WatchlistItemRepository;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -59,36 +56,20 @@ public class CreditWeightService {
         }
 
         userFilmReferenceRepository.ensureUserFilmReference(userId);
-        UserFilmReference userReference = userFilmReferenceRepository.findById(userId).orElse(null);
-        if (userReference == null) {
+
+        int updated = userCreditWeightRepository.incrementWeight(userId, creditId, roleId, delta);
+        if (updated == 0 && delta <= 0) {
             return;
         }
 
-        UserCreditWeightId id = new UserCreditWeightId(userId, creditId, roleId);
-        UserCreditWeight current = userCreditWeightRepository.findById(id).orElse(null);
-
-        if (current == null) {
-            if (delta <= 0) {
-                return;
+        if (updated == 0) {
+            int inserted = userCreditWeightRepository.insertIfAbsent(userId, creditId, roleId, delta);
+            if (inserted == 0) {
+                userCreditWeightRepository.incrementWeight(userId, creditId, roleId, delta);
             }
-            UserCreditWeight created = UserCreditWeight.builder()
-                    .id(id)
-                    .userReference(userReference)
-                    .credit(credit)
-                    .role(role)
-                    .weight(delta)
-                    .build();
-            userCreditWeightRepository.save(Objects.requireNonNull(created, "credit weight"));
-            return;
         }
 
-        long nextWeight = current.getWeight() + delta;
-        if (nextWeight <= 0) {
-            userCreditWeightRepository.delete(current);
-            return;
-        }
-
-        current.setWeight(nextWeight);
+        userCreditWeightRepository.deleteIfNonPositive(userId, creditId, roleId);
     }
 
     @Transactional

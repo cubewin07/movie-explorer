@@ -2,15 +2,12 @@ package com.Backend.services.language_service.service;
 
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.language_service.model.UserLanguageWeight;
-import com.Backend.services.language_service.model.UserLanguageWeightId;
 import com.Backend.services.language_service.repository.UserLanguageWeightRepository;
 import com.Backend.services.user_service.model.User;
-import com.Backend.services.user_service.model.UserFilmReference;
 import com.Backend.services.user_service.repository.UserFilmReferenceRepository;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,34 +45,20 @@ public class LanguageWeightService {
         }
 
         userFilmReferenceRepository.ensureUserFilmReference(userId);
-        UserFilmReference userReference = userFilmReferenceRepository.findById(userId).orElse(null);
-        if (userReference == null) {
+
+        int updated = userLanguageWeightRepository.incrementWeight(userId, normalizedLanguageCode, delta);
+        if (updated == 0 && delta <= 0) {
             return;
         }
 
-        UserLanguageWeightId id = new UserLanguageWeightId(userId, normalizedLanguageCode);
-        UserLanguageWeight current = userLanguageWeightRepository.findById(id).orElse(null);
-
-        if (current == null) {
-            if (delta <= 0) {
-                return;
+        if (updated == 0) {
+            int inserted = userLanguageWeightRepository.insertIfAbsent(userId, normalizedLanguageCode, delta);
+            if (inserted == 0) {
+                userLanguageWeightRepository.incrementWeight(userId, normalizedLanguageCode, delta);
             }
-            UserLanguageWeight created = UserLanguageWeight.builder()
-                    .id(id)
-                    .userReference(userReference)
-                    .weight(delta)
-                    .build();
-            userLanguageWeightRepository.save(Objects.requireNonNull(created, "language weight"));
-            return;
         }
 
-        long nextWeight = current.getWeight() + delta;
-        if (nextWeight <= 0) {
-            userLanguageWeightRepository.delete(current);
-            return;
-        }
-
-        current.setWeight(nextWeight);
+        userLanguageWeightRepository.deleteIfNonPositive(userId, normalizedLanguageCode);
     }
 
     @Transactional(readOnly = true)

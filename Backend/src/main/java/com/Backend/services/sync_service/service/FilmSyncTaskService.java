@@ -10,6 +10,8 @@ import com.Backend.services.sync_service.model.SyncRetryDecision;
 import com.Backend.services.sync_service.model.SyncTask;
 import com.Backend.services.sync_service.model.SyncTaskStatus;
 import com.Backend.services.sync_service.repository.SyncTaskRepository;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.EnumSet;
@@ -38,9 +40,22 @@ public class FilmSyncTaskService {
     private final FilmRepository filmRepository;
     private final TmdbClient tmdbClient;
     private final Map<SyncCategory, FilmSyncProcessor> processors;
+    private final MeterRegistry meterRegistry;
 
     @Value("${sync.retry.max-attempts:8}")
     private int defaultMaxAttempts;
+
+    @Value("${sync.retry.max-attempts.credits:${sync.retry.max-attempts:8}}")
+    private int creditsMaxAttempts;
+
+    @Value("${sync.retry.max-attempts.keyword:${sync.retry.max-attempts:8}}")
+    private int keywordMaxAttempts;
+
+    @Value("${sync.retry.max-attempts.genre:${sync.retry.max-attempts:8}}")
+    private int genreMaxAttempts;
+
+    @Value("${sync.retry.max-attempts.recommendation:${sync.retry.max-attempts:8}}")
+    private int recommendationMaxAttempts;
 
     @Value("${recommendation.sync.scheduler.max-tasks-per-tick:5}")
     private int recommendationMaxTasksPerTick;
@@ -56,12 +71,14 @@ public class FilmSyncTaskService {
             SyncRetryPolicy syncRetryPolicy,
             FilmRepository filmRepository,
             TmdbClient tmdbClient,
+            MeterRegistry meterRegistry,
             List<FilmSyncProcessor> processors
     ) {
         this.syncTaskRepository = syncTaskRepository;
         this.syncRetryPolicy = syncRetryPolicy;
         this.filmRepository = filmRepository;
         this.tmdbClient = tmdbClient;
+        this.meterRegistry = meterRegistry;
         this.processors = processors.stream()
                 .collect(Collectors.toUnmodifiableMap(FilmSyncProcessor::getCategory, Function.identity()));
     }
@@ -137,6 +154,8 @@ public class FilmSyncTaskService {
             return;
         }
 
+        int resolvedMaxAttempts = resolveMaxAttempts(category);
+
         SyncTask task = syncTaskRepository
                 .findByFilmInternalIdAndSyncCategory(film.getInternalId(), category)
                 .orElseGet(() -> SyncTask.builder()
@@ -144,7 +163,7 @@ public class FilmSyncTaskService {
                         .tmdbId(tmdbId)
                         .syncCategory(category)
                         .attempts(0)
-                        .maxAttempts(Math.max(1, defaultMaxAttempts))
+                .maxAttempts(resolvedMaxAttempts)
                         .status(SyncTaskStatus.PENDING)
                         .build());
 
@@ -152,11 +171,11 @@ public class FilmSyncTaskService {
             task.setAttempts(0);
         }
 
-        if (task.getMaxAttempts() == null || task.getMaxAttempts() < 1) {
-            task.setMaxAttempts(Math.max(1, defaultMaxAttempts));
-        }
         if (task.getAttempts() == null || task.getAttempts() < 0) {
             task.setAttempts(0);
+        }
+        if (task.getMaxAttempts() == null || task.getMaxAttempts() < 1 || task.getAttempts() == 0) {
+            task.setMaxAttempts(resolvedMaxAttempts);
         }
 
         task.setTmdbId(tmdbId);
@@ -175,6 +194,8 @@ public class FilmSyncTaskService {
             return new SyncRetryEnqueueResult(false, true, "INVALID_INPUT", "Missing sync input for retry enqueue");
         }
 
+        int resolvedMaxAttempts = resolveMaxAttempts(category);
+
         try {
             SyncTask task = syncTaskRepository
                     .findByFilmInternalIdAndSyncCategory(film.getInternalId(), category)
@@ -183,15 +204,15 @@ public class FilmSyncTaskService {
                             .tmdbId(tmdbId)
                             .syncCategory(category)
                             .attempts(0)
-                            .maxAttempts(Math.max(1, defaultMaxAttempts))
+                            .maxAttempts(resolvedMaxAttempts)
                             .status(SyncTaskStatus.PENDING)
                             .build());
 
-            if (task.getMaxAttempts() == null || task.getMaxAttempts() < 1) {
-                task.setMaxAttempts(Math.max(1, defaultMaxAttempts));
-            }
             if (task.getAttempts() == null || task.getAttempts() < 0) {
                 task.setAttempts(0);
+            }
+            if (task.getMaxAttempts() == null || task.getMaxAttempts() < 1 || task.getAttempts() == 0) {
+                task.setMaxAttempts(resolvedMaxAttempts);
             }
 
             int nextAttempt = task.getAttempts() + 1;
@@ -207,6 +228,7 @@ public class FilmSyncTaskService {
             if (retryable) {
                 task.setStatus(nextAttempt <= 1 ? SyncTaskStatus.PENDING : SyncTaskStatus.RETRYING);
                 task.setNextRetryAt(Instant.now().plus(decision.delay()));
+                recordRetryScheduled(category, decision.errorCode());
             } else {
                 task.setStatus(SyncTaskStatus.FAILED_PERMANENT);
                 task.setNextRetryAt(null);
@@ -444,6 +466,7 @@ public class FilmSyncTaskService {
             task.setLastErrorMessage(ex.getMessage());
             long jitterMs = ThreadLocalRandom.current().nextLong(250L, 1250L);
             task.setNextRetryAt(Instant.now().plus(ex.getRetryDelay()).plusMillis(jitterMs));
+            recordRetryScheduled(category, ex.getErrorCode());
 
             log.debug("Deferred sync for category={} filmInternalId={} tmdbId={} reason={}",
                     category, task.getFilmInternalId(), task.getTmdbId(), ex.getMessage());
@@ -452,7 +475,7 @@ public class FilmSyncTaskService {
                 task.setAttempts(0);
             }
             if (task.getMaxAttempts() == null || task.getMaxAttempts() < 1) {
-                task.setMaxAttempts(Math.max(1, defaultMaxAttempts));
+                task.setMaxAttempts(resolveMaxAttempts(category));
             }
 
             int nextAttempt = task.getAttempts() + 1;
@@ -465,6 +488,7 @@ public class FilmSyncTaskService {
             if (decision.retryable() && nextAttempt < task.getMaxAttempts()) {
                 task.setStatus(SyncTaskStatus.RETRYING);
                 task.setNextRetryAt(Instant.now().plus(decision.delay()));
+                recordRetryScheduled(category, decision.errorCode());
                 log.warn("Sync retry scheduled for category={} filmInternalId={} tmdbId={} attempt={} nextRetryAt={} code={}",
                         category,
                         task.getFilmInternalId(),
@@ -512,6 +536,7 @@ public class FilmSyncTaskService {
                     errorCode,
                     safeMessage
             );
+                    incrementPermanentFailureMetric(category, errorCode);
             return;
         }
 
@@ -526,6 +551,38 @@ public class FilmSyncTaskService {
                 safeMessage,
                 error
         );
+
+        incrementPermanentFailureMetric(category, errorCode);
+    }
+
+    private int resolveMaxAttempts(SyncCategory category) {
+        int fallback = Math.max(1, defaultMaxAttempts);
+        if (category == null) {
+            return fallback;
+        }
+
+        return switch (category) {
+            case CREDITS -> Math.max(1, creditsMaxAttempts);
+            case KEYWORD -> Math.max(1, keywordMaxAttempts);
+            case GENRE -> Math.max(1, genreMaxAttempts);
+            case RECOMMENDATION -> Math.max(1, recommendationMaxAttempts);
+        };
+    }
+
+    private void recordRetryScheduled(SyncCategory category, String errorCode) {
+        Counter.builder("sync.retry.scheduled")
+                .tag("category", category == null ? "unknown" : category.name())
+                .tag("errorCode", errorCode == null ? "UNKNOWN" : errorCode)
+                .register(meterRegistry)
+                .increment();
+    }
+
+    private void incrementPermanentFailureMetric(SyncCategory category, String errorCode) {
+        Counter.builder("sync.failure.permanent")
+                .tag("category", category == null ? "unknown" : category.name())
+                .tag("errorCode", errorCode == null ? "UNKNOWN" : errorCode)
+                .register(meterRegistry)
+                .increment();
     }
 
     private record SyncRetryEnqueueResult(

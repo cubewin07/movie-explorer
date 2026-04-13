@@ -3,16 +3,13 @@ package com.Backend.services.genre_service.service;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.genre_service.model.Genre;
 import com.Backend.services.genre_service.model.UserGenreWeight;
-import com.Backend.services.genre_service.model.UserGenreWeightId;
 import com.Backend.services.genre_service.repository.UserGenreWeightRepository;
 import com.Backend.services.user_service.model.User;
-import com.Backend.services.user_service.model.UserFilmReference;
 import com.Backend.services.user_service.repository.UserFilmReferenceRepository;
 import com.Backend.services.watchlist_service.model.WatchlistItem;
 import com.Backend.services.watchlist_service.repository.WatchlistItemRepository;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -51,38 +48,25 @@ public class GenreWeightService {
             return;
         }
 
-        userFilmReferenceRepository.ensureUserFilmReference(user.getId());
-        UserFilmReference userReference = userFilmReferenceRepository.findById(user.getId()).orElse(null);
-        if (userReference == null) {
+        Long userId = user.getId();
+        Long genreId = genre.getGenreId();
+        String type = genre.getType().name();
+
+        userFilmReferenceRepository.ensureUserFilmReference(userId);
+
+        int updated = userGenreWeightRepository.incrementWeight(userId, genreId, delta, type);
+        if (updated == 0 && delta <= 0) {
             return;
         }
 
-        UserGenreWeightId id = new UserGenreWeightId(user.getId(), genre.getGenreId());
-        UserGenreWeight current = userGenreWeightRepository.findById(id).orElse(null);
-
-        if (current == null) {
-            if (delta <= 0) {
-                return;
+        if (updated == 0) {
+            int inserted = userGenreWeightRepository.insertIfAbsent(userId, genreId, delta, type);
+            if (inserted == 0) {
+                userGenreWeightRepository.incrementWeight(userId, genreId, delta, type);
             }
-            UserGenreWeight created = UserGenreWeight.builder()
-                    .id(id)
-                    .userReference(userReference)
-                    .genre(genre)
-                    .type(genre.getType())
-                    .weight(delta)
-                    .build();
-            userGenreWeightRepository.save(Objects.requireNonNull(created, "genre weight"));
-            return;
         }
 
-        long nextWeight = current.getWeight() + delta;
-        if (nextWeight <= 0) {
-            userGenreWeightRepository.delete(current);
-            return;
-        }
-
-        current.setWeight(nextWeight);
-        current.setType(genre.getType());
+        userGenreWeightRepository.deleteIfNonPositive(userId, genreId);
     }
 
     @Transactional

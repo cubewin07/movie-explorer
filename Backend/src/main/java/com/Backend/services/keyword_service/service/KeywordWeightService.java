@@ -2,17 +2,14 @@ package com.Backend.services.keyword_service.service;
 
 import com.Backend.services.keyword_service.model.Keyword;
 import com.Backend.services.keyword_service.model.UserKeywordWeight;
-import com.Backend.services.keyword_service.model.UserKeywordWeightId;
 import com.Backend.services.keyword_service.repository.UserKeywordWeightRepository;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.user_service.model.User;
-import com.Backend.services.user_service.model.UserFilmReference;
 import com.Backend.services.user_service.repository.UserFilmReferenceRepository;
 import com.Backend.services.watchlist_service.model.WatchlistItem;
 import com.Backend.services.watchlist_service.repository.WatchlistItemRepository;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -51,38 +48,25 @@ public class KeywordWeightService {
             return;
         }
 
-        userFilmReferenceRepository.ensureUserFilmReference(user.getId());
-        UserFilmReference userReference = userFilmReferenceRepository.findById(user.getId()).orElse(null);
-        if (userReference == null) {
+        Long userId = user.getId();
+        Long keywordId = keyword.getKeywordId();
+        String type = keyword.getType().name();
+
+        userFilmReferenceRepository.ensureUserFilmReference(userId);
+
+        int updated = userKeywordWeightRepository.incrementWeight(userId, keywordId, delta, type);
+        if (updated == 0 && delta <= 0) {
             return;
         }
 
-        UserKeywordWeightId id = new UserKeywordWeightId(user.getId(), keyword.getKeywordId());
-        UserKeywordWeight current = userKeywordWeightRepository.findById(id).orElse(null);
-
-        if (current == null) {
-            if (delta <= 0) {
-                return;
+        if (updated == 0) {
+            int inserted = userKeywordWeightRepository.insertIfAbsent(userId, keywordId, delta, type);
+            if (inserted == 0) {
+                userKeywordWeightRepository.incrementWeight(userId, keywordId, delta, type);
             }
-            UserKeywordWeight created = UserKeywordWeight.builder()
-                    .id(id)
-                    .userReference(userReference)
-                    .keyword(keyword)
-                    .type(keyword.getType())
-                    .weight(delta)
-                    .build();
-            userKeywordWeightRepository.save(Objects.requireNonNull(created, "keyword weight"));
-            return;
         }
 
-        long nextWeight = current.getWeight() + delta;
-        if (nextWeight <= 0) {
-            userKeywordWeightRepository.delete(current);
-            return;
-        }
-
-        current.setWeight(nextWeight);
-        current.setType(keyword.getType());
+        userKeywordWeightRepository.deleteIfNonPositive(userId, keywordId);
     }
 
     @Transactional
