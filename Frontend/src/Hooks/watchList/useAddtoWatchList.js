@@ -36,6 +36,7 @@ export default function useAddToWatchlist(token) {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: watchlistQueryKey() });
+            queryClient.invalidateQueries({ queryKey: ['memberRecommendations'] });
             queryClient.invalidateQueries({ queryKey: ['userInfo', token] });
             toast.success('Added to your watchlist!');
         },
