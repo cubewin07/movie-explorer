@@ -9,10 +9,8 @@ import com.Backend.services.film_service.service.FilmService;
 import com.Backend.services.genre_service.service.GenreWeightService;
 import com.Backend.services.keyword_service.service.KeywordWeightService;
 import com.Backend.services.language_service.service.LanguageWeightService;
-import com.Backend.services.sync_service.model.SyncAttemptResult;
-import com.Backend.services.sync_service.model.SyncCategory;
-import com.Backend.services.sync_service.service.FilmSyncTaskService;
 import com.Backend.services.user_service.model.User;
+import com.Backend.services.watchlist_service.event.WatchlistItemAddedEvent;
 import com.Backend.services.watchlist_service.model.Watchlist;
 import com.Backend.services.watchlist_service.model.WatchlistDTO;
 import com.Backend.services.watchlist_service.model.WatchlistItem;
@@ -23,9 +21,11 @@ import com.Backend.services.watchlist_service.repository.WatchlistRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
@@ -40,11 +40,11 @@ public class WatchlistService {
     private final WatchlistRepository watchlistRepository;
     private final WatchlistItemRepository watchlistItemRepository;
     private final FilmService filmService;
-    private final FilmSyncTaskService filmSyncTaskService;
     private final CreditWeightService creditWeightService;
     private final KeywordWeightService keywordWeightService;
     private final GenreWeightService genreWeightService;
     private final LanguageWeightService languageWeightService;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Cacheable(value = "watchlist", key = "#user.id")
     @Transactional
@@ -91,87 +91,20 @@ public class WatchlistService {
                 .watchlist(watchlist)
                 .film(film)
                 .build();
-        watchlistItemRepository.save(Objects.requireNonNull(item, "watchlist item"));
-
-        SyncAttemptResult creditsSync = attemptImmediateSyncNonBlocking(film, posting.id(), SyncCategory.CREDITS, user);
-        SyncAttemptResult keywordSync = attemptImmediateSyncNonBlocking(film, posting.id(), SyncCategory.KEYWORD, user);
-        SyncAttemptResult genreSync = attemptImmediateSyncNonBlocking(film, posting.id(), SyncCategory.GENRE, user);
-
-        // Recommendation ingestion is queue-first to protect add-to-watchlist latency and TMDB budget.
         try {
-            filmSyncTaskService.enqueuePendingSync(film, posting.id(), SyncCategory.RECOMMENDATION);
-        } catch (RuntimeException ex) {
-            log.error("Failed to enqueue recommendation sync for userId={} filmInternalId={} tmdbId={}",
-                    user.getId(), film.getInternalId(), posting.id(), ex);
+            watchlistItemRepository.save(Objects.requireNonNull(item, "watchlist item"));
+        } catch (DataIntegrityViolationException ex) {
+            throw new DuplicateWatchlistItemException("Movie/Series already in watchlist");
         }
 
-        if (!creditsSync.wasSynced() && creditsSync.syncSucceeded()) {
-            creditWeightService.backfillWeightsForFilm(film);
-        } else if (Boolean.TRUE.equals(film.getCreditsSyncCompleted())) {
-            creditWeightService.adjustWeightsForFilm(watchlist.getUser(), film, 1L);
-        }
+        eventPublisher.publishEvent(new WatchlistItemAddedEvent(
+                user.getId(),
+                film.getInternalId(),
+                posting.id(),
+                posting.type()
+        ));
 
-        if (!keywordSync.wasSynced() && keywordSync.syncSucceeded()) {
-            keywordWeightService.backfillWeightsForFilm(film);
-        } else if (Boolean.TRUE.equals(film.getKeywordSyncCompleted())) {
-            keywordWeightService.adjustWeightsForFilm(watchlist.getUser(), film, 1L);
-        }
-
-        if (!genreSync.wasSynced() && genreSync.syncSucceeded()) {
-            genreWeightService.backfillWeightsForFilm(film);
-        } else if (Boolean.TRUE.equals(film.getGenreSyncCompleted())) {
-            genreWeightService.adjustWeightsForFilm(watchlist.getUser(), film, 1L);
-        }
-
-        languageWeightService.adjustWeightsForFilm(watchlist.getUser(), film, 1L);
-
-        logImmediateSyncSummary(user, film, posting.id(), creditsSync, keywordSync, genreSync);
         log.info("Film tmdbId: {} successfully added to watchlist for user: {}", posting.id(), user.getUsername());
-    }
-
-    private SyncAttemptResult attemptImmediateSyncNonBlocking(
-            Film film,
-            Long tmdbId,
-            SyncCategory category,
-            User user
-    ) {
-        try {
-            return filmSyncTaskService.syncNowOrQueue(film, tmdbId, category);
-        } catch (RuntimeException ex) {
-            log.error("Immediate sync crashed for category={} userId={} filmInternalId={} tmdbId={}",
-                    category, user.getId(), film != null ? film.getInternalId() : null, tmdbId, ex);
-            return SyncAttemptResult.failedWithoutRetry(false, "IMMEDIATE_SYNC_CRASH", ex.getMessage());
-        }
-    }
-
-    private void logImmediateSyncSummary(
-            User user,
-            Film film,
-            Long tmdbId,
-            SyncAttemptResult credits,
-            SyncAttemptResult keyword,
-            SyncAttemptResult genre
-    ) {
-        if (credits.failedPermanently() || keyword.failedPermanently() || genre.failedPermanently()) {
-            log.error("Sync permanent failure after add-to-watchlist userId={} filmInternalId={} tmdbId={} creditsCode={} keywordCode={} genreCode={}",
-                    user.getId(),
-                    film != null ? film.getInternalId() : null,
-                    tmdbId,
-                    credits.errorCode(),
-                    keyword.errorCode(),
-                    genre.errorCode());
-            return;
-        }
-
-        if (!credits.syncSucceeded() || !keyword.syncSucceeded() || !genre.syncSucceeded()) {
-            log.warn("Sync deferred after add-to-watchlist userId={} filmInternalId={} tmdbId={} creditsCode={} keywordCode={} genreCode={}",
-                    user.getId(),
-                    film != null ? film.getInternalId() : null,
-                    tmdbId,
-                    credits.errorCode(),
-                    keyword.errorCode(),
-                    genre.errorCode());
-        }
     }
 
     @Transactional

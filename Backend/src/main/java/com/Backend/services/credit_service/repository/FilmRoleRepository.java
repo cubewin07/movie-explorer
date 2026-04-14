@@ -7,5 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface FilmRoleRepository extends JpaRepository<FilmRole, Long> {
     boolean existsByFilm_InternalIdAndCredit_CreditsIdAndRole_RoleId(Long filmId, Long creditId, Long roleId);
 
+    boolean existsByFilm_InternalId(Long filmInternalId);
+
     List<FilmRole> findAllByFilm_InternalId(Long filmInternalId);
 }
