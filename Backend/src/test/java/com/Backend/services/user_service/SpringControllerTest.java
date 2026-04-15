@@ -39,6 +39,8 @@ import com.Backend.services.user_service.model.ROLE;
 import com.Backend.services.user_service.repository.UserFilmReferenceRepository;
 import com.Backend.services.user_service.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import com.Backend.services.watchlist_service.model.WatchlistItemId;
 import com.Backend.services.watchlist_service.model.WatchlistPosting;
 import com.Backend.services.watchlist_service.repository.WatchlistItemRepository;
@@ -137,6 +139,9 @@ class SpringControllerTest {
 
         @Autowired
         private PlatformTransactionManager transactionManager;
+
+        @Autowired
+        private MeterRegistry meterRegistry;
 
         @MockBean
         private TmdbClient tmdbClient;
@@ -1190,6 +1195,13 @@ class SpringControllerTest {
                 .map(row -> ((Number) row.get("internalFilmId")).longValue())
                 .toList();
         assertThat(returnedIds).doesNotContain(sourceFilm.getInternalId());
+
+        Timer recommendationLatency = meterRegistry.find("recommendation.endpoint.latency")
+                .tag("endpoint", "get_recommendations")
+                .tag("outcome", "success")
+                .timer();
+        assertThat(recommendationLatency).isNotNull();
+        assertThat(recommendationLatency.count()).isGreaterThan(0);
     }
 
     @Test
