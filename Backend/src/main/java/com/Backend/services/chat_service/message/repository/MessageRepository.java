@@ -4,6 +4,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 
 import com.Backend.services.chat_service.message.model.Message;
 
@@ -11,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface MessageRepository extends JpaRepository<Message, Long>{
+    @EntityGraph(attributePaths = {"sender"})
     Page<Message> findByChatIdOrderByCreatedAtDesc(Long chatId, Pageable pageable);
 
     Set<Message> findByChat_IdAndSender_IdNotAndIsReadFalse(Long chatId, Long senderId);
@@ -20,6 +22,7 @@ public interface MessageRepository extends JpaRepository<Message, Long>{
      * @param chatId The ID of the chat
      * @return Optional containing the latest message if it exists, empty otherwise
      */
+    @EntityGraph(attributePaths = {"sender"})
     Optional<Message> findTopByChatIdOrderByCreatedAtDesc(Long chatId);
 
     // Delete all messages belonging to a chat to avoid FK violations on chat deletion

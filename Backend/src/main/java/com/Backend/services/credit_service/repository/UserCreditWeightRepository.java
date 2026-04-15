@@ -3,12 +3,14 @@ package com.Backend.services.credit_service.repository;
 import com.Backend.services.credit_service.model.UserCreditWeight;
 import com.Backend.services.credit_service.model.UserCreditWeightId;
 import java.util.List;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface UserCreditWeightRepository extends JpaRepository<UserCreditWeight, UserCreditWeightId> {
+    @EntityGraph(attributePaths = {"role"})
     List<UserCreditWeight> findAllByUserReference_User_Id(Long userId);
 
     @Modifying

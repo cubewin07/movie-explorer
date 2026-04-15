@@ -20,6 +20,13 @@ public class UserLookUpHelper {
                 .orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
     }
 
+    @Transactional(readOnly = true)
+    public User getUserByIdWithWatchlist(Long id) {
+        log.debug("Fetching user by id={} with watchlist graph from database", id);
+        return userRepository.findByIdWithWatchlistGraph(id)
+                .orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
+    }
+
     @Cacheable(value = "userId", key = "#email")
     public Long getUserIdByEmail(String email) {
         log.debug("Fetching user id by email={} from database", email);

@@ -178,10 +178,37 @@ public class UserService {
     @Cacheable(value = "userMeDTO", key = "#principal.email")
     public UserMeDTO getMeDTO(User principal) {
         log.debug("Fetching UserMeDTO for email={} from database", principal.getEmail());
-        
-        // Load with entity graph
-        User user = userRepository.findByEmail(principal.getEmail())
+
+                User user = userRepository.findByEmailWithProfileGraph(principal.getEmail())
                 .orElseThrow(() -> new UserNotFoundException("User with email " + principal.getEmail() + " not found"));
+        List<FriendDTO> requestsFrom = userRepository.findWithRequestsFrom(user.getId())
+                .map(User::getRequestsFrom)
+                .orElse(List.of())
+                .stream()
+                .map(f -> new FriendDTO(
+                        new SimpleUserDTO(
+                                f.getUser2().getId(),
+                                f.getUser2().getEmail(),
+                                f.getUser2().getRealUsername()
+                        ),
+                        f.getStatus(),
+                        f.getCreatedAt()
+                ))
+                .toList();
+        List<FriendDTO> requestsTo = userRepository.findWithRequestsToById(user.getId())
+                .map(User::getRequestsTo)
+                .orElse(List.of())
+                .stream()
+                .map(f -> new FriendDTO(
+                        new SimpleUserDTO(
+                                f.getUser1().getId(),
+                                f.getUser1().getEmail(),
+                                f.getUser1().getRealUsername()
+                        ),
+                        f.getStatus(),
+                        f.getCreatedAt()
+                ))
+                .toList();
 
         // Base info
         UserMeDTO dto = new UserMeDTO();
@@ -210,35 +237,8 @@ public class UserService {
                     .toList());
         }
 
-        // Requests From (user1 = me) -> other is user2
-        if (user.getRequestsFrom() != null) {
-            dto.setRequestsFrom(user.getRequestsFrom().stream()
-                    .map(f -> new FriendDTO(
-                            new SimpleUserDTO(
-                                    f.getUser2().getId(),
-                                    f.getUser2().getEmail(),
-                                    f.getUser2().getRealUsername()
-                            ),
-                            f.getStatus(),
-                            f.getCreatedAt()
-                    ))
-                    .toList());
-        }
-
-        // Requests To (user2 = me) -> other is user1
-        if (user.getRequestsTo() != null) {
-            dto.setRequestsTo(user.getRequestsTo().stream()
-                    .map(f -> new FriendDTO(
-                            new SimpleUserDTO(
-                                    f.getUser1().getId(),
-                                    f.getUser1().getEmail(),
-                                    f.getUser1().getRealUsername()
-                            ),
-                            f.getStatus(),
-                            f.getCreatedAt()
-                    ))
-                    .toList());
-        }
+        dto.setRequestsFrom(requestsFrom);
+        dto.setRequestsTo(requestsTo);
 
         // Chats with participants and latest message
         if (user.getChats() != null) {
@@ -270,10 +270,10 @@ public class UserService {
     }
 
     public GetInfoDTO getInfoDTO(User principal, Long id) {
+                User info = lookUpHelper.getUserByIdWithWatchlist(id);
         if(friendService.isFriend(principal, id)) {
             log.info("Fetching info for friend id={} from database", id);
             Status status = friendService.getFriendStatus(principal, id);
-            User info = lookUpHelper.getUserById(id);
             return GetInfoDTO.builder()
                     .id(info.getId())
                     .email(info.getEmail())
@@ -283,7 +283,6 @@ public class UserService {
                     .build();
         } else {
             log.info("No friend ship found for user id={} and friend id={}", principal.getId(), id);
-            User info = lookUpHelper.getUserById(id);
             return GetInfoDTO.builder()
                     .id(info.getId())
                     .email(info.getEmail())

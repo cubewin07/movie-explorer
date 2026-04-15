@@ -4,6 +4,7 @@ import com.Backend.services.friend_service.model.Friend;
 import com.Backend.services.friend_service.model.FriendIdEb;
 import com.Backend.services.friend_service.model.Status;
 import com.Backend.services.user_service.model.User;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,11 +22,16 @@ public interface FriendRepo extends JpaRepository<Friend, FriendIdEb> {
             """)
     Optional<Friend> findFriendshipBetween(@Param("user1") User user1, @Param("user2") User user2);
 
+    @EntityGraph(attributePaths = {"user1", "user2"})
     List<Friend> findByUser1AndStatus(User user1, Status status);
+
+    @EntityGraph(attributePaths = {"user1", "user2"})
     List<Friend> findByUser2AndStatus(User user2, Status status);
 
     @Query("""
-            SELECT f FROM Friend f 
+            SELECT DISTINCT f FROM Friend f
+            JOIN FETCH f.user1
+            JOIN FETCH f.user2
             WHERE (f.user1 = :user AND f.status = :status) 
             OR (f.user2 = :user AND f.status = :status)
             """)
