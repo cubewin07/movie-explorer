@@ -34,37 +34,37 @@ public class RecommendationController {
     private final RecommendationQueryService recommendationQueryService;
     private final RecommendationService recommendationService;
     private final MeterRegistry meterRegistry;
-        private final Timer recommendationSuccessLatencyTimer;
-        private final Timer recommendationErrorLatencyTimer;
+    private final Timer recommendationSuccessLatencyTimer;
+    private final Timer recommendationErrorLatencyTimer;
 
-        public RecommendationController(
+    public RecommendationController(
             RecommendationQueryService recommendationQueryService,
             RecommendationService recommendationService,
             MeterRegistry meterRegistry
-        ) {
+    ) {
         this.recommendationQueryService = recommendationQueryService;
         this.recommendationService = recommendationService;
         this.meterRegistry = meterRegistry;
         this.recommendationSuccessLatencyTimer = buildRecommendationLatencyTimer("success");
         this.recommendationErrorLatencyTimer = buildRecommendationLatencyTimer("error");
-        }
+    }
 
-        private Timer buildRecommendationLatencyTimer(String outcome) {
+    private Timer buildRecommendationLatencyTimer(String outcome) {
         return Timer.builder(RECOMMENDATION_ENDPOINT_LATENCY_METRIC)
-            .description("Latency histogram for GET /recommendations")
-            .tag("endpoint", "get_recommendations")
-            .tag("outcome", outcome)
-            .publishPercentileHistogram()
-            .serviceLevelObjectives(
-                Duration.ofMillis(50),
-                Duration.ofMillis(100),
-                Duration.ofMillis(250),
-                Duration.ofMillis(500),
-                Duration.ofSeconds(1),
-                Duration.ofSeconds(2)
-            )
-            .register(meterRegistry);
-        }
+                .description("Latency histogram for GET /recommendations")
+                .tag("endpoint", "get_recommendations")
+                .tag("outcome", outcome)
+                .publishPercentileHistogram()
+                .serviceLevelObjectives(
+                        Duration.ofMillis(50),
+                        Duration.ofMillis(100),
+                        Duration.ofMillis(250),
+                        Duration.ofMillis(500),
+                        Duration.ofSeconds(1),
+                        Duration.ofSeconds(2)
+                )
+                .register(meterRegistry);
+    }
 
     @GetMapping()
     @Operation(summary = "Get current user ranked recommendations")

@@ -9,6 +9,7 @@ import com.Backend.services.sync_service.service.SyncRetryPolicy;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
+import java.util.Locale;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,9 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class SyncTaskHelper {
+
+    private static final String SYNC_RETRY_SCHEDULED_METRIC = "sync.retry.scheduled";
+    private static final String SYNC_FAILURE_PERMANENT_METRIC = "sync.failure.permanent";
 
     private final SyncRetryPolicy syncRetryPolicy;
     private final SyncTaskRepository syncTaskRepository;
@@ -93,11 +97,7 @@ public class SyncTaskHelper {
     }
 
     public void recordRetryScheduled(SyncCategory category, String errorCode) {
-        Counter.builder("sync.retry.scheduled")
-                .tag("category", category == null ? "unknown" : category.name())
-                .tag("errorCode", errorCode == null ? "UNKNOWN" : errorCode)
-                .register(meterRegistry)
-                .increment();
+        counterFor(SYNC_RETRY_SCHEDULED_METRIC, category, errorCode).increment();
     }
 
     public void logPermanentFailure(
@@ -142,10 +142,32 @@ public class SyncTaskHelper {
     }
 
     private void incrementPermanentFailureMetric(SyncCategory category, String errorCode) {
-        Counter.builder("sync.failure.permanent")
-                .tag("category", category == null ? "unknown" : category.name())
-                .tag("errorCode", errorCode == null ? "UNKNOWN" : errorCode)
-                .register(meterRegistry)
-                .increment();
+        counterFor(SYNC_FAILURE_PERMANENT_METRIC, category, errorCode).increment();
+    }
+
+    private Counter counterFor(String metricName, SyncCategory category, String errorCode) {
+        // Keep tag cardinality bounded so transient error text does not create unbounded meter series.
+        return meterRegistry.counter(
+                metricName,
+                "category", category == null ? "unknown" : category.name(),
+                "errorCode", normalizeErrorCode(errorCode)
+        );
+    }
+
+    private String normalizeErrorCode(String errorCode) {
+        if (errorCode == null || errorCode.isBlank()) {
+            return "UNKNOWN";
+        }
+
+        String normalized = errorCode.trim().toUpperCase(Locale.ROOT);
+        if (normalized.startsWith("TMDB_CLIENT_")) {
+            return "TMDB_CLIENT";
+        }
+
+        return switch (normalized) {
+            case "TMDB_429", "TMDB_5XX", "TMDB_AUTH", "TMDB_NOT_FOUND", "TMDB_NETWORK",
+                    "LOCAL_BUDGET_DEFERRED", "FILM_NOT_FOUND", "SYNC_CATEGORY_UNSUPPORTED", "FILM_TYPE_MISSING" -> normalized;
+            default -> normalized.startsWith("TMDB_") ? "TMDB_OTHER" : "OTHER";
+        };
     }
 }
