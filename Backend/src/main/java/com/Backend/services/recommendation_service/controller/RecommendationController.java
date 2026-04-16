@@ -74,15 +74,15 @@ public class RecommendationController {
             @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ErrorRes.class)))
     })
     public ResponseEntity<List<RecommendationResultDTO>> getRecommendations(@AuthenticationPrincipal User user) {
-        Timer.Sample sample = Timer.start(meterRegistry);
-        boolean success = false;
-        try {
+        // Timer.Sample sample = Timer.start(meterRegistry);
+        // boolean success = false;
+        // try {
             ResponseEntity<List<RecommendationResultDTO>> response = ResponseEntity.ok(recommendationQueryService.getRecommendationsForUser(user));
-            success = true;
+            // success = true;
             return response;
-        } finally {
-            sample.stop(success ? recommendationSuccessLatencyTimer : recommendationErrorLatencyTimer);
-        }
+        // } finally {
+        //     sample.stop(success ? recommendationSuccessLatencyTimer : recommendationErrorLatencyTimer);
+        // }
     }
 
     @GetMapping("/similar")
