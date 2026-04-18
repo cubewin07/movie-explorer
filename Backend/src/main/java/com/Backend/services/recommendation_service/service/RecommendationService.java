@@ -16,10 +16,9 @@ import com.Backend.services.recommendation_service.model.RecommendationId;
 import com.Backend.services.recommendation_service.repository.RecommendationRepository;
 import com.Backend.services.sync_service.model.LocalBudgetDeferException;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -31,6 +30,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -50,6 +50,7 @@ public class RecommendationService {
     private final GenreRepository genreRepository;
     private final RecommendationRepository recommendationRepository;
     private final TransactionTemplate transactionTemplate;
+    private final TaskScheduler taskScheduler;
 
     @Value("${recommendation.sync.max-similar-per-film:20}")
     private int maxSimilarPerFilm;
@@ -66,6 +67,9 @@ public class RecommendationService {
     @Value("${recommendation.sync.similar-followup-delay-ms:10000}")
     private long similarFollowupDelayMs;
 
+    @Value("${recommendation.sync.similar-followup-enabled:true}")
+    private boolean similarFollowupEnabled;
+
     public List<TmdbSimilarItem> getSimilarAndScheduleRecommendationSync(Long tmdbId, FilmType type) {
         if (tmdbId == null || type == null) {
             return List.of();
@@ -76,22 +80,31 @@ public class RecommendationService {
             return List.of();
         }
 
+        if (!similarFollowupEnabled) {
+            return similarItems;
+        }
+
         List<TmdbSimilarItem> similarItemsSnapshot = List.copyOf(similarItems);
         long delayMs = Math.max(0L, similarFollowupDelayMs);
 
-        CompletableFuture.runAsync(() -> {
-            try {
-                LocalBudgetDeferException deferred = runSnapshotSyncInTransaction(tmdbId, type, similarItemsSnapshot);
-                if (deferred != null) {
-                    log.debug("Deferred delayed recommendation sync for tmdbId={} type={} reason={}",
-                            tmdbId, type, deferred.getMessage());
-                }
-            } catch (RuntimeException ex) {
-                log.warn("Failed delayed recommendation sync for tmdbId={} type={}", tmdbId, type, ex);
-            }
-        }, CompletableFuture.delayedExecutor(delayMs, TimeUnit.MILLISECONDS));
+        taskScheduler.schedule(
+                () -> runDelayedRecommendationSync(tmdbId, type, similarItemsSnapshot),
+            Objects.requireNonNull(Instant.now().plusMillis(delayMs))
+        );
 
         return similarItems;
+    }
+
+    private void runDelayedRecommendationSync(Long tmdbId, FilmType type, List<TmdbSimilarItem> similarItemsSnapshot) {
+        try {
+            LocalBudgetDeferException deferred = runSnapshotSyncInTransaction(tmdbId, type, similarItemsSnapshot);
+            if (deferred != null) {
+                log.debug("Deferred delayed recommendation sync for tmdbId={} type={} reason={}",
+                        tmdbId, type, deferred.getMessage());
+            }
+        } catch (RuntimeException ex) {
+            log.warn("Failed delayed recommendation sync for tmdbId={} type={}", tmdbId, type, ex);
+        }
     }
 
     @Transactional(noRollbackFor = LocalBudgetDeferException.class)

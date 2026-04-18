@@ -16,6 +16,7 @@ import com.Backend.services.watchlist_service.repository.WatchlistRepository;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
@@ -35,6 +36,9 @@ public class WatchlistBackgroundSyncListener {
     private final KeywordWeightService keywordWeightService;
     private final GenreWeightService genreWeightService;
     private final LanguageWeightService languageWeightService;
+
+    @Value("${watchlist.sync.apply-heavy-backfill:false}")
+    private boolean applyHeavyBackfill;
 
     @Async("watchlistSyncExecutor")
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -119,19 +123,19 @@ public class WatchlistBackgroundSyncListener {
             return;
         }
 
-        if (!creditsSync.wasSynced() && creditsSync.syncSucceeded()) {
+        if (applyHeavyBackfill && !creditsSync.wasSynced() && creditsSync.syncSucceeded()) {
             creditWeightService.backfillWeightsForFilm(film);
         } else if (Boolean.TRUE.equals(film.getCreditsSyncCompleted())) {
             creditWeightService.adjustWeightsForFilm(user, film, 1L);
         }
 
-        if (!keywordSync.wasSynced() && keywordSync.syncSucceeded()) {
+        if (applyHeavyBackfill && !keywordSync.wasSynced() && keywordSync.syncSucceeded()) {
             keywordWeightService.backfillWeightsForFilm(film);
         } else if (Boolean.TRUE.equals(film.getKeywordSyncCompleted())) {
             keywordWeightService.adjustWeightsForFilm(user, film, 1L);
         }
 
-        if (!genreSync.wasSynced() && genreSync.syncSucceeded()) {
+        if (applyHeavyBackfill && !genreSync.wasSynced() && genreSync.syncSucceeded()) {
             genreWeightService.backfillWeightsForFilm(film);
         } else if (Boolean.TRUE.equals(film.getGenreSyncCompleted())) {
             genreWeightService.adjustWeightsForFilm(user, film, 1L);

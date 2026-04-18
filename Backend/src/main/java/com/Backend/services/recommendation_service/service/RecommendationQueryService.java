@@ -24,12 +24,14 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,6 +67,9 @@ public class RecommendationQueryService {
     @Value("${recommendation.scoring.new-release-boost:0.5}")
     private double newReleaseBoost;
 
+    @Value("${recommendation.query.max-candidates:0}")
+    private int maxCandidates;
+
     @Transactional(readOnly = true)
     public List<RecommendationResultDTO> getRecommendationsForUser(User user) {
         if (user == null || user.getId() == null) {
@@ -86,7 +91,15 @@ public class RecommendationQueryService {
             return List.of();
         }
 
-        Set<Long> candidateFilmInternalIds = recommendationRepository.findRecommendedFilmIdsByFilmIds(watchlistFilmInternalIds);
+        int candidateLimit = Math.max(0, maxCandidates);
+        Set<Long> candidateFilmInternalIds = candidateLimit > 0
+            ? new LinkedHashSet<>(
+                recommendationRepository.findRecommendedFilmIdsByFilmIdsLimited(
+                    watchlistFilmInternalIds,
+                    PageRequest.of(0, candidateLimit)
+                )
+            )
+            : recommendationRepository.findRecommendedFilmIdsByFilmIds(watchlistFilmInternalIds);
         if (candidateFilmInternalIds == null || candidateFilmInternalIds.isEmpty()) {
             return List.of();
         }

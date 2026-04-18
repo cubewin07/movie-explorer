@@ -9,11 +9,11 @@ spring:
     # password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
-      idle-timeout: 300000
-      max-lifetime: 1700000
-      connection-timeout: 30000
+      maximum-pool-size: ${DB_HIKARI_MAX_POOL_SIZE:5}
+      minimum-idle: ${DB_HIKARI_MIN_IDLE:1}
+      idle-timeout: ${DB_HIKARI_IDLE_TIMEOUT_MS:300000}
+      max-lifetime: ${DB_HIKARI_MAX_LIFETIME_MS:1700000}
+      connection-timeout: ${DB_HIKARI_CONNECTION_TIMEOUT_MS:60000}
   data:
     redis:
       url: ${REDIS_URL}
@@ -22,9 +22,9 @@ spring:
         enabled: true
       lettuce:
         pool:
-          max-active: 8
-          max-idle: 8
-          min-idle: 0
+          max-active: ${REDIS_POOL_MAX_ACTIVE:4}
+          max-idle: ${REDIS_POOL_MAX_IDLE:2}
+          min-idle: ${REDIS_POOL_MIN_IDLE:0}
   jpa:
     hibernate:
       ddl-auto: validate
@@ -60,6 +60,12 @@ security:
 server:
   port: ${PORT:8080}
   address: 0.0.0.0
+  connection-timeout: ${SERVER_CONNECTION_TIMEOUT:30s}
+  tomcat:
+    accept-count: ${SERVER_TOMCAT_ACCEPT_COUNT:50}
+    threads:
+      max: ${SERVER_TOMCAT_THREADS_MAX:20}
+      min-spare: ${SERVER_TOMCAT_THREADS_MIN_SPARE:5}
 
 tmdb:
   api:
@@ -67,22 +73,50 @@ tmdb:
     api-token: ${TMDB_API_TOKEN:${TMDB_API_KEY:}}
     retry:
       attempts: ${TMDB_API_RETRY_ATTEMPTS:3}
-      backoff-ms: ${TMDB_API_RETRY_BACKOFF_MS:200}
+      backoff-ms: ${TMDB_API_RETRY_BACKOFF_MS:500}
     rate-limit:
       capacity: ${TMDB_API_RATE_LIMIT_CAPACITY:40}
       refill-tokens: ${TMDB_API_RATE_LIMIT_REFILL_TOKENS:40}
       refill-period-seconds: ${TMDB_API_RATE_LIMIT_REFILL_PERIOD_SECONDS:10}
 
 recommendation:
+  query:
+    max-candidates: ${RECOMMENDATION_QUERY_MAX_CANDIDATES:0}
   sync:
     max-similar-per-film: ${RECOMMENDATION_SYNC_MAX_SIMILAR_PER_FILM:20}
-    max-requests-per-run: ${RECOMMENDATION_SYNC_MAX_REQUESTS_PER_RUN:8}
+    max-requests-per-run: ${RECOMMENDATION_SYNC_MAX_REQUESTS_PER_RUN:3}
     defer-delay-ms: ${RECOMMENDATION_SYNC_DEFER_DELAY_MS:5000}
+    similar-followup-enabled: ${RECOMMENDATION_SYNC_SIMILAR_FOLLOWUP_ENABLED:true}
     similar-followup-delay-ms: ${RECOMMENDATION_SYNC_SIMILAR_FOLLOWUP_DELAY_MS:10000}
     allow-partial-bootstrap: ${RECOMMENDATION_SYNC_ALLOW_PARTIAL_BOOTSTRAP:true}
     scheduler:
-      max-tasks-per-tick: ${RECOMMENDATION_SYNC_SCHEDULER_MAX_TASKS_PER_TICK:5}
-      reserved-tokens: ${RECOMMENDATION_SYNC_SCHEDULER_RESERVED_TOKENS:6}
+      max-tasks-per-tick: ${RECOMMENDATION_SYNC_SCHEDULER_MAX_TASKS_PER_TICK:2}
+      reserved-tokens: ${RECOMMENDATION_SYNC_SCHEDULER_RESERVED_TOKENS:2}
   scoring:
     new-release-days: ${RECOMMENDATION_SCORING_NEW_RELEASE_DAYS:365}
     new-release-boost: ${RECOMMENDATION_SCORING_NEW_RELEASE_BOOST:0.5}
+
+watchlist:
+  sync:
+    apply-heavy-backfill: ${WATCHLIST_SYNC_APPLY_HEAVY_BACKFILL:true}
+    executor:
+      core-pool-size: ${WATCHLIST_SYNC_EXECUTOR_CORE_POOL_SIZE:1}
+      max-pool-size: ${WATCHLIST_SYNC_EXECUTOR_MAX_POOL_SIZE:2}
+      queue-capacity: ${WATCHLIST_SYNC_EXECUTOR_QUEUE_CAPACITY:50}
+
+app:
+  async:
+    executor:
+      core-pool-size: ${APP_ASYNC_CORE_POOL_SIZE:1}
+      max-pool-size: ${APP_ASYNC_MAX_POOL_SIZE:2}
+      queue-capacity: ${APP_ASYNC_QUEUE_CAPACITY:50}
+      thread-name-prefix: ${APP_ASYNC_THREAD_NAME_PREFIX:app-async-}
+  scheduling:
+    pool-size: ${APP_SCHEDULING_POOL_SIZE:2}
+    thread-name-prefix: ${APP_SCHEDULING_THREAD_NAME_PREFIX:app-scheduler-}
+  recommendation:
+    followup-executor:
+      core-pool-size: ${APP_RECOMMENDATION_FOLLOWUP_CORE_POOL_SIZE:1}
+      max-pool-size: ${APP_RECOMMENDATION_FOLLOWUP_MAX_POOL_SIZE:2}
+      queue-capacity: ${APP_RECOMMENDATION_FOLLOWUP_QUEUE_CAPACITY:30}
+      thread-name-prefix: ${APP_RECOMMENDATION_FOLLOWUP_THREAD_NAME_PREFIX:recommendation-followup-}

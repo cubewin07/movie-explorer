@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.Duration;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
@@ -33,9 +32,9 @@ public class RecommendationController {
 
     private final RecommendationQueryService recommendationQueryService;
     private final RecommendationService recommendationService;
-    // private final MeterRegistry meterRegistry;
-    // private final Timer recommendationSuccessLatencyTimer;
-    // private final Timer recommendationErrorLatencyTimer;
+    private final MeterRegistry meterRegistry;
+    private final Timer recommendationSuccessLatencyTimer;
+    private final Timer recommendationErrorLatencyTimer;
 
     public RecommendationController(
             RecommendationQueryService recommendationQueryService,
@@ -44,27 +43,27 @@ public class RecommendationController {
     ) {
         this.recommendationQueryService = recommendationQueryService;
         this.recommendationService = recommendationService;
-        // this.meterRegistry = meterRegistry;
-        // this.recommendationSuccessLatencyTimer = buildRecommendationLatencyTimer("success");
-        // this.recommendationErrorLatencyTimer = buildRecommendationLatencyTimer("error");
+        this.meterRegistry = meterRegistry;
+        this.recommendationSuccessLatencyTimer = buildRecommendationLatencyTimer("success");
+        this.recommendationErrorLatencyTimer = buildRecommendationLatencyTimer("error");
     }
 
-    // private Timer buildRecommendationLatencyTimer(String outcome) {
-    //     return Timer.builder(RECOMMENDATION_ENDPOINT_LATENCY_METRIC)
-    //             .description("Latency histogram for GET /recommendations")
-    //             .tag("endpoint", "get_recommendations")
-    //             .tag("outcome", outcome)
-    //             .publishPercentileHistogram()
-    //             .serviceLevelObjectives(
-    //                     Duration.ofMillis(50),
-    //                     Duration.ofMillis(100),
-    //                     Duration.ofMillis(250),
-    //                     Duration.ofMillis(500),
-    //                     Duration.ofSeconds(1),
-    //                     Duration.ofSeconds(2)
-    //             )
-    //             .register(meterRegistry);
-    // }
+    private Timer buildRecommendationLatencyTimer(String outcome) {
+        return Timer.builder(RECOMMENDATION_ENDPOINT_LATENCY_METRIC)
+                .description("Latency histogram for GET /recommendations")
+                .tag("endpoint", "get_recommendations")
+                .tag("outcome", outcome)
+                .publishPercentileHistogram()
+                .serviceLevelObjectives(
+                        Duration.ofMillis(50),
+                        Duration.ofMillis(100),
+                        Duration.ofMillis(250),
+                        Duration.ofMillis(500),
+                        Duration.ofSeconds(1),
+                        Duration.ofSeconds(2)
+                )
+                .register(meterRegistry);
+    }
 
     @GetMapping()
     @Operation(summary = "Get current user ranked recommendations")
@@ -74,15 +73,15 @@ public class RecommendationController {
             @ApiResponse(responseCode = "500", description = "Internal server error", content = @Content(schema = @Schema(implementation = ErrorRes.class)))
     })
     public ResponseEntity<List<RecommendationResultDTO>> getRecommendations(@AuthenticationPrincipal User user) {
-        // Timer.Sample sample = Timer.start(meterRegistry);
-        // boolean success = false;
-        // try {
+        Timer.Sample sample = Timer.start(meterRegistry);
+        boolean success = false;
+        try {
             ResponseEntity<List<RecommendationResultDTO>> response = ResponseEntity.ok(recommendationQueryService.getRecommendationsForUser(user));
-            // success = true;
+            success = true;
             return response;
-        // } finally {
-        //     sample.stop(success ? recommendationSuccessLatencyTimer : recommendationErrorLatencyTimer);
-        // }
+        } finally {
+            sample.stop(success ? recommendationSuccessLatencyTimer : recommendationErrorLatencyTimer);
+        }
     }
 
     @GetMapping("/similar")
