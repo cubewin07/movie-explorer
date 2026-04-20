@@ -75,23 +75,23 @@ tmdb:
       attempts: ${TMDB_API_RETRY_ATTEMPTS:3}
       backoff-ms: ${TMDB_API_RETRY_BACKOFF_MS:500}
     rate-limit:
-      capacity: ${TMDB_API_RATE_LIMIT_CAPACITY:40}
-      refill-tokens: ${TMDB_API_RATE_LIMIT_REFILL_TOKENS:40}
-      refill-period-seconds: ${TMDB_API_RATE_LIMIT_REFILL_PERIOD_SECONDS:10}
+      capacity: ${TMDB_API_RATE_LIMIT_CAPACITY:1000}
+      refill-tokens: ${TMDB_API_RATE_LIMIT_REFILL_TOKENS:1000}
+      refill-period-seconds: ${TMDB_API_RATE_LIMIT_REFILL_PERIOD_SECONDS:1}
 
 recommendation:
   query:
     max-candidates: ${RECOMMENDATION_QUERY_MAX_CANDIDATES:0}
   sync:
-    max-similar-per-film: ${RECOMMENDATION_SYNC_MAX_SIMILAR_PER_FILM:20}
-    max-requests-per-run: ${RECOMMENDATION_SYNC_MAX_REQUESTS_PER_RUN:3}
+    max-similar-per-film: ${RECOMMENDATION_SYNC_MAX_SIMILAR_PER_FILM:500}
+    max-requests-per-run: ${RECOMMENDATION_SYNC_MAX_REQUESTS_PER_RUN:200}
     defer-delay-ms: ${RECOMMENDATION_SYNC_DEFER_DELAY_MS:5000}
     similar-followup-enabled: ${RECOMMENDATION_SYNC_SIMILAR_FOLLOWUP_ENABLED:true}
     similar-followup-delay-ms: ${RECOMMENDATION_SYNC_SIMILAR_FOLLOWUP_DELAY_MS:10000}
     allow-partial-bootstrap: ${RECOMMENDATION_SYNC_ALLOW_PARTIAL_BOOTSTRAP:true}
     scheduler:
-      max-tasks-per-tick: ${RECOMMENDATION_SYNC_SCHEDULER_MAX_TASKS_PER_TICK:2}
-      reserved-tokens: ${RECOMMENDATION_SYNC_SCHEDULER_RESERVED_TOKENS:2}
+      max-tasks-per-tick: ${RECOMMENDATION_SYNC_SCHEDULER_MAX_TASKS_PER_TICK:100}
+      reserved-tokens: ${RECOMMENDATION_SYNC_SCHEDULER_RESERVED_TOKENS:0}
   scoring:
     new-release-days: ${RECOMMENDATION_SCORING_NEW_RELEASE_DAYS:365}
     new-release-boost: ${RECOMMENDATION_SCORING_NEW_RELEASE_BOOST:0.5}
@@ -100,23 +100,23 @@ watchlist:
   sync:
     apply-heavy-backfill: ${WATCHLIST_SYNC_APPLY_HEAVY_BACKFILL:true}
     executor:
-      core-pool-size: ${WATCHLIST_SYNC_EXECUTOR_CORE_POOL_SIZE:1}
-      max-pool-size: ${WATCHLIST_SYNC_EXECUTOR_MAX_POOL_SIZE:2}
-      queue-capacity: ${WATCHLIST_SYNC_EXECUTOR_QUEUE_CAPACITY:50}
+      core-pool-size: ${WATCHLIST_SYNC_EXECUTOR_CORE_POOL_SIZE:4}
+      max-pool-size: ${WATCHLIST_SYNC_EXECUTOR_MAX_POOL_SIZE:16}
+      queue-capacity: ${WATCHLIST_SYNC_EXECUTOR_QUEUE_CAPACITY:5000}
 
 app:
   async:
     executor:
-      core-pool-size: ${APP_ASYNC_CORE_POOL_SIZE:1}
-      max-pool-size: ${APP_ASYNC_MAX_POOL_SIZE:2}
-      queue-capacity: ${APP_ASYNC_QUEUE_CAPACITY:50}
+      core-pool-size: ${APP_ASYNC_CORE_POOL_SIZE:4}
+      max-pool-size: ${APP_ASYNC_MAX_POOL_SIZE:16}
+      queue-capacity: ${APP_ASYNC_QUEUE_CAPACITY:5000}
       thread-name-prefix: ${APP_ASYNC_THREAD_NAME_PREFIX:app-async-}
   scheduling:
-    pool-size: ${APP_SCHEDULING_POOL_SIZE:2}
+    pool-size: ${APP_SCHEDULING_POOL_SIZE:8}
     thread-name-prefix: ${APP_SCHEDULING_THREAD_NAME_PREFIX:app-scheduler-}
   recommendation:
     followup-executor:
-      core-pool-size: ${APP_RECOMMENDATION_FOLLOWUP_CORE_POOL_SIZE:1}
-      max-pool-size: ${APP_RECOMMENDATION_FOLLOWUP_MAX_POOL_SIZE:2}
-      queue-capacity: ${APP_RECOMMENDATION_FOLLOWUP_QUEUE_CAPACITY:30}
+      core-pool-size: ${APP_RECOMMENDATION_FOLLOWUP_CORE_POOL_SIZE:4}
+      max-pool-size: ${APP_RECOMMENDATION_FOLLOWUP_MAX_POOL_SIZE:16}
+      queue-capacity: ${APP_RECOMMENDATION_FOLLOWUP_QUEUE_CAPACITY:5000}
       thread-name-prefix: ${APP_RECOMMENDATION_FOLLOWUP_THREAD_NAME_PREFIX:recommendation-followup-}

@@ -1,12 +1,11 @@
 # Movie Explorer
 
-A full‑stack application for discovering movies/series, managing watchlists, writing reviews, and chatting with friends in real time. Built with React (Vite) on the frontend and Spring Boot on the backend, using WebSockets (STOMP), JWT auth, PostgreSQL, and a multi‑level caching architecture (Upstash Redis + Caffeine). Production runs on Render (backend), Supabase (PostgreSQL), and Upstash (Redis); local development runs everything on your machine.
+A full‑stack application for discovering movies/series, managing watchlists, writing reviews, and chatting with friends in real time. Built with React (Vite) on the frontend and Spring Boot on the backend, using WebSockets (STOMP), JWT auth, PostgreSQL, and a multi‑level caching architecture (Upstash Redis + Caffeine). Production runs on DigitalOcean (backend), Supabase (PostgreSQL), and Upstash (Redis); local development runs everything on your machine.
 
 ## Live Demo
 
 - Frontend: https://cubewin07.github.io/movie-explorer
-- Backend API (Render): https://movie-explorer-ktn5.onrender.com
-  (This would take a few minutes to start up on Render's free tier so please be patient for the first request)
+- Backend API (DigitalOcean): https://movie-explorer-im2gm.ondigitalocean.app
 
 ## Highlights
 
@@ -75,7 +74,7 @@ A full‑stack application for discovering movies/series, managing watchlists, w
 
 - Production
   - Frontend: GitHub Pages
-  - Backend: Render (HTTP and WebSocket endpoints)
+  - Backend: DigitalOcean (HTTP and WebSocket endpoints)
   - Database: Supabase PostgreSQL
   - Cache: Upstash Redis
   - Metrics: Prometheus scraping Actuator metrics
@@ -90,7 +89,7 @@ A full‑stack application for discovering movies/series, managing watchlists, w
 
 ```
 ┌───────────────────────────┐         ┌───────────────────────────────┐
-│    Frontend (Vite/React)  │  HTTPS  │  Backend (Spring Boot/Render) │
+│    Frontend (Vite/React)  │  HTTPS  │ Backend (Spring Boot/DigitalOcean) │
 │  GitHub Pages (prod)      ├────────►│  REST + STOMP WebSockets      │
 │  Local 5173 (dev)         │         │  JWT Security + JPA/Hibernate │
 └───────────────────────────┘         └──────────────┬────────────────┘
@@ -287,7 +286,7 @@ A full‑stack application for discovering movies/series, managing watchlists, w
 
 ## Deployment Notes
 
-- Backend (Render): Provide `DATABASE_URL`, `REDIS_URL`, `SECURITY_JWT_SECRET`, etc.
+- Backend (DigitalOcean): Provide `DATABASE_URL`, `REDIS_URL`, `SECURITY_JWT_SECRET`, etc.
 - Database (Supabase): Provision Postgres and expose connection string as `DATABASE_URL`
 - Cache (Upstash): Provision Redis and use secure `REDIS_URL` (SSL enabled)
 - Frontend (GitHub Pages): Build with `vite` and deploy `dist`; CORS allowed in backend for GitHub Pages domain
@@ -312,7 +311,7 @@ A full‑stack application for discovering movies/series, managing watchlists, w
 - Building a resilient multi‑level caching layer across Redis and Caffeine
 - Orchestrating a social UX with friend requests, presence, notifications
 - Applying clean React architecture (hooks, query, modular components)
-- Operating prod services: Render, Supabase, Upstash, and Prometheus
+- Operating prod services: DigitalOcean, Supabase, Upstash, and Prometheus
 
 ## Roadmap
 

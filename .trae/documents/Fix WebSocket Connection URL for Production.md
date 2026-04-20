@@ -22,7 +22,7 @@ I will implement a dynamic WebSocket URL generator that automatically adapts to 
 
 2.  **Debugging & Verification Steps (for you):**
     *   **Localhost:** Ensure your local backend is running. The app will connect to `ws://localhost:8080/ws`.
-    *   **Production:** Deploy the changes. The app will connect to `wss://movie-explorer-ktn5.onrender.com/ws`.
+    *   **Production:** Deploy the changes. The app will connect to `wss://movie-explorer-im2gm.ondigitalocean.app/ws`.
     *   **User ID Check:** Ensure you are logged in with a valid user that exists in the *target* environment's database.
 
 **Note on Backend:**
