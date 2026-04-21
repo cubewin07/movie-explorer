@@ -258,7 +258,7 @@ public class FilmSyncTaskService {
         List<SyncTask> recommendationTasks = dueTasks.stream()
                 .filter(task -> {
                     boolean isRecommendation = task.getSyncCategory() == SyncCategory.RECOMMENDATION;
-                    if (!isRecommendation) {
+                    if (!isRecommendation) {    
                         processTask(task.getId());
                     }
                     return isRecommendation;

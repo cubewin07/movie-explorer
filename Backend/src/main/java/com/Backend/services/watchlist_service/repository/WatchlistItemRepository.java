@@ -7,6 +7,8 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface WatchlistItemRepository extends JpaRepository<WatchlistItem, WatchlistItemId> {
+	long countByWatchlist_UserId(Long userId);
+
 	@EntityGraph(attributePaths = {"watchlist", "watchlist.user"})
 	List<WatchlistItem> findAllByFilm_InternalId(Long filmInternalId);
 }

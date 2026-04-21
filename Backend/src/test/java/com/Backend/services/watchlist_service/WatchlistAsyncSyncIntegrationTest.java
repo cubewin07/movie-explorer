@@ -124,7 +124,7 @@ class WatchlistAsyncSyncIntegrationTest {
                 .atMost(Duration.ofSeconds(3))
                 .until(addFuture::isDone);
 
-        assertThat(watchlistItemRepository.count()).isEqualTo(1L);
+        assertThat(watchlistItemRepository.countByWatchlist_UserId(user.getId())).isEqualTo(1L);
 
         unblockSync.countDown();
 

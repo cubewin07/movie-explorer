@@ -81,10 +81,11 @@ tmdb:
 
 recommendation:
   query:
-    max-candidates: ${RECOMMENDATION_QUERY_MAX_CANDIDATES:0}
+    max-candidates: ${RECOMMENDATION_QUERY_MAX_CANDIDATES:80}
+    max-results: ${RECOMMENDATION_QUERY_MAX_RESULTS:40}
   sync:
-    max-similar-per-film: ${RECOMMENDATION_SYNC_MAX_SIMILAR_PER_FILM:500}
-    max-requests-per-run: ${RECOMMENDATION_SYNC_MAX_REQUESTS_PER_RUN:200}
+    max-similar-per-film: ${RECOMMENDATION_SYNC_MAX_SIMILAR_PER_FILM:50}
+    max-requests-per-run: ${RECOMMENDATION_SYNC_MAX_REQUESTS_PER_RUN:20}
     defer-delay-ms: ${RECOMMENDATION_SYNC_DEFER_DELAY_MS:5000}
     similar-followup-enabled: ${RECOMMENDATION_SYNC_SIMILAR_FOLLOWUP_ENABLED:true}
     similar-followup-delay-ms: ${RECOMMENDATION_SYNC_SIMILAR_FOLLOWUP_DELAY_MS:10000}
@@ -98,18 +99,18 @@ recommendation:
 
 watchlist:
   sync:
-    apply-heavy-backfill: ${WATCHLIST_SYNC_APPLY_HEAVY_BACKFILL:true}
+    apply-heavy-backfill: ${WATCHLIST_SYNC_APPLY_HEAVY_BACKFILL:false}
     executor:
       core-pool-size: ${WATCHLIST_SYNC_EXECUTOR_CORE_POOL_SIZE:4}
       max-pool-size: ${WATCHLIST_SYNC_EXECUTOR_MAX_POOL_SIZE:16}
-      queue-capacity: ${WATCHLIST_SYNC_EXECUTOR_QUEUE_CAPACITY:5000}
+      queue-capacity: ${WATCHLIST_SYNC_EXECUTOR_QUEUE_CAPACITY:500}
 
 app:
   async:
     executor:
       core-pool-size: ${APP_ASYNC_CORE_POOL_SIZE:4}
       max-pool-size: ${APP_ASYNC_MAX_POOL_SIZE:16}
-      queue-capacity: ${APP_ASYNC_QUEUE_CAPACITY:5000}
+      queue-capacity: ${APP_ASYNC_QUEUE_CAPACITY:500}
       thread-name-prefix: ${APP_ASYNC_THREAD_NAME_PREFIX:app-async-}
   scheduling:
     pool-size: ${APP_SCHEDULING_POOL_SIZE:8}
@@ -118,5 +119,5 @@ app:
     followup-executor:
       core-pool-size: ${APP_RECOMMENDATION_FOLLOWUP_CORE_POOL_SIZE:4}
       max-pool-size: ${APP_RECOMMENDATION_FOLLOWUP_MAX_POOL_SIZE:16}
-      queue-capacity: ${APP_RECOMMENDATION_FOLLOWUP_QUEUE_CAPACITY:5000}
+      queue-capacity: ${APP_RECOMMENDATION_FOLLOWUP_QUEUE_CAPACITY:500}
       thread-name-prefix: ${APP_RECOMMENDATION_FOLLOWUP_THREAD_NAME_PREFIX:recommendation-followup-}

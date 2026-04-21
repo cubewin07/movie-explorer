@@ -59,6 +59,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.http.MediaType;
@@ -245,6 +246,21 @@ class SpringControllerTest {
                 response.setVoteAverage(8.1);
                 response.setBackdropPath("/backdrop-series.jpg");
                 return response;
+        }
+
+        private Role ensureRoleExists(String roleCode, String roleName, RoleGroup roleGroup) {
+                return roleRepository.findByRoleCode(roleCode)
+                        .orElseGet(() -> {
+                                try {
+                                        return roleRepository.saveAndFlush(Role.builder()
+                                                .roleCode(roleCode)
+                                                .roleName(roleName)
+                                                .roleGroup(roleGroup)
+                                                .build());
+                                } catch (DataIntegrityViolationException ex) {
+                                        return roleRepository.findByRoleCode(roleCode).orElseThrow(() -> ex);
+                                }
+                        });
         }
     
     @Test
@@ -1052,12 +1068,7 @@ class SpringControllerTest {
                 .backgroundImg("/candidate-old.jpg")
                 .build());
 
-        Role directorRole = roleRepository.findByRoleCode("DIRECTOR")
-                .orElseGet(() -> roleRepository.save(Role.builder()
-                        .roleCode("DIRECTOR")
-                        .roleName("Director")
-                        .roleGroup(RoleGroup.CREW)
-                        .build()));
+        Role directorRole = ensureRoleExists("DIRECTOR", "Director", RoleGroup.CREW);
 
         Credit directorLow = creditRepository.save(Credit.builder()
                 .creditsId(710001L)

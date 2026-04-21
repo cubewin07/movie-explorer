@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -67,9 +68,13 @@ public class RecommendationQueryService {
     @Value("${recommendation.scoring.new-release-boost:0.5}")
     private double newReleaseBoost;
 
-    @Value("${recommendation.query.max-candidates:0}")
+    @Value("${recommendation.query.max-candidates:80}")
     private int maxCandidates;
 
+    @Value("${recommendation.query.max-results:40}")
+    private int maxResults;
+
+    @Cacheable(value = "memberRecommendations", key = "#user.id", unless = "#result == null || #result.isEmpty()")
     @Transactional(readOnly = true)
     public List<RecommendationResultDTO> getRecommendationsForUser(User user) {
         if (user == null || user.getId() == null) {
@@ -190,7 +195,13 @@ public class RecommendationQueryService {
                 .thenComparing(candidate -> candidate.film().getDate(), Comparator.nullsLast(Comparator.reverseOrder()))
                 .thenComparing(candidate -> candidate.film().getInternalId(), Comparator.nullsLast(Comparator.naturalOrder())));
 
-        return scoredCandidates.stream()
+        int resultLimit = Math.max(0, maxResults);
+        java.util.stream.Stream<ScoredCandidate> rankedStream = scoredCandidates.stream();
+        if (resultLimit > 0) {
+            rankedStream = rankedStream.limit(resultLimit);
+        }
+
+        return rankedStream
                 .map(this::toDto)
                 .toList();  
     }

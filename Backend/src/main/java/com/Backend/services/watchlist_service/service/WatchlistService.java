@@ -73,7 +73,8 @@ public class WatchlistService {
     @Transactional
     @Caching(evict = {
         @CacheEvict(value = "watchlist", key = "#user.id"),
-        @CacheEvict(value = "userMeDTO", key = "#user.email")
+        @CacheEvict(value = "userMeDTO", key = "#user.email"),
+        @CacheEvict(value = "memberRecommendations", key = "#user.id")
     })
     public void addToWatchlist(WatchlistPosting posting, User user) {
         Watchlist watchlist = watchlistRepository.findByUserId(user.getId())
@@ -110,7 +111,8 @@ public class WatchlistService {
     @Transactional
     @Caching(evict = {
         @CacheEvict(value = "watchlist", key = "#user.id"),
-        @CacheEvict(value = "userMeDTO", key = "#user.email")
+        @CacheEvict(value = "userMeDTO", key = "#user.email"),
+        @CacheEvict(value = "memberRecommendations", key = "#user.id")
     })
     public void removeFromWatchlist(WatchlistPosting posting, User user) {
         Watchlist watchlist = watchlistRepository.findByUserId(user.getId())
