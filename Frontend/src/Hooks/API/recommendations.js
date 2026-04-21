@@ -47,7 +47,8 @@ export const useMemberRecommendations = (enabled = true) => {
             const { data } = await instance.get('/recommendations', { signal });
             return Array.isArray(data) ? data : [];
         },
-        staleTime: 1000 * 60 * 3,
+        staleTime: 1000 * 60 * 5,
+        retry: 0,
         refetchOnWindowFocus: false,
         refetchOnReconnect: false,
     });
