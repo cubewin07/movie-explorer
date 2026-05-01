@@ -333,3 +333,48 @@ A full‑stack application for discovering movies/series, managing watchlists, w
 
 - Email: tanthang071208@gmail.com
 - GitHub: https://github.com/cubewin07
+
+## MCP / Grafana credentials (local development)
+
+To keep Grafana/MCP secrets out of version control, follow these steps:
+
+1. Create a local `.env` from the sample and populate values:
+
+```bash
+cp .env.sample .env
+# edit .env and set GRAFANA_SERVICE_ACCOUNT_TOKEN, GRAFANA_PASSWORD if used
+```
+
+2. Confirm `.env` is ignored by git. A root `.gitignore` entry was added to this repo.
+
+3. Make the variables available to VS Code and GUI apps on macOS:
+
+- Start VS Code from a terminal that has the exports:
+
+```bash
+export GRAFANA_SERVICE_ACCOUNT_TOKEN="<your-token>"
+export GRAFANA_USERNAME="admin"
+export GRAFANA_PASSWORD="<pw>"
+code .
+```
+
+- Or persist them for GUI apps using `launchctl`:
+
+```bash
+launchctl setenv GRAFANA_SERVICE_ACCOUNT_TOKEN "<your-token>"
+launchctl setenv GRAFANA_USERNAME "admin"
+launchctl setenv GRAFANA_PASSWORD "<pw>"
+```
+
+4. Verify MCP/Grafana access from the host:
+
+```bash
+curl -sS -H "Authorization: Bearer $GRAFANA_SERVICE_ACCOUNT_TOKEN" "http://localhost:3000/api/search?type=dash-db" | jq .
+```
+
+Files added/updated:
+- [.env.sample](.env.sample) — template with placeholders
+- [.gitignore](.gitignore) — ignores `.env` and local secret files
+- [README.md](README.md) — this usage section
+
+If you'd like, I can verify the environment variables visible to the VS Code process and run the MCP helper to ensure substitution works; tell me to proceed and I'll run the checks for you.

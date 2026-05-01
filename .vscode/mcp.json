@@ -1,0 +1,27 @@
+{
+  "servers": {
+    "grafana": {
+      "command": "docker",
+      "args": [
+        "run",
+        "--rm",
+        "-i",
+        "--env-file",
+        "/Users/letanthang/learning_software/React_projects/movie-explorer/.env",
+        "-e",
+        "GRAFANA_URL",
+        "-e",
+        "GRAFANA_SERVICE_ACCOUNT_TOKEN",
+        "grafana/mcp-grafana",
+        "-t",
+        "stdio"
+      ],
+      "env": {
+        "GRAFANA_URL": "http://host.docker.internal:3000",  // Or "https://myinstance.grafana.net" for Grafana Cloud
+        // Secrets (token/password) are loaded via --env-file to avoid committing them
+        // Optional: specify organization ID for multi-org support
+        "GRAFANA_ORG_ID": "1"
+      }
+    }
+  }
+}
