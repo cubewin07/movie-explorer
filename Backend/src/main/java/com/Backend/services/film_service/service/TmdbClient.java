@@ -176,6 +176,57 @@ public class TmdbClient {
                 .collect(Collectors.toList());
     }
 
+    @Cacheable(value = "tmdbRecommendations", key = "{#tmdbId, #type.name()}")
+    public java.util.List<TmdbSimilarItem> fetchRecommendations(Long tmdbId, FilmType type) {
+        ensureApiTokenConfigured();
+
+        if (type == FilmType.MOVIE) {
+            TmdbMovieSimilarResponse response = executeWithRetry(() -> webClient.get()
+                    .uri(uriBuilder -> {
+                        uriBuilder.path("/movie/{id}/recommendations");
+                        return uriBuilder.build(tmdbId);
+                    })
+                    .retrieve()
+                    .bodyToMono(TmdbMovieSimilarResponse.class)
+                    .block(), "recommendations-movie");
+
+            if (response == null || response.getResults() == null) {
+                return java.util.List.of();
+            }
+            return response.getResults().stream()
+                    .filter(item -> item != null && item.getId() != null)
+                    .map(item -> new TmdbSimilarItem(
+                            item.getId(),
+                            item.getTitle(),
+                            item.getReleaseDate(),
+                            item.getBackdropPath()
+                    ))
+                    .collect(Collectors.toList());
+        }
+
+        TmdbTvSimilarResponse response = executeWithRetry(() -> webClient.get()
+                .uri(uriBuilder -> {
+                    uriBuilder.path("/tv/{id}/recommendations");
+                    return uriBuilder.build(tmdbId);
+                })
+                .retrieve()
+                .bodyToMono(TmdbTvSimilarResponse.class)
+                .block(), "recommendations-tv");
+
+        if (response == null || response.getResults() == null) {
+            return java.util.List.of();
+        }
+        return response.getResults().stream()
+                .filter(item -> item != null && item.getId() != null)
+                .map(item -> new TmdbSimilarItem(
+                        item.getId(),
+                        item.getName(),
+                        item.getFirstAirDate(),
+                        item.getBackdropPath()
+                ))
+                .collect(Collectors.toList());
+    }
+
     public double getAvailableTokens() {
         synchronized (rateLimitMonitor) {
             refillTokensLocked();

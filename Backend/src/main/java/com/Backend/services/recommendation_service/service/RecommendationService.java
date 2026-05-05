@@ -75,7 +75,7 @@ public class RecommendationService {
             return List.of();
         }
 
-        List<TmdbSimilarItem> similarItems = tmdbClient.fetchSimilar(tmdbId, type);
+        List<TmdbSimilarItem> similarItems = tmdbClient.fetchRecommendations(tmdbId, type);
         if (similarItems == null || similarItems.isEmpty()) {
             return List.of();
         }
@@ -116,11 +116,11 @@ public class RecommendationService {
         if (tmdbClient.getAvailableTokens() < 1.0d) {
             throw localBudgetDefer(
                     "LOCAL_BUDGET_DEFERRED",
-                    "Insufficient local TMDB budget for similar fetch"
+                    "Insufficient local TMDB budget for recommendations fetch"
             );
         }
 
-        List<TmdbSimilarItem> similarItems = tmdbClient.fetchSimilar(tmdbId, sourceFilm.getType());
+        List<TmdbSimilarItem> similarItems = tmdbClient.fetchRecommendations(tmdbId, sourceFilm.getType());
         if (similarItems == null || similarItems.isEmpty()) {
             return;
         }

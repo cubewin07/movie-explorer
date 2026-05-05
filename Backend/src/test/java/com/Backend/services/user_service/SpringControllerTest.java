@@ -1243,7 +1243,7 @@ class SpringControllerTest {
                 new TmdbSimilarItem(880003L, "Similar Movie B", "2020-07-09", "/similar-b.jpg")
         );
 
-        when(tmdbClient.fetchSimilar(filmId, FilmType.MOVIE)).thenReturn(similarItems);
+        when(tmdbClient.fetchRecommendations(filmId, FilmType.MOVIE)).thenReturn(similarItems);
 
         mockMvc.perform(get("/recommendations/similar")
                         .param("filmId", String.valueOf(filmId))
