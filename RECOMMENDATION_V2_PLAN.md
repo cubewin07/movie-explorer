@@ -1,6 +1,13 @@
-# Recommendation Engine v2 — 5-Stage Implementation Plan
+# Recommendation Engine v2 — 5-Stage Implementation Plan (Revised)
 
-_Last updated: 2026-05-06_
+_Last updated: 2026-05-08_
+
+## Changelog from original spec
+- **Phase 1:** Dropped `tmdb_rank` (no rank field in TMDB response; array order is undocumented), `source_type`/`candidate_type` (inferable from which endpoint was called, redundant on edge row), `source_tmdb_id` (redundant; already reachable via `source_internal_film_id → film.tmdb_id`). Edge table simplified to `source_internal_film_id`, `candidate_internal_film_id`, `ingested_at`.
+- **Phase 2:** Added explicit rule for partially enriched candidates in scoring. Clarified that pass 1 is only cheap if genre/language fields are on the film row — verify before treating the two-pass split as a meaningful optimisation.
+- **Phase 3:** Added constraint tying lease duration to scheduler tick interval. Added requirement to verify per-stage idempotency before implementing per-stage retry.
+
+---
 
 ## 0) Summary (what changes in v2)
 - Ingest TMDB film-to-film recommendations as **candidates** (not final output).
@@ -28,17 +35,19 @@ _Last updated: 2026-05-06_
 
 **Implementation directions**
 - Add client methods in `TmdbClient` for movie + tv recommendations.
-- Store candidate edges with at least:
+- Store candidate edges with:
   - `source_internal_film_id`, `candidate_internal_film_id`
-  - `source_type`, `candidate_type`
-  - `tmdb_rank`
   - `ingested_at`
-  - `source_tmdb_id`
-- Apply shared filters early (e.g., cutoff year, media type, missing date handling).
+- Media type (movie vs tv) is not stored on the edge — it is known from which endpoint was called and is already on the film row itself.
+- Apply shared filters early (cutoff year, missing date handling). Drop candidates with null `release_date` / `first_air_date` — do not treat as unknown year.
 - Keep ingestion triggered by a bounded background task (not request traffic).
 
+**On TMDB response ordering**
+- The recommendations endpoint returns a `results` array. TMDB does not document the ordering of this array, so do not treat position as a rank signal.
+- Use `popularity` and `vote_average` from the response payload as explicit scoring signals if needed — these are documented fields with clear semantics.
+
 **Boundedness**
-- `maxCandidatesPerSource` (top N only; do not paginate endlessly).
+- `maxCandidatesPerSource` (take the first N from the response; do not paginate endlessly).
 - `maxSourcesPerTick` (how many source films per scheduler tick).
 - Global `tmdbConcurrencyLimit` + per-call timeouts.
 
@@ -46,7 +55,8 @@ _Last updated: 2026-05-06_
 - Per source film: *replace semantics* in one transaction:
   - delete existing candidate edges for that source film
   - insert the new bounded set
-- Enforce unique constraints to prevent duplicates (`source_internal_id`, `candidate_internal_id`).
+- Enforce a unique constraint on `(source_internal_film_id, candidate_internal_film_id)` to prevent duplicates.
+- Wrap delete + insert in `@Transactional` — if the insert fails, the delete rolls back.
 
 **Failure tolerance**
 - Retry transient failures with exponential backoff + jitter.
@@ -56,12 +66,13 @@ _Last updated: 2026-05-06_
 - Never mark ingestion as "done" until the delete+insert transaction commits.
 
 **Caution**
-- TMDB can return duplicates across pages or null `release_date/first_air_date`; handle nulls deterministically (either drop or treat as "unknown year" and skip).
+- TMDB can return duplicates within a response; the unique constraint is your safety net, but deduplication before insert avoids wasted work.
+- Drop candidates with null `release_date` / `first_air_date` at the filter step — do not carry nulls into the edge table.
 - Do not log API keys; sanitize outbound URLs in logs.
 
 ---
 
-## 2) Remove weights — join-based snapshot recomputation (same data)
+## 2) Remove weights — join-based snapshot recomputation
 
 **Objective**
 - Stop maintaining weight tables and recompute the user snapshot using joins so the snapshot reflects the same canonical film/enrichment tables.
@@ -78,9 +89,15 @@ _Last updated: 2026-05-06_
   - keep the old weight-based scorer temporarily behind a debug flag and compare score components for a small fixture dataset until they match.
 
 **Two-pass scoring (required)**
-- Pass 1 — cheap score using only what is already in the DB (genre overlap, language match). No TMDB calls.
+- Pass 1 — cheap score using only what is already on the film row (genre overlap, language match). No TMDB calls. **Prerequisite: verify that genre and language fields are columns on the film row itself, not joins to separate tables. If they require joins, the two-pass split provides no meaningful cost reduction and pass 1 must be redesigned.**
 - Pass 2 — expensive joins (credits, keywords) only for the top-K candidates that survived pass 1.
 - This prevents enriching candidates that will never rank high enough to appear in the snapshot.
+
+**Handling partially enriched candidates**
+- A candidate film may exist in the DB but have incomplete enrichment (missing credits, genres, keywords). Define an explicit rule before implementing scoring:
+  - Missing contribution from any signal = **0 score contribution for that signal**, not skip.
+  - Apply this rule consistently in both pass 1 and pass 2 — do not filter on enrichment completeness in one pass and not the other.
+- Document this assumption; it affects score distribution and must match the test fixtures.
 
 **Snapshot recompute trigger — event-driven with debounce/coalesce**
 
@@ -125,7 +142,7 @@ When a film finishes enrichment:
 - Snapshot recompute is idempotent by versioning:
   - reruns overwrite the same `snapshot_version` rows or discard and rebuild
 - Task de-dupe:
-  - one task row per user; watchlist changes "coalesce" by pushing `nextRunAt`.
+  - one task row per user; watchlist changes "coalesce" by pushing `scheduled_at`.
 
 **Failure tolerance**
 - If recompute fails, keep serving the last completed snapshot.
@@ -134,7 +151,7 @@ When a film finishes enrichment:
 - Dead-letter users after max attempts, but keep the system healthy.
 
 **Caution**
-- Join semantics matter: `INNER` vs `LEFT` joins can change scores; document assumptions (e.g., missing credits ⇒ 0 contribution).
+- Join semantics matter: `INNER` vs `LEFT` joins can change scores; document assumptions (e.g., missing credits ⇒ 0 contribution, consistent with the partially-enriched rule above).
 - Indexes are not optional (watchlist_items, candidate edges, film_id/type, snapshot `(user_id, version)`).
 
 ---
@@ -161,9 +178,11 @@ SET status = IN_PROGRESS, lease_expires_at = now() + interval '60 seconds'
 WHERE (status = PENDING)
    OR (status = IN_PROGRESS AND lease_expires_at < now())
 ```
+
 - If 0 rows updated → another worker holds the lease; skip this film.
 - Record `enriched_at` and set `status = DONE` only after all sub-resources succeed.
 - Expired leases are reclaimed automatically by the next worker — no film gets stuck permanently.
+- **Constraint: lease duration must always be greater than the maximum scheduler tick interval.** If the scheduler can take up to T seconds per tick, set `lease_expires_at = now() + interval > T`. Tie these two config values together and validate on startup. A lease shorter than a tick causes false reclaims where a second worker claims a film the first worker is still processing.
 
 **Set status on creation**
 - Insert new films with `enrichment_status = PENDING`, `lease_expires_at = null`.
@@ -188,7 +207,7 @@ WHERE (status = PENDING)
 - Per tick: respect `maxFilmsToEnrich` and `maxTmdbCallsPerTick` budgets.
 
 **Film feature vector (replaces cached weights)**
-- Instead of per-user cached weights (which have the same staleness problem as the weight tables you dropped), maintain a `film_feature_vector` row per film:
+- Maintain a `film_feature_vector` row per film:
   - precomputed genre/keyword/language features, refreshed when enrichment completes
   - shared across all users; no per-user eviction needed
   - invalidated only when that film's enrichment data changes
@@ -197,9 +216,7 @@ WHERE (status = PENDING)
 
 **Enrichment failure — retry tasks, not silent drop**
 
-Current behavior: if any sub-resource sync throws (credits, keywords, genres), the exception bubbles and the entire candidate sync for that source film fails. This is wrong.
-
-Required change — isolate per-candidate failures:
+Isolate per-candidate failures:
 
 ```java
 try {
@@ -210,6 +227,8 @@ try {
     // continue to next candidate — do not break the loop
 }
 ```
+
+**Before implementing per-stage retry, verify that each sub-resource write is independently idempotent.** For example, if credits sync does a delete+insert internally, retrying just the credits stage must not leave partial or inconsistent data. If a stage is not idempotent in isolation, make it so before enabling per-stage retry — otherwise a partial retry can produce worse state than a full re-run.
 
 Retry task table:
 
@@ -269,10 +288,12 @@ film_enrichment_tasks (
   - bounded candidate count (top N only)
   - idempotent replace semantics for a source film
   - cutoff-year filtering works the same in ingestion + recompute
+  - null `release_date` / `first_air_date` candidates are dropped, not passed through
   - retry policy: transient TMDB errors schedule retry; permanent errors do not loop
 - Snapshot recompute tests:
   - deterministic ordering and tie-break rules
   - two-pass scoring: pass 2 only runs for top-K survivors of pass 1
+  - partially enriched candidate scores 0 for missing signals, not skipped
   - atomic swap: API never returns partially written snapshot
   - resumable cursor: budget exhaustion reschedules and continues correctly
   - failure leaves prior snapshot intact
@@ -281,8 +302,10 @@ film_enrichment_tasks (
 - Enrichment tests:
   - lease claim: second worker skips a film already `IN_PROGRESS` with a valid lease
   - lease expiry: worker reclaims film after lease window passes
+  - lease duration > scheduler tick: validate config constraint is enforced on startup
   - concurrent insert: losing worker falls back to find-or-create, no exception bubbles
   - per-candidate failure isolation: one candidate's enrichment failure does not abort remaining candidates
+  - per-stage retry: retrying a single stage does not produce inconsistent state
   - retry task created on enrichment failure; dead-lettered after max attempts
   - `enriched_at` recorded only after all sub-resources succeed, not at start
   - film created as `PENDING`, not `IN_PROGRESS`
@@ -299,6 +322,7 @@ film_enrichment_tasks (
 ## Appendix — rollout / ops checklist (minimal)
 - Data reset script: delete only derived recommendation data (not users/watchlists/reviews).
 - Config knobs: cutoff year, per-tick budgets, max attempts, TMDB concurrency/timeout, debounce window, lease duration, enrichment TTL.
+- **Config constraint: lease duration must be configured together with max scheduler tick interval and validated on startup.**
 - Feature flags:
   - backend: disable recommendation writes if needed
   - frontend: `VITE_DISABLE_RECOMMENDATIONS=true` during rebuild
