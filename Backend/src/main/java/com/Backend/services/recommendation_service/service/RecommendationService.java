@@ -1,74 +1,53 @@
 package com.Backend.services.recommendation_service.service;
 
 import com.Backend.services.FilmType;
-import com.Backend.services.credit_service.repository.FilmRoleRepository;
-import com.Backend.services.credit_service.service.CreditService;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.film_service.model.TmdbSimilarItem;
 import com.Backend.services.film_service.service.FilmService;
 import com.Backend.services.film_service.service.TmdbClient;
-import com.Backend.services.genre_service.repository.GenreRepository;
-import com.Backend.services.genre_service.service.GenreService;
-import com.Backend.services.keyword_service.repository.KeywordRepository;
-import com.Backend.services.keyword_service.service.KeywordService;
 import com.Backend.services.recommendation_service.model.Recommendation;
 import com.Backend.services.recommendation_service.model.RecommendationId;
 import com.Backend.services.recommendation_service.repository.RecommendationRepository;
 import com.Backend.services.sync_service.model.LocalBudgetDeferException;
 import java.time.Duration;
-import java.time.Instant;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.TaskScheduler;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.util.StringUtils;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class RecommendationService {
 
+    private static final String ERROR_CODE_LOCAL_BUDGET_DEFERRED = "LOCAL_BUDGET_DEFERRED";
+
     private final TmdbClient tmdbClient;
     private final FilmService filmService;
-    private final CreditService creditService;
-    private final KeywordService keywordService;
-    private final GenreService genreService;
-    private final FilmRoleRepository filmRoleRepository;
-    private final KeywordRepository keywordRepository;
-    private final GenreRepository genreRepository;
     private final RecommendationRepository recommendationRepository;
-    private final TransactionTemplate transactionTemplate;
-    private final TaskScheduler taskScheduler;
+    private final PlatformTransactionManager transactionManager;
 
     @Value("${recommendation.sync.max-similar-per-film:20}")
-    private int maxSimilarPerFilm;
-
-    @Value("${recommendation.sync.max-requests-per-run:8}")
-    private int maxRequestsPerRun;
+    private int maxCandidatesPerSource;
 
     @Value("${recommendation.sync.defer-delay-ms:5000}")
     private long deferDelayMs;
 
-    @Value("${recommendation.sync.allow-partial-bootstrap:true}")
-    private boolean allowPartialBootstrap;
-
-    @Value("${recommendation.sync.similar-followup-delay-ms:10000}")
-    private long similarFollowupDelayMs;
-
-    @Value("${recommendation.sync.similar-followup-enabled:true}")
-    private boolean similarFollowupEnabled;
+    @Value("${recommendation.filter.cutoff-year:0}")
+    private int cutoffYear;
 
     public List<TmdbSimilarItem> getSimilarAndScheduleRecommendationSync(Long tmdbId, FilmType type) {
         if (tmdbId == null || type == null) {
@@ -76,344 +55,228 @@ public class RecommendationService {
         }
 
         List<TmdbSimilarItem> similarItems = tmdbClient.fetchRecommendations(tmdbId, type);
-        if (similarItems == null || similarItems.isEmpty()) {
-            return List.of();
-        }
-
-        if (!similarFollowupEnabled) {
-            return similarItems;
-        }
-
-        List<TmdbSimilarItem> similarItemsSnapshot = List.copyOf(similarItems);
-        long delayMs = Math.max(0L, similarFollowupDelayMs);
-
-        taskScheduler.schedule(
-                () -> runDelayedRecommendationSync(tmdbId, type, similarItemsSnapshot),
-            Objects.requireNonNull(Instant.now().plusMillis(delayMs))
-        );
-
-        return similarItems;
+        return similarItems == null ? List.of() : similarItems;
     }
 
-    private void runDelayedRecommendationSync(Long tmdbId, FilmType type, List<TmdbSimilarItem> similarItemsSnapshot) {
-        try {
-            LocalBudgetDeferException deferred = runSnapshotSyncInTransaction(tmdbId, type, similarItemsSnapshot);
-            if (deferred != null) {
-                log.debug("Deferred delayed recommendation sync for tmdbId={} type={} reason={}",
-                        tmdbId, type, deferred.getMessage());
-            }
-        } catch (RuntimeException ex) {
-            log.warn("Failed delayed recommendation sync for tmdbId={} type={}", tmdbId, type, ex);
-        }
-    }
-
-    @Transactional(noRollbackFor = LocalBudgetDeferException.class)
+    /**
+     * Phase 1 (v2 plan): ingest TMDB recommendations as candidate edges.
+     *
+     * <p>Key invariants:
+     * <ul>
+     *   <li>Filtered: drop candidates with missing/invalid dates; apply cutoff-year.</li>
+        *   <li>Bounded: cap to the first N <em>valid</em> candidates after filtering.</li>
+     *   <li>Idempotent replace semantics: delete all prior edges for the source and insert the new bounded set
+     *       in one transaction.</li>
+     * </ul>
+     */
     public void syncRecommendationsForFilm(Long tmdbId, Film sourceFilm) {
-        if (sourceFilm == null || sourceFilm.getInternalId() == null || sourceFilm.getType() == null || tmdbId == null) {
+        if (sourceFilm == null || sourceFilm.getInternalId() == null || sourceFilm.getType() == null) {
+            return;
+        }
+
+        Long sourceTmdbId = tmdbId != null ? tmdbId : sourceFilm.getFilmId();
+        if (sourceTmdbId == null) {
             return;
         }
 
         if (tmdbClient.getAvailableTokens() < 1.0d) {
             throw localBudgetDefer(
-                    "LOCAL_BUDGET_DEFERRED",
+                    ERROR_CODE_LOCAL_BUDGET_DEFERRED,
                     "Insufficient local TMDB budget for recommendations fetch"
             );
         }
 
-        List<TmdbSimilarItem> similarItems = tmdbClient.fetchRecommendations(tmdbId, sourceFilm.getType());
-        if (similarItems == null || similarItems.isEmpty()) {
+        List<TmdbSimilarItem> fetched = fetchRecommendationsOrSkipNotFound(sourceTmdbId, sourceFilm.getType());
+
+        int limit = Math.max(0, maxCandidatesPerSource);
+        if (limit == 0) {
             return;
         }
 
-        syncRecommendationsFromSimilarItems(tmdbId, sourceFilm, similarItems, 1);
-    }
+        // Phase A (outside the edge transaction): filter → limit → resolve candidate Film rows.
+        // Rationale: the edge transaction is REQUIRES_NEW and should only do delete+insert, with no nested
+        // service calls. Candidate film resolution is done per-candidate and failures are skipped.
+        List<TmdbSimilarItem> nonNullFetched = fetched == null
+            ? List.of()
+            : fetched.stream().filter(item -> item != null).toList();
 
-    private void syncRecommendationsFromSimilarItems(
-            Long tmdbId,
-            Film sourceFilm,
-            List<TmdbSimilarItem> similarItems,
-            int initialRequestsUsed
-    ) {
-        if (sourceFilm == null || sourceFilm.getInternalId() == null || sourceFilm.getType() == null || tmdbId == null) {
-            return;
-        }
+        // Important ordering: cap *valid* candidates, not raw TMDB results.
+        List<TmdbSimilarItem> filtered = applyCandidateFilters(nonNullFetched, sourceTmdbId);
+        List<TmdbSimilarItem> boundedValidCandidates = filtered.stream().limit(limit).toList();
 
-        int maxCandidates = Math.max(0, maxSimilarPerFilm);
-        if (maxCandidates == 0 || similarItems == null || similarItems.isEmpty()) {
-            return;
-        }
-
-        int requestBudget = Math.max(1, maxRequestsPerRun);
-
-        Long sourceFilmInternalId = sourceFilm.getInternalId();
-        Set<Long> candidateTmdbIds = similarItems.stream()
-                .filter(Objects::nonNull)
-                .map(TmdbSimilarItem::tmdbId)
-                .filter(Objects::nonNull)
-                .filter(candidateTmdbId -> !candidateTmdbId.equals(tmdbId))
-                .collect(Collectors.toCollection(LinkedHashSet::new));
-
-        Map<Long, Film> filmsByTmdbId = new HashMap<>();
-        for (Film existingFilm : filmService.findByTmdbIdsAndType(candidateTmdbIds, sourceFilm.getType())) {
-            if (existingFilm != null && existingFilm.getFilmId() != null) {
-                filmsByTmdbId.put(existingFilm.getFilmId(), existingFilm);
-            }
-        }
-
-        Set<Long> existingRecommendationTargets = loadExistingRecommendationTargets(
-                sourceFilmInternalId,
-                filmsByTmdbId.values()
+        List<Long> resolvedCandidateInternalIds = resolveCandidateInternalIds(
+            sourceFilm.getInternalId(),
+            sourceFilm.getType(),
+            sourceTmdbId,
+            boundedValidCandidates
         );
 
-        int requestsUsed = Math.max(0, initialRequestsUsed);
-        boolean budgetExhausted = false;
-        int processedCandidates = 0;
-        Set<Long> newRecommendationTargets = new LinkedHashSet<>();
-        List<Recommendation> recommendationsToInsert = new ArrayList<>();
+        // Phase B (REQUIRES_NEW): pure delete+insert with no external calls.
+        replaceEdgesInNewTransaction(sourceFilm.getInternalId(), resolvedCandidateInternalIds);
 
-        for (TmdbSimilarItem similarItem : similarItems) {
-            if (processedCandidates >= maxCandidates) {
-                break;
-            }
-            Long candidateTmdbId = similarItem != null ? similarItem.tmdbId() : null;
-            if (candidateTmdbId == null || candidateTmdbId.equals(tmdbId)) {
-                continue;
-            }
-            processedCandidates++;
+        log.debug(
+                "Ingested recommendation candidates sourceFilmInternalId={} tmdbId={} type={} inserted={}",
+                sourceFilm.getInternalId(),
+                sourceTmdbId,
+                sourceFilm.getType(),
+            resolvedCandidateInternalIds.size()
+        );
+    }
 
-            Film existingFilm = filmsByTmdbId.get(candidateTmdbId);
-            Long existingFilmInternalId = existingFilm != null ? existingFilm.getInternalId() : null;
-            if (existingFilmInternalId != null && existingRecommendationTargets.contains(existingFilmInternalId)) {
-                continue;
-            }
-
-            Film recommendedFilm = existingFilm;
-            boolean hasEnrichedExistingFilm = recommendedFilm != null && recommendedFilm.getRating() != null;
-
-            if (!hasEnrichedExistingFilm) {
-                if (isBudgetExhausted(requestsUsed, requestBudget)) {
-                    budgetExhausted = true;
-                    break;
-                }
-                recommendedFilm = filmService.getOrRefreshFilmFromTmdbDetails(candidateTmdbId, sourceFilm.getType());
-                requestsUsed++;
-                if (recommendedFilm != null && recommendedFilm.getFilmId() != null) {
-                    filmsByTmdbId.put(recommendedFilm.getFilmId(), recommendedFilm);
-                }
-            }
-
-            Long recommendedFilmInternalId = recommendedFilm != null ? recommendedFilm.getInternalId() : null;
-            if (recommendedFilmInternalId == null || recommendedFilmInternalId.equals(sourceFilmInternalId)) {
-                continue;
-            }
-
-            MetadataEnrichmentProgress enrichmentProgress = enrichCandidateMetadataIfNeeded(
-                    recommendedFilm,
-                    candidateTmdbId,
-                    sourceFilm.getType(),
-                    requestsUsed,
-                    requestBudget
-            );
-            requestsUsed = enrichmentProgress.requestsUsed();
-            if (enrichmentProgress.budgetExhausted()) {
-                budgetExhausted = true;
-                log.debug(
-                        "Stopped recommendation candidate enrichment due to local TMDB budget filmInternalId={} tmdbId={} candidateTmdbId={} reason={}",
-                        sourceFilmInternalId,
+    private List<TmdbSimilarItem> fetchRecommendationsOrSkipNotFound(Long tmdbId, FilmType type) {
+        try {
+            return tmdbClient.fetchRecommendations(tmdbId, type);
+        } catch (WebClientResponseException ex) {
+            int status = ex.getStatusCode().value();
+            if (status == HttpStatus.NOT_FOUND.value() || status == 422) {
+                log.info(
+                        "Skipping TMDB recommendations ingestion for missing source tmdbId={} type={} status={}",
                         tmdbId,
-                        candidateTmdbId,
-                        enrichmentProgress.reason()
+                        type,
+                        status
                 );
-                break;
+                return List.of();
             }
+            throw ex;
+        }
+    }
 
-            if (existingRecommendationTargets.contains(recommendedFilmInternalId)) {
+    private List<TmdbSimilarItem> applyCandidateFilters(List<TmdbSimilarItem> bounded, Long sourceTmdbId) {
+        if (bounded == null || bounded.isEmpty()) {
+            return List.of();
+        }
+
+        int resolvedCutoffYear = Math.max(0, cutoffYear);
+
+        Set<Long> seenTmdbIds = new LinkedHashSet<>();
+        List<TmdbSimilarItem> filtered = new ArrayList<>(bounded.size());
+
+        for (TmdbSimilarItem item : bounded) {
+            if (item == null || item.tmdbId() == null) {
                 continue;
             }
-            if (!newRecommendationTargets.add(recommendedFilmInternalId)) {
+            if (sourceTmdbId != null && item.tmdbId().equals(sourceTmdbId)) {
+                continue;
+            }
+            if (!seenTmdbIds.add(item.tmdbId())) {
                 continue;
             }
 
-            recommendationsToInsert.add(Recommendation.builder()
-                    .id(new RecommendationId(sourceFilmInternalId, recommendedFilmInternalId))
-                    .build());
+            String dateValue = item.dateValue();
+            if (!StringUtils.hasText(dateValue)) {
+                // Plan requirement: drop null release_date/first_air_date; do not treat as unknown year.
+                continue;
+            }
+
+            Integer year = parseYear(dateValue);
+            if (year == null) {
+                continue;
+            }
+
+            if (resolvedCutoffYear > 0 && year < resolvedCutoffYear) {
+                continue;
+            }
+
+            filtered.add(item);
         }
 
-        if (budgetExhausted && !allowPartialBootstrap) {
-            throw localBudgetDefer(
-                    "LOCAL_BUDGET_DEFERRED",
-                    "Deferred recommendation refresh due to local TMDB budget (partial disabled)"
-            );
+        return filtered;
+    }
+
+    private Integer parseYear(String dateValue) {
+        if (!StringUtils.hasText(dateValue)) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(dateValue.trim()).getYear();
+        } catch (DateTimeParseException ex) {
+            return null;
+        }
+    }
+
+    private List<Long> resolveCandidateInternalIds(
+            Long sourceFilmInternalId,
+            FilmType type,
+            Long sourceTmdbId,
+            List<TmdbSimilarItem> boundedValidCandidates
+    ) {
+        if (boundedValidCandidates == null || boundedValidCandidates.isEmpty()) {
+            return List.of();
         }
 
-        int savedCount = 0;
-        if (!recommendationsToInsert.isEmpty()) {
-            recommendationRepository.saveAll(recommendationsToInsert);
-            savedCount = recommendationsToInsert.size();
+        // Deduplicate by internalId to keep insertion idempotent and stable.
+        Set<Long> seenInternalIds = new LinkedHashSet<>();
+        List<Long> resolvedInternalIds = new ArrayList<>(boundedValidCandidates.size());
+
+        for (TmdbSimilarItem candidate : boundedValidCandidates) {
+            if (candidate == null || candidate.tmdbId() == null) {
+                continue;
+            }
+
+            try {
+                Film candidateFilm = filmService.getOrCreateFilmFromTmdbSnapshot(
+                        candidate.tmdbId(),
+                        type,
+                        candidate.title(),
+                        candidate.dateValue(),
+                        candidate.backgroundImg()
+                );
+
+                Long candidateInternalId = candidateFilm != null ? candidateFilm.getInternalId() : null;
+                if (candidateInternalId == null || candidateInternalId.equals(sourceFilmInternalId)) {
+                    continue;
+                }
+
+                if (seenInternalIds.add(candidateInternalId)) {
+                    resolvedInternalIds.add(candidateInternalId);
+                }
+            } catch (RuntimeException ex) {
+                // Per-candidate failure should not abort the whole source film sync.
+                log.warn(
+                        "Skipping recommendation candidate; failed to resolve Film row sourceInternalId={} sourceTmdbId={} candidateTmdbId={} type={}",
+                        sourceFilmInternalId,
+                        sourceTmdbId,
+                        candidate.tmdbId(),
+                        type,
+                        ex
+                );
+            }
         }
 
-        log.debug("Synced {} recommendations for film internalId={} tmdbId={} requestsUsed={} budget={} budgetExhausted={}",
-                savedCount, sourceFilm.getInternalId(), tmdbId, requestsUsed, requestBudget, budgetExhausted);
+        return resolvedInternalIds;
+    }
 
-        if (budgetExhausted) {
-            throw localBudgetDefer(
-                    "LOCAL_BUDGET_DEFERRED",
-                    "Stored partial bootstrap recommendations due to local TMDB budget"
-            );
-        }
+    private void replaceEdgesInNewTransaction(Long sourceFilmInternalId, List<Long> candidateInternalIds) {
+        TransactionTemplate requiresNew = new TransactionTemplate(
+            Objects.requireNonNull(transactionManager, "transactionManager")
+        );
+        requiresNew.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+
+        requiresNew.executeWithoutResult(status -> {
+            recommendationRepository.deleteAllByFilmId(sourceFilmInternalId);
+
+            if (candidateInternalIds == null || candidateInternalIds.isEmpty()) {
+                return;
+            }
+
+            List<Recommendation> edgesToInsert = new ArrayList<>(candidateInternalIds.size());
+            for (Long candidateInternalId : candidateInternalIds) {
+                if (candidateInternalId == null || candidateInternalId.equals(sourceFilmInternalId)) {
+                    continue;
+                }
+                edgesToInsert.add(Recommendation.builder()
+                        .id(new RecommendationId(sourceFilmInternalId, candidateInternalId))
+                        .build());
+            }
+
+            if (!edgesToInsert.isEmpty()) {
+                recommendationRepository.saveAll(edgesToInsert);
+            }
+        });
     }
 
     private LocalBudgetDeferException localBudgetDefer(String errorCode, String message) {
         long delayMs = Math.max(1000L, deferDelayMs);
         return new LocalBudgetDeferException(errorCode, message, Duration.ofMillis(delayMs));
-    }
-
-    private Set<Long> loadExistingRecommendationTargets(Long sourceFilmInternalId, Collection<Film> films) {
-        if (sourceFilmInternalId == null || films == null || films.isEmpty()) {
-            return Set.of();
-        }
-
-        Set<Long> candidateInternalIds = films.stream()
-                .filter(Objects::nonNull)
-                .map(Film::getInternalId)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
-
-        if (candidateInternalIds.isEmpty()) {
-            return Set.of();
-        }
-
-        return recommendationRepository.findExistingRecommendedFilmIds(sourceFilmInternalId, candidateInternalIds);
-    }
-
-    private LocalBudgetDeferException runSnapshotSyncInTransaction(
-            Long tmdbId,
-            FilmType type,
-            List<TmdbSimilarItem> similarItemsSnapshot
-    ) {
-        AtomicReference<LocalBudgetDeferException> deferred = new AtomicReference<>();
-        transactionTemplate.executeWithoutResult(status -> {
-            try {
-                Film sourceFilm = filmService.findByTmdbIdAndType(tmdbId, type)
-                        .orElseGet(() -> filmService.getOrCreateFilm(tmdbId, type));
-                syncRecommendationsFromSimilarItems(tmdbId, sourceFilm, similarItemsSnapshot, 0);
-            } catch (LocalBudgetDeferException ex) {
-                // Keep partial inserts and sync-complete flag updates committed in delayed path.
-                deferred.set(ex);
-            }
-        });
-        return deferred.get();
-    }
-
-    private MetadataEnrichmentProgress enrichCandidateMetadataIfNeeded(
-            Film candidateFilm,
-            Long candidateTmdbId,
-            FilmType type,
-            int requestsUsed,
-            int requestBudget
-    ) {
-        if (candidateFilm == null || candidateFilm.getInternalId() == null || candidateTmdbId == null || type == null) {
-            return MetadataEnrichmentProgress.continueWith(requestsUsed);
-        }
-
-        MetadataSyncState creditsState = resolveCreditsState(candidateFilm);
-        if (creditsState == MetadataSyncState.POPULATED_STALE) {
-            candidateFilm.setCreditsSyncCompleted(true);
-        } else if (creditsState == MetadataSyncState.MISSING) {
-            if (isBudgetExhausted(requestsUsed, requestBudget)) {
-                return MetadataEnrichmentProgress.exhausted(requestsUsed, "CREDITS");
-            }
-            creditService.syncCreditsForFilm(candidateTmdbId, type, candidateFilm);
-            candidateFilm.setCreditsSyncCompleted(true);
-            requestsUsed++;
-        }
-
-        MetadataSyncState keywordState = resolveKeywordState(candidateFilm);
-        if (keywordState == MetadataSyncState.POPULATED_STALE) {
-            candidateFilm.setKeywordSyncCompleted(true);
-        } else if (keywordState == MetadataSyncState.MISSING) {
-            if (isBudgetExhausted(requestsUsed, requestBudget)) {
-                return MetadataEnrichmentProgress.exhausted(requestsUsed, "KEYWORD");
-            }
-            keywordService.syncKeywordsForFilm(candidateTmdbId, type, candidateFilm);
-            candidateFilm.setKeywordSyncCompleted(true);
-            requestsUsed++;
-        }
-
-        MetadataSyncState genreState = resolveGenreState(candidateFilm);
-        if (genreState == MetadataSyncState.POPULATED_STALE) {
-            candidateFilm.setGenreSyncCompleted(true);
-        } else if (genreState == MetadataSyncState.MISSING) {
-            if (isBudgetExhausted(requestsUsed, requestBudget)) {
-                return MetadataEnrichmentProgress.exhausted(requestsUsed, "GENRE");
-            }
-            genreService.syncGenresForFilm(candidateTmdbId, type, candidateFilm);
-            candidateFilm.setGenreSyncCompleted(true);
-            requestsUsed++;
-        }
-
-        return MetadataEnrichmentProgress.continueWith(requestsUsed);
-    }
-
-    private MetadataSyncState resolveCreditsState(Film candidateFilm) {
-        if (candidateFilm == null) {
-            return MetadataSyncState.MISSING;
-        }
-        if (Boolean.TRUE.equals(candidateFilm.getCreditsSyncCompleted())) {
-            return MetadataSyncState.COMPLETE;
-        }
-        Long filmInternalId = candidateFilm.getInternalId();
-        if (filmInternalId != null && filmRoleRepository.existsByFilm_InternalId(filmInternalId)) {
-            return MetadataSyncState.POPULATED_STALE;
-        }
-        return MetadataSyncState.MISSING;
-    }
-
-    private MetadataSyncState resolveKeywordState(Film candidateFilm) {
-        if (candidateFilm == null) {
-            return MetadataSyncState.MISSING;
-        }
-        if (Boolean.TRUE.equals(candidateFilm.getKeywordSyncCompleted())) {
-            return MetadataSyncState.COMPLETE;
-        }
-        Long filmInternalId = candidateFilm.getInternalId();
-        if (filmInternalId != null && keywordRepository.existsByFilms_InternalId(filmInternalId)) {
-            return MetadataSyncState.POPULATED_STALE;
-        }
-        return MetadataSyncState.MISSING;
-    }
-
-    private MetadataSyncState resolveGenreState(Film candidateFilm) {
-        if (candidateFilm == null) {
-            return MetadataSyncState.MISSING;
-        }
-        if (Boolean.TRUE.equals(candidateFilm.getGenreSyncCompleted())) {
-            return MetadataSyncState.COMPLETE;
-        }
-        Long filmInternalId = candidateFilm.getInternalId();
-        if (filmInternalId != null && genreRepository.existsByFilms_InternalId(filmInternalId)) {
-            return MetadataSyncState.POPULATED_STALE;
-        }
-        return MetadataSyncState.MISSING;
-    }
-
-    private boolean isBudgetExhausted(int requestsUsed, int requestBudget) {
-        return requestsUsed >= requestBudget || tmdbClient.getAvailableTokens() < 1.0d;
-    }
-
-    private enum MetadataSyncState {
-        COMPLETE,
-        POPULATED_STALE,
-        MISSING
-    }
-
-    private record MetadataEnrichmentProgress(int requestsUsed, boolean budgetExhausted, String reason) {
-        private static MetadataEnrichmentProgress continueWith(int requestsUsed) {
-            return new MetadataEnrichmentProgress(requestsUsed, false, null);
-        }
-
-        private static MetadataEnrichmentProgress exhausted(int requestsUsed, String reason) {
-            return new MetadataEnrichmentProgress(requestsUsed, true, reason);
-        }
     }
 }
