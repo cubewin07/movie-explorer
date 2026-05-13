@@ -1239,8 +1239,8 @@ class SpringControllerTest {
     void anonymous_getSimilar_returnsItems_without_authentication() throws Exception {
         long filmId = 880001L;
         List<TmdbSimilarItem> similarItems = List.of(
-                new TmdbSimilarItem(880002L, "Similar Movie A", "2022-04-12", "/similar-a.jpg"),
-                new TmdbSimilarItem(880003L, "Similar Movie B", "2020-07-09", "/similar-b.jpg")
+                new TmdbSimilarItem(880002L, "Similar Movie A", "2022-04-12", "/similar-a.jpg", List.of()),
+                new TmdbSimilarItem(880003L, "Similar Movie B", "2020-07-09", "/similar-b.jpg", List.of())
         );
 
         when(tmdbClient.fetchRecommendations(filmId, FilmType.MOVIE)).thenReturn(similarItems);

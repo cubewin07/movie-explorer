@@ -5,6 +5,7 @@ import com.Backend.services.film_service.model.Film;
 import com.Backend.services.film_service.model.TmdbSimilarItem;
 import com.Backend.services.film_service.service.FilmService;
 import com.Backend.services.film_service.service.TmdbClient;
+import com.Backend.services.genre_service.service.GenreService;
 import com.Backend.services.recommendation_service.model.Recommendation;
 import com.Backend.services.recommendation_service.model.RecommendationId;
 import com.Backend.services.recommendation_service.repository.RecommendationRepository;
@@ -37,6 +38,7 @@ public class RecommendationService {
 
     private final TmdbClient tmdbClient;
     private final FilmService filmService;
+    private final GenreService genreService;
     private final RecommendationRepository recommendationRepository;
     private final PlatformTransactionManager transactionManager;
 
@@ -228,6 +230,22 @@ public class RecommendationService {
                 }
 
                 if (seenInternalIds.add(candidateInternalId)) {
+                    // Structural decision: genre seeding is a best-effort, non-fatal step that must not
+                    // skip candidates or interfere with edge insertion.
+                    // The GenreService method itself is REQUIRES_NEW to ensure separation from film creation.
+                    try {
+                        genreService.syncGenresForFilm(candidateInternalId, candidate.genreIds(), type);
+                    } catch (Exception ex) {
+                        log.warn(
+                                "Genre seeding failed filmInternalId={} candidateTmdbId={} type={} sourceTmdbId={}",
+                                candidateInternalId,
+                                candidate.tmdbId(),
+                                type,
+                                sourceTmdbId,
+                                ex
+                        );
+                    }
+
                     resolvedInternalIds.add(candidateInternalId);
                 }
             } catch (RuntimeException ex) {
