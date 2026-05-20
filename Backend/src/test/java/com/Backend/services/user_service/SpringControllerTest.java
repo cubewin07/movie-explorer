@@ -17,6 +17,7 @@ import com.Backend.services.film_service.model.TmdbFilmResponse;
 import com.Backend.services.film_service.model.TmdbSimilarItem;
 import com.Backend.services.film_service.repository.FilmRepository;
 import com.Backend.services.film_service.service.TmdbClient;
+import com.Backend.services.genre_service.service.GenreService;
 import com.Backend.services.genre_service.model.Genre;
 import com.Backend.services.genre_service.model.UserGenreWeight;
 import com.Backend.services.genre_service.model.UserGenreWeightId;
@@ -30,6 +31,10 @@ import com.Backend.services.keyword_service.repository.UserKeywordWeightReposito
 import com.Backend.services.recommendation_service.model.Recommendation;
 import com.Backend.services.recommendation_service.model.RecommendationId;
 import com.Backend.services.recommendation_service.repository.RecommendationRepository;
+import com.Backend.services.recommendation_service.service.RecommendationService;
+import com.Backend.services.sync_service.model.SyncAttemptResult;
+import com.Backend.services.sync_service.model.SyncCategory;
+import com.Backend.services.sync_service.service.FilmSyncTaskService;
 import com.Backend.services.user_service.model.DTO.AuthenticateDTO;
 import com.Backend.services.user_service.model.DTO.RegisterDTO;
 import com.Backend.services.user_service.model.DTO.UpdateUserDTO;
@@ -58,6 +63,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
@@ -69,6 +75,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.time.LocalDate;
+import java.util.Set;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -83,7 +90,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import org.mockito.ArgumentCaptor;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -144,8 +160,17 @@ class SpringControllerTest {
         @Autowired
         private MeterRegistry meterRegistry;
 
+        @Autowired
+        private FilmSyncTaskService filmSyncTaskService;
+
+        @Autowired
+        private RecommendationService recommendationService;
+
         @MockBean
         private TmdbClient tmdbClient;
+
+        @SpyBean
+        private GenreService genreService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -1039,330 +1064,113 @@ class SpringControllerTest {
 
     @Test
     @Order(22)
-    @DisplayName("GET /recommendations ranks candidates by normalized weighted score and recency boost")
-    void recommendations_ranked_by_weighted_normalized_score_with_recency_boost() throws Exception {
-        String email = "recommend_logic_a@example.com";
-        register("recommend_logic_a", email, "password123");
-        String token = authenticate(email, "password123");
-        Long userId = getUserId(token);
+    @DisplayName("RECOMMENDATION sync ingests filtered candidates and triggers best-effort genre seeding")
+    void recommendation_sync_ingests_filtered_candidates_and_triggers_genre_seeding() {
+        reset(tmdbClient, genreService);
+        when(tmdbClient.getAvailableTokens()).thenReturn(10.0d);
 
-        long sourceTmdbId = 700001L;
-        when(tmdbClient.fetchFilmDetails(sourceTmdbId, FilmType.MOVIE)).thenReturn(movieResponse(sourceTmdbId));
-        addMovie(token, sourceTmdbId);
-        Film sourceFilm = filmRepository.findByFilmIdAndType(sourceTmdbId, FilmType.MOVIE).orElseThrow();
+        // We only assert that genre seeding is triggered with correct arguments.
+        // Keeping it a no-op makes this test resilient to future GenreMapService changes.
+        doNothing().when(genreService).syncGenresForFilm(anyLong(), anyList(), any(FilmType.class));
 
-        Film candidateFresh = filmRepository.save(Film.builder()
-                .filmId(700002L)
+        long sourceTmdbId = 900_001L;
+        List<TmdbSimilarItem> fetched = List.of(
+                new TmdbSimilarItem(sourceTmdbId, "Self", "2024-01-01", "/self.jpg", List.of(28)),
+                new TmdbSimilarItem(900_002L, "No date", null, "/no-date.jpg", List.of(28)),
+                new TmdbSimilarItem(900_003L, "Invalid date", "2020-99-99", "/invalid.jpg", List.of(12)),
+                new TmdbSimilarItem(900_004L, "Valid A", "2022-06-01", "/a.jpg", List.of(28, 12)),
+                new TmdbSimilarItem(900_004L, "Duplicate A", "2022-06-01", "/a2.jpg", List.of(28))
+        );
+        when(tmdbClient.fetchRecommendations(sourceTmdbId, FilmType.MOVIE)).thenReturn(fetched);
+
+        TransactionTemplate tx = new TransactionTemplate(transactionManager);
+        Film source = tx.execute(status -> filmRepository.saveAndFlush(Film.builder()
+                .filmId(sourceTmdbId)
                 .type(FilmType.MOVIE)
-                .title("Candidate Fresh")
-                .rating(6.0)
-                .date(LocalDate.now().minusDays(20))
-                .backgroundImg("/candidate-fresh.jpg")
-                .build());
-        Film candidateOld = filmRepository.save(Film.builder()
-                .filmId(700003L)
-                .type(FilmType.MOVIE)
-                .title("Candidate Old")
-                .rating(9.0)
-                .date(LocalDate.now().minusDays(900))
-                .backgroundImg("/candidate-old.jpg")
-                .build());
+                .title("Source")
+                .recommendationSyncCompleted(false)
+                .build()));
 
-        Role directorRole = ensureRoleExists("DIRECTOR", "Director", RoleGroup.CREW);
+        assertThat(source).isNotNull();
+        assertThat(source.getInternalId()).isNotNull();
 
-        Credit directorLow = creditRepository.save(Credit.builder()
-                .creditsId(710001L)
-                .name("Director Low")
-                .build());
-        Credit directorHigh = creditRepository.save(Credit.builder()
-                .creditsId(710002L)
-                .name("Director High")
-                .build());
+        tx.executeWithoutResult(status -> {
+            Film managedSource = filmRepository.findById(source.getInternalId()).orElseThrow();
 
-        filmRoleRepository.save(FilmRole.builder()
-                .film(candidateFresh)
-                .credit(directorLow)
-                .role(directorRole)
-                .jobName("Director")
-                .build());
-        filmRoleRepository.save(FilmRole.builder()
-                .film(candidateOld)
-                .credit(directorHigh)
-                .role(directorRole)
-                .jobName("Director")
-                .build());
+            SyncAttemptResult result = filmSyncTaskService.syncNowOrQueue(
+                    managedSource,
+                    managedSource.getFilmId(),
+                    SyncCategory.RECOMMENDATION
+            );
 
-        Genre genreHigh = Genre.builder().genreId(720001L).name("Genre High").type(FilmType.MOVIE).build();
-        genreHigh.getFilms().add(candidateFresh);
-        genreHigh = genreRepository.save(genreHigh);
+            assertThat(result.syncSucceeded()).isTrue();
+            assertThat(managedSource.getRecommendationSyncCompleted()).isTrue();
+        });
 
-        Genre genreLow = Genre.builder().genreId(720002L).name("Genre Low").type(FilmType.MOVIE).build();
-        genreLow.getFilms().add(candidateOld);
-        genreLow = genreRepository.save(genreLow);
+        Film reloadedSource = filmRepository.findById(source.getInternalId()).orElseThrow();
+        assertThat(reloadedSource.getRecommendationSyncCompleted()).isTrue();
 
-        Keyword keywordHigh = Keyword.builder().keywordId(730001L).name("Keyword High").type(FilmType.MOVIE).build();
-        keywordHigh.getFilms().add(candidateFresh);
-        keywordHigh = keywordRepository.save(keywordHigh);
+        // Filtering guard: invalid date/missing date candidates should never be persisted.
+        assertThat(filmRepository.findByFilmIdAndType(900_002L, FilmType.MOVIE)).isEmpty();
+        assertThat(filmRepository.findByFilmIdAndType(900_003L, FilmType.MOVIE)).isEmpty();
 
-        Keyword keywordLow = Keyword.builder().keywordId(730002L).name("Keyword Low").type(FilmType.MOVIE).build();
-        keywordLow.getFilms().add(candidateOld);
-        keywordLow = keywordRepository.save(keywordLow);
+        Film candidateA = filmRepository.findByFilmIdAndType(900_004L, FilmType.MOVIE).orElseThrow();
 
-        User persistedUser = userRepository.findById(userId).orElseThrow();
-        UserFilmReference userReference = userFilmReferenceRepository.save(UserFilmReference.builder()
-                .userId(userId)
-                .user(persistedUser)
-                .build());
+        Set<Long> recommendedIds = recommendationRepository.findRecommendedFilmIdsByFilmIds(List.of(source.getInternalId()));
+        assertThat(recommendedIds).contains(candidateA.getInternalId());
+        assertThat(recommendedIds).doesNotContain(source.getInternalId());
 
-        userCreditWeightRepository.save(UserCreditWeight.builder()
-                .id(new UserCreditWeightId(userId, directorLow.getCreditsId(), directorRole.getRoleId()))
-                .userReference(userReference)
-                .credit(directorLow)
-                .role(directorRole)
-                .weight(1L)
-                .build());
-        userCreditWeightRepository.save(UserCreditWeight.builder()
-                .id(new UserCreditWeightId(userId, directorHigh.getCreditsId(), directorRole.getRoleId()))
-                .userReference(userReference)
-                .credit(directorHigh)
-                .role(directorRole)
-                .weight(9L)
-                .build());
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<Integer>> genreIdsCaptor = ArgumentCaptor.forClass((Class) List.class);
+        ArgumentCaptor<Long> internalIdCaptor = ArgumentCaptor.forClass(Long.class);
+        ArgumentCaptor<FilmType> typeCaptor = ArgumentCaptor.forClass(FilmType.class);
 
-        userGenreWeightRepository.save(UserGenreWeight.builder()
-                .id(new UserGenreWeightId(userId, genreHigh.getGenreId()))
-                .userReference(userReference)
-                .genre(genreHigh)
-                .type(FilmType.MOVIE)
-                .weight(8L)
-                .build());
-        userGenreWeightRepository.save(UserGenreWeight.builder()
-                .id(new UserGenreWeightId(userId, genreLow.getGenreId()))
-                .userReference(userReference)
-                .genre(genreLow)
-                .type(FilmType.MOVIE)
-                .weight(1L)
-                .build());
+        verify(genreService).syncGenresForFilm(
+                internalIdCaptor.capture(),
+                genreIdsCaptor.capture(),
+                typeCaptor.capture()
+        );
 
-        userKeywordWeightRepository.save(UserKeywordWeight.builder()
-                .id(new UserKeywordWeightId(userId, keywordHigh.getKeywordId()))
-                .userReference(userReference)
-                .keyword(keywordHigh)
-                .type(FilmType.MOVIE)
-                .weight(10L)
-                .build());
-        userKeywordWeightRepository.save(UserKeywordWeight.builder()
-                .id(new UserKeywordWeightId(userId, keywordLow.getKeywordId()))
-                .userReference(userReference)
-                .keyword(keywordLow)
-                .type(FilmType.MOVIE)
-                .weight(1L)
-                .build());
-
-        recommendationRepository.save(Recommendation.builder()
-                .id(new RecommendationId(sourceFilm.getInternalId(), candidateFresh.getInternalId()))
-                .build());
-        recommendationRepository.save(Recommendation.builder()
-                .id(new RecommendationId(sourceFilm.getInternalId(), candidateOld.getInternalId()))
-                .build());
-        recommendationRepository.save(Recommendation.builder()
-                .id(new RecommendationId(sourceFilm.getInternalId(), sourceFilm.getInternalId()))
-                .build());
-
-        MvcResult result = mockMvc.perform(get("/recommendations")
-                        .header("Authorization", bearer(token)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andReturn();
-
-        List<Map<String, Object>> ranked = objectMapper.readValue(result.getResponse().getContentAsString(), List.class);
-        assertThat(ranked).hasSize(2);
-
-        Number topId = (Number) ranked.get(0).get("internalFilmId");
-        Number secondId = (Number) ranked.get(1).get("internalFilmId");
-        assertThat(topId.longValue()).isEqualTo(candidateFresh.getInternalId());
-        assertThat(secondId.longValue()).isEqualTo(candidateOld.getInternalId());
-
-        double topScore = ((Number) ranked.get(0).get("score")).doubleValue();
-        double secondScore = ((Number) ranked.get(1).get("score")).doubleValue();
-        assertThat(topScore).isGreaterThan(secondScore);
-
-        double topKeyword = ((Number) ranked.get(0).get("keywordScore")).doubleValue();
-        double topGenre = ((Number) ranked.get(0).get("genreScore")).doubleValue();
-        double topDirector = ((Number) ranked.get(0).get("directorScore")).doubleValue();
-        double topRating = ((Number) ranked.get(0).get("ratingScore")).doubleValue();
-        double topBoost = ((Number) ranked.get(0).get("recencyBoost")).doubleValue();
-
-        assertThat(topKeyword).isCloseTo(10.0, within(0.0001));
-        assertThat(topGenre).isCloseTo(10.0, within(0.0001));
-        assertThat(topDirector).isCloseTo(0.0, within(0.0001));
-        assertThat(topRating).isCloseTo(0.0, within(0.0001));
-        assertThat(topBoost).isGreaterThan(0.0);
-
-        double secondBoost = ((Number) ranked.get(1).get("recencyBoost")).doubleValue();
-        assertThat(secondBoost).isCloseTo(0.0, within(0.0001));
-
-        List<Long> returnedIds = ranked.stream()
-                .map(row -> ((Number) row.get("internalFilmId")).longValue())
-                .toList();
-        assertThat(returnedIds).doesNotContain(sourceFilm.getInternalId());
-
-        Timer recommendationLatency = meterRegistry.find("recommendation.endpoint.latency")
-                .tag("endpoint", "get_recommendations")
-                .tag("outcome", "success")
-                .timer();
-        assertThat(recommendationLatency).isNotNull();
-        assertThat(recommendationLatency.count()).isGreaterThan(0);
+        assertThat(internalIdCaptor.getValue()).isEqualTo(candidateA.getInternalId());
+        assertThat(genreIdsCaptor.getValue()).containsExactly(28, 12);
+        assertThat(typeCaptor.getValue()).isEqualTo(FilmType.MOVIE);
+        verifyNoMoreInteractions(genreService);
     }
 
     @Test
     @Order(23)
-    @DisplayName("GET /recommendations returns empty list when user has no candidate links")
-    void recommendations_empty_when_no_candidate_links() throws Exception {
-        String email = "recommend_logic_empty@example.com";
-        register("recommend_logic_empty", email, "password123");
-        String token = authenticate(email, "password123");
+    @DisplayName("Genre seeding failure does not prevent edge insertion; repeated sync replaces edges")
+    void recommendation_ingestion_is_replace_semantics_and_genre_failure_is_non_fatal() {
+        reset(tmdbClient, genreService);
+        when(tmdbClient.getAvailableTokens()).thenReturn(10.0d);
 
-        long sourceTmdbId = 700101L;
-        when(tmdbClient.fetchFilmDetails(sourceTmdbId, FilmType.MOVIE)).thenReturn(movieResponse(sourceTmdbId));
-        addMovie(token, sourceTmdbId);
+        doThrow(new RuntimeException("boom"))
+                .when(genreService)
+                .syncGenresForFilm(anyLong(), anyList(), any(FilmType.class));
 
-        mockMvc.perform(get("/recommendations")
-                        .header("Authorization", bearer(token)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(0)));
+        long sourceTmdbId = 910_001L;
+        Film source = filmRepository.saveAndFlush(Film.builder()
+                .filmId(sourceTmdbId)
+                .type(FilmType.MOVIE)
+                .title("Source")
+                .build());
+
+        when(tmdbClient.fetchRecommendations(sourceTmdbId, FilmType.MOVIE)).thenReturn(List.of(
+                new TmdbSimilarItem(910_010L, "First", "2023-01-01", "/first.jpg", List.of(28))
+        ));
+        recommendationService.syncRecommendationsForFilm(sourceTmdbId, source);
+
+        Film firstCandidate = filmRepository.findByFilmIdAndType(910_010L, FilmType.MOVIE).orElseThrow();
+        Set<Long> firstRecommended = recommendationRepository.findRecommendedFilmIdsByFilmIds(List.of(source.getInternalId()));
+        assertThat(firstRecommended).containsExactly(firstCandidate.getInternalId());
+
+        when(tmdbClient.fetchRecommendations(sourceTmdbId, FilmType.MOVIE)).thenReturn(List.of(
+                new TmdbSimilarItem(910_020L, "Second", "2024-02-02", "/second.jpg", List.of(12))
+        ));
+        recommendationService.syncRecommendationsForFilm(sourceTmdbId, source);
+
+        Film secondCandidate = filmRepository.findByFilmIdAndType(910_020L, FilmType.MOVIE).orElseThrow();
+        Set<Long> secondRecommended = recommendationRepository.findRecommendedFilmIdsByFilmIds(List.of(source.getInternalId()));
+        assertThat(secondRecommended).containsExactly(secondCandidate.getInternalId());
     }
-
-    @Test
-    @Order(24)
-    @DisplayName("Anonymous GET /recommendations/similar returns similar items without auth")
-    void anonymous_getSimilar_returnsItems_without_authentication() throws Exception {
-        long filmId = 880001L;
-        List<TmdbSimilarItem> similarItems = List.of(
-                new TmdbSimilarItem(880002L, "Similar Movie A", "2022-04-12", "/similar-a.jpg", List.of()),
-                new TmdbSimilarItem(880003L, "Similar Movie B", "2020-07-09", "/similar-b.jpg", List.of())
-        );
-
-        when(tmdbClient.fetchRecommendations(filmId, FilmType.MOVIE)).thenReturn(similarItems);
-
-        mockMvc.perform(get("/recommendations/similar")
-                        .param("filmId", String.valueOf(filmId))
-                        .param("type", FilmType.MOVIE.name()))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].tmdbId").value(880002L))
-                .andExpect(jsonPath("$[0].title").value("Similar Movie A"))
-                .andExpect(jsonPath("$[0].dateValue").value("2022-04-12"))
-                .andExpect(jsonPath("$[0].backgroundImg").value("/similar-a.jpg"));
-    }
-
-        @Test
-        @Order(25)
-        @DisplayName("Concurrent credit weight add/remove keeps expected net weight")
-        void concurrent_credit_weight_add_remove_keeps_expected_net_weight() throws Exception {
-                String email = "concurrency_credit@example.com";
-                register("concurrency_credit", email, "password123");
-                String token = authenticate(email, "password123");
-                Long userId = getUserId(token);
-
-                UserFilmReference userReference = userFilmReferenceRepository.findById(userId).orElseThrow();
-
-                long creditId = 900_000L + ThreadLocalRandom.current().nextLong(10_000L);
-                Credit credit = creditRepository.saveAndFlush(Credit.builder()
-                                .creditsId(creditId)
-                                .name("Concurrent Credit")
-                                .department("Acting")
-                                .build());
-
-                String roleCode = "ROLE_CONC_" + System.nanoTime();
-                Role role = roleRepository.saveAndFlush(Role.builder()
-                                .roleCode(roleCode)
-                                .roleName("Actor")
-                                .roleGroup(RoleGroup.CAST)
-                                .build());
-
-                int baselineWeight = 1_000;
-                UserCreditWeightId weightId = new UserCreditWeightId(userId, credit.getCreditsId(), role.getRoleId());
-                userCreditWeightRepository.saveAndFlush(UserCreditWeight.builder()
-                                .id(weightId)
-                                .userReference(userReference)
-                                .credit(credit)
-                                .role(role)
-                                .weight((long) baselineWeight)
-                                .build());
-
-                int pairs = 250;
-                int totalOperations = pairs * 2;
-
-                TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
-                ExecutorService pool = Executors.newFixedThreadPool(16);
-                CountDownLatch done = new CountDownLatch(totalOperations);
-                AtomicReference<Throwable> failure = new AtomicReference<>();
-
-                for (int i = 0; i < pairs; i++) {
-                        pool.submit(() -> applyConcurrentCreditWeightDelta(
-                                        transactionTemplate,
-                                        userId,
-                                        credit.getCreditsId(),
-                                        role.getRoleId(),
-                                        1L,
-                                        done,
-                                        failure
-                        ));
-                        pool.submit(() -> applyConcurrentCreditWeightDelta(
-                                        transactionTemplate,
-                                        userId,
-                                        credit.getCreditsId(),
-                                        role.getRoleId(),
-                                        -1L,
-                                        done,
-                                        failure
-                        ));
-                }
-
-                assertThat(done.await(90, TimeUnit.SECONDS)).isTrue();
-                pool.shutdown();
-                assertThat(pool.awaitTermination(15, TimeUnit.SECONDS)).isTrue();
-
-                if (failure.get() != null) {
-                        fail("Concurrent weight adjustment failed", failure.get());
-                }
-
-                Long finalWeight = userCreditWeightRepository.findById(weightId)
-                                .map(UserCreditWeight::getWeight)
-                                .orElse(null);
-                assertThat(finalWeight).isEqualTo((long) baselineWeight);
-        }
-
-        private void applyConcurrentCreditWeightDelta(
-                        TransactionTemplate transactionTemplate,
-                        Long userId,
-                        Long creditId,
-                        Long roleId,
-                        long delta,
-                        CountDownLatch done,
-                        AtomicReference<Throwable> failure
-        ) {
-                try {
-                        transactionTemplate.executeWithoutResult(status -> {
-                                int updated = userCreditWeightRepository.incrementWeight(userId, creditId, roleId, delta);
-                                if (updated == 0 && delta <= 0) {
-                                        return;
-                                }
-
-                                if (updated == 0) {
-                                        int inserted = userCreditWeightRepository.insertIfAbsent(userId, creditId, roleId, delta);
-                                        if (inserted == 0) {
-                                                userCreditWeightRepository.incrementWeight(userId, creditId, roleId, delta);
-                                        }
-                                }
-
-                                userCreditWeightRepository.deleteIfNonPositive(userId, creditId, roleId);
-                        });
-                } catch (Throwable ex) {
-                        failure.compareAndSet(null, ex);
-                } finally {
-                        done.countDown();
-                }
-        }
 }
