@@ -72,6 +72,28 @@ _Last updated: 2026-05-08_
 
 ---
 
+## 1.5) Preparation — Genre sync service (important prerequisite)
+
+Why this matters
+- The two-pass cheap/expensive scoring semantics rely on genre information being available cheaply (either as columns on the film row or via a precomputed `film_feature_vector`). The repo contains a dedicated genre sync flow that seeds/refreshes film → genre edges; treat that flow as a prerequisite for Phase 2.
+
+How the codebase currently uses genre sync
+- Watchlist background sync triggers a bounded genre sync via `WatchlistBackgroundSyncListener.safeSync(..., SyncCategory.GENRE, userId)`.
+- Recommendation ingestion/recompute triggers best-effort genre seeding; tests assert that `genreService.syncGenresForFilm(tmdbId, genreIds, FilmType)` is invoked (non-fatal if it fails).
+- The sync helper `SyncTaskHelper` exposes a `genre` retry attempts config (`sync.retry.max-attempts.genre`) and the sync logic treats genre failures as retryable up to the configured cap.
+
+Operational expectations to add to preparation checklist
+- Verify genre data location: confirm whether genre IDs/names are available on `film` rows (columns) or only via `film_genre` join. If the latter, ensure `film_feature_vector` contains precomputed genre features refreshed on enrichment completion so pass 1 remains cheap.
+- Ensure `genreService.syncGenresForFilm(...)` is idempotent and bounded: deletes+inserts or upserts should be safe for retries and repeated syncs.
+- Treat genre seeding failures as non-fatal to recommendation ingestion (the existing test coverage shows this is intended). Ensure retries, dead-lettering, and metrics are present for genre sync attempts.
+- Add a small, bounded background job that re-seeds genres for recently ingested candidates where enrichment is incomplete, rather than blocking recompute or request paths.
+
+Tests to add/verify in preparation step
+- Assert that recommendation ingestion triggers `genreService.syncGenresForFilm` with expected `tmdbId`, `genreIds`, and `FilmType` (use ArgumentCaptor as in tests).
+- Assert that genre seeding failure does not prevent edge insertion and that repeated syncs replace film_genre edges (replace semantics).
+- Assert retry policy honors `sync.retry.max-attempts.genre` and produces metrics/counters for attempts and dead-letters.
+
+
 ## 2) Remove weights — join-based snapshot recomputation
 
 **Objective**
