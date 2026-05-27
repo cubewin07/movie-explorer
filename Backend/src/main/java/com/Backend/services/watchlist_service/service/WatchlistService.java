@@ -3,14 +3,11 @@ package com.Backend.services.watchlist_service.service;
 import com.Backend.exception.DuplicateWatchlistItemException;
 import com.Backend.exception.WatchlistNotFoundException;
 import com.Backend.services.FilmType;
-import com.Backend.services.credit_service.service.CreditWeightService;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.film_service.service.FilmService;
-import com.Backend.services.genre_service.service.GenreWeightService;
-import com.Backend.services.keyword_service.service.KeywordWeightService;
-import com.Backend.services.language_service.service.LanguageWeightService;
 import com.Backend.services.user_service.model.User;
 import com.Backend.services.watchlist_service.event.WatchlistItemAddedEvent;
+import com.Backend.services.watchlist_service.event.WatchlistItemRemovedEvent;
 import com.Backend.services.watchlist_service.model.Watchlist;
 import com.Backend.services.watchlist_service.model.WatchlistDTO;
 import com.Backend.services.watchlist_service.model.WatchlistItem;
@@ -40,10 +37,6 @@ public class WatchlistService {
     private final WatchlistRepository watchlistRepository;
     private final WatchlistItemRepository watchlistItemRepository;
     private final FilmService filmService;
-    private final CreditWeightService creditWeightService;
-    private final KeywordWeightService keywordWeightService;
-    private final GenreWeightService genreWeightService;
-    private final LanguageWeightService languageWeightService;
     private final ApplicationEventPublisher eventPublisher;
 
     @Cacheable(value = "watchlist", key = "#user.id")
@@ -133,16 +126,14 @@ public class WatchlistService {
         }
         if (removed) {
             watchlistRepository.save(watchlist);
-            if (Boolean.TRUE.equals(film.getCreditsSyncCompleted())) {
-                creditWeightService.adjustWeightsForFilm(watchlist.getUser(), film, -1L);
-            }
-            if (Boolean.TRUE.equals(film.getKeywordSyncCompleted())) {
-                keywordWeightService.adjustWeightsForFilm(watchlist.getUser(), film, -1L);
-            }
-            if (Boolean.TRUE.equals(film.getGenreSyncCompleted())) {
-                genreWeightService.adjustWeightsForFilm(watchlist.getUser(), film, -1L);
-            }
-            languageWeightService.adjustWeightsForFilm(watchlist.getUser(), film, -1L);
+
+            eventPublisher.publishEvent(new WatchlistItemRemovedEvent(
+                    user.getId(),
+                    film.getInternalId(),
+                    posting.id(),
+                    posting.type()
+            ));
+
             log.info("Film tmdbId: {} successfully removed from watchlist for user: {}", posting.id(), user.getUsername());
         } else {
             log.warn("Film tmdbId: {} was not found in watchlist for user: {}", posting.id(), user.getUsername());

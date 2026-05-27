@@ -1,4 +1,4 @@
-package com.Backend.services.user_service;
+package com.Backend.services.general_test;
 
 import com.Backend.services.notification_service.model.NotificationDTO;
 import com.Backend.services.notification_service.service.NotificationService;
@@ -30,11 +30,15 @@ import com.Backend.services.keyword_service.repository.KeywordRepository;
 import com.Backend.services.keyword_service.repository.UserKeywordWeightRepository;
 import com.Backend.services.recommendation_service.model.Recommendation;
 import com.Backend.services.recommendation_service.model.RecommendationId;
+import com.Backend.services.recommendation_service.model.RecommendationResultDTO;
 import com.Backend.services.recommendation_service.repository.RecommendationRepository;
 import com.Backend.services.recommendation_service.service.RecommendationService;
+import com.Backend.services.recommendation_service.snapshot.service.RecommendationSnapshotQueryService;
+import com.Backend.services.recommendation_service.snapshot.service.RecommendationSnapshotRecomputeService;
 import com.Backend.services.sync_service.model.SyncAttemptResult;
 import com.Backend.services.sync_service.model.SyncCategory;
 import com.Backend.services.sync_service.service.FilmSyncTaskService;
+import com.Backend.services.sync_service.repository.SyncTaskRepository;
 import com.Backend.services.user_service.model.DTO.AuthenticateDTO;
 import com.Backend.services.user_service.model.DTO.RegisterDTO;
 import com.Backend.services.user_service.model.DTO.UpdateUserDTO;
@@ -47,8 +51,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 import com.Backend.services.watchlist_service.model.WatchlistItemId;
+import com.Backend.services.watchlist_service.model.WatchlistItem;
+import com.Backend.services.watchlist_service.model.Watchlist;
 import com.Backend.services.watchlist_service.model.WatchlistPosting;
 import com.Backend.services.watchlist_service.repository.WatchlistItemRepository;
+import com.Backend.services.watchlist_service.repository.WatchlistRepository;
+import com.Backend.services.watchlist_service.service.WatchlistService;
 import com.Backend.services.FilmType;
 import com.Backend.services.friend_service.model.EmailBody;
 import com.Backend.services.friend_service.model.Status;
@@ -71,6 +79,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.http.MediaType;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -78,6 +87,7 @@ import java.time.LocalDate;
 import java.util.Set;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -93,11 +103,14 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import org.mockito.ArgumentCaptor;
 
@@ -160,11 +173,26 @@ class SpringControllerTest {
         @Autowired
         private MeterRegistry meterRegistry;
 
-        @Autowired
+        @SpyBean
         private FilmSyncTaskService filmSyncTaskService;
 
         @Autowired
         private RecommendationService recommendationService;
+
+        @Autowired
+        private WatchlistService watchlistService;
+
+        @Autowired
+        private WatchlistRepository watchlistRepository;
+
+        @Autowired
+        private SyncTaskRepository syncTaskRepository;
+
+        @Autowired
+        private RecommendationSnapshotRecomputeService recommendationSnapshotRecomputeService;
+
+        @Autowired
+        private RecommendationSnapshotQueryService recommendationSnapshotQueryService;
 
         @MockBean
         private TmdbClient tmdbClient;
@@ -1172,5 +1200,209 @@ class SpringControllerTest {
         Film secondCandidate = filmRepository.findByFilmIdAndType(910_020L, FilmType.MOVIE).orElseThrow();
         Set<Long> secondRecommended = recommendationRepository.findRecommendedFilmIdsByFilmIds(List.of(source.getInternalId()));
         assertThat(secondRecommended).containsExactly(secondCandidate.getInternalId());
+    }
+
+    @Test
+    @Order(24)
+    @DisplayName("POST /watchlist returns quickly while background sync continues")
+    void addToWatchlist_returnsWithoutBlockingBackgroundSync() throws Exception {
+        reset(filmSyncTaskService, tmdbClient);
+        syncTaskRepository.deleteAll();
+
+        User user = createUserWithWatchlist("watchlist-async");
+        WatchlistPosting posting = new WatchlistPosting(FilmType.MOVIE, 771_009L);
+
+        TmdbFilmResponse details = new TmdbFilmResponse();
+        details.setId(posting.id());
+        details.setTitle("Async Candidate");
+        details.setVoteAverage(7.4d);
+        details.setReleaseDate("2025-02-11");
+        details.setBackdropPath("/async.jpg");
+        details.setOriginalLanguage("en");
+        when(tmdbClient.fetchFilmDetails(posting.id(), posting.type())).thenReturn(details);
+
+        CountDownLatch firstSyncInvocation = new CountDownLatch(1);
+        CountDownLatch unblockSync = new CountDownLatch(1);
+        CountDownLatch addCompleted = new CountDownLatch(1);
+
+        doAnswer(invocation -> {
+            firstSyncInvocation.countDown();
+            unblockSync.await(5, TimeUnit.SECONDS);
+            return SyncAttemptResult.alreadySynced();
+        }).when(filmSyncTaskService).syncNowOrQueue(any(Film.class), anyLong(), any(SyncCategory.class));
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            executor.submit(() -> {
+                watchlistService.addToWatchlist(posting, user);
+                addCompleted.countDown();
+            });
+
+            assertThat(firstSyncInvocation.await(3, TimeUnit.SECONDS)).isTrue();
+            assertThat(addCompleted.getCount()).isEqualTo(1L);
+
+            unblockSync.countDown();
+            assertThat(addCompleted.await(5, TimeUnit.SECONDS)).isTrue();
+
+            Film savedFilm = filmRepository.findByFilmIdAndType(posting.id(), posting.type()).orElseThrow();
+            assertThat(watchlistItemRepository.existsById(new WatchlistItemId(user.getId(), savedFilm.getInternalId())))
+                    .isTrue();
+
+            verify(filmSyncTaskService, times(4)).syncNowOrQueue(any(Film.class), eq(posting.id()), any(SyncCategory.class));
+
+            var categoryCaptor = ArgumentCaptor.forClass(SyncCategory.class);
+            verify(filmSyncTaskService, times(4)).syncNowOrQueue(any(Film.class), eq(posting.id()), categoryCaptor.capture());
+            assertThat(categoryCaptor.getAllValues()).containsExactlyInAnyOrder(
+                    SyncCategory.CREDITS,
+                    SyncCategory.KEYWORD,
+                    SyncCategory.GENRE,
+                    SyncCategory.RECOMMENDATION
+            );
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
+    @Order(25)
+    @DisplayName("Recommendation snapshot recompute keeps partially enriched candidates safe")
+    void recompute_includesPartiallyEnrichedCandidates_withZeroContributionForMissingSignals() {
+        User user = createRecommendationUserWithWatchlist("rec-partial");
+
+        Film watch = saveRecommendationFilm(100L, FilmType.MOVIE, "Watch", "en", LocalDate.parse("2025-01-01"), 7.0);
+        addRecommendationWatchlistItem(user, watch);
+
+        Film candidateComplete = saveRecommendationFilm(200L, FilmType.MOVIE, "Cand A", "en", LocalDate.parse("2025-02-01"), 8.0);
+        Film candidatePartial = saveRecommendationFilm(201L, FilmType.MOVIE, "Cand B", "en", LocalDate.parse("2024-01-01"), 6.0);
+
+        linkRecommendation(watch, candidateComplete);
+        linkRecommendation(watch, candidatePartial);
+
+        Genre genre = Objects.requireNonNull(
+                genreRepository.save(Objects.requireNonNull(
+                        Genre.builder().genreId(10L).name("Action").type(FilmType.MOVIE).build(),
+                        "genre"
+                )),
+                "savedGenre"
+        );
+        genre.getFilms().add(watch);
+        genre.getFilms().add(candidateComplete);
+        genreRepository.saveAndFlush(genre);
+
+        Keyword keyword = Objects.requireNonNull(
+                keywordRepository.save(Objects.requireNonNull(
+                        Keyword.builder().keywordId(99L).name("Spy").type(FilmType.MOVIE).build(),
+                        "keyword"
+                )),
+                "savedKeyword"
+        );
+        keyword.getFilms().add(watch);
+        keyword.getFilms().add(candidateComplete);
+        keywordRepository.saveAndFlush(keyword);
+
+        Role directorRole = Objects.requireNonNull(roleRepository.save(Objects.requireNonNull(Role.builder()
+                .roleCode("DIRECTOR")
+                .roleName("Director")
+                .roleGroup(RoleGroup.CREW)
+                .build(), "directorRole")), "savedDirectorRole");
+        Credit director = Objects.requireNonNull(creditRepository.save(Objects.requireNonNull(
+                Credit.builder().creditsId(500L).name("Jane Director").build(),
+                "directorCredit"
+        )), "savedDirectorCredit");
+
+        filmRoleRepository.save(Objects.requireNonNull(FilmRole.builder()
+                .film(watch)
+                .credit(director)
+                .role(directorRole)
+                .build(), "watchRole"));
+        filmRoleRepository.save(Objects.requireNonNull(FilmRole.builder()
+                .film(candidateComplete)
+                .credit(director)
+                .role(directorRole)
+                .build(), "candidateRole"));
+
+        recommendationSnapshotRecomputeService.recomputeSnapshotForUser(user.getId());
+
+        List<RecommendationResultDTO> results = recommendationSnapshotQueryService.getRecommendationsForUser(user);
+        assertThat(results).extracting("filmId")
+                .contains(candidateComplete.getFilmId(), candidatePartial.getFilmId());
+
+        RecommendationResultDTO partial = results.stream()
+                .filter(r -> r.filmId().equals(candidatePartial.getFilmId()))
+                .findFirst()
+                .orElseThrow();
+
+        assertThat(partial.keywordScore()).isEqualTo(0.0);
+        assertThat(partial.genreScore()).isEqualTo(0.0);
+        assertThat(partial.directorScore()).isEqualTo(0.0);
+    }
+
+    @Test
+    @Order(26)
+    @DisplayName("Recommendation snapshot recompute keeps only top K candidates in pass 2")
+    void recompute_onlyKeepsTopKCandidatesForPass2() {
+        User user = createRecommendationUserWithWatchlist("rec-topk");
+
+                ReflectionTestUtils.setField(recommendationSnapshotRecomputeService, "pass2TopK", 1);
+
+        Film watch = saveRecommendationFilm(300L, FilmType.MOVIE, "Watch", "en", LocalDate.parse("2025-01-01"), 7.0);
+        addRecommendationWatchlistItem(user, watch);
+
+        Film bestByPass1 = saveRecommendationFilm(400L, FilmType.MOVIE, "Best", "en", LocalDate.parse("2025-03-01"), 7.5);
+        Film worseByPass1 = saveRecommendationFilm(401L, FilmType.MOVIE, "Worse", "fr", LocalDate.parse("2025-03-01"), 9.9);
+
+        linkRecommendation(watch, bestByPass1);
+        linkRecommendation(watch, worseByPass1);
+
+        recommendationSnapshotRecomputeService.recomputeSnapshotForUser(user.getId());
+
+        List<RecommendationResultDTO> results = recommendationSnapshotQueryService.getRecommendationsForUser(user);
+        assertThat(results).extracting("filmId")
+                .containsExactly(bestByPass1.getFilmId());
+    }
+
+    private User createUserWithWatchlist(String prefix) {
+        String suffix = prefix + "-" + System.nanoTime();
+        User user = User.builder()
+                .username(suffix)
+                .email(suffix + "@example.com")
+                .password("password123")
+                .role(ROLE.ROLE_USER)
+                .build();
+
+        user.setWatchlist(new Watchlist());
+        return userRepository.saveAndFlush(user);
+    }
+
+    private User createRecommendationUserWithWatchlist(String prefix) {
+        return createUserWithWatchlist(prefix);
+    }
+
+    private Film saveRecommendationFilm(Long tmdbId, FilmType type, String title, String language, LocalDate date, double rating) {
+        Film film = Film.builder()
+                .filmId(tmdbId)
+                .type(type)
+                .title(title)
+                .originalLanguage(language)
+                .date(date)
+                .rating(rating)
+                .backgroundImg("/b.jpg")
+                .build();
+        return filmRepository.saveAndFlush(film);
+    }
+
+    private void addRecommendationWatchlistItem(User user, Film film) {
+        Watchlist watchlist = watchlistRepository.findByUserId(user.getId()).orElseThrow();
+        watchlistItemRepository.saveAndFlush(WatchlistItem.builder()
+                .id(new WatchlistItemId(watchlist.getUserId(), film.getInternalId()))
+                .watchlist(watchlist)
+                .film(film)
+                .build());
+    }
+
+    private void linkRecommendation(Film source, Film candidate) {
+        recommendationRepository.saveAndFlush(Recommendation.builder()
+                .id(new RecommendationId(source.getInternalId(), candidate.getInternalId()))
+                .build());
     }
 }

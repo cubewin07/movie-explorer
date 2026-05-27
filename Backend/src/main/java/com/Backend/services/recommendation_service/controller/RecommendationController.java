@@ -5,7 +5,7 @@ import com.Backend.services.FilmType;
 import com.Backend.services.film_service.model.TmdbSimilarItem;
 import com.Backend.services.recommendation_service.model.RecommendationResultDTO;
 import com.Backend.services.recommendation_service.service.RecommendationService;
-import com.Backend.services.recommendation_service.service.RecommendationQueryService;
+import com.Backend.services.recommendation_service.snapshot.service.RecommendationSnapshotQueryService;
 import com.Backend.services.user_service.model.User;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -30,14 +30,14 @@ public class RecommendationController {
 
     private static final String RECOMMENDATION_ENDPOINT_LATENCY_METRIC = "recommendation.endpoint.latency";
 
-    private final RecommendationQueryService recommendationQueryService;
+    private final RecommendationSnapshotQueryService recommendationQueryService;
     private final RecommendationService recommendationService;
     private final MeterRegistry meterRegistry;
     private final Timer recommendationSuccessLatencyTimer;
     private final Timer recommendationErrorLatencyTimer;
 
     public RecommendationController(
-            RecommendationQueryService recommendationQueryService,
+            RecommendationSnapshotQueryService recommendationQueryService,
             RecommendationService recommendationService,
             MeterRegistry meterRegistry
     ) {

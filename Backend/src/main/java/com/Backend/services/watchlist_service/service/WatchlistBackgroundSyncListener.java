@@ -1,11 +1,7 @@
 package com.Backend.services.watchlist_service.service;
 
-import com.Backend.services.credit_service.service.CreditWeightService;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.film_service.repository.FilmRepository;
-import com.Backend.services.genre_service.service.GenreWeightService;
-import com.Backend.services.keyword_service.service.KeywordWeightService;
-import com.Backend.services.language_service.service.LanguageWeightService;
 import com.Backend.services.sync_service.model.SyncAttemptResult;
 import com.Backend.services.sync_service.model.SyncCategory;
 import com.Backend.services.sync_service.service.FilmSyncTaskService;
@@ -32,10 +28,6 @@ public class WatchlistBackgroundSyncListener {
     private final WatchlistRepository watchlistRepository;
     private final FilmRepository filmRepository;
     private final FilmSyncTaskService filmSyncTaskService;
-    private final CreditWeightService creditWeightService;
-    private final KeywordWeightService keywordWeightService;
-    private final GenreWeightService genreWeightService;
-    private final LanguageWeightService languageWeightService;
 
     @Value("${watchlist.sync.apply-heavy-backfill:false}")
     private boolean applyHeavyBackfill;
@@ -78,9 +70,6 @@ public class WatchlistBackgroundSyncListener {
             SyncAttemptResult genreSync = safeSync(film, tmdbId, SyncCategory.GENRE, user.getId());
             SyncAttemptResult recommendationSync = safeSync(film, tmdbId, SyncCategory.RECOMMENDATION, user.getId());
 
-            applyWeightAdjustments(user, film, creditsSync, keywordSync, genreSync);
-            languageWeightService.adjustWeightsForFilm(user, film, 1L);
-
             logCategorySummary(user.getId(), film.getInternalId(), tmdbId, SyncCategory.CREDITS, creditsSync);
             logCategorySummary(user.getId(), film.getInternalId(), tmdbId, SyncCategory.KEYWORD, keywordSync);
             logCategorySummary(user.getId(), film.getInternalId(), tmdbId, SyncCategory.GENRE, genreSync);
@@ -109,36 +98,6 @@ public class WatchlistBackgroundSyncListener {
                     ex
             );
             return SyncAttemptResult.failedWithoutRetry(false, "ASYNC_SYNC_CRASH", ex.getMessage());
-        }
-    }
-
-    private void applyWeightAdjustments(
-            User user,
-            Film film,
-            SyncAttemptResult creditsSync,
-            SyncAttemptResult keywordSync,
-            SyncAttemptResult genreSync
-    ) {
-        if (user == null || user.getId() == null || film == null) {
-            return;
-        }
-
-        if (applyHeavyBackfill && !creditsSync.wasSynced() && creditsSync.syncSucceeded()) {
-            creditWeightService.backfillWeightsForFilm(film);
-        } else if (Boolean.TRUE.equals(film.getCreditsSyncCompleted())) {
-            creditWeightService.adjustWeightsForFilm(user, film, 1L);
-        }
-
-        if (applyHeavyBackfill && !keywordSync.wasSynced() && keywordSync.syncSucceeded()) {
-            keywordWeightService.backfillWeightsForFilm(film);
-        } else if (Boolean.TRUE.equals(film.getKeywordSyncCompleted())) {
-            keywordWeightService.adjustWeightsForFilm(user, film, 1L);
-        }
-
-        if (applyHeavyBackfill && !genreSync.wasSynced() && genreSync.syncSucceeded()) {
-            genreWeightService.backfillWeightsForFilm(film);
-        } else if (Boolean.TRUE.equals(film.getGenreSyncCompleted())) {
-            genreWeightService.adjustWeightsForFilm(user, film, 1L);
         }
     }
 
