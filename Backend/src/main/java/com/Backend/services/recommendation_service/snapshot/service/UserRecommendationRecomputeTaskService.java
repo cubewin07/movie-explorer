@@ -7,6 +7,7 @@ import java.time.Instant;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,7 +44,17 @@ public class UserRecommendationRecomputeTaskService {
                     .attemptCount(0)
                     .lastError(null)
                 .build();
+            try {
                 userRecomputeTaskRepository.save(Objects.requireNonNull(newTask, "task"));
+            } catch (DataIntegrityViolationException ex) {
+                UserRecomputeTask concurrentTask = userRecomputeTaskRepository.findById(userId).orElse(null);
+                if (concurrentTask == null) {
+                    throw ex;
+                }
+                concurrentTask.setScheduledAt(desired);
+                concurrentTask.setTriggeredBy(triggeredBy);
+                userRecomputeTaskRepository.save(concurrentTask);
+            }
             return;
         }
 
