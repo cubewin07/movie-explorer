@@ -65,14 +65,10 @@ public class WatchlistBackgroundSyncListener {
 
             User user = watchlist.getUser();
 
-            SyncAttemptResult creditsSync = safeSync(film, tmdbId, SyncCategory.CREDITS, user.getId());
-            SyncAttemptResult keywordSync = safeSync(film, tmdbId, SyncCategory.KEYWORD, user.getId());
-            SyncAttemptResult genreSync = safeSync(film, tmdbId, SyncCategory.GENRE, user.getId());
+            SyncAttemptResult enrichmentSync = safeSync(film, tmdbId, SyncCategory.ENRICHMENT, user.getId());
             SyncAttemptResult recommendationSync = safeSync(film, tmdbId, SyncCategory.RECOMMENDATION, user.getId());
 
-            logCategorySummary(user.getId(), film.getInternalId(), tmdbId, SyncCategory.CREDITS, creditsSync);
-            logCategorySummary(user.getId(), film.getInternalId(), tmdbId, SyncCategory.KEYWORD, keywordSync);
-            logCategorySummary(user.getId(), film.getInternalId(), tmdbId, SyncCategory.GENRE, genreSync);
+            logCategorySummary(user.getId(), film.getInternalId(), tmdbId, SyncCategory.ENRICHMENT, enrichmentSync);
             logCategorySummary(user.getId(), film.getInternalId(), tmdbId, SyncCategory.RECOMMENDATION, recommendationSync);
         } catch (RuntimeException ex) {
             log.error(

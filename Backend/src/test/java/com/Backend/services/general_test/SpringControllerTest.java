@@ -13,9 +13,12 @@ import com.Backend.services.credit_service.repository.FilmRoleRepository;
 import com.Backend.services.credit_service.repository.RoleRepository;
 import com.Backend.services.credit_service.repository.UserCreditWeightRepository;
 import com.Backend.services.film_service.model.Film;
+import com.Backend.services.film_service.model.FilmEnrichmentStatus;
+import com.Backend.services.film_service.model.TmdbCreditsResponse;
 import com.Backend.services.film_service.model.TmdbFilmResponse;
 import com.Backend.services.film_service.model.TmdbSimilarItem;
 import com.Backend.services.film_service.repository.FilmRepository;
+import com.Backend.services.film_service.service.FilmService;
 import com.Backend.services.film_service.service.TmdbClient;
 import com.Backend.services.genre_service.service.GenreService;
 import com.Backend.services.genre_service.model.Genre;
@@ -37,7 +40,10 @@ import com.Backend.services.recommendation_service.snapshot.service.Recommendati
 import com.Backend.services.recommendation_service.snapshot.service.RecommendationSnapshotRecomputeService;
 import com.Backend.services.sync_service.model.SyncAttemptResult;
 import com.Backend.services.sync_service.model.SyncCategory;
+import com.Backend.services.sync_service.model.SyncTask;
+import com.Backend.services.sync_service.model.SyncTaskStatus;
 import com.Backend.services.sync_service.service.FilmSyncTaskService;
+import com.Backend.services.sync_service.service.FilmEnrichmentStateService;
 import com.Backend.services.sync_service.repository.SyncTaskRepository;
 import com.Backend.services.user_service.model.DTO.AuthenticateDTO;
 import com.Backend.services.user_service.model.DTO.RegisterDTO;
@@ -83,6 +89,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Set;
 import java.util.List;
@@ -175,6 +182,12 @@ class SpringControllerTest {
 
         @SpyBean
         private FilmSyncTaskService filmSyncTaskService;
+
+        @Autowired
+        private FilmEnrichmentStateService filmEnrichmentStateService;
+
+        @Autowired
+        private FilmService filmService;
 
         @Autowired
         private RecommendationService recommendationService;
@@ -1248,14 +1261,12 @@ class SpringControllerTest {
             assertThat(watchlistItemRepository.existsById(new WatchlistItemId(user.getId(), savedFilm.getInternalId())))
                     .isTrue();
 
-            verify(filmSyncTaskService, times(4)).syncNowOrQueue(any(Film.class), eq(posting.id()), any(SyncCategory.class));
+            verify(filmSyncTaskService, times(2)).syncNowOrQueue(any(Film.class), eq(posting.id()), any(SyncCategory.class));
 
             var categoryCaptor = ArgumentCaptor.forClass(SyncCategory.class);
-            verify(filmSyncTaskService, times(4)).syncNowOrQueue(any(Film.class), eq(posting.id()), categoryCaptor.capture());
+            verify(filmSyncTaskService, times(2)).syncNowOrQueue(any(Film.class), eq(posting.id()), categoryCaptor.capture());
             assertThat(categoryCaptor.getAllValues()).containsExactlyInAnyOrder(
-                    SyncCategory.CREDITS,
-                    SyncCategory.KEYWORD,
-                    SyncCategory.GENRE,
+                    SyncCategory.ENRICHMENT,
                     SyncCategory.RECOMMENDATION
             );
         } finally {
@@ -1359,6 +1370,73 @@ class SpringControllerTest {
         List<RecommendationResultDTO> results = recommendationSnapshotQueryService.getRecommendationsForUser(user);
         assertThat(results).extracting("filmId")
                 .containsExactly(bestByPass1.getFilmId());
+    }
+
+    @Test
+    @Order(27)
+    @DisplayName("Phase 3 enrichment keeps new films pending, defers on active lease, and reclaims after lease expiry")
+    void phase3Enrichment_pendingCreationLeaseDeferralAndLeaseExpiryReclaim() {
+        reset(tmdbClient);
+        syncTaskRepository.deleteAll();
+
+        long tmdbId = 990_001L;
+
+        TmdbFilmResponse details = new TmdbFilmResponse();
+        details.setId(tmdbId);
+        details.setTitle("Phase 3 Source");
+        details.setVoteAverage(7.7d);
+        details.setReleaseDate("2025-01-15");
+        details.setBackdropPath("/phase3.jpg");
+        details.setOriginalLanguage("en");
+        when(tmdbClient.fetchFilmDetails(tmdbId, FilmType.MOVIE)).thenReturn(details);
+        when(tmdbClient.fetchCredits(tmdbId, FilmType.MOVIE)).thenReturn(new TmdbCreditsResponse());
+
+        Film created = filmService.getOrCreateFilm(tmdbId, FilmType.MOVIE);
+        assertThat(created.getEnrichmentStatus()).isEqualTo(FilmEnrichmentStatus.PENDING);
+        assertThat(created.getLeaseExpiresAt()).isNull();
+        assertThat(created.getEnrichedAt()).isNull();
+
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            Film locked = filmRepository.findById(created.getInternalId()).orElseThrow();
+            locked.setKeywordSyncCompleted(true);
+            locked.setGenreSyncCompleted(true);
+            locked.setEnrichmentStatus(FilmEnrichmentStatus.IN_PROGRESS);
+            locked.setLeaseExpiresAt(Instant.now().plusSeconds(60));
+        });
+
+        Film lockedSnapshot = filmRepository.findById(created.getInternalId()).orElseThrow();
+        Film preparedLockedFilm = filmEnrichmentStateService.prepareFilm(lockedSnapshot);
+        assertThat(filmEnrichmentStateService.tryAcquireLease(preparedLockedFilm)).isFalse();
+
+        SyncAttemptResult deferred = filmSyncTaskService.syncNowOrQueue(lockedSnapshot, tmdbId, SyncCategory.ENRICHMENT);
+        SyncTask queuedTask = syncTaskRepository
+                .findByFilmInternalIdAndSyncCategory(created.getInternalId(), SyncCategory.ENRICHMENT)
+                .orElseThrow();
+
+        assertThat(deferred.syncSucceeded()).isFalse();
+        assertThat(deferred.retryScheduled()).isTrue();
+        assertThat(deferred.errorCode()).isEqualTo("ENRICHMENT_LEASE_HELD");
+        assertThat(queuedTask.getStatus()).isEqualTo(SyncTaskStatus.PENDING);
+        assertThat(queuedTask.getAttempts()).isEqualTo(0);
+
+        new TransactionTemplate(transactionManager).executeWithoutResult(status -> {
+            Film expiredLeaseFilm = filmRepository.findById(created.getInternalId()).orElseThrow();
+            expiredLeaseFilm.setLeaseExpiresAt(Instant.now().minusSeconds(5));
+        });
+
+        filmSyncTaskService.processTask(queuedTask.getId());
+
+        Film enriched = filmRepository.findById(created.getInternalId()).orElseThrow();
+        SyncTask completedTask = syncTaskRepository.findById(queuedTask.getId()).orElseThrow();
+
+        assertThat(enriched.getCreditsSyncCompleted()).isTrue();
+        assertThat(enriched.getKeywordSyncCompleted()).isTrue();
+        assertThat(enriched.getGenreSyncCompleted()).isTrue();
+        assertThat(enriched.getEnrichmentStatus()).isEqualTo(FilmEnrichmentStatus.DONE);
+        assertThat(enriched.getLeaseExpiresAt()).isNull();
+        assertThat(enriched.getEnrichedAt()).isNotNull();
+        assertThat(completedTask.getStatus()).isEqualTo(SyncTaskStatus.SUCCEEDED);
+        assertThat(completedTask.getLastErrorCode()).isNull();
     }
 
     private User createUserWithWatchlist(String prefix) {

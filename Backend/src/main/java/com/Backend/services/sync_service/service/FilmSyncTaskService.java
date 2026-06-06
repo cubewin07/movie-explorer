@@ -17,7 +17,6 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -36,7 +35,7 @@ public class FilmSyncTaskService {
     private final FilmRepository filmRepository;
     private final TmdbClient tmdbClient;
     private final SyncTaskHelper syncTaskHelper;
-    private final Map<SyncCategory, FilmSyncProcessor> processors;
+    private final Map<SyncCategory, FilmSyncTaskHandler> handlers;
 
     @Value("${recommendation.sync.scheduler.max-tasks-per-tick:5}")
     private int recommendationMaxTasksPerTick;
@@ -52,14 +51,16 @@ public class FilmSyncTaskService {
             FilmRepository filmRepository,
             TmdbClient tmdbClient,
             SyncTaskHelper syncTaskHelper,
-            List<FilmSyncProcessor> processors
+            List<FilmSyncTaskHandler> handlers
     ) {
         this.syncTaskRepository = syncTaskRepository;
         this.filmRepository = filmRepository;
         this.tmdbClient = tmdbClient;
         this.syncTaskHelper = syncTaskHelper;
-        this.processors = processors.stream()
-                .collect(Collectors.toUnmodifiableMap(FilmSyncProcessor::getCategory, Function.identity()));
+        this.handlers = handlers.stream()
+                .flatMap(handler -> handler.getSupportedCategories().stream()
+                        .map(category -> Map.entry(category, handler)))
+                .collect(Collectors.toUnmodifiableMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     @Transactional
@@ -67,30 +68,48 @@ public class FilmSyncTaskService {
         if (film == null || film.getInternalId() == null || tmdbId == null || category == null) {
             return SyncAttemptResult.invalidInput("Missing sync input (film/tmdbId/category)");
         }
-        FilmSyncProcessor processor = processors.get(category);
-        if (processor == null) {
-            log.warn("No sync processor is configured for category={}", category);
-            return SyncAttemptResult.unsupportedCategory("No sync processor configured for category " + category);
+        FilmSyncTaskHandler handler = handlers.get(category);
+        if (handler == null) {
+            log.warn("No sync task handler is configured for category={}", category);
+            return SyncAttemptResult.unsupportedCategory("No sync task handler configured for category " + category);
         }
 
-        boolean wasSynced = processor.isSyncCompleted(film);
+        Film workingFilm = handler.prepareFilm(film, category);
+        if (workingFilm == null) {
+            return SyncAttemptResult.failedPermanently(false, "FILM_NOT_FOUND", "Film no longer exists for sync");
+        }
+
+        boolean wasSynced = handler.isSyncCompleted(workingFilm, category);
 
         if (wasSynced) {
             return SyncAttemptResult.alreadySynced();
         }
 
+        SyncTaskExecutionGuard guard = handler.beforeSync(workingFilm, category);
+        if (!guard.canRun()) {
+            enqueuePendingSync(workingFilm, tmdbId, category);
+            return SyncAttemptResult.retryScheduled(false, guard.errorCode(), guard.errorMessage());
+        }
+
+        workingFilm = guard.film();
+        if (workingFilm == null) {
+            return SyncAttemptResult.failedPermanently(false, "FILM_NOT_FOUND", "Film no longer exists for sync");
+        }
+
         try {
-            if (film.getType() == null) {
+            if (workingFilm.getType() == null) {
                 throw new SyncProcessingException("FILM_TYPE_MISSING", "Film type is missing for sync category " + category);
             }
-            processor.syncForFilm(tmdbId, film);
-            processor.markSyncCompleted(film);
+            handler.syncForFilm(tmdbId, workingFilm, category);
+            handler.markSyncCompleted(workingFilm, category);
+            handler.afterSyncSuccess(workingFilm, category);
             return SyncAttemptResult.synced(wasSynced);
         } catch (RuntimeException ex) {
-            SyncRetryEnqueueResult retryResult = enqueueRetry(film, tmdbId, category, ex);
+            handler.afterSyncFailure(workingFilm, category);
+            SyncRetryEnqueueResult retryResult = enqueueRetry(workingFilm, tmdbId, category, ex);
 
             log.warn("Failed to sync category={} for filmInternalId={} tmdbId={} type={}",
-                    category, film.getInternalId(), tmdbId, film.getType(), ex);
+                    category, workingFilm.getInternalId(), tmdbId, workingFilm.getType(), ex);
             return toAttemptResult(wasSynced, retryResult);
         }
     }
@@ -123,13 +142,13 @@ public class FilmSyncTaskService {
             return;
         }
 
-        FilmSyncProcessor processor = processors.get(category);
-        if (processor == null) {
-            log.warn("No sync processor is configured for category={}", category);
+        FilmSyncTaskHandler handler = handlers.get(category);
+        if (handler == null) {
+            log.warn("No sync task handler is configured for category={}", category);
             return;
         }
 
-        if (processor.isSyncCompleted(film)) {
+        if (handler.isSyncCompleted(film, category)) {
             return;
         }
 
@@ -350,11 +369,11 @@ public class FilmSyncTaskService {
         }
 
         SyncCategory category = task.getSyncCategory();
-        FilmSyncProcessor processor = processors.get(category);
-        if (processor == null) {
+        FilmSyncTaskHandler handler = handlers.get(category);
+        if (handler == null) {
             task.setStatus(SyncTaskStatus.FAILED_PERMANENT);
             task.setLastErrorCode("SYNC_CATEGORY_UNSUPPORTED");
-            task.setLastErrorMessage("No sync processor configured for category " + category);
+            task.setLastErrorMessage("No sync task handler configured for category " + category);
             task.setNextRetryAt(null);
             syncTaskHelper.logPermanentFailure(
                     category,
@@ -369,7 +388,66 @@ public class FilmSyncTaskService {
             return;
         }
 
-        boolean wasSynced = processor.isSyncCompleted(film);
+        film = handler.prepareFilm(film, category);
+        if (film == null) {
+            task.setStatus(SyncTaskStatus.FAILED_PERMANENT);
+            task.setLastErrorCode("FILM_NOT_FOUND");
+            task.setLastErrorMessage("Film no longer exists for retry task");
+            task.setNextRetryAt(null);
+            syncTaskHelper.logPermanentFailure(
+                    category,
+                    filmInternalId,
+                    task.getTmdbId(),
+                    task.getAttempts(),
+                    task.getMaxAttempts(),
+                    task.getLastErrorCode(),
+                    task.getLastErrorMessage(),
+                    null
+            );
+            return;
+        }
+
+        boolean wasSynced = handler.isSyncCompleted(film, category);
+        if (wasSynced) {
+            task.setStatus(SyncTaskStatus.SUCCEEDED);
+            task.setNextRetryAt(null);
+            task.setLastErrorCode(null);
+            task.setLastErrorMessage(null);
+            return;
+        }
+
+        SyncTaskExecutionGuard guard = handler.beforeSync(film, category);
+        if (!guard.canRun()) {
+            task.setStatus(SyncTaskStatus.RETRYING);
+            task.setLastErrorCode(guard.errorCode());
+            task.setLastErrorMessage(guard.errorMessage());
+            task.setNextRetryAt(guard.nextRetryAt() == null ? Instant.now() : guard.nextRetryAt());
+            syncTaskHelper.recordRetryScheduled(category, task.getLastErrorCode());
+            return;
+        }
+
+        film = guard.film();
+        if (film == null) {
+            task.setStatus(SyncTaskStatus.FAILED_PERMANENT);
+            task.setLastErrorCode("FILM_NOT_FOUND");
+            task.setLastErrorMessage("Film no longer exists for retry task");
+            task.setNextRetryAt(null);
+            syncTaskHelper.logPermanentFailure(
+                    category,
+                    filmInternalId,
+                    task.getTmdbId(),
+                    task.getAttempts(),
+                    task.getMaxAttempts(),
+                    task.getLastErrorCode(),
+                    task.getLastErrorMessage(),
+                    null
+            );
+            return;
+        }
+        task = syncTaskRepository.findById(taskId).orElse(null);
+        if (task == null || !RUNNABLE_STATUSES.contains(task.getStatus())) {
+            return;
+        }
 
         try {
             if (film.getType() == null) {
@@ -390,8 +468,9 @@ public class FilmSyncTaskService {
                 return;
             }
 
-            processor.syncForFilm(task.getTmdbId(), film);
-            processor.markSyncCompleted(film);
+            handler.syncForFilm(task.getTmdbId(), film, category);
+            handler.markSyncCompleted(film, category);
+            handler.afterSyncSuccess(film, category);
 
             task.setStatus(SyncTaskStatus.SUCCEEDED);
             task.setNextRetryAt(null);
@@ -399,9 +478,10 @@ public class FilmSyncTaskService {
             task.setLastErrorMessage(null);
 
             if (!wasSynced) {
-                processor.backfillWeightsForFilm(film);
+                handler.backfillWeightsForFilm(film, category);
             }
         } catch (LocalBudgetDeferException ex) {
+            handler.afterSyncFailure(film, category);
             task.setStatus(SyncTaskStatus.RETRYING);
             task.setLastErrorCode(ex.getErrorCode());
             task.setLastErrorMessage(ex.getMessage());
@@ -412,6 +492,7 @@ public class FilmSyncTaskService {
             log.debug("Deferred sync for category={} filmInternalId={} tmdbId={} reason={}",
                     category, task.getFilmInternalId(), task.getTmdbId(), ex.getMessage());
         } catch (RuntimeException ex) {
+            handler.afterSyncFailure(film, category);
             if (task.getAttempts() == null || task.getAttempts() < 0) {
                 task.setAttempts(0);
             }

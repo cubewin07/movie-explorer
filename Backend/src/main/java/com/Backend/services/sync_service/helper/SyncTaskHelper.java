@@ -44,6 +44,9 @@ public class SyncTaskHelper {
     @Value("${sync.retry.max-attempts.recommendation:${sync.retry.max-attempts:8}}")
     private int recommendationMaxAttempts;
 
+    @Value("${sync.retry.max-attempts.enrichment:${sync.retry.max-attempts:8}}")
+    private int enrichmentMaxAttempts;
+
     public SyncRetryDecision toRetryDecision(RuntimeException error, int nextAttempt) {
         if (error instanceof LocalBudgetDeferException defer) {
             Duration delay = defer.getRetryDelay() == null ? Duration.ofSeconds(5) : defer.getRetryDelay();
@@ -59,6 +62,7 @@ public class SyncTaskHelper {
         }
 
         return switch (category) {
+            case ENRICHMENT -> Math.max(1, enrichmentMaxAttempts);
             case CREDITS -> Math.max(1, creditsMaxAttempts);
             case KEYWORD -> Math.max(1, keywordMaxAttempts);
             case GENRE -> Math.max(1, genreMaxAttempts);

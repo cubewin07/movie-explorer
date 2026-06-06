@@ -79,6 +79,16 @@ tmdb:
       refill-tokens: ${TMDB_API_RATE_LIMIT_REFILL_TOKENS:1000}
       refill-period-seconds: ${TMDB_API_RATE_LIMIT_REFILL_PERIOD_SECONDS:1}
 
+sync:
+  retry:
+    fixed-delay-ms: ${SYNC_RETRY_FIXED_DELAY_MS:30000}
+    max-attempts: ${SYNC_RETRY_MAX_ATTEMPTS:8}
+    "max-attempts.enrichment": ${SYNC_RETRY_MAX_ATTEMPTS_ENRICHMENT:${SYNC_RETRY_MAX_ATTEMPTS:8}}
+    "max-attempts.recommendation": ${SYNC_RETRY_MAX_ATTEMPTS_RECOMMENDATION:${SYNC_RETRY_MAX_ATTEMPTS:8}}
+    "max-attempts.credits": ${SYNC_RETRY_MAX_ATTEMPTS_CREDITS:${SYNC_RETRY_MAX_ATTEMPTS:8}}
+    "max-attempts.keyword": ${SYNC_RETRY_MAX_ATTEMPTS_KEYWORD:${SYNC_RETRY_MAX_ATTEMPTS:8}}
+    "max-attempts.genre": ${SYNC_RETRY_MAX_ATTEMPTS_GENRE:${SYNC_RETRY_MAX_ATTEMPTS:8}}
+
 recommendation:
   query:
     max-candidates: ${RECOMMENDATION_QUERY_MAX_CANDIDATES:80}
@@ -95,6 +105,10 @@ recommendation:
       max-users-per-tick: ${RECOMMENDATION_RECOMPUTE_SCHEDULER_MAX_USERS_PER_TICK:10}
       failure-reschedule-seconds: ${RECOMMENDATION_RECOMPUTE_FAILURE_RESCHEDULE_SECONDS:30}
       max-attempts: ${RECOMMENDATION_RECOMPUTE_MAX_ATTEMPTS:10}
+  enrichment:
+    lease-duration-ms: ${RECOMMENDATION_ENRICHMENT_LEASE_DURATION_MS:60000}
+    ttl-ms: ${RECOMMENDATION_ENRICHMENT_TTL_MS:604800000}
+    lease-retry-delay-ms: ${RECOMMENDATION_ENRICHMENT_LEASE_RETRY_DELAY_MS:2000}
   sync:
     max-similar-per-film: ${RECOMMENDATION_SYNC_MAX_SIMILAR_PER_FILM:50}
     max-requests-per-run: ${RECOMMENDATION_SYNC_MAX_REQUESTS_PER_RUN:20}
