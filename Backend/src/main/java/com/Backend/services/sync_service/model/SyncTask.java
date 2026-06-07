@@ -45,6 +45,9 @@ public class SyncTask {
     @Column(name = "tmdb_id", nullable = false)
     private Long tmdbId;
 
+    @Column(name = "user_id")
+    private Long userId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "sync_category", nullable = false)
     private SyncCategory syncCategory;

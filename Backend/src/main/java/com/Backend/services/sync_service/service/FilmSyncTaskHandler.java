@@ -20,6 +20,10 @@ public interface FilmSyncTaskHandler {
 
     void afterSyncSuccess(Film film, SyncCategory category);
 
+    default void afterSyncSuccess(Film film, SyncCategory category, Long userId) {
+        afterSyncSuccess(film, category);
+    }
+
     void afterSyncFailure(Film film, SyncCategory category);
 
     void backfillWeightsForFilm(Film film, SyncCategory category);

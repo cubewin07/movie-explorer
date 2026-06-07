@@ -20,6 +20,9 @@ public class UserRecommendationRecomputeTaskService {
     @Value("${recommendation.recompute.debounce-seconds:30}")
     private int debounceSeconds;
 
+    @Value("${recommendation.recompute.sync-complete-debounce-seconds:5}")
+    private int syncCompleteDebounceSeconds;
+
     @Value("${recommendation.recompute.debounce-cap-seconds:300}")
     private int debounceCapSeconds;
 
@@ -30,7 +33,7 @@ public class UserRecommendationRecomputeTaskService {
         }
 
         Instant now = Instant.now();
-        int resolvedDebounce = Math.max(0, debounceSeconds);
+        int resolvedDebounce = Math.max(0, resolveDebounceSeconds(triggeredBy));
         int resolvedCap = Math.max(0, debounceCapSeconds);
 
         Instant desired = now.plusSeconds(resolvedDebounce);
@@ -66,5 +69,12 @@ public class UserRecommendationRecomputeTaskService {
         existing.setTriggeredBy(triggeredBy);
 
         userRecomputeTaskRepository.save(existing);
+    }
+
+    private int resolveDebounceSeconds(RecommendationRecomputeTriggeredBy triggeredBy) {
+        if (triggeredBy == RecommendationRecomputeTriggeredBy.RECOMMENDATION_SYNC_COMPLETE) {
+            return syncCompleteDebounceSeconds;
+        }
+        return debounceSeconds;
     }
 }

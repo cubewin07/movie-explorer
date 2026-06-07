@@ -1,17 +1,22 @@
 package com.Backend.services.sync_service.service;
 
 import com.Backend.services.film_service.model.Film;
+import com.Backend.services.recommendation_service.snapshot.model.RecommendationRecomputeTriggeredBy;
+import com.Backend.services.recommendation_service.snapshot.service.UserRecommendationRecomputeTaskService;
 import com.Backend.services.recommendation_service.service.RecommendationSyncProcessor;
 import com.Backend.services.sync_service.model.SyncCategory;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class RecommendationSyncTaskHandler implements FilmSyncTaskHandler {
 
     private final RecommendationSyncProcessor recommendationSyncProcessor;
+    private final UserRecommendationRecomputeTaskService recomputeTaskService;
 
     @Override
     public Set<SyncCategory> getSupportedCategories() {
@@ -45,7 +50,23 @@ public class RecommendationSyncTaskHandler implements FilmSyncTaskHandler {
 
     @Override
     public void afterSyncSuccess(Film film, SyncCategory category) {
-        // No recommendation-specific success hook yet.
+        afterSyncSuccess(film, category, null);
+    }
+
+    @Override
+    public void afterSyncSuccess(Film film, SyncCategory category, Long userId) {
+        if (userId == null) {
+            log.debug(
+                    "Skipping recommendation recompute scheduling after sync success because userId is missing filmInternalId={}",
+                    film != null ? film.getInternalId() : null
+            );
+            return;
+        }
+
+        recomputeTaskService.scheduleRecompute(
+                userId,
+                RecommendationRecomputeTriggeredBy.RECOMMENDATION_SYNC_COMPLETE
+        );
     }
 
     @Override

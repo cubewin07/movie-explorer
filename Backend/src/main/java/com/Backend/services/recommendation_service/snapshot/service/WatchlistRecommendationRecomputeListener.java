@@ -26,11 +26,11 @@ public class WatchlistRecommendationRecomputeListener {
         if (event == null || event.userId() == null) {
             return;
         }
-        try {
-            taskService.scheduleRecompute(event.userId(), RecommendationRecomputeTriggeredBy.WATCHLIST_ADD);
-        } catch (RuntimeException ex) {
-            log.error("Failed to enqueue recommendation recompute after watchlist add userId={}", event.userId(), ex);
-        }
+        log.debug(
+                "Skipping immediate recommendation recompute after watchlist add userId={} filmInternalId={}; waiting for recommendation sync completion",
+                event.userId(),
+                event.filmInternalId()
+        );
     }
 
     @Async("watchlistSyncExecutor")

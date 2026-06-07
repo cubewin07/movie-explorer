@@ -83,7 +83,7 @@ public class WatchlistBackgroundSyncListener {
 
     private SyncAttemptResult safeSync(Film film, Long tmdbId, SyncCategory category, Long userId) {
         try {
-            return filmSyncTaskService.syncNowOrQueue(film, tmdbId, category);
+            return filmSyncTaskService.syncNowOrQueue(film, tmdbId, category, userId);
         } catch (RuntimeException ex) {
             log.error(
                     "Background sync crashed for category={} userId={} filmInternalId={} tmdbId={}",

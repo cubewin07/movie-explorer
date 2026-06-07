@@ -65,6 +65,11 @@ public class FilmSyncTaskService {
 
     @Transactional
     public SyncAttemptResult syncNowOrQueue(Film film, Long tmdbId, SyncCategory category) {
+        return syncNowOrQueue(film, tmdbId, category, null);
+    }
+
+    @Transactional
+    public SyncAttemptResult syncNowOrQueue(Film film, Long tmdbId, SyncCategory category, Long userId) {
         if (film == null || film.getInternalId() == null || tmdbId == null || category == null) {
             return SyncAttemptResult.invalidInput("Missing sync input (film/tmdbId/category)");
         }
@@ -82,12 +87,13 @@ public class FilmSyncTaskService {
         boolean wasSynced = handler.isSyncCompleted(workingFilm, category);
 
         if (wasSynced) {
+            handler.afterSyncSuccess(workingFilm, category, userId);
             return SyncAttemptResult.alreadySynced();
         }
 
         SyncTaskExecutionGuard guard = handler.beforeSync(workingFilm, category);
         if (!guard.canRun()) {
-            enqueuePendingSync(workingFilm, tmdbId, category);
+            enqueuePendingSync(workingFilm, tmdbId, category, userId);
             return SyncAttemptResult.retryScheduled(false, guard.errorCode(), guard.errorMessage());
         }
 
@@ -102,11 +108,11 @@ public class FilmSyncTaskService {
             }
             handler.syncForFilm(tmdbId, workingFilm, category);
             handler.markSyncCompleted(workingFilm, category);
-            handler.afterSyncSuccess(workingFilm, category);
+            handler.afterSyncSuccess(workingFilm, category, userId);
             return SyncAttemptResult.synced(wasSynced);
         } catch (RuntimeException ex) {
             handler.afterSyncFailure(workingFilm, category);
-            SyncRetryEnqueueResult retryResult = enqueueRetry(workingFilm, tmdbId, category, ex);
+            SyncRetryEnqueueResult retryResult = enqueueRetry(workingFilm, tmdbId, category, userId, ex);
 
             log.warn("Failed to sync category={} for filmInternalId={} tmdbId={} type={}",
                     category, workingFilm.getInternalId(), tmdbId, workingFilm.getType(), ex);
@@ -138,6 +144,11 @@ public class FilmSyncTaskService {
 
     @Transactional
     public void enqueuePendingSync(Film film, Long tmdbId, SyncCategory category) {
+        enqueuePendingSync(film, tmdbId, category, null);
+    }
+
+    @Transactional
+    public void enqueuePendingSync(Film film, Long tmdbId, SyncCategory category, Long userId) {
         if (film == null || film.getInternalId() == null || tmdbId == null || category == null) {
             return;
         }
@@ -159,6 +170,7 @@ public class FilmSyncTaskService {
                 .orElseGet(() -> SyncTask.builder()
                         .filmInternalId(film.getInternalId())
                         .tmdbId(tmdbId)
+                        .userId(userId)
                         .syncCategory(category)
                         .attempts(0)
                 .maxAttempts(resolvedMaxAttempts)
@@ -177,6 +189,9 @@ public class FilmSyncTaskService {
         }
 
         task.setTmdbId(tmdbId);
+        if (userId != null) {
+            task.setUserId(userId);
+        }
         task.setSyncCategory(category);
         task.setStatus(SyncTaskStatus.PENDING);
         task.setNextRetryAt(Instant.now());
@@ -188,6 +203,11 @@ public class FilmSyncTaskService {
 
     @Transactional
     private SyncRetryEnqueueResult enqueueRetry(Film film, Long tmdbId, SyncCategory category, RuntimeException error) {
+        return enqueueRetry(film, tmdbId, category, null, error);
+    }
+
+    @Transactional
+    private SyncRetryEnqueueResult enqueueRetry(Film film, Long tmdbId, SyncCategory category, Long userId, RuntimeException error) {
         if (film == null || film.getInternalId() == null || tmdbId == null || category == null) {
             return new SyncRetryEnqueueResult(false, true, "INVALID_INPUT", "Missing sync input for retry enqueue");
         }
@@ -200,6 +220,7 @@ public class FilmSyncTaskService {
                     .orElseGet(() -> SyncTask.builder()
                             .filmInternalId(film.getInternalId())
                             .tmdbId(tmdbId)
+                            .userId(userId)
                             .syncCategory(category)
                             .attempts(0)
                             .maxAttempts(resolvedMaxAttempts)
@@ -218,6 +239,9 @@ public class FilmSyncTaskService {
 
             task.setAttempts(nextAttempt);
             task.setTmdbId(tmdbId);
+            if (userId != null) {
+                task.setUserId(userId);
+            }
             task.setSyncCategory(category);
             task.setLastErrorCode(decision.errorCode());
             task.setLastErrorMessage(decision.errorMessage());
@@ -409,6 +433,7 @@ public class FilmSyncTaskService {
 
         boolean wasSynced = handler.isSyncCompleted(film, category);
         if (wasSynced) {
+            handler.afterSyncSuccess(film, category, task.getUserId());
             task.setStatus(SyncTaskStatus.SUCCEEDED);
             task.setNextRetryAt(null);
             task.setLastErrorCode(null);
@@ -470,7 +495,7 @@ public class FilmSyncTaskService {
 
             handler.syncForFilm(task.getTmdbId(), film, category);
             handler.markSyncCompleted(film, category);
-            handler.afterSyncSuccess(film, category);
+            handler.afterSyncSuccess(film, category, task.getUserId());
 
             task.setStatus(SyncTaskStatus.SUCCEEDED);
             task.setNextRetryAt(null);

@@ -82,6 +82,9 @@ public class SyncTaskHelper {
                     .orElseThrow(() -> ex);
 
             existing.setTmdbId(task.getTmdbId());
+            if (task.getUserId() != null) {
+                existing.setUserId(task.getUserId());
+            }
             existing.setSyncCategory(task.getSyncCategory());
             existing.setStatus(task.getStatus());
             existing.setAttempts(task.getAttempts());
