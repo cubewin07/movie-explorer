@@ -20,7 +20,6 @@ import com.Backend.services.film_service.model.TmdbSimilarItem;
 import com.Backend.services.film_service.repository.FilmRepository;
 import com.Backend.services.film_service.service.FilmService;
 import com.Backend.services.film_service.service.TmdbClient;
-import com.Backend.services.genre_service.service.GenreService;
 import com.Backend.services.genre_service.model.Genre;
 import com.Backend.services.genre_service.model.UserGenreWeight;
 import com.Backend.services.genre_service.model.UserGenreWeightId;
@@ -209,9 +208,6 @@ class SpringControllerTest {
 
         @MockBean
         private TmdbClient tmdbClient;
-
-        @SpyBean
-        private GenreService genreService;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -1105,14 +1101,11 @@ class SpringControllerTest {
 
     @Test
     @Order(22)
-    @DisplayName("RECOMMENDATION sync ingests filtered candidates and triggers best-effort genre seeding")
-    void recommendation_sync_ingests_filtered_candidates_and_triggers_genre_seeding() {
-        reset(tmdbClient, genreService);
+    @DisplayName("RECOMMENDATION sync ingests filtered candidates")
+    void recommendation_sync_ingests_filtered_candidates() {
+        reset(tmdbClient);
+        syncTaskRepository.deleteAll();
         when(tmdbClient.getAvailableTokens()).thenReturn(10.0d);
-
-        // We only assert that genre seeding is triggered with correct arguments.
-        // Keeping it a no-op makes this test resilient to future GenreMapService changes.
-        doNothing().when(genreService).syncGenresForFilm(anyLong(), anyList(), any(FilmType.class));
 
         long sourceTmdbId = 900_001L;
         List<TmdbSimilarItem> fetched = List.of(
@@ -1160,34 +1153,15 @@ class SpringControllerTest {
         Set<Long> recommendedIds = recommendationRepository.findRecommendedFilmIdsByFilmIds(List.of(source.getInternalId()));
         assertThat(recommendedIds).contains(candidateA.getInternalId());
         assertThat(recommendedIds).doesNotContain(source.getInternalId());
-
-        @SuppressWarnings("unchecked")
-        ArgumentCaptor<List<Integer>> genreIdsCaptor = ArgumentCaptor.forClass((Class) List.class);
-        ArgumentCaptor<Long> internalIdCaptor = ArgumentCaptor.forClass(Long.class);
-        ArgumentCaptor<FilmType> typeCaptor = ArgumentCaptor.forClass(FilmType.class);
-
-        verify(genreService).syncGenresForFilm(
-                internalIdCaptor.capture(),
-                genreIdsCaptor.capture(),
-                typeCaptor.capture()
-        );
-
-        assertThat(internalIdCaptor.getValue()).isEqualTo(candidateA.getInternalId());
-        assertThat(genreIdsCaptor.getValue()).containsExactly(28, 12);
-        assertThat(typeCaptor.getValue()).isEqualTo(FilmType.MOVIE);
-        verifyNoMoreInteractions(genreService);
     }
 
     @Test
     @Order(23)
-    @DisplayName("Genre seeding failure does not prevent edge insertion; repeated sync replaces edges")
-    void recommendation_ingestion_is_replace_semantics_and_genre_failure_is_non_fatal() {
-        reset(tmdbClient, genreService);
+    @DisplayName("Repeated sync replaces edges")
+    void recommendation_ingestion_is_replace_semantics() {
+        reset(tmdbClient);
+        syncTaskRepository.deleteAll();
         when(tmdbClient.getAvailableTokens()).thenReturn(10.0d);
-
-        doThrow(new RuntimeException("boom"))
-                .when(genreService)
-                .syncGenresForFilm(anyLong(), anyList(), any(FilmType.class));
 
         long sourceTmdbId = 910_001L;
         Film source = filmRepository.saveAndFlush(Film.builder()
@@ -1242,7 +1216,7 @@ class SpringControllerTest {
             firstSyncInvocation.countDown();
             unblockSync.await(5, TimeUnit.SECONDS);
             return SyncAttemptResult.alreadySynced();
-        }).when(filmSyncTaskService).syncNowOrQueue(any(Film.class), anyLong(), any(SyncCategory.class));
+                }).when(filmSyncTaskService).syncNowOrQueue(any(Film.class), anyLong(), any(SyncCategory.class), anyLong());
 
         ExecutorService executor = Executors.newSingleThreadExecutor();
         try {
@@ -1261,10 +1235,10 @@ class SpringControllerTest {
             assertThat(watchlistItemRepository.existsById(new WatchlistItemId(user.getId(), savedFilm.getInternalId())))
                     .isTrue();
 
-            verify(filmSyncTaskService, times(2)).syncNowOrQueue(any(Film.class), eq(posting.id()), any(SyncCategory.class));
+            verify(filmSyncTaskService, times(2)).syncNowOrQueue(any(Film.class), eq(posting.id()), any(SyncCategory.class), eq(user.getId()));
 
             var categoryCaptor = ArgumentCaptor.forClass(SyncCategory.class);
-            verify(filmSyncTaskService, times(2)).syncNowOrQueue(any(Film.class), eq(posting.id()), categoryCaptor.capture());
+            verify(filmSyncTaskService, times(2)).syncNowOrQueue(any(Film.class), eq(posting.id()), categoryCaptor.capture(), eq(user.getId()));
             assertThat(categoryCaptor.getAllValues()).containsExactlyInAnyOrder(
                     SyncCategory.ENRICHMENT,
                     SyncCategory.RECOMMENDATION

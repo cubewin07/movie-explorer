@@ -27,7 +27,7 @@ public class TmdbTvSimilarResponse {
         @JsonProperty("backdrop_path")
         private String backdropPath;
 
-        // Structural decision: keep this in the DTO so recommendation ingestion can seed genres without per-film TMDB calls.
+        // TMDB response payload field.
         @JsonProperty("genre_ids")
         private List<Integer> genreIds = new ArrayList<>();
     }
