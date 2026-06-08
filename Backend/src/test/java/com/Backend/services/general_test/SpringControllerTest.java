@@ -6,12 +6,9 @@ import com.Backend.services.credit_service.model.Credit;
 import com.Backend.services.credit_service.model.FilmRole;
 import com.Backend.services.credit_service.model.Role;
 import com.Backend.services.credit_service.model.RoleGroup;
-import com.Backend.services.credit_service.model.UserCreditWeight;
-import com.Backend.services.credit_service.model.UserCreditWeightId;
 import com.Backend.services.credit_service.repository.CreditRepository;
 import com.Backend.services.credit_service.repository.FilmRoleRepository;
 import com.Backend.services.credit_service.repository.RoleRepository;
-import com.Backend.services.credit_service.repository.UserCreditWeightRepository;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.film_service.model.FilmEnrichmentStatus;
 import com.Backend.services.film_service.model.TmdbCreditsResponse;
@@ -21,15 +18,9 @@ import com.Backend.services.film_service.repository.FilmRepository;
 import com.Backend.services.film_service.service.FilmService;
 import com.Backend.services.film_service.service.TmdbClient;
 import com.Backend.services.genre_service.model.Genre;
-import com.Backend.services.genre_service.model.UserGenreWeight;
-import com.Backend.services.genre_service.model.UserGenreWeightId;
 import com.Backend.services.genre_service.repository.GenreRepository;
-import com.Backend.services.genre_service.repository.UserGenreWeightRepository;
 import com.Backend.services.keyword_service.model.Keyword;
-import com.Backend.services.keyword_service.model.UserKeywordWeight;
-import com.Backend.services.keyword_service.model.UserKeywordWeightId;
 import com.Backend.services.keyword_service.repository.KeywordRepository;
-import com.Backend.services.keyword_service.repository.UserKeywordWeightRepository;
 import com.Backend.services.recommendation_service.model.Recommendation;
 import com.Backend.services.recommendation_service.model.RecommendationId;
 import com.Backend.services.recommendation_service.model.RecommendationResultDTO;
@@ -48,13 +39,10 @@ import com.Backend.services.user_service.model.DTO.AuthenticateDTO;
 import com.Backend.services.user_service.model.DTO.RegisterDTO;
 import com.Backend.services.user_service.model.DTO.UpdateUserDTO;
 import com.Backend.services.user_service.model.User;
-import com.Backend.services.user_service.model.UserFilmReference;
 import com.Backend.services.user_service.model.ROLE;
-import com.Backend.services.user_service.repository.UserFilmReferenceRepository;
 import com.Backend.services.user_service.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.MeterRegistry;
-import io.micrometer.core.instrument.Timer;
 import com.Backend.services.watchlist_service.model.WatchlistItemId;
 import com.Backend.services.watchlist_service.model.WatchlistItem;
 import com.Backend.services.watchlist_service.model.Watchlist;
@@ -97,9 +85,7 @@ import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -160,18 +146,6 @@ class SpringControllerTest {
 
         @Autowired
         private KeywordRepository keywordRepository;
-
-        @Autowired
-        private UserFilmReferenceRepository userFilmReferenceRepository;
-
-        @Autowired
-        private UserCreditWeightRepository userCreditWeightRepository;
-
-        @Autowired
-        private UserGenreWeightRepository userGenreWeightRepository;
-
-        @Autowired
-        private UserKeywordWeightRepository userKeywordWeightRepository;
 
         @Autowired
         private PlatformTransactionManager transactionManager;
