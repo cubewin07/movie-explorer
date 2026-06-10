@@ -28,6 +28,9 @@ import com.Backend.services.recommendation_service.repository.RecommendationRepo
 import com.Backend.services.recommendation_service.service.RecommendationService;
 import com.Backend.services.recommendation_service.snapshot.service.RecommendationSnapshotQueryService;
 import com.Backend.services.recommendation_service.snapshot.service.RecommendationSnapshotRecomputeService;
+import com.Backend.services.recommendation_service.snapshot.service.CandidatePassFilter;
+import com.Backend.services.recommendation_service.snapshot.model.RecommendationRecomputeTriggeredBy;
+import com.Backend.services.recommendation_service.snapshot.repository.UserRecomputeTaskRepository;
 import com.Backend.services.sync_service.model.SyncAttemptResult;
 import com.Backend.services.sync_service.model.SyncCategory;
 import com.Backend.services.sync_service.model.SyncTask;
@@ -179,6 +182,12 @@ class SpringControllerTest {
 
         @Autowired
         private RecommendationSnapshotQueryService recommendationSnapshotQueryService;
+
+        @Autowired
+        private CandidatePassFilter candidatePassFilter;
+
+        @Autowired
+        private UserRecomputeTaskRepository userRecomputeTaskRepository;
 
         @MockBean
         private TmdbClient tmdbClient;
@@ -1083,11 +1092,11 @@ class SpringControllerTest {
 
         long sourceTmdbId = 900_001L;
         List<TmdbSimilarItem> fetched = List.of(
-                new TmdbSimilarItem(sourceTmdbId, "Self", "2024-01-01", "/self.jpg", List.of(28)),
-                new TmdbSimilarItem(900_002L, "No date", null, "/no-date.jpg", List.of(28)),
-                new TmdbSimilarItem(900_003L, "Invalid date", "2020-99-99", "/invalid.jpg", List.of(12)),
-                new TmdbSimilarItem(900_004L, "Valid A", "2022-06-01", "/a.jpg", List.of(28, 12)),
-                new TmdbSimilarItem(900_004L, "Duplicate A", "2022-06-01", "/a2.jpg", List.of(28))
+                new TmdbSimilarItem(sourceTmdbId, "Self",           "2024-01-01", "/self.jpg",    null, null, List.of(28)),
+                new TmdbSimilarItem(900_002L,      "No date",        null,         "/no-date.jpg", null, null, List.of(28)),
+                new TmdbSimilarItem(900_003L,      "Invalid date",  "2020-99-99", "/invalid.jpg", null, null, List.of(12)),
+                new TmdbSimilarItem(900_004L,      "Valid A",        "2022-06-01", "/a.jpg",       7.5,  "en", List.of(28, 12)),
+                new TmdbSimilarItem(900_004L,      "Duplicate A",   "2022-06-01", "/a2.jpg",      7.5,  "en", List.of(28))
         );
         when(tmdbClient.fetchRecommendations(sourceTmdbId, FilmType.MOVIE)).thenReturn(fetched);
 
@@ -1145,7 +1154,7 @@ class SpringControllerTest {
                 .build());
 
         when(tmdbClient.fetchRecommendations(sourceTmdbId, FilmType.MOVIE)).thenReturn(List.of(
-                new TmdbSimilarItem(910_010L, "First", "2023-01-01", "/first.jpg", List.of(28))
+                new TmdbSimilarItem(910_010L, "First", "2023-01-01", "/first.jpg", 7.0, "en", List.of(28))
         ));
         recommendationService.syncRecommendationsForFilm(sourceTmdbId, source);
 
@@ -1154,7 +1163,7 @@ class SpringControllerTest {
         assertThat(firstRecommended).containsExactly(firstCandidate.getInternalId());
 
         when(tmdbClient.fetchRecommendations(sourceTmdbId, FilmType.MOVIE)).thenReturn(List.of(
-                new TmdbSimilarItem(910_020L, "Second", "2024-02-02", "/second.jpg", List.of(12))
+                new TmdbSimilarItem(910_020L, "Second", "2024-02-02", "/second.jpg", 8.0, "fr", List.of(12))
         ));
         recommendationService.syncRecommendationsForFilm(sourceTmdbId, source);
 
@@ -1231,8 +1240,8 @@ class SpringControllerTest {
         Film watch = saveRecommendationFilm(100L, FilmType.MOVIE, "Watch", "en", LocalDate.parse("2025-01-01"), 7.0);
         addRecommendationWatchlistItem(user, watch);
 
-        Film candidateComplete = saveRecommendationFilm(200L, FilmType.MOVIE, "Cand A", "en", LocalDate.parse("2025-02-01"), 8.0);
-        Film candidatePartial = saveRecommendationFilm(201L, FilmType.MOVIE, "Cand B", "en", LocalDate.parse("2024-01-01"), 6.0);
+        Film candidateComplete = saveFilmWithEnrichmentStatus(200L, "Cand A", "en", 8.0, FilmEnrichmentStatus.DONE);
+        Film candidatePartial  = saveFilmWithEnrichmentStatus(201L, "Cand B", "en", 6.0, FilmEnrichmentStatus.DONE);
 
         linkRecommendation(watch, candidateComplete);
         linkRecommendation(watch, candidatePartial);
@@ -1302,22 +1311,28 @@ class SpringControllerTest {
     void recompute_onlyKeepsTopKCandidatesForPass2() {
         User user = createRecommendationUserWithWatchlist("rec-topk");
 
-                ReflectionTestUtils.setField(recommendationSnapshotRecomputeService, "pass2TopK", 1);
+        int originalTopK = (int) ReflectionTestUtils.getField(candidatePassFilter, "pass2TopK");
+        try {
+            ReflectionTestUtils.setField(candidatePassFilter, "pass2TopK", 1);
 
-        Film watch = saveRecommendationFilm(300L, FilmType.MOVIE, "Watch", "en", LocalDate.parse("2025-01-01"), 7.0);
-        addRecommendationWatchlistItem(user, watch);
+            Film watch = saveRecommendationFilm(300L, FilmType.MOVIE, "Watch", "en", LocalDate.parse("2025-01-01"), 7.0);
+            addRecommendationWatchlistItem(user, watch);
 
-        Film bestByPass1 = saveRecommendationFilm(400L, FilmType.MOVIE, "Best", "en", LocalDate.parse("2025-03-01"), 7.5);
-        Film worseByPass1 = saveRecommendationFilm(401L, FilmType.MOVIE, "Worse", "fr", LocalDate.parse("2025-03-01"), 9.9);
+            // Both DONE so pickEnrichedSurvivors can see them; English one scores higher
+            Film bestByPass1  = saveFilmWithEnrichmentStatus(400L, "Best",  "en", 7.5, FilmEnrichmentStatus.DONE);
+            Film worseByPass1 = saveFilmWithEnrichmentStatus(401L, "Worse", "fr", 9.9, FilmEnrichmentStatus.DONE);
 
-        linkRecommendation(watch, bestByPass1);
-        linkRecommendation(watch, worseByPass1);
+            linkRecommendation(watch, bestByPass1);
+            linkRecommendation(watch, worseByPass1);
 
-        recommendationSnapshotRecomputeService.recomputeSnapshotForUser(user.getId());
+            recommendationSnapshotRecomputeService.recomputeSnapshotForUser(user.getId());
 
-        List<RecommendationResultDTO> results = recommendationSnapshotQueryService.getRecommendationsForUser(user);
-        assertThat(results).extracting("filmId")
-                .containsExactly(bestByPass1.getFilmId());
+            List<RecommendationResultDTO> results = recommendationSnapshotQueryService.getRecommendationsForUser(user);
+            assertThat(results).extracting("filmId")
+                    .containsExactly(bestByPass1.getFilmId());
+        } finally {
+            ReflectionTestUtils.setField(candidatePassFilter, "pass2TopK", originalTopK);
+        }
     }
 
     @Test
@@ -1430,5 +1445,395 @@ class SpringControllerTest {
         recommendationRepository.saveAndFlush(Recommendation.builder()
                 .id(new RecommendationId(source.getInternalId(), candidate.getInternalId()))
                 .build());
+    }
+
+    // =========================================================================
+    // Recommendation Engine — targeted behavioural tests
+    // =========================================================================
+
+    /**
+     * pickEnrichedSurvivors must exclude non-DONE films so the final snapshot
+     * only ever contains films with full metadata.
+     */
+    @Test
+    @Order(28)
+    @DisplayName("pickEnrichedSurvivors excludes PENDING and IN_PROGRESS candidates")
+    void pickEnrichedSurvivors_excludesNonDoneCandidates() {
+        User user = createUserWithWatchlist("pass-filter-enriched");
+
+        Film watch = saveRecommendationFilm(2_800_001L, FilmType.MOVIE, "Watch", "en",
+                LocalDate.parse("2025-01-01"), 7.0);
+        addRecommendationWatchlistItem(user, watch);
+
+        Film done      = saveFilmWithEnrichmentStatus(2_800_010L, "Done Film",      "en", 8.0, FilmEnrichmentStatus.DONE);
+        Film pending   = saveFilmWithEnrichmentStatus(2_800_011L, "Pending Film",   "en", 9.0, FilmEnrichmentStatus.PENDING);
+        Film inProgress = saveFilmWithEnrichmentStatus(2_800_012L, "InProgress Film","en", 9.5, FilmEnrichmentStatus.IN_PROGRESS);
+
+        linkRecommendation(watch, done);
+        linkRecommendation(watch, pending);
+        linkRecommendation(watch, inProgress);
+
+        List<Long> watchlistIds  = candidatePassFilter.resolveWatchlistFilmIds(user.getId());
+        Set<Long>  candidateIds  = candidatePassFilter.resolveCandidateFilmIds(watchlistIds);
+        List<Long> survivors     = candidatePassFilter.pickEnrichedSurvivors(watchlistIds, candidateIds);
+
+        assertThat(survivors).containsExactly(done.getInternalId());
+        assertThat(survivors).doesNotContain(pending.getInternalId(), inProgress.getInternalId());
+    }
+
+    /**
+     * pickEnrichmentCandidates must include ALL statuses so that placeholder
+     * films (PENDING/IN_PROGRESS) can be scheduled for enrichment.
+     */
+    @Test
+    @Order(29)
+    @DisplayName("pickEnrichmentCandidates includes PENDING and IN_PROGRESS candidates")
+    void pickEnrichmentCandidates_includesNonDoneCandidates() {
+        User user = createUserWithWatchlist("pass-filter-all");
+
+        Film watch = saveRecommendationFilm(2_900_001L, FilmType.MOVIE, "Watch", "en",
+                LocalDate.parse("2025-01-01"), 7.0);
+        addRecommendationWatchlistItem(user, watch);
+
+        Film done       = saveFilmWithEnrichmentStatus(2_900_010L, "Done",        "en", 7.0, FilmEnrichmentStatus.DONE);
+        Film pending    = saveFilmWithEnrichmentStatus(2_900_011L, "Pending",     "en", 8.0, FilmEnrichmentStatus.PENDING);
+        Film inProgress = saveFilmWithEnrichmentStatus(2_900_012L, "InProgress",  "en", 9.0, FilmEnrichmentStatus.IN_PROGRESS);
+
+        linkRecommendation(watch, done);
+        linkRecommendation(watch, pending);
+        linkRecommendation(watch, inProgress);
+
+        List<Long> watchlistIds = candidatePassFilter.resolveWatchlistFilmIds(user.getId());
+        Set<Long>  candidateIds = candidatePassFilter.resolveCandidateFilmIds(watchlistIds);
+        List<Long> survivors    = candidatePassFilter.pickEnrichmentCandidates(watchlistIds, candidateIds);
+
+        assertThat(survivors)
+                .containsExactlyInAnyOrder(done.getInternalId(), pending.getInternalId(), inProgress.getInternalId());
+    }
+
+    /**
+     * resolveCandidateFilmIds must never return a film that is already in the
+     * user's watchlist, even if the recommendation graph has an edge to it.
+     */
+    @Test
+    @Order(30)
+    @DisplayName("resolveCandidateFilmIds excludes films already in the watchlist")
+    void resolveCandidateFilmIds_excludesWatchlistFilms() {
+        User user = createUserWithWatchlist("resolve-no-watchlist");
+
+        Film watchA = saveRecommendationFilm(3_000_001L, FilmType.MOVIE, "WatchA", "en",
+                LocalDate.parse("2025-01-01"), 7.0);
+        Film watchB = saveRecommendationFilm(3_000_002L, FilmType.MOVIE, "WatchB", "en",
+                LocalDate.parse("2025-02-01"), 7.5);
+        Film external = saveRecommendationFilm(3_000_003L, FilmType.MOVIE, "External", "en",
+                LocalDate.parse("2025-03-01"), 8.0);
+
+        addRecommendationWatchlistItem(user, watchA);
+        addRecommendationWatchlistItem(user, watchB);
+
+        // watchA recommends watchB (already in watchlist) and external
+        linkRecommendation(watchA, watchB);
+        linkRecommendation(watchA, external);
+
+        List<Long> watchlistIds = candidatePassFilter.resolveWatchlistFilmIds(user.getId());
+        Set<Long>  candidateIds = candidatePassFilter.resolveCandidateFilmIds(watchlistIds);
+
+        assertThat(candidateIds).containsExactly(external.getInternalId());
+        assertThat(candidateIds).doesNotContain(watchA.getInternalId(), watchB.getInternalId());
+    }
+
+    /**
+     * Pass-1 score = language_match * 1.0 + rating * 0.01 + recency_boost.
+     * A language-matching candidate with a modest rating must rank above a
+     * non-matching one with a higher rating.
+     */
+    @Test
+    @Order(31)
+    @DisplayName("Pass-1 ordering: language-matching candidate ranks above higher-rated foreign-language one")
+    void pass1Ordering_languageMatchBeatsHigherRatingWithoutMatch() {
+        User user = createUserWithWatchlist("pass1-order");
+
+        Film watch = saveRecommendationFilm(3_100_001L, FilmType.MOVIE, "Watch", "en",
+                LocalDate.parse("2025-01-01"), 7.0);
+        addRecommendationWatchlistItem(user, watch);
+
+        // English / lower rating (score ≈ 1.0 + 0.07 = 1.07)
+        Film englishLow = saveFilmWithEnrichmentStatus(3_100_010L, "EN Low",  "en", 7.0, FilmEnrichmentStatus.DONE);
+        // French / higher rating (score ≈ 0.0 + 0.09 = 0.09)
+        Film frenchHigh = saveFilmWithEnrichmentStatus(3_100_011L, "FR High", "fr", 9.0, FilmEnrichmentStatus.DONE);
+
+        linkRecommendation(watch, englishLow);
+        linkRecommendation(watch, frenchHigh);
+
+        int originalTopK = (int) ReflectionTestUtils.getField(candidatePassFilter, "pass2TopK");
+        try {
+            ReflectionTestUtils.setField(candidatePassFilter, "pass2TopK", 10);
+            List<Long> watchlistIds = candidatePassFilter.resolveWatchlistFilmIds(user.getId());
+            Set<Long>  candidateIds = candidatePassFilter.resolveCandidateFilmIds(watchlistIds);
+            List<Long> survivors    = candidatePassFilter.pickEnrichedSurvivors(watchlistIds, candidateIds);
+
+            assertThat(survivors).first().isEqualTo(englishLow.getInternalId());
+        } finally {
+            ReflectionTestUtils.setField(candidatePassFilter, "pass2TopK", originalTopK);
+        }
+    }
+
+    /**
+     * The recompute snapshot must NOT include non-DONE films, because
+     * pickEnrichedSurvivors gates the full scoring pipeline.
+     */
+    @Test
+    @Order(32)
+    @DisplayName("Recompute snapshot excludes non-enriched (PENDING) candidates entirely")
+    void recomputeSnapshot_excludesPendingCandidates() {
+        User user = createUserWithWatchlist("recompute-no-pending");
+
+        Film watch = saveRecommendationFilm(3_200_001L, FilmType.MOVIE, "Watch", "en",
+                LocalDate.parse("2025-01-01"), 7.0);
+        addRecommendationWatchlistItem(user, watch);
+
+        Film done    = saveFilmWithEnrichmentStatus(3_200_010L, "Done",    "en", 8.0, FilmEnrichmentStatus.DONE);
+        Film pending = saveFilmWithEnrichmentStatus(3_200_011L, "Pending", "en", 9.5, FilmEnrichmentStatus.PENDING);
+
+        linkRecommendation(watch, done);
+        linkRecommendation(watch, pending);
+
+        recommendationSnapshotRecomputeService.recomputeSnapshotForUser(user.getId());
+
+        List<RecommendationResultDTO> results = recommendationSnapshotQueryService.getRecommendationsForUser(user);
+        List<Long> filmIds = results.stream().map(RecommendationResultDTO::filmId).toList();
+
+        assertThat(filmIds).contains(done.getFilmId());
+        assertThat(filmIds).doesNotContain(pending.getFilmId());
+    }
+
+    /**
+     * When a film transitions to DONE, EnrichmentSyncTaskHandler must schedule
+     * a recompute task for every user whose watchlist contains a source film
+     * that recommended the newly enriched film.
+     */
+    @Test
+    @Order(33)
+    @DisplayName("EnrichmentSyncTaskHandler schedules ENRICHMENT_COMPLETE recompute for affected users when film becomes DONE")
+    void enrichmentHandler_scheduleRecomputeForAffectedUsers_whenFilmBecomeDone() {
+        userRecomputeTaskRepository.deleteAll();
+        syncTaskRepository.deleteAll();
+
+        // Two users with different watchlist source films, both pointing at the same candidate
+        User userA = createUserWithWatchlist("enrich-trigger-A");
+        User userB = createUserWithWatchlist("enrich-trigger-B");
+
+        Film sourceA   = saveRecommendationFilm(3_300_001L, FilmType.MOVIE, "SourceA", "en",
+                LocalDate.parse("2025-01-01"), 7.0);
+        Film sourceB   = saveRecommendationFilm(3_300_002L, FilmType.MOVIE, "SourceB", "en",
+                LocalDate.parse("2025-01-01"), 7.0);
+        Film candidate = saveFilmWithEnrichmentStatus(3_300_010L, "Candidate", "en", 8.0,
+                FilmEnrichmentStatus.PENDING);
+
+        addRecommendationWatchlistItem(userA, sourceA);
+        addRecommendationWatchlistItem(userB, sourceB);
+        linkRecommendation(sourceA, candidate);
+        linkRecommendation(sourceB, candidate);
+
+        // Simulate enrichment completing: flip status to DONE
+        candidate.setEnrichmentStatus(FilmEnrichmentStatus.DONE);
+        candidate.setGenreSyncCompleted(true);
+        candidate.setKeywordSyncCompleted(true);
+        candidate.setCreditsSyncCompleted(true);
+        candidate.setEnrichedAt(Instant.now());
+        candidate.setLeaseExpiresAt(null);
+        filmRepository.saveAndFlush(candidate);
+
+        // Invoke afterSyncSuccess with userId = null (the handler resolves users from the graph)
+        filmSyncTaskService.syncNowOrQueue(candidate, candidate.getFilmId(), SyncCategory.ENRICHMENT);
+
+        // Both users should have a recompute task scheduled with ENRICHMENT_COMPLETE
+        assertThat(userRecomputeTaskRepository.findById(userA.getId()))
+                .isPresent()
+                .hasValueSatisfying(task ->
+                        assertThat(task.getTriggeredBy())
+                                .isEqualTo(RecommendationRecomputeTriggeredBy.ENRICHMENT_COMPLETE));
+
+        assertThat(userRecomputeTaskRepository.findById(userB.getId()))
+                .isPresent()
+                .hasValueSatisfying(task ->
+                        assertThat(task.getTriggeredBy())
+                                .isEqualTo(RecommendationRecomputeTriggeredBy.ENRICHMENT_COMPLETE));
+    }
+
+    /**
+     * When a film completes enrichment but is NOT recommended by any source film
+     * in any user's watchlist, no recompute task must be created.
+     */
+    @Test
+    @Order(34)
+    @DisplayName("EnrichmentSyncTaskHandler does NOT schedule recompute when enriched film has no watchlist-connected source films")
+    void enrichmentHandler_doesNotScheduleRecompute_whenNoAffectedUsers() {
+        userRecomputeTaskRepository.deleteAll();
+        syncTaskRepository.deleteAll();
+        reset(tmdbClient);
+
+        // Isolated film: not recommended by anything in any watchlist
+        long isolatedTmdbId = 3_400_010L;
+        TmdbFilmResponse details = new TmdbFilmResponse();
+        details.setId(isolatedTmdbId);
+        details.setTitle("Isolated");
+        details.setVoteAverage(8.0d);
+        details.setReleaseDate("2025-01-01");
+        details.setBackdropPath("/iso.jpg");
+        details.setOriginalLanguage("en");
+        when(tmdbClient.fetchFilmDetails(isolatedTmdbId, FilmType.MOVIE)).thenReturn(details);
+        when(tmdbClient.fetchCredits(isolatedTmdbId, FilmType.MOVIE)).thenReturn(new TmdbCreditsResponse());
+
+        Film isolated = filmService.getOrCreateFilm(isolatedTmdbId, FilmType.MOVIE);
+
+        // Enrich it: no recommendation edges → no users → no recompute task
+        filmSyncTaskService.syncNowOrQueue(isolated, isolatedTmdbId, SyncCategory.ENRICHMENT);
+
+        // No user should receive a recompute task
+        assertThat(userRecomputeTaskRepository.count()).isZero();
+    }
+
+    /**
+     * afterSyncSuccess in RecommendationSyncTaskHandler must skip scheduling a
+     * recompute when the enriched-survivor count is below the configured threshold.
+     * Enrichment tasks must still be enqueued for the survivors.
+     */
+    @Test
+    @Order(35)
+    @DisplayName("RecommendationSyncTaskHandler skips recompute when enriched survivors < threshold, but still enqueues enrichment tasks")
+    void recommendationSyncHandler_skipsRecompute_whenEnrichedSurvivorsBelow_threshold() {
+        userRecomputeTaskRepository.deleteAll();
+        syncTaskRepository.deleteAll();
+
+        User user = createUserWithWatchlist("rec-sync-below-threshold");
+
+        // Source film already recommendation-synced so syncNowOrQueue takes the
+        // alreadySynced → afterSyncSuccess path without wiping the pre-linked edges.
+        Film source = filmRepository.saveAndFlush(Film.builder()
+                .filmId(3_500_001L).type(FilmType.MOVIE).title("Source")
+                .originalLanguage("en").date(LocalDate.parse("2025-01-01")).rating(7.0)
+                .backgroundImg("/bg.jpg").recommendationSyncCompleted(true).build());
+        addRecommendationWatchlistItem(user, source);
+
+        // One DONE, two PENDING → enriched count (1) < default threshold (3)
+        Film done1 = saveFilmWithEnrichmentStatus(3_500_010L, "Done1",    "en", 8.0, FilmEnrichmentStatus.DONE);
+        Film pend1 = saveFilmWithEnrichmentStatus(3_500_011L, "Pending1", "en", 7.5, FilmEnrichmentStatus.PENDING);
+        Film pend2 = saveFilmWithEnrichmentStatus(3_500_012L, "Pending2", "en", 7.0, FilmEnrichmentStatus.PENDING);
+
+        linkRecommendation(source, done1);
+        linkRecommendation(source, pend1);
+        linkRecommendation(source, pend2);
+
+        // Already-synced path: afterSyncSuccess fires, no TMDB call needed.
+        filmSyncTaskService.syncNowOrQueue(source, source.getFilmId(), SyncCategory.RECOMMENDATION, user.getId());
+
+        // No recompute: enriched survivor count (1) < threshold (3)
+        assertThat(userRecomputeTaskRepository.findById(user.getId())).isEmpty();
+
+        // Enrichment tasks enqueued for PENDING survivors (pend1, pend2); done1 skipped
+        long enrichmentTaskCount = syncTaskRepository.findAll().stream()
+                .filter(t -> t.getSyncCategory() == SyncCategory.ENRICHMENT)
+                .count();
+        assertThat(enrichmentTaskCount).isGreaterThanOrEqualTo(1);
+    }
+
+    @Test
+    @Order(36)
+    @DisplayName("RecommendationSyncTaskHandler schedules recompute when enriched survivors >= threshold")
+    void recommendationSyncHandler_schedulesRecompute_whenEnrichedSurvivorsAtOrAbove_threshold() {
+        userRecomputeTaskRepository.deleteAll();
+        syncTaskRepository.deleteAll();
+
+        User user = createUserWithWatchlist("rec-sync-above-threshold");
+
+        // Source already synced so afterSyncSuccess fires without wiping edges
+        Film source = filmRepository.saveAndFlush(Film.builder()
+                .filmId(3_600_001L).type(FilmType.MOVIE).title("Source")
+                .originalLanguage("en").date(LocalDate.parse("2025-01-01")).rating(7.0)
+                .backgroundImg("/bg.jpg").recommendationSyncCompleted(true).build());
+        addRecommendationWatchlistItem(user, source);
+
+        // Three DONE candidates → enriched count (3) >= default threshold (3)
+        Film done1 = saveFilmWithEnrichmentStatus(3_600_010L, "Done1", "en", 8.0, FilmEnrichmentStatus.DONE);
+        Film done2 = saveFilmWithEnrichmentStatus(3_600_011L, "Done2", "en", 8.1, FilmEnrichmentStatus.DONE);
+        Film done3 = saveFilmWithEnrichmentStatus(3_600_012L, "Done3", "en", 8.2, FilmEnrichmentStatus.DONE);
+
+        linkRecommendation(source, done1);
+        linkRecommendation(source, done2);
+        linkRecommendation(source, done3);
+
+        filmSyncTaskService.syncNowOrQueue(source, source.getFilmId(), SyncCategory.RECOMMENDATION, user.getId());
+
+        assertThat(userRecomputeTaskRepository.findById(user.getId()))
+                .isPresent()
+                .hasValueSatisfying(task ->
+                        assertThat(task.getTriggeredBy())
+                                .isEqualTo(RecommendationRecomputeTriggeredBy.RECOMMENDATION_SYNC_COMPLETE));
+    }
+
+    @Test
+    @Order(37)
+    @DisplayName("RecommendationSyncTaskHandler enqueues enrichment only for pass-2 survivors, not all candidates")
+    void recommendationSyncHandler_enqueuesToEnrichment_onlyPassSurvivors() {
+        syncTaskRepository.deleteAll();
+        userRecomputeTaskRepository.deleteAll();
+
+        User user = createUserWithWatchlist("enqueue-survivors-only");
+
+        // Source already synced so edges are preserved
+        Film source = filmRepository.saveAndFlush(Film.builder()
+                .filmId(3_700_001L).type(FilmType.MOVIE).title("Source")
+                .originalLanguage("en").date(LocalDate.parse("2025-01-01")).rating(7.0)
+                .backgroundImg("/bg.jpg").recommendationSyncCompleted(true).build());
+        addRecommendationWatchlistItem(user, source);
+
+        // Limit pass2TopK to 1 so only the top scorer is eligible for enrichment
+        int originalTopK = (int) ReflectionTestUtils.getField(candidatePassFilter, "pass2TopK");
+        try {
+            ReflectionTestUtils.setField(candidatePassFilter, "pass2TopK", 1);
+
+            // English candidate scores higher (language match = 1.0) than French one (0.0)
+            Film goodMatch = saveFilmWithEnrichmentStatus(3_700_010L, "GoodMatch", "en", 8.0, FilmEnrichmentStatus.PENDING);
+            Film poorMatch = saveFilmWithEnrichmentStatus(3_700_011L, "PoorMatch", "fr", 7.0, FilmEnrichmentStatus.PENDING);
+
+            linkRecommendation(source, goodMatch);
+            linkRecommendation(source, poorMatch);
+
+            filmSyncTaskService.syncNowOrQueue(source, source.getFilmId(), SyncCategory.RECOMMENDATION, user.getId());
+
+            List<SyncTask> enrichmentTasks = syncTaskRepository.findAll().stream()
+                    .filter(t -> t.getSyncCategory() == SyncCategory.ENRICHMENT)
+                    .toList();
+
+            // With top-k=1, only the highest-scoring survivor (English match) gets an enrichment task
+            assertThat(enrichmentTasks).hasSize(1);
+            assertThat(enrichmentTasks.get(0).getFilmInternalId()).isEqualTo(goodMatch.getInternalId());
+        } finally {
+            ReflectionTestUtils.setField(candidatePassFilter, "pass2TopK", originalTopK);
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Helpers for the new recommendation engine tests
+    // -------------------------------------------------------------------------
+
+    private Film saveFilmWithEnrichmentStatus(Long tmdbId, String title, String language,
+            double rating, FilmEnrichmentStatus status) {
+        Film film = Film.builder()
+                .filmId(tmdbId)
+                .type(FilmType.MOVIE)
+                .title(title)
+                .originalLanguage(language)
+                .date(LocalDate.parse("2025-01-01"))
+                .rating(rating)
+                .backgroundImg("/bg.jpg")
+                .enrichmentStatus(status)
+                .genreSyncCompleted(status == FilmEnrichmentStatus.DONE)
+                .keywordSyncCompleted(status == FilmEnrichmentStatus.DONE)
+                .creditsSyncCompleted(status == FilmEnrichmentStatus.DONE)
+                .enrichedAt(status == FilmEnrichmentStatus.DONE ? Instant.now() : null)
+                .build();
+        return filmRepository.saveAndFlush(film);
     }
 }

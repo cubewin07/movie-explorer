@@ -5,7 +5,10 @@ import static org.mockito.Mockito.when;
 
 import com.Backend.services.FilmType;
 import com.Backend.services.film_service.model.Film;
+import com.Backend.services.film_service.model.FilmEnrichmentStatus;
+import com.Backend.services.film_service.model.TmdbSimilarItem;
 import com.Backend.services.film_service.repository.FilmRepository;
+import com.Backend.services.film_service.service.TmdbClient;
 import com.Backend.services.recommendation_service.model.Recommendation;
 import com.Backend.services.recommendation_service.model.RecommendationId;
 import com.Backend.services.recommendation_service.repository.RecommendationRepository;
@@ -18,7 +21,17 @@ import com.Backend.services.sync_service.model.SyncTask;
 import com.Backend.services.sync_service.model.SyncTaskStatus;
 import com.Backend.services.sync_service.repository.SyncTaskRepository;
 import com.Backend.services.sync_service.service.FilmSyncTaskService;
+import com.Backend.services.user_service.model.ROLE;
+import com.Backend.services.user_service.model.User;
+import com.Backend.services.user_service.repository.UserRepository;
+import com.Backend.services.watchlist_service.model.Watchlist;
+import com.Backend.services.watchlist_service.model.WatchlistItem;
+import com.Backend.services.watchlist_service.model.WatchlistItemId;
+import com.Backend.services.watchlist_service.repository.WatchlistItemRepository;
+import com.Backend.services.watchlist_service.repository.WatchlistRepository;
 import com.Backend.test.DotenvTestInitializer;
+import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,7 +41,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
-import com.Backend.services.film_service.service.TmdbClient;
 
 @SpringBootTest(properties = {
         "sync.retry.max-attempts=2",
@@ -49,20 +61,32 @@ class FilmSyncRetryCapIntegrationTest {
     @Autowired
     private SyncTaskRepository syncTaskRepository;
 
-        @Autowired
-        private UserRecomputeTaskRepository userRecomputeTaskRepository;
+    @Autowired
+    private UserRecomputeTaskRepository userRecomputeTaskRepository;
 
-        @Autowired
-        private RecommendationRepository recommendationRepository;
+    @Autowired
+    private RecommendationRepository recommendationRepository;
 
-        @MockBean
-        private TmdbClient tmdbClient;
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private WatchlistRepository watchlistRepository;
+
+    @Autowired
+    private WatchlistItemRepository watchlistItemRepository;
+
+    @MockBean
+    private TmdbClient tmdbClient;
 
     @AfterEach
     void cleanup() {
-                userRecomputeTaskRepository.deleteAll();
+        userRecomputeTaskRepository.deleteAll();
         syncTaskRepository.deleteAll();
-                recommendationRepository.deleteAll();
+        recommendationRepository.deleteAll();
+        watchlistItemRepository.deleteAll();
+        watchlistRepository.deleteAll();
+        userRepository.deleteAll();
         filmRepository.deleteAll();
     }
 
@@ -121,167 +145,187 @@ class FilmSyncRetryCapIntegrationTest {
                 assertThat(afterSecond.getLastErrorCode()).isEqualTo("LOCAL_BUDGET_DEFERRED");
     }
 
-        @Test
-        @DisplayName("Already-synced RECOMMENDATION sync schedules recompute from preserved user context")
-        void alreadySyncedRecommendationSyncSchedulesRecomputeFromUserContext() {
-                Long userId = 84L;
+    @Test
+    @DisplayName("Already-synced RECOMMENDATION sync schedules recompute from preserved user context")
+    void alreadySyncedRecommendationSyncSchedulesRecomputeFromUserContext() {
+        User user = createUserWithWatchlist("already-synced-recompute");
 
-                Film film = filmRepository.saveAndFlush(Film.builder()
-                                .filmId(880_002L)
-                                .type(FilmType.MOVIE)
-                                .title("Already Synced Recommendation Film")
-                                .creditsSyncCompleted(false)
-                                .keywordSyncCompleted(false)
-                                .genreSyncCompleted(false)
-                                .recommendationSyncCompleted(true)
-                                .build());
+        Film sourceFilm = saveFilm(880_002L, "Already Synced Recommendation Film", "en", 7.0, true, false);
+        addWatchlistItem(user, sourceFilm);
 
-                SyncAttemptResult result = filmSyncTaskService.syncNowOrQueue(
-                                film,
-                                film.getFilmId(),
-                                SyncCategory.RECOMMENDATION,
-                                userId
-                );
+        Film candidateA = saveFilm(880_021L, "Candidate A", "en", 7.5, false, true);
+        Film candidateB = saveFilm(880_022L, "Candidate B", "en", 7.6, false, true);
+        Film candidateC = saveFilm(880_023L, "Candidate C", "en", 7.7, false, true);
+        linkRecommendation(sourceFilm, candidateA);
+        linkRecommendation(sourceFilm, candidateB);
+        linkRecommendation(sourceFilm, candidateC);
 
-                UserRecomputeTask recomputeTask = userRecomputeTaskRepository.findById(userId).orElseThrow();
+        Film managedSourceFilm = filmRepository.findById(sourceFilm.getInternalId()).orElseThrow();
+        SyncAttemptResult result = filmSyncTaskService.syncNowOrQueue(
+                managedSourceFilm,
+                managedSourceFilm.getFilmId(),
+                SyncCategory.RECOMMENDATION,
+                user.getId()
+        );
 
-                assertThat(result.wasSynced()).isTrue();
-                assertThat(result.syncSucceeded()).isTrue();
-                assertThat(recomputeTask.getTriggeredBy()).isEqualTo(RecommendationRecomputeTriggeredBy.RECOMMENDATION_SYNC_COMPLETE);
-                assertThat(recomputeTask.getAttemptCount()).isZero();
-                assertThat(recomputeTask.getLastError()).isNull();
-        }
+        UserRecomputeTask recomputeTask = userRecomputeTaskRepository.findById(user.getId()).orElseThrow();
 
-            @Test
-            @DisplayName("Successful RECOMMENDATION sync enqueues ENRICHMENT tasks for recommendation candidates")
-            void successfulRecommendationSyncEnqueuesEnrichmentTasksForCandidates() {
-                Long userId = 126L;
+        assertThat(result.wasSynced()).isTrue();
+        assertThat(result.syncSucceeded()).isTrue();
+        assertThat(recomputeTask.getTriggeredBy()).isEqualTo(RecommendationRecomputeTriggeredBy.RECOMMENDATION_SYNC_COMPLETE);
+        assertThat(recomputeTask.getAttemptCount()).isZero();
+        assertThat(recomputeTask.getLastError()).isNull();
+    }
 
-                Film sourceFilm = filmRepository.saveAndFlush(Film.builder()
-                        .filmId(880_003L)
-                        .type(FilmType.MOVIE)
-                        .title("Recommendation Source Film")
-                        .creditsSyncCompleted(false)
-                        .keywordSyncCompleted(false)
-                        .genreSyncCompleted(false)
-                        .recommendationSyncCompleted(true)
-                        .build());
-                Film candidateFilm = filmRepository.saveAndFlush(Film.builder()
-                        .filmId(880_004L)
-                        .type(FilmType.MOVIE)
-                        .title("Recommendation Candidate Film")
-                        .creditsSyncCompleted(false)
-                        .keywordSyncCompleted(false)
-                        .genreSyncCompleted(false)
-                        .recommendationSyncCompleted(false)
-                        .build());
+    @Test
+    @DisplayName("Successful RECOMMENDATION sync enqueues ENRICHMENT tasks for recommendation candidates")
+    void successfulRecommendationSyncEnqueuesEnrichmentTasksForCandidates() {
+        when(tmdbClient.getAvailableTokens()).thenReturn(10.0d);
+        when(tmdbClient.fetchRecommendations(880_003L, FilmType.MOVIE)).thenReturn(List.of(
+                new TmdbSimilarItem(880_004L, "Recommendation Candidate Film", "2025-01-10", "/candidate.jpg", 8.2, "en", List.of(28))
+        ));
 
-                recommendationRepository.saveAndFlush(Recommendation.builder()
-                        .id(new RecommendationId(sourceFilm.getInternalId(), candidateFilm.getInternalId()))
-                        .build());
+        User user = createUserWithWatchlist("successful-sync-enqueue");
+        Film sourceFilm = saveFilm(880_003L, "Recommendation Source Film", "en", 7.0, false, false);
+        addWatchlistItem(user, sourceFilm);
 
-                SyncAttemptResult result = filmSyncTaskService.syncNowOrQueue(
-                        sourceFilm,
-                        sourceFilm.getFilmId(),
-                        SyncCategory.RECOMMENDATION,
-                        userId
-                );
+        Film managedSourceFilm = filmRepository.findById(sourceFilm.getInternalId()).orElseThrow();
+        SyncAttemptResult result = filmSyncTaskService.syncNowOrQueue(
+                managedSourceFilm,
+                managedSourceFilm.getFilmId(),
+                SyncCategory.RECOMMENDATION,
+                user.getId()
+        );
 
-                SyncTask enrichmentTask = syncTaskRepository
-                        .findByFilmInternalIdAndSyncCategory(candidateFilm.getInternalId(), SyncCategory.ENRICHMENT)
-                        .orElseThrow();
+        Film candidateFilm = filmRepository.findByFilmIdAndType(880_004L, FilmType.MOVIE).orElseThrow();
+        SyncTask enrichmentTask = syncTaskRepository
+                .findByFilmInternalIdAndSyncCategory(candidateFilm.getInternalId(), SyncCategory.ENRICHMENT)
+                .orElseThrow();
 
-                assertThat(result.wasSynced()).isTrue();
-                assertThat(result.syncSucceeded()).isTrue();
-                assertThat(enrichmentTask.getTmdbId()).isEqualTo(candidateFilm.getFilmId());
-                assertThat(enrichmentTask.getUserId()).isEqualTo(userId);
-                assertThat(enrichmentTask.getStatus()).isEqualTo(SyncTaskStatus.PENDING);
-            }
+        assertThat(result.wasSynced()).isFalse();
+        assertThat(result.syncSucceeded()).isTrue();
+        assertThat(enrichmentTask.getTmdbId()).isEqualTo(candidateFilm.getFilmId());
+        assertThat(enrichmentTask.getUserId()).isEqualTo(user.getId());
+        assertThat(enrichmentTask.getStatus()).isEqualTo(SyncTaskStatus.PENDING);
+    }
 
-            @Test
-            @DisplayName("Already-synced RECOMMENDATION sync enqueues ENRICHMENT tasks for recommendation candidates")
-            void alreadySyncedRecommendationSyncEnqueuesEnrichmentTasksForCandidates() {
-                Long userId = 127L;
+    @Test
+    @DisplayName("Already-synced RECOMMENDATION sync enqueues ENRICHMENT tasks for recommendation candidates")
+    void alreadySyncedRecommendationSyncEnqueuesEnrichmentTasksForCandidates() {
+        User user = createUserWithWatchlist("already-synced-enqueue");
 
-                Film sourceFilm = filmRepository.saveAndFlush(Film.builder()
-                        .filmId(880_005L)
-                        .type(FilmType.MOVIE)
-                        .title("Recommendation Source Film 2")
-                        .creditsSyncCompleted(false)
-                        .keywordSyncCompleted(false)
-                        .genreSyncCompleted(false)
-                        .recommendationSyncCompleted(true)
-                        .build());
-                Film candidateFilm = filmRepository.saveAndFlush(Film.builder()
-                        .filmId(880_006L)
-                        .type(FilmType.MOVIE)
-                        .title("Recommendation Candidate Film 2")
-                        .creditsSyncCompleted(false)
-                        .keywordSyncCompleted(false)
-                        .genreSyncCompleted(false)
-                        .recommendationSyncCompleted(false)
-                        .build());
+        Film sourceFilm = saveFilm(880_005L, "Recommendation Source Film 2", "en", 7.0, true, false);
+        Film candidateFilm = saveFilm(880_006L, "Recommendation Candidate Film 2", "en", 7.8, false, false);
+        addWatchlistItem(user, sourceFilm);
+        linkRecommendation(sourceFilm, candidateFilm);
 
-                recommendationRepository.saveAndFlush(Recommendation.builder()
-                        .id(new RecommendationId(sourceFilm.getInternalId(), candidateFilm.getInternalId()))
-                        .build());
+        SyncAttemptResult result = filmSyncTaskService.syncNowOrQueue(
+                sourceFilm,
+                sourceFilm.getFilmId(),
+                SyncCategory.RECOMMENDATION,
+                user.getId()
+        );
 
-                SyncAttemptResult result = filmSyncTaskService.syncNowOrQueue(
-                        sourceFilm,
-                        sourceFilm.getFilmId(),
-                        SyncCategory.RECOMMENDATION,
-                        userId
-                );
+        SyncTask enrichmentTask = syncTaskRepository
+                .findByFilmInternalIdAndSyncCategory(candidateFilm.getInternalId(), SyncCategory.ENRICHMENT)
+                .orElseThrow();
 
-                SyncTask enrichmentTask = syncTaskRepository
-                        .findByFilmInternalIdAndSyncCategory(candidateFilm.getInternalId(), SyncCategory.ENRICHMENT)
-                        .orElseThrow();
+        assertThat(result.wasSynced()).isTrue();
+        assertThat(result.syncSucceeded()).isTrue();
+        assertThat(enrichmentTask.getTmdbId()).isEqualTo(candidateFilm.getFilmId());
+        assertThat(enrichmentTask.getUserId()).isEqualTo(user.getId());
+        assertThat(enrichmentTask.getStatus()).isEqualTo(SyncTaskStatus.PENDING);
+    }
 
-                assertThat(result.wasSynced()).isTrue();
-                assertThat(result.syncSucceeded()).isTrue();
-                assertThat(enrichmentTask.getTmdbId()).isEqualTo(candidateFilm.getFilmId());
-                assertThat(enrichmentTask.getUserId()).isEqualTo(userId);
-                assertThat(enrichmentTask.getStatus()).isEqualTo(SyncTaskStatus.PENDING);
-            }
+    @Test
+    @DisplayName("Successful RECOMMENDATION sync skips already-enriched candidates")
+    void successfulRecommendationSyncSkipsAlreadyEnrichedCandidates() {
+        Long userId = 128L;
 
-            @Test
-            @DisplayName("Successful RECOMMENDATION sync skips already-enriched candidates")
-            void successfulRecommendationSyncSkipsAlreadyEnrichedCandidates() {
-                Long userId = 128L;
+        Film sourceFilm = filmRepository.saveAndFlush(Film.builder()
+                .filmId(880_007L)
+                .type(FilmType.MOVIE)
+                .title("Recommendation Source Film 3")
+                .creditsSyncCompleted(false)
+                .keywordSyncCompleted(false)
+                .genreSyncCompleted(false)
+                .recommendationSyncCompleted(true)
+                .build());
+        Film candidateFilm = filmRepository.saveAndFlush(Film.builder()
+                .filmId(880_008L)
+                .type(FilmType.MOVIE)
+                .title("Recommendation Candidate Film 3")
+                .creditsSyncCompleted(true)
+                .keywordSyncCompleted(true)
+                .genreSyncCompleted(true)
+                .recommendationSyncCompleted(false)
+                .build());
 
-                Film sourceFilm = filmRepository.saveAndFlush(Film.builder()
-                        .filmId(880_007L)
-                        .type(FilmType.MOVIE)
-                        .title("Recommendation Source Film 3")
-                        .creditsSyncCompleted(false)
-                        .keywordSyncCompleted(false)
-                        .genreSyncCompleted(false)
-                        .recommendationSyncCompleted(true)
-                        .build());
-                Film candidateFilm = filmRepository.saveAndFlush(Film.builder()
-                        .filmId(880_008L)
-                        .type(FilmType.MOVIE)
-                        .title("Recommendation Candidate Film 3")
-                        .creditsSyncCompleted(true)
-                        .keywordSyncCompleted(true)
-                        .genreSyncCompleted(true)
-                        .recommendationSyncCompleted(false)
-                        .build());
+        recommendationRepository.saveAndFlush(Recommendation.builder()
+                .id(new RecommendationId(sourceFilm.getInternalId(), candidateFilm.getInternalId()))
+                .build());
 
-                recommendationRepository.saveAndFlush(Recommendation.builder()
-                        .id(new RecommendationId(sourceFilm.getInternalId(), candidateFilm.getInternalId()))
-                        .build());
+        SyncAttemptResult result = filmSyncTaskService.syncNowOrQueue(
+                sourceFilm,
+                sourceFilm.getFilmId(),
+                SyncCategory.RECOMMENDATION,
+                userId
+        );
 
-                SyncAttemptResult result = filmSyncTaskService.syncNowOrQueue(
-                        sourceFilm,
-                        sourceFilm.getFilmId(),
-                        SyncCategory.RECOMMENDATION,
-                        userId
-                );
+        assertThat(result.wasSynced()).isTrue();
+        assertThat(result.syncSucceeded()).isTrue();
+        assertThat(syncTaskRepository.findByFilmInternalIdAndSyncCategory(candidateFilm.getInternalId(), SyncCategory.ENRICHMENT))
+                .isEmpty();
+    }
 
-                assertThat(result.wasSynced()).isTrue();
-                assertThat(result.syncSucceeded()).isTrue();
-                assertThat(syncTaskRepository.findByFilmInternalIdAndSyncCategory(candidateFilm.getInternalId(), SyncCategory.ENRICHMENT))
-                        .isEmpty();
-            }
+    private User createUserWithWatchlist(String prefix) {
+        String suffix = prefix + "-" + System.nanoTime();
+        User user = User.builder()
+                .username(suffix)
+                .email(suffix + "@example.com")
+                .password("password123")
+                .role(ROLE.ROLE_USER)
+                .build();
+        user.setWatchlist(new Watchlist());
+        return userRepository.saveAndFlush(user);
+    }
+
+    private Film saveFilm(
+            Long tmdbId,
+            String title,
+            String originalLanguage,
+            double rating,
+            boolean recommendationSyncCompleted,
+            boolean fullyEnriched
+    ) {
+        return filmRepository.saveAndFlush(Film.builder()
+                .filmId(tmdbId)
+                .type(FilmType.MOVIE)
+                .title(title)
+                .originalLanguage(originalLanguage)
+                .date(LocalDate.parse("2025-01-01"))
+                .rating(rating)
+                .backgroundImg("/bg.jpg")
+                .recommendationSyncCompleted(recommendationSyncCompleted)
+                .creditsSyncCompleted(fullyEnriched)
+                .keywordSyncCompleted(fullyEnriched)
+                .genreSyncCompleted(fullyEnriched)
+                .enrichmentStatus(fullyEnriched ? FilmEnrichmentStatus.DONE : FilmEnrichmentStatus.PENDING)
+                .build());
+    }
+
+    private void addWatchlistItem(User user, Film film) {
+        Watchlist watchlist = watchlistRepository.findByUserId(user.getId()).orElseThrow();
+        watchlistItemRepository.saveAndFlush(WatchlistItem.builder()
+                .id(new WatchlistItemId(watchlist.getUserId(), film.getInternalId()))
+                .watchlist(watchlist)
+                .film(film)
+                .build());
+    }
+
+    private void linkRecommendation(Film sourceFilm, Film candidateFilm) {
+        recommendationRepository.saveAndFlush(Recommendation.builder()
+                .id(new RecommendationId(sourceFilm.getInternalId(), candidateFilm.getInternalId()))
+                .build());
+    }
 }
