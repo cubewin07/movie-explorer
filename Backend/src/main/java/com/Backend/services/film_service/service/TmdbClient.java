@@ -165,8 +165,10 @@ public class TmdbClient {
                             item.getId(),
                             item.getTitle(),
                             item.getReleaseDate(),
-                        item.getBackdropPath(),
-                        item.getGenreIds()
+                            item.getBackdropPath(),
+                            item.getVoteAverage(),
+                            item.getOriginalLanguage(),
+                            item.getGenreIds()
                     ))
                     .collect(Collectors.toList());
         }
@@ -189,8 +191,10 @@ public class TmdbClient {
                         item.getId(),
                         item.getName(),
                         item.getFirstAirDate(),
-                item.getBackdropPath(),
-                item.getGenreIds()
+                        item.getBackdropPath(),
+                        item.getVoteAverage(),
+                        item.getOriginalLanguage(),
+                        item.getGenreIds()
                 ))
                 .collect(Collectors.toList());
     }
@@ -218,8 +222,10 @@ public class TmdbClient {
                             item.getId(),
                             item.getTitle(),
                             item.getReleaseDate(),
-                        item.getBackdropPath(),
-                        item.getGenreIds()
+                            item.getBackdropPath(),
+                            item.getVoteAverage(),
+                            item.getOriginalLanguage(),
+                            item.getGenreIds()
                     ))
                     .collect(Collectors.toList());
         }
@@ -242,8 +248,10 @@ public class TmdbClient {
                         item.getId(),
                         item.getName(),
                         item.getFirstAirDate(),
-                item.getBackdropPath(),
-                item.getGenreIds()
+                        item.getBackdropPath(),
+                        item.getVoteAverage(),
+                        item.getOriginalLanguage(),
+                        item.getGenreIds()
                 ))
                 .collect(Collectors.toList());
     }

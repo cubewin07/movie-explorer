@@ -24,6 +24,9 @@ public class TmdbMovieSimilarResponse {
         @JsonProperty("vote_average")
         private Double voteAverage;
 
+        @JsonProperty("original_language")
+        private String originalLanguage;
+
         @JsonProperty("backdrop_path")
         private String backdropPath;
 

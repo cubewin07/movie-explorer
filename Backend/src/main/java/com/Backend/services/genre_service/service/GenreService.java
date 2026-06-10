@@ -7,7 +7,9 @@ import com.Backend.services.film_service.model.TmdbFilmResponse.GenreItem;
 import com.Backend.services.film_service.service.TmdbClient;
 import com.Backend.services.genre_service.model.Genre;
 import com.Backend.services.genre_service.repository.GenreRepository;
+import java.time.LocalDate;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +35,31 @@ public class GenreService {
         TmdbFilmResponse details = tmdbClient.fetchGenres(tmdbId, type);
         if (details == null || details.getGenres() == null || details.getGenres().isEmpty()) {
             return;
+        }
+
+        // Refresh film's basic metadata from the response if missing
+        if (film.getRating() == null && details.getVoteAverage() != null) {
+            film.setRating(details.getVoteAverage());
+        }
+        if (film.getOriginalLanguage() == null && details.getOriginalLanguage() != null) {
+            film.setOriginalLanguage(details.getOriginalLanguage().trim().toLowerCase(Locale.ROOT));
+        }
+        if (!StringUtils.hasText(film.getTitle())) {
+            String title = StringUtils.hasText(details.getTitle()) ? details.getTitle() : details.getName();
+            if (StringUtils.hasText(title)) {
+                film.setTitle(title);
+            }
+        }
+        if (film.getBackgroundImg() == null && details.getBackdropPath() != null) {
+            film.setBackgroundImg(details.getBackdropPath());
+        }
+        if (film.getDate() == null) {
+            String dateVal = StringUtils.hasText(details.getReleaseDate()) ? details.getReleaseDate() : details.getFirstAirDate();
+            if (StringUtils.hasText(dateVal)) {
+                try {
+                    film.setDate(LocalDate.parse(dateVal.trim()));
+                } catch (Exception ignored) {}
+            }
         }
 
         List<GenreItem> genres = details.getGenres();

@@ -8,6 +8,8 @@ public record TmdbSimilarItem(
                 String title,
                 String dateValue,
                 String backgroundImg,
+                Double voteAverage,
+                String originalLanguage,
                 // Structural decision: keep the TMDB payload field name for compatibility when this record is (de)serialized.
                 @JsonProperty("genre_ids") List<Integer> genreIds
 ) {

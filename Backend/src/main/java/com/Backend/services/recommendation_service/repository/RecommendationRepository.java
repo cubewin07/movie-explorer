@@ -31,4 +31,7 @@ public interface RecommendationRepository extends JpaRepository<Recommendation, 
     @Transactional
     @Query("delete from Recommendation r where r.id.filmId = :filmId")
     void deleteAllByFilmId(@Param("filmId") Long filmId);
+
+    @Query("select r.id.filmId from Recommendation r where r.id.recommendedFilmId = :recommendedFilmId")
+    List<Long> findSourceFilmIdsByRecommendedFilmId(@Param("recommendedFilmId") Long recommendedFilmId);
 }

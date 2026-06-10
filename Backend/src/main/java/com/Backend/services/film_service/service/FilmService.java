@@ -60,7 +60,9 @@ public class FilmService {
             FilmType type,
             String title,
             String dateValue,
-            String backgroundImg
+            String backgroundImg,
+            Double voteAverage,
+            String originalLanguage
     ) {
         Optional<Film> existing = filmRepository.findByFilmIdAndType(tmdbId, type);
         if (existing.isPresent()) {
@@ -71,9 +73,10 @@ public class FilmService {
                 .filmId(tmdbId)
                 .type(type)
                 .title(title)
-                .rating(null)
+                .rating(voteAverage)
                 .date(parseDate(dateValue))
                 .backgroundImg(backgroundImg)
+                .originalLanguage(normalizeLanguageCode(originalLanguage))
                 .build();
 
         try {

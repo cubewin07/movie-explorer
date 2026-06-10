@@ -219,7 +219,9 @@ public class RecommendationService {
                         type,
                         candidate.title(),
                         candidate.dateValue(),
-                        candidate.backgroundImg()
+                        candidate.backgroundImg(),
+                        candidate.voteAverage(),
+                        candidate.originalLanguage()
                 );
 
                 Long candidateInternalId = candidateFilm != null ? candidateFilm.getInternalId() : null;
