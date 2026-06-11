@@ -1,11 +1,12 @@
 # Recommendation Engine v2 — 5-Stage Implementation Plan (Revised)
 
-_Last updated: 2026-05-08_
+_Last updated: 2026-06-11_
 
 ## Changelog from original spec
 - **Phase 1:** Dropped `tmdb_rank` (no rank field in TMDB response; array order is undocumented), `source_type`/`candidate_type` (inferable from which endpoint was called, redundant on edge row), `source_tmdb_id` (redundant; already reachable via `source_internal_film_id → film.tmdb_id`). Edge table simplified to `source_internal_film_id`, `candidate_internal_film_id`, `ingested_at`.
-- **Phase 2:** Added explicit rule for partially enriched candidates in scoring. Clarified that pass 1 is only cheap if genre/language fields are on the film row — verify before treating the two-pass split as a meaningful optimisation.
-- **Phase 3:** Added constraint tying lease duration to scheduler tick interval. Added requirement to verify per-stage idempotency before implementing per-stage retry.
+- **Phase 2:** Added explicit rule for partially enriched candidates in scoring. Clarified that pass 1 is only cheap if genre/language fields are on the film row — verify before treating the two-pass split as a meaningful optimisation. Added two-pass split detail: `pickEnrichedSurvivors` (recompute pipeline, only DONE-enriched) vs `pickEnrichmentCandidates` (enrichment pipeline, all candidates). Documented min-max normalization and exact scoring formula.
+- **Phase 3:** Added constraint tying lease duration to scheduler tick interval. Added requirement to verify per-stage idempotency before implementing per-stage retry. Documented stage flags on `Film` row (`genreSyncCompleted`, `keywordSyncCompleted`, `creditsSyncCompleted`) replacing the separate `film_enrichment_tasks` table. Documented `FilmEnrichmentStateService` lease validation at startup.
+- **Phase 4:** Partially implemented — `MeterRegistry` wired in `RecommendationController` (success/error latency timers) and `SyncTaskHelper` (counters). Missing: gauges for queue depth, per-stage enrichment timers, lease claim/expiration counters, dead-letter counters.
 
 ---
 
@@ -115,11 +116,24 @@ Tests to add/verify in preparation step
 - Pass 2 — expensive joins (credits, keywords) only for the top-K candidates that survived pass 1.
 - This prevents enriching candidates that will never rank high enough to appear in the snapshot.
 
+**Two distinct Pass-1 modes (implemented)**
+- `pickEnrichedSurvivors` — used by the recompute pipeline. Only selects candidates whose enrichment status is `DONE`, so the snapshot always contains quality data.
+- `pickEnrichmentCandidates` — used by `RecommendationSyncTaskHandler` to decide which placeholder candidates are worth sending to the enrichment pipeline. Runs the same cheap heuristic but without the enrichment filter, because non-enriched films can still qualify via language/rating values already seeded from the TMDB snapshot.
+- Both modes share `resolveWatchlistFilmIds` and `resolveCandidateFilmIds` for candidate pool construction.
+
 **Handling partially enriched candidates**
 - A candidate film may exist in the DB but have incomplete enrichment (missing credits, genres, keywords). Define an explicit rule before implementing scoring:
   - Missing contribution from any signal = **0 score contribution for that signal**, not skip.
   - Apply this rule consistently in both pass 1 and pass 2 — do not filter on enrichment completeness in one pass and not the other.
 - Document this assumption; it affects score distribution and must match the test fixtures.
+
+**Full scoring formula (implemented)**
+- Min-max normalize each component (keyword, genre, language, director, cast, crew, rating) to `[0, 10]` across the candidate set.
+- Base score: `keyword*0.60 + genre*0.30 + language*0.10`
+- Bonus multiplier: `(1 + rating*0.10) * (1 + cast*0.05) * (1 + crew*0.02) * (1 + director*0.05)`
+- Final score: `baseScore * bonusMultiplier + recencyBoost`
+- Recency boost: fixed `newReleaseBoost` (default 0.5) if release date within `newReleaseDays` (default 365), else 0.
+- Tie-break: rating desc → date desc → internalId asc.
 
 **Snapshot recompute trigger — event-driven with debounce/coalesce**
 
@@ -205,6 +219,12 @@ WHERE (status = PENDING)
 - Record `enriched_at` and set `status = DONE` only after all sub-resources succeed.
 - Expired leases are reclaimed automatically by the next worker — no film gets stuck permanently.
 - **Constraint: lease duration must always be greater than the maximum scheduler tick interval.** If the scheduler can take up to T seconds per tick, set `lease_expires_at = now() + interval > T`. Tie these two config values together and validate on startup. A lease shorter than a tick causes false reclaims where a second worker claims a film the first worker is still processing.
+- **Implemented:** `FilmEnrichmentStateService.validateConfiguration()` enforces this constraint at startup via `@PostConstruct`.
+
+**Stage flags on Film row (implemented — replaces separate task table)**
+- Per-sub-resource completion is tracked via boolean flags on the `Film` entity: `genreSyncCompleted`, `keywordSyncCompleted`, `creditsSyncCompleted`.
+- On retry, each stage checks its flag before doing TMDB work — no separate `film_enrichment_tasks` table needed.
+- `FilmEnrichmentSyncProcessor.syncForFilm()` checks and sets each flag after successful sync.
 
 **Set status on creation**
 - Insert new films with `enrichment_status = PENDING`, `lease_expires_at = null`.
@@ -252,20 +272,8 @@ try {
 
 **Before implementing per-stage retry, verify that each sub-resource write is independently idempotent.** For example, if credits sync does a delete+insert internally, retrying just the credits stage must not leave partial or inconsistent data. If a stage is not idempotent in isolation, make it so before enabling per-stage retry — otherwise a partial retry can produce worse state than a full re-run.
 
-Retry task table:
+**Implemented:** Stage flags on `Film` row (`genreSyncCompleted`, `keywordSyncCompleted`, `creditsSyncCompleted`) provide implicit retry tracking. Each stage checks its flag before doing TMDB work. No separate `film_enrichment_tasks` table — retry state is derived from the flags themselves.
 
-```sql
-film_enrichment_tasks (
-  film_internal_id   PRIMARY KEY,
-  stage              varchar,      -- CREDITS, KEYWORDS, GENRES
-  attempt_count      int,
-  next_retry_at      timestamp,
-  last_error         varchar
-)
-```
-
-- Same upsert/coalesce pattern as `user_recompute_tasks`.
-- Apply exponential backoff to `next_retry_at`.
 - After max attempts: mark dead-letter, stop retrying, alert via metrics.
 - One candidate failing enrichment must never abort enrichment of subsequent candidates in the same sync run.
 
@@ -293,6 +301,18 @@ film_enrichment_tasks (
   - timers: ingestion latency, snapshot recompute latency, enrichment latency per stage
   - counters: success/failure/retry per stage, TMDB call outcomes, "budget exhausted" events, lease claims/expirations, dead-letter events
   - gauges: queue depth for `user_recompute_tasks`, `film_enrichment_tasks`, sync tasks
+
+**Implemented**
+- `RecommendationController` wires `MeterRegistry` and registers `recommendationSuccessLatencyTimer` and `recommendationErrorLatencyTimer` (labeled by `outcome`).
+- `SyncTaskHelper` registers counters for sync task outcomes.
+
+**Missing / TODO**
+- Gauges for queue depth (`user_recompute_tasks`, `film_enrichment_tasks`, sync tasks).
+- Per-stage enrichment latency timers (genre, keyword, credits).
+- Lease claim/expiration counters.
+- Dead-letter event counters.
+- Snapshot recompute latency timer.
+- "Budget exhausted" event counters.
 
 **Caution**
 - Keep metric tag cardinality bounded (do NOT tag by userId/filmId).
