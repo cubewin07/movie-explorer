@@ -5,7 +5,9 @@ import com.Backend.services.credit_service.service.CreditService;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.genre_service.service.GenreService;
 import com.Backend.services.keyword_service.service.KeywordService;
+import com.Backend.services.recommendation_service.metrics.RecommendationMetrics;
 import com.Backend.services.sync_service.model.SyncCategory;
+import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +18,7 @@ public class FilmEnrichmentSyncProcessor implements FilmSyncProcessor {
     private final GenreService genreService;
     private final KeywordService keywordService;
     private final CreditService creditService;
+    private final RecommendationMetrics metrics;
 
     @Override
     public SyncCategory getCategory() {
@@ -48,17 +51,32 @@ public class FilmEnrichmentSyncProcessor implements FilmSyncProcessor {
         }
 
         if (!Boolean.TRUE.equals(film.getGenreSyncCompleted())) {
-            genreService.syncGenresForFilm(sourceTmdbId, film.getType(), film);
+            Timer.Sample sample = metrics.startEnrichmentStageTimer();
+            try {
+                genreService.syncGenresForFilm(sourceTmdbId, film.getType(), film);
+            } finally {
+                metrics.stopEnrichmentGenreTimer(sample);
+            }
             film.setGenreSyncCompleted(true);
         }
 
         if (!Boolean.TRUE.equals(film.getKeywordSyncCompleted())) {
-            keywordService.syncKeywordsForFilm(sourceTmdbId, film.getType(), film);
+            Timer.Sample sample = metrics.startEnrichmentStageTimer();
+            try {
+                keywordService.syncKeywordsForFilm(sourceTmdbId, film.getType(), film);
+            } finally {
+                metrics.stopEnrichmentKeywordTimer(sample);
+            }
             film.setKeywordSyncCompleted(true);
         }
 
         if (!Boolean.TRUE.equals(film.getCreditsSyncCompleted())) {
-            creditService.syncCreditsForFilm(sourceTmdbId, film.getType(), film);
+            Timer.Sample sample = metrics.startEnrichmentStageTimer();
+            try {
+                creditService.syncCreditsForFilm(sourceTmdbId, film.getType(), film);
+            } finally {
+                metrics.stopEnrichmentCreditsTimer(sample);
+            }
             film.setCreditsSyncCompleted(true);
         }
     }

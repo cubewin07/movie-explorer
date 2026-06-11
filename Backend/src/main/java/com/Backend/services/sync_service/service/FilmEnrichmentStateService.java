@@ -3,6 +3,7 @@ package com.Backend.services.sync_service.service;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.film_service.model.FilmEnrichmentStatus;
 import com.Backend.services.film_service.repository.FilmRepository;
+import com.Backend.services.recommendation_service.metrics.RecommendationMetrics;
 import com.Backend.services.sync_service.model.SyncCategory;
 import jakarta.annotation.PostConstruct;
 import java.time.Duration;
@@ -21,6 +22,7 @@ public class FilmEnrichmentStateService {
             EnumSet.of(SyncCategory.ENRICHMENT);
 
     private final FilmRepository filmRepository;
+    private final RecommendationMetrics metrics;
 
     @Value("${recommendation.enrichment.lease-duration-ms:60000}")
     private long leaseDurationMs;
@@ -85,6 +87,15 @@ public class FilmEnrichmentStateService {
         );
         if (updated < 1) {
             return false;
+        }
+
+        // Distinguish fresh claim from expired-lease reclaim for metrics.
+        if (film.getEnrichmentStatus() == FilmEnrichmentStatus.IN_PROGRESS
+                && film.getLeaseExpiresAt() != null
+                && film.getLeaseExpiresAt().isBefore(now)) {
+            metrics.recordLeaseExpired();
+        } else {
+            metrics.recordLeaseClaimed();
         }
 
         film.setEnrichmentStatus(FilmEnrichmentStatus.IN_PROGRESS);

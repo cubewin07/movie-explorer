@@ -16,4 +16,6 @@ public interface SyncTaskRepository extends JpaRepository<SyncTask, Long> {
             Collection<SyncTaskStatus> statuses,
             Instant nextRetryAt
     );
+
+    long countByStatusIn(Collection<SyncTaskStatus> statuses);
 }

@@ -1,7 +1,9 @@
 package com.Backend.services.recommendation_service.snapshot.service;
 
+import com.Backend.services.recommendation_service.metrics.RecommendationMetrics;
 import com.Backend.services.recommendation_service.snapshot.model.UserRecomputeTask;
 import com.Backend.services.recommendation_service.snapshot.repository.UserRecomputeTaskRepository;
+import io.micrometer.core.instrument.Timer;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -22,6 +24,7 @@ public class RecommendationSnapshotScheduler {
 
     private final UserRecomputeTaskRepository userRecomputeTaskRepository;
     private final RecommendationSnapshotRecomputeService recomputeService;
+    private final RecommendationMetrics metrics;
     private final PlatformTransactionManager transactionManager;
 
     @Value("${recommendation.recompute.scheduler.max-users-per-tick:10}")
@@ -52,9 +55,13 @@ public class RecommendationSnapshotScheduler {
 
             Long userId = Objects.requireNonNull(task.getUserId(), "userId");
 
+            Timer.Sample sample = metrics.startSnapshotRecomputeTimer();
+            boolean success = false;
             try {
                 recomputeService.recomputeSnapshotForUser(userId);
+                success = true;
             } catch (RuntimeException ex) {
+                success = false;
                 int attempts = Math.max(0, task.getAttemptCount()) + 1;
 
                 if (attempts >= Math.max(1, maxAttempts)) {
@@ -65,6 +72,7 @@ public class RecommendationSnapshotScheduler {
                             ex.getMessage(),
                             ex
                     );
+                    metrics.stopSnapshotRecomputeTimer(sample, false);
                     continue;
                 }
 
@@ -79,8 +87,16 @@ public class RecommendationSnapshotScheduler {
                         delay.toSeconds(),
                         ex
                 );
+            } finally {
+                metrics.stopSnapshotRecomputeTimer(sample, success);
             }
         }
+    }
+
+    @Scheduled(fixedDelayString = "${recommendation.metrics.queue-depth-interval-ms:30000}")
+    public void sampleQueueDepth() {
+        long recomputeCount = userRecomputeTaskRepository.count();
+        metrics.setRecomputeQueueDepth(recomputeCount);
     }
 
     private List<UserRecomputeTask> claimDueTasks(int limit) {

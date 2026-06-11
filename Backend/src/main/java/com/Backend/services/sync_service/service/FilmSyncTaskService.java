@@ -4,6 +4,7 @@ import com.Backend.exception.SyncProcessingException;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.film_service.repository.FilmRepository;
 import com.Backend.services.film_service.service.TmdbClient;
+import com.Backend.services.recommendation_service.metrics.RecommendationMetrics;
 import com.Backend.services.sync_service.helper.SyncTaskHelper;
 import com.Backend.services.sync_service.model.LocalBudgetDeferException;
 import com.Backend.services.sync_service.model.SyncAttemptResult;
@@ -35,6 +36,7 @@ public class FilmSyncTaskService {
     private final FilmRepository filmRepository;
     private final TmdbClient tmdbClient;
     private final SyncTaskHelper syncTaskHelper;
+    private final RecommendationMetrics metrics;
     private final Map<SyncCategory, FilmSyncTaskHandler> handlers;
 
     @Value("${recommendation.sync.scheduler.max-tasks-per-tick:5}")
@@ -51,12 +53,14 @@ public class FilmSyncTaskService {
             FilmRepository filmRepository,
             TmdbClient tmdbClient,
             SyncTaskHelper syncTaskHelper,
+            RecommendationMetrics metrics,
             List<FilmSyncTaskHandler> handlers
     ) {
         this.syncTaskRepository = syncTaskRepository;
         this.filmRepository = filmRepository;
         this.tmdbClient = tmdbClient;
         this.syncTaskHelper = syncTaskHelper;
+        this.metrics = metrics;
         this.handlers = handlers.stream()
                 .flatMap(handler -> handler.getSupportedCategories().stream()
                         .map(category -> Map.entry(category, handler)))
@@ -93,6 +97,7 @@ public class FilmSyncTaskService {
 
         SyncTaskExecutionGuard guard = handler.beforeSync(workingFilm, category);
         if (!guard.canRun()) {
+            metrics.recordBudgetExhausted(category);
             enqueuePendingSync(workingFilm, tmdbId, category, userId);
             return SyncAttemptResult.retryScheduled(false, guard.errorCode(), guard.errorMessage());
         }
@@ -342,6 +347,12 @@ public class FilmSyncTaskService {
         int maxByBudget = Math.max(1, tokensForRecommendation / perTaskBudget);
 
         return Math.min(recommendationTaskCount, Math.min(maxTasksPerTick, maxByBudget));
+    }
+
+    @Scheduled(fixedDelayString = "${recommendation.metrics.queue-depth-interval-ms:30000}")
+    public void sampleSyncTaskQueueDepth() {
+        long pendingCount = syncTaskRepository.countByStatusIn(RUNNABLE_STATUSES);
+        metrics.setSyncTaskQueueDepth(pendingCount);
     }
 
     @Transactional
