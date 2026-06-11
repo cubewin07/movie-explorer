@@ -304,13 +304,12 @@ try {
 
 **Implemented**
 - `RecommendationController` wires `MeterRegistry` and registers `recommendationSuccessLatencyTimer` and `recommendationErrorLatencyTimer` (labeled by `outcome`).
-- `SyncTaskHelper` registers counters for sync task outcomes.
+- `SyncTaskHelper` registers counters for sync task outcomes: `sync.retry.scheduled`, `sync.failure.permanent`, `sync.dead-letter` (all tagged by `category` + normalized `errorCode`).
 
 **Missing / TODO**
 - Gauges for queue depth (`user_recompute_tasks`, `film_enrichment_tasks`, sync tasks).
 - Per-stage enrichment latency timers (genre, keyword, credits).
 - Lease claim/expiration counters.
-- Dead-letter event counters.
 - Snapshot recompute latency timer.
 - "Budget exhausted" event counters.
 

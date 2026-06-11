@@ -254,6 +254,7 @@ public class FilmSyncTaskService {
             } else {
                 task.setStatus(SyncTaskStatus.FAILED_PERMANENT);
                 task.setNextRetryAt(null);
+                syncTaskHelper.recordDeadLetter(category, decision.errorCode());
                 syncTaskHelper.logPermanentFailure(
                         category,
                         task.getFilmInternalId(),

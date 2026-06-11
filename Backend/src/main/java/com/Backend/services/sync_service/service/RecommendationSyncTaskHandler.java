@@ -77,21 +77,28 @@ public class RecommendationSyncTaskHandler implements FilmSyncTaskHandler {
 
     @Override
     public void afterSyncSuccess(Film film, SyncCategory category, Long userId) {
-        enqueueCandidateEnrichmentAfterRecommendationSync(film, category, userId);
-
         if (userId == null) {
             log.debug(
                     "Skipping recommendation recompute scheduling after sync success because userId is missing filmInternalId={}",
                     film != null ? film.getInternalId() : null
             );
+            enqueueCandidateEnrichmentAfterRecommendationSync(film, category, null, List.of());
             return;
         }
 
-        // Only trigger an immediate recompute if enough survivors are already enriched.
-        // When most candidates are still pending enrichment the recompute would produce
-        // low-quality results, so we defer until EnrichmentSyncTaskHandler fires it.
-        List<Long> survivors = candidatePassFilter.getPass2SurvivorsForEnrichment(userId);
-        long enrichedCount = survivors.stream()
+        // Compute pass-1 survivors once and reuse for both enqueue and the
+        // enriched-count check — avoids running the same query twice.
+        List<Long> pass1Survivors = userId != null
+                ? candidatePassFilter.getPass2SurvivorsForEnrichment(userId)
+                : List.of();
+
+        enqueueCandidateEnrichmentAfterRecommendationSync(film, category, userId, pass1Survivors);
+
+        // After recommendation sync, all pass-1 candidates have been enqueued for
+        // enrichment. If 3+ are already DONE, fire recompute immediately — the
+        // remaining candidates will trigger recompute individually as they finish
+        // enrichment via EnrichmentSyncTaskHandler.afterSyncSuccess.
+        long enrichedCount = pass1Survivors.stream()
                 .map(filmRepository::findById)
                 .filter(opt -> opt.isPresent()
                         && opt.get().getEnrichmentStatus() == FilmEnrichmentStatus.DONE)
@@ -105,8 +112,8 @@ public class RecommendationSyncTaskHandler implements FilmSyncTaskHandler {
             );
         } else {
             log.debug(
-                    "Skipping recompute after recommendation sync: only {}/{} survivors are enriched (threshold={}) userId={}",
-                    enrichedCount, survivors.size(), threshold, userId
+                    "Skipping immediate recompute after recommendation sync: {}/{} pass-1 candidates are enriched (threshold={}) — recompute will fire per-candidate as remaining candidates finish enrichment userId={}",
+                    enrichedCount, pass1Survivors.size(), threshold, userId
             );
         }
     }
@@ -121,20 +128,22 @@ public class RecommendationSyncTaskHandler implements FilmSyncTaskHandler {
         recommendationSyncProcessor.backfillWeightsForFilm(film);
     }
 
-    private void enqueueCandidateEnrichmentAfterRecommendationSync(Film sourceFilm, SyncCategory category, Long userId) {
+    private void enqueueCandidateEnrichmentAfterRecommendationSync(
+            Film sourceFilm,
+            SyncCategory category,
+            Long userId,
+            List<Long> pass1Survivors
+    ) {
         if (category != SyncCategory.RECOMMENDATION || sourceFilm == null || sourceFilm.getInternalId() == null) {
             return;
         }
 
-        // Use pass-2 scoring (without enrichment filter) to decide which candidates
-        // are worth enriching. This breaks the circular dependency: non-enriched
-        // films can still qualify based on language/rating placeholders from TMDB.
-        if (userId != null) {
-            List<Long> pass2Survivors = candidatePassFilter.getPass2SurvivorsForEnrichment(userId);
-            if (pass2Survivors == null || pass2Survivors.isEmpty()) {
-                return;
-            }
-            for (Film candidateFilm : filmRepository.findAllById(List.copyOf(pass2Survivors))) {
+        // Use pass-1 survivors (pre-computed by caller) to decide which candidates
+        // are worth enriching. This avoids running the same query twice and breaks
+        // the circular dependency: non-enriched films can still qualify based on
+        // language/rating placeholders from TMDB.
+        if (userId != null && pass1Survivors != null && !pass1Survivors.isEmpty()) {
+            for (Film candidateFilm : filmRepository.findAllById(List.copyOf(pass1Survivors))) {
                 enqueueEnrichmentTask(candidateFilm, userId);
             }
             return;

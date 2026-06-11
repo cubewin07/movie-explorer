@@ -24,6 +24,7 @@ public class SyncTaskHelper {
 
     private static final String SYNC_RETRY_SCHEDULED_METRIC = "sync.retry.scheduled";
     private static final String SYNC_FAILURE_PERMANENT_METRIC = "sync.failure.permanent";
+    private static final String SYNC_DEAD_LETTER_METRIC = "sync.dead-letter";
 
     private final SyncRetryPolicy syncRetryPolicy;
     private final SyncTaskRepository syncTaskRepository;
@@ -105,6 +106,14 @@ public class SyncTaskHelper {
 
     public void recordRetryScheduled(SyncCategory category, String errorCode) {
         counterFor(SYNC_RETRY_SCHEDULED_METRIC, category, errorCode).increment();
+    }
+
+    public void recordDeadLetter(SyncCategory category, String errorCode) {
+        meterRegistry.counter(
+                SYNC_DEAD_LETTER_METRIC,
+                "category", category == null ? "unknown" : category.name(),
+                "errorCode", normalizeErrorCode(errorCode)
+        ).increment();
     }
 
     public void logPermanentFailure(
