@@ -353,6 +353,36 @@ try {
 - Observability tests (focused):
   - required meters exist (timers/counters) and are incremented in success/failure paths
   - dead-letter counter increments after max retry exhaustion
+  
+
+**Status: PARTIALLY IMPLEMENTED** — existing tests cover most items; gaps noted below.
+
+**Already covered by existing tests:**
+- Ingestion: bounded candidate count, idempotent replace semantics, null date filtering
+- Snapshot recompute: partially enriched = 0 score, pass-2 top-K only, pass-1 ordering, two-pass filter behavior
+- Enrichment: lease claim/skip, lease expiry reclaim, film created PENDING, re-enqueue after TTL expiry
+- Task scheduling: recompute fan-out on enrichment complete, debounce threshold gating, no fan-out when no affected users
+- Retry: retry cap → dead-letter, permanent failure vs retryable distinction
+- Observability: success/error latency timers wired in RecommendationController and SyncTaskHelper
+
+**Still to add (Phase 5 implementation):**
+
+*Snapshot recompute tests (add to SpringControllerTest.java):*
+- atomic swap: `activeVersion` flip is the only commit point; rows with `version=N` never visible until `activeVersion=N`
+- failure leaves prior snapshot intact: recompute throws, old snapshot still queryable
+- debounce coalesce: rapid watchlist add+remove produce exactly one `UserRecomputeTask` (ON CONFLICT upsert coalescing)
+- tie-break determinism: `rating desc → date desc → internalId asc` is consistent across recomputes
+- lease config validation at startup: `FilmEnrichmentStateService.validateConfiguration()` throws when `lease-duration-ms <= fixed-delay-ms`
+
+*Enrichment + observability tests (add to FilmSyncRetryCapIntegrationTest.java):*
+- per-candidate failure isolation: one candidate's enrichment failure does not abort other candidates in same sync
+- `enriched_at` only after all stages succeed: verify `enrichedAt` is null during enrichment, set only on DONE
+- recency boost: candidate within `newReleaseDays` gets fixed `newReleaseBoost`, outside gets 0
+- metrics counters increment: verify `recommendation.*` counters/timers increment on success/failure/dead-letter paths
+
+**Test file constraints**
+- No new test files — add only to existing `SpringControllerTest.java` and `FilmSyncRetryCapIntegrationTest.java`
+- No modifications or deletions in existing test files — only append new `@Test` methods
 
 **Caution**
 - Never hit real TMDB in tests; mock `TmdbClient`.
