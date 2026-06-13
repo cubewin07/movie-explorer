@@ -496,6 +496,12 @@ class FilmSyncRetryCapIntegrationTest {
 
         Long userId = 42L;
 
+        // Capture the lease counter value before this test's actions.
+        // Other tests in this class may have already incremented it (MeterRegistry is shared
+        // across the Spring context). We assert it stays unchanged — this test only exercises
+        // the recommendation budget-exhausted/retry path, not enrichment path.
+        double leaseCountBefore = meterRegistry.counter("recommendation.lease.claimed").count();
+
         // First attempt: budget exhausted → LOCAL_BUDGET_DEFERRED → retry scheduled
         SyncAttemptResult first = filmSyncTaskService.syncNowOrQueue(
                 film, film.getFilmId(), SyncCategory.RECOMMENDATION, userId
@@ -520,8 +526,8 @@ class FilmSyncRetryCapIntegrationTest {
         assertThat(second.failedPermanently() || second.retryScheduled()).isTrue();
 
         // Verify the lease claimed counter was not triggered (not an enrichment operation)
-        double leaseCount = meterRegistry.counter("recommendation.lease.claimed").count();
-        assertThat(leaseCount).isZero();
+        double leaseCountAfter = meterRegistry.counter("recommendation.lease.claimed").count();
+        assertThat(leaseCountAfter).isEqualTo(leaseCountBefore);
     }
 
     private TmdbFilmResponse createTmdbFilmResponse(long id, String title, double voteAvg,
