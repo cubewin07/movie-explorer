@@ -23,7 +23,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @Slf4j
 @Service
@@ -38,6 +41,7 @@ public class FilmSyncTaskService {
     private final SyncTaskHelper syncTaskHelper;
     private final RecommendationMetrics metrics;
     private final Map<SyncCategory, FilmSyncTaskHandler> handlers;
+    private final PlatformTransactionManager transactionManager;
 
     @Value("${recommendation.sync.scheduler.max-tasks-per-tick:5}")
     private int recommendationMaxTasksPerTick;
@@ -54,13 +58,15 @@ public class FilmSyncTaskService {
             TmdbClient tmdbClient,
             SyncTaskHelper syncTaskHelper,
             RecommendationMetrics metrics,
-            List<FilmSyncTaskHandler> handlers
+            List<FilmSyncTaskHandler> handlers,
+            PlatformTransactionManager transactionManager
     ) {
         this.syncTaskRepository = syncTaskRepository;
         this.filmRepository = filmRepository;
         this.tmdbClient = tmdbClient;
         this.syncTaskHelper = syncTaskHelper;
         this.metrics = metrics;
+        this.transactionManager = transactionManager;
         this.handlers = handlers.stream()
                 .flatMap(handler -> handler.getSupportedCategories().stream()
                         .map(category -> Map.entry(category, handler)))
@@ -117,6 +123,9 @@ public class FilmSyncTaskService {
             return SyncAttemptResult.synced(wasSynced);
         } catch (RuntimeException ex) {
             handler.afterSyncFailure(workingFilm, category);
+            if (ex instanceof LocalBudgetDeferException) {
+                metrics.recordBudgetExhausted(category);
+            }
             SyncRetryEnqueueResult retryResult = enqueueRetry(workingFilm, tmdbId, category, userId, ex);
 
             log.warn("Failed to sync category={} for filmInternalId={} tmdbId={} type={}",
@@ -570,6 +579,16 @@ public class FilmSyncTaskService {
                         ex
                 );
             }
+        }
+
+        // The outer @Transactional transaction may have been marked rollback-only by a
+        // nested @Transactional service (e.g. GenreService.syncGenresForFilm).  Persist
+        // the final task state in a REQUIRES_NEW transaction so it survives regardless.
+        final SyncTask finalTask = syncTaskRepository.findById(taskId).orElse(null);
+        if (finalTask != null) {
+            TransactionTemplate requiresNew = new TransactionTemplate(transactionManager);
+            requiresNew.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+            requiresNew.executeWithoutResult(status -> syncTaskRepository.save(finalTask));
         }
     }
 
