@@ -1,14 +1,17 @@
 package com.Backend.services.recommendation_service.model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Index;
 import jakarta.persistence.Table;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 @Data
@@ -28,4 +31,8 @@ public class Recommendation {
     @EmbeddedId
     @EqualsAndHashCode.Include
     private RecommendationId id;
+
+    @CreationTimestamp
+    @Column(name = "ingested_at", nullable = false, updatable = false)
+    private Instant ingestedAt;
 }

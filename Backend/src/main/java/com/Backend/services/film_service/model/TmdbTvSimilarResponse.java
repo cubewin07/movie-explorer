@@ -24,7 +24,14 @@ public class TmdbTvSimilarResponse {
         @JsonProperty("vote_average")
         private Double voteAverage;
 
+        @JsonProperty("original_language")
+        private String originalLanguage;
+
         @JsonProperty("backdrop_path")
         private String backdropPath;
+
+        // TMDB response payload field.
+        @JsonProperty("genre_ids")
+        private List<Integer> genreIds = new ArrayList<>();
     }
 }

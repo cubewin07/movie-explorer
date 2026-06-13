@@ -1,11 +1,7 @@
 package com.Backend.services.watchlist_service.service;
 
-import com.Backend.services.credit_service.service.CreditWeightService;
 import com.Backend.services.film_service.model.Film;
 import com.Backend.services.film_service.repository.FilmRepository;
-import com.Backend.services.genre_service.service.GenreWeightService;
-import com.Backend.services.keyword_service.service.KeywordWeightService;
-import com.Backend.services.language_service.service.LanguageWeightService;
 import com.Backend.services.sync_service.model.SyncAttemptResult;
 import com.Backend.services.sync_service.model.SyncCategory;
 import com.Backend.services.sync_service.service.FilmSyncTaskService;
@@ -32,10 +28,6 @@ public class WatchlistBackgroundSyncListener {
     private final WatchlistRepository watchlistRepository;
     private final FilmRepository filmRepository;
     private final FilmSyncTaskService filmSyncTaskService;
-    private final CreditWeightService creditWeightService;
-    private final KeywordWeightService keywordWeightService;
-    private final GenreWeightService genreWeightService;
-    private final LanguageWeightService languageWeightService;
 
     @Value("${watchlist.sync.apply-heavy-backfill:false}")
     private boolean applyHeavyBackfill;
@@ -73,17 +65,10 @@ public class WatchlistBackgroundSyncListener {
 
             User user = watchlist.getUser();
 
-            SyncAttemptResult creditsSync = safeSync(film, tmdbId, SyncCategory.CREDITS, user.getId());
-            SyncAttemptResult keywordSync = safeSync(film, tmdbId, SyncCategory.KEYWORD, user.getId());
-            SyncAttemptResult genreSync = safeSync(film, tmdbId, SyncCategory.GENRE, user.getId());
+            SyncAttemptResult enrichmentSync = safeSync(film, tmdbId, SyncCategory.ENRICHMENT, user.getId());
             SyncAttemptResult recommendationSync = safeSync(film, tmdbId, SyncCategory.RECOMMENDATION, user.getId());
 
-            applyWeightAdjustments(user, film, creditsSync, keywordSync, genreSync);
-            languageWeightService.adjustWeightsForFilm(user, film, 1L);
-
-            logCategorySummary(user.getId(), film.getInternalId(), tmdbId, SyncCategory.CREDITS, creditsSync);
-            logCategorySummary(user.getId(), film.getInternalId(), tmdbId, SyncCategory.KEYWORD, keywordSync);
-            logCategorySummary(user.getId(), film.getInternalId(), tmdbId, SyncCategory.GENRE, genreSync);
+            logCategorySummary(user.getId(), film.getInternalId(), tmdbId, SyncCategory.ENRICHMENT, enrichmentSync);
             logCategorySummary(user.getId(), film.getInternalId(), tmdbId, SyncCategory.RECOMMENDATION, recommendationSync);
         } catch (RuntimeException ex) {
             log.error(
@@ -98,7 +83,7 @@ public class WatchlistBackgroundSyncListener {
 
     private SyncAttemptResult safeSync(Film film, Long tmdbId, SyncCategory category, Long userId) {
         try {
-            return filmSyncTaskService.syncNowOrQueue(film, tmdbId, category);
+            return filmSyncTaskService.syncNowOrQueue(film, tmdbId, category, userId);
         } catch (RuntimeException ex) {
             log.error(
                     "Background sync crashed for category={} userId={} filmInternalId={} tmdbId={}",
@@ -109,36 +94,6 @@ public class WatchlistBackgroundSyncListener {
                     ex
             );
             return SyncAttemptResult.failedWithoutRetry(false, "ASYNC_SYNC_CRASH", ex.getMessage());
-        }
-    }
-
-    private void applyWeightAdjustments(
-            User user,
-            Film film,
-            SyncAttemptResult creditsSync,
-            SyncAttemptResult keywordSync,
-            SyncAttemptResult genreSync
-    ) {
-        if (user == null || user.getId() == null || film == null) {
-            return;
-        }
-
-        if (applyHeavyBackfill && !creditsSync.wasSynced() && creditsSync.syncSucceeded()) {
-            creditWeightService.backfillWeightsForFilm(film);
-        } else if (Boolean.TRUE.equals(film.getCreditsSyncCompleted())) {
-            creditWeightService.adjustWeightsForFilm(user, film, 1L);
-        }
-
-        if (applyHeavyBackfill && !keywordSync.wasSynced() && keywordSync.syncSucceeded()) {
-            keywordWeightService.backfillWeightsForFilm(film);
-        } else if (Boolean.TRUE.equals(film.getKeywordSyncCompleted())) {
-            keywordWeightService.adjustWeightsForFilm(user, film, 1L);
-        }
-
-        if (applyHeavyBackfill && !genreSync.wasSynced() && genreSync.syncSucceeded()) {
-            genreWeightService.backfillWeightsForFilm(film);
-        } else if (Boolean.TRUE.equals(film.getGenreSyncCompleted())) {
-            genreWeightService.adjustWeightsForFilm(user, film, 1L);
         }
     }
 

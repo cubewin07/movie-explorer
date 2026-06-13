@@ -17,6 +17,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
@@ -87,6 +88,17 @@ public class Film {
     @Column(name = "recommendation_sync_completed", nullable = false)
     @Builder.Default
     private Boolean recommendationSyncCompleted = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "enrichment_status", nullable = false, length = 32)
+    @Builder.Default
+    private FilmEnrichmentStatus enrichmentStatus = FilmEnrichmentStatus.PENDING;
+
+    @Column(name = "lease_expires_at")
+    private Instant leaseExpiresAt;
+
+    @Column(name = "enriched_at")
+    private Instant enrichedAt;
 
     @OneToMany(mappedBy = "film", orphanRemoval = true)
     @JsonIgnore

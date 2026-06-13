@@ -7,8 +7,10 @@ import java.util.List;
 import java.util.Set;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface RecommendationRepository extends JpaRepository<Recommendation, RecommendationId> {
 
@@ -24,4 +26,12 @@ public interface RecommendationRepository extends JpaRepository<Recommendation, 
             @Param("filmId") Long filmId,
             @Param("recommendedFilmIds") Collection<Long> recommendedFilmIds
     );
+
+    @Modifying
+    @Transactional
+    @Query("delete from Recommendation r where r.id.filmId = :filmId")
+    void deleteAllByFilmId(@Param("filmId") Long filmId);
+
+    @Query("select r.id.filmId from Recommendation r where r.id.recommendedFilmId = :recommendedFilmId")
+    List<Long> findSourceFilmIdsByRecommendedFilmId(@Param("recommendedFilmId") Long recommendedFilmId);
 }

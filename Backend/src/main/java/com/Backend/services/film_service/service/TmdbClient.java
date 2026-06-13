@@ -4,6 +4,7 @@ import com.Backend.exception.TmdbClientException;
 import com.Backend.services.FilmType;
 import com.Backend.services.film_service.model.TmdbCreditsResponse;
 import com.Backend.services.film_service.model.TmdbFilmResponse;
+import com.Backend.services.film_service.model.TmdbGenreListResponse;
 import com.Backend.services.film_service.model.TmdbKeywordsResponse;
 import com.Backend.services.film_service.model.TmdbMovieSimilarResponse;
 import com.Backend.services.film_service.model.TmdbSimilarItem;
@@ -111,6 +112,22 @@ public class TmdbClient {
                 .block(), "keywords");
     }
 
+    /**
+     * Fetches TMDB's genre reference list.
+     *
+     * <p>Structural decision: this is intended for use by a startup cache (GenreMapService),
+     * and must not be called per film.
+     */
+    public TmdbGenreListResponse fetchGenreList(FilmType type) {
+        ensureApiTokenConfigured();
+        String path = type == FilmType.MOVIE ? "/genre/movie/list" : "/genre/tv/list";
+        return executeWithRetry(() -> webClient.get()
+                .uri(uriBuilder -> uriBuilder.path(path).build())
+                .retrieve()
+                .bodyToMono(TmdbGenreListResponse.class)
+                .block(), "genre-list");
+    }
+
     @Cacheable(value = "tmdbGenres", key = "{#tmdbId, #type.name()}")
     public TmdbFilmResponse fetchGenres(Long tmdbId, FilmType type) {
         ensureApiTokenConfigured();
@@ -148,7 +165,10 @@ public class TmdbClient {
                             item.getId(),
                             item.getTitle(),
                             item.getReleaseDate(),
-                            item.getBackdropPath()
+                            item.getBackdropPath(),
+                            item.getVoteAverage(),
+                            item.getOriginalLanguage(),
+                            item.getGenreIds()
                     ))
                     .collect(Collectors.toList());
         }
@@ -171,7 +191,67 @@ public class TmdbClient {
                         item.getId(),
                         item.getName(),
                         item.getFirstAirDate(),
-                        item.getBackdropPath()
+                        item.getBackdropPath(),
+                        item.getVoteAverage(),
+                        item.getOriginalLanguage(),
+                        item.getGenreIds()
+                ))
+                .collect(Collectors.toList());
+    }
+
+    @Cacheable(value = "tmdbRecommendations", key = "{#tmdbId, #type.name()}")
+    public java.util.List<TmdbSimilarItem> fetchRecommendations(Long tmdbId, FilmType type) {
+        ensureApiTokenConfigured();
+
+        if (type == FilmType.MOVIE) {
+            TmdbMovieSimilarResponse response = executeWithRetry(() -> webClient.get()
+                    .uri(uriBuilder -> {
+                        uriBuilder.path("/movie/{id}/recommendations");
+                        return uriBuilder.build(tmdbId);
+                    })
+                    .retrieve()
+                    .bodyToMono(TmdbMovieSimilarResponse.class)
+                    .block(), "recommendations-movie");
+
+            if (response == null || response.getResults() == null) {
+                return java.util.List.of();
+            }
+            return response.getResults().stream()
+                    .filter(item -> item != null && item.getId() != null)
+                    .map(item -> new TmdbSimilarItem(
+                            item.getId(),
+                            item.getTitle(),
+                            item.getReleaseDate(),
+                            item.getBackdropPath(),
+                            item.getVoteAverage(),
+                            item.getOriginalLanguage(),
+                            item.getGenreIds()
+                    ))
+                    .collect(Collectors.toList());
+        }
+
+        TmdbTvSimilarResponse response = executeWithRetry(() -> webClient.get()
+                .uri(uriBuilder -> {
+                    uriBuilder.path("/tv/{id}/recommendations");
+                    return uriBuilder.build(tmdbId);
+                })
+                .retrieve()
+                .bodyToMono(TmdbTvSimilarResponse.class)
+                .block(), "recommendations-tv");
+
+        if (response == null || response.getResults() == null) {
+            return java.util.List.of();
+        }
+        return response.getResults().stream()
+                .filter(item -> item != null && item.getId() != null)
+                .map(item -> new TmdbSimilarItem(
+                        item.getId(),
+                        item.getName(),
+                        item.getFirstAirDate(),
+                        item.getBackdropPath(),
+                        item.getVoteAverage(),
+                        item.getOriginalLanguage(),
+                        item.getGenreIds()
                 ))
                 .collect(Collectors.toList());
     }

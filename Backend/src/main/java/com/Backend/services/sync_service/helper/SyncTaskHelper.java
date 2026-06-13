@@ -24,6 +24,7 @@ public class SyncTaskHelper {
 
     private static final String SYNC_RETRY_SCHEDULED_METRIC = "sync.retry.scheduled";
     private static final String SYNC_FAILURE_PERMANENT_METRIC = "sync.failure.permanent";
+    private static final String SYNC_DEAD_LETTER_METRIC = "sync.dead-letter";
 
     private final SyncRetryPolicy syncRetryPolicy;
     private final SyncTaskRepository syncTaskRepository;
@@ -44,6 +45,9 @@ public class SyncTaskHelper {
     @Value("${sync.retry.max-attempts.recommendation:${sync.retry.max-attempts:8}}")
     private int recommendationMaxAttempts;
 
+    @Value("${sync.retry.max-attempts.enrichment:${sync.retry.max-attempts:8}}")
+    private int enrichmentMaxAttempts;
+
     public SyncRetryDecision toRetryDecision(RuntimeException error, int nextAttempt) {
         if (error instanceof LocalBudgetDeferException defer) {
             Duration delay = defer.getRetryDelay() == null ? Duration.ofSeconds(5) : defer.getRetryDelay();
@@ -59,6 +63,7 @@ public class SyncTaskHelper {
         }
 
         return switch (category) {
+            case ENRICHMENT -> Math.max(1, enrichmentMaxAttempts);
             case CREDITS -> Math.max(1, creditsMaxAttempts);
             case KEYWORD -> Math.max(1, keywordMaxAttempts);
             case GENRE -> Math.max(1, genreMaxAttempts);
@@ -78,6 +83,9 @@ public class SyncTaskHelper {
                     .orElseThrow(() -> ex);
 
             existing.setTmdbId(task.getTmdbId());
+            if (task.getUserId() != null) {
+                existing.setUserId(task.getUserId());
+            }
             existing.setSyncCategory(task.getSyncCategory());
             existing.setStatus(task.getStatus());
             existing.setAttempts(task.getAttempts());
@@ -98,6 +106,14 @@ public class SyncTaskHelper {
 
     public void recordRetryScheduled(SyncCategory category, String errorCode) {
         counterFor(SYNC_RETRY_SCHEDULED_METRIC, category, errorCode).increment();
+    }
+
+    public void recordDeadLetter(SyncCategory category, String errorCode) {
+        meterRegistry.counter(
+                SYNC_DEAD_LETTER_METRIC,
+                "category", category == null ? "unknown" : category.name(),
+                "errorCode", normalizeErrorCode(errorCode)
+        ).increment();
     }
 
     public void logPermanentFailure(
