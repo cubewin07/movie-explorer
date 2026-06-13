@@ -113,6 +113,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -1886,6 +1887,7 @@ class SpringControllerTest {
     @DisplayName("Recompute failure leaves prior snapshot intact — old snapshot still queryable")
     void recomputeSnapshot_failureLeavesPriorSnapshotIntact() {
         userRecomputeTaskRepository.deleteAll();
+        userRecomputeTaskRepository.flush();
 
         User user = createUserWithWatchlist("recompute-failure");
 
@@ -1894,46 +1896,96 @@ class SpringControllerTest {
         addRecommendationWatchlistItem(user, watch);
 
         Film candA = saveFilmWithEnrichmentStatus(4_100_010L, "CandA", "en", 8.0, FilmEnrichmentStatus.DONE);
+        Film candB = saveFilmWithEnrichmentStatus(4_100_011L, "CandB", "en", 7.5, FilmEnrichmentStatus.DONE);
         linkRecommendation(watch, candA);
+        linkRecommendation(watch, candB);
 
-        // Build a valid snapshot first
+        // --- Phase 1: build a successful snapshot (version=1) -------------------------
         recommendationSnapshotRecomputeService.recomputeSnapshotForUser(user.getId());
 
-        UserRecommendationSnapshotState stateBefore = stateRepository.findById(user.getId()).orElseThrow();
-        assertThat(stateBefore.getActiveVersion()).isGreaterThan(0L);
+        Long userId = user.getId();
+        UserRecommendationSnapshotState stateBefore = stateRepository.findById(userId).orElseThrow();
+        assertThat(stateBefore.getActiveVersion()).isEqualTo(1L);
 
-        List<RecommendationResultDTO> beforeResults = recommendationSnapshotQueryService.getRecommendationsForUser(user);
-        assertThat(beforeResults).isNotEmpty();
+        List<RecommendationResultDTO> beforeResults =
+                recommendationSnapshotQueryService.getRecommendationsForUser(user);
+        assertThat(beforeResults).extracting(RecommendationResultDTO::filmId)
+                .contains(candA.getFilmId(), candB.getFilmId());
 
-        // Simulate a recompute failure by wiping the recommendation edges, so
-        // an empty snapshot is still written (which is a valid outcome, not a failure).
-        // Instead, we verify the invariant more directly: REQUIRE_NEW propagation
-        // ensures the writeSnapshot transaction is isolated, and the old activeVersion
-        // row remains accessible through the query path even while a concurrent
-        // recompute is in progress.
-        //
-        // The key safety property is: writeSnapshot flips activeVersion after rows
-        // are persisted. If the transaction fails before writeSnapshot, the old
-        // version's rows are untouched.
-        //
-        // We verify this by inspecting the writeSnapshot method's behavior:
-        // - It first saves rows with the NEW version
-        // - Then updates activeVersion to the NEW version
-        // - Then deletes OLD version rows
-        // If step 2 or 3 fails, steps 2/3 roll back → activeVersion stays on OLD
-        // and OLD rows are still there.
-        //
-        // Since recomputeSnapshotForUser runs in REQUIRES_NEW, we can verify
-        // atomicity contract by confirming the service was created correctly.
-        assertThat(recommendationSnapshotRecomputeService).isNotNull();
+        long version1RowCount = rowRepository
+                .findAllByUserIdAndSnapshotVersionOrderByRankAsc(userId, 1L).size();
+        assertThat(version1RowCount).isGreaterThan(0);
 
-        // After the service is instantiated, query the actual snapshot to confirm
-        // it still reflects the last successful recompute
-        UserRecommendationSnapshotState stateAfter = stateRepository.findById(user.getId()).orElseThrow();
-        assertThat(stateAfter.getActiveVersion()).isEqualTo(stateBefore.getActiveVersion());
+        // --- Phase 2: provoke a mid-recompute failure --------------------------------
+        // The recompute service carries @Transactional(REQUIRES_NEW) on its public
+        // entry method. We want to drive the failure *inside* a real DB transaction
+        // (the production path), so we invoke the spy through a TransactionTemplate
+        // instead of going through the autowired proxy. The spy's throwing filter
+        // aborts before writeSnapshot() runs; the outer transaction then rolls back,
+        // which is exactly the production failure path we want to assert against.
+        RecommendationSnapshotRecomputeService rawRecompute =
+                org.springframework.test.util.AopTestUtils.getTargetObject(recommendationSnapshotRecomputeService);
+        RecommendationSnapshotRecomputeService recomputeSpy = Mockito.spy(rawRecompute);
+        org.springframework.test.util.ReflectionTestUtils
+                .setField(recomputeSpy, "candidatePassFilter",
+                        throwingFilter("simulated pass-filter failure mid-recompute"));
 
-        List<RecommendationResultDTO> afterResults = recommendationSnapshotQueryService.getRecommendationsForUser(user);
-        assertThat(afterResults).isNotEmpty();
+        // Capture the exception that propagates from the failure probe.
+        TransactionTemplate recomputeTx = new TransactionTemplate(transactionManager);
+        Throwable caught = catchThrowable(() ->
+                recomputeTx.executeWithoutResult(status ->
+                        recomputeSpy.recomputeSnapshotForUser(userId)));
+        assertThat(caught)
+                .isInstanceOf(org.springframework.dao.DataAccessResourceFailureException.class)
+                .hasMessageContaining("simulated pass-filter failure mid-recompute");
+
+        // --- Phase 3: old snapshot must still be the active version -------------------
+        UserRecommendationSnapshotState stateAfter = stateRepository.findById(userId).orElseThrow();
+        assertThat(stateAfter.getActiveVersion())
+                .as("activeVersion must not advance when recompute transaction rolls back")
+                .isEqualTo(1L);
+
+        // Old-version rows must still be present in the table.
+        long version1RowCountAfter = rowRepository
+                .findAllByUserIdAndSnapshotVersionOrderByRankAsc(userId, 1L).size();
+        assertThat(version1RowCountAfter)
+                .as("version 1 rows must survive a failed version-2 recompute")
+                .isEqualTo(version1RowCount);
+
+        // No garbage rows from the failed recompute must linger as a "version 2" entry.
+        assertThat(rowRepository.findAllByUserIdAndSnapshotVersionOrderByRankAsc(userId, 2L))
+                .as("no rows for the failed recompute's snapshot_version can be committed")
+                .isEmpty();
+
+        // Query path must still serve the version-1 snapshot, unchanged.
+        List<RecommendationResultDTO> afterResults =
+                recommendationSnapshotQueryService.getRecommendationsForUser(user);
+        assertThat(afterResults).extracting(RecommendationResultDTO::filmId)
+                .containsExactlyInAnyOrderElementsOf(
+                        beforeResults.stream().map(RecommendationResultDTO::filmId).toList());
+    }
+
+    /**
+     * Returns a {@link CandidatePassFilter} that throws the given message on its
+     * first call to any pipeline entry point. Lets the recompute pipeline abort
+     * before any new snapshot_version is committed.
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private CandidatePassFilter throwingFilter(String message) {
+        return new CandidatePassFilter(
+                (com.Backend.services.watchlist_service.repository.WatchlistItemRepository) null,
+                (com.Backend.services.recommendation_service.repository.RecommendationRepository) null,
+                (com.Backend.services.film_service.repository.FilmRepository) null) {
+            @Override
+            public List<Long> resolveWatchlistFilmIds(long userId) {
+                throw new org.springframework.dao.DataAccessResourceFailureException(message);
+            }
+
+            @Override
+            public List<Long> pickEnrichedSurvivors(List<Long> watchlistFilmIds, Set<Long> candidateIds) {
+                throw new org.springframework.dao.DataAccessResourceFailureException(message);
+            }
+        };
     }
 
     @Test
@@ -2054,28 +2106,52 @@ class SpringControllerTest {
     /**
      * Verifies that {@link FilmEnrichmentStateService#validateConfiguration()}
      * rejects a lease duration that is shorter than or equal to the scheduler
-     * tick interval. Since the real service auto-wires production defaults
-     * (lease=60000 > tick=30000 — valid), we use reflection on the instantiated
-     * bean to verify the guard logic works correctly with invalid values.
+     * tick interval, by calling the real validation method directly with
+     * reflectively-swapped field values.
      */
     @Test
     @Order(43)
     @DisplayName("FilmEnrichmentStateService validates lease duration > scheduler tick on startup")
     void leaseConfigValidation_rejectsLeaseShorterThanTick() {
-        // Get the already-booted service and verify its actual config passes
-        // (real defaults: lease 60000, tick 30000 → valid, no exception)
-        assertThat(filmEnrichmentStateService).isNotNull();
+        // Production defaults (60000 ms lease, 30000 ms tick) must be valid; the
+        // service boots, so its @PostConstruct passed. Capture them so we can
+        // restore after injecting bad values.
+        long originalLease = (long) (Long) ReflectionTestUtils.getField(filmEnrichmentStateService, "leaseDurationMs");
+        long originalTick = (long) (Long) ReflectionTestUtils.getField(filmEnrichmentStateService, "schedulerTickMs");
 
-        // Verify the constraint logic directly by introspecting the validation code.
-        // The validation method is package-private and called via @PostConstruct,
-        // so we verify at the unit level that the invariant is checked.
-        assertThat(
-            IllegalStateException.class.isAssignableFrom(IllegalStateException.class)
-        ).isTrue();
+        // Sanity check: defaults really are valid (no exception).
+        assertThat(originalLease).isGreaterThan(originalTick);
 
-        // Also verify that the real production-like config does NOT throw by
-        // checking that the service was constructed successfully (the @PostConstruct
-        // would have thrown otherwise and the context would fail to boot).
+        try {
+            // Case 1: lease strictly less than tick → must throw IllegalStateException.
+            ReflectionTestUtils.setField(filmEnrichmentStateService, "leaseDurationMs", 10_000L);
+            ReflectionTestUtils.setField(filmEnrichmentStateService, "schedulerTickMs", 60_000L);
+            assertThatThrownBy(() ->
+                    ReflectionTestUtils.invokeMethod(filmEnrichmentStateService, "validateConfiguration")
+            ).isInstanceOf(IllegalStateException.class)
+             .hasMessageContaining("lease-duration-ms")
+             .hasMessageContaining("fixed-delay-ms");
+
+            // Case 2: lease equal to tick → must also throw (the production guard
+            // uses <=, not <). This is the bug that a wrong comparison operator
+            // would let through silently.
+            ReflectionTestUtils.setField(filmEnrichmentStateService, "leaseDurationMs", 30_000L);
+            ReflectionTestUtils.setField(filmEnrichmentStateService, "schedulerTickMs", 30_000L);
+            assertThatThrownBy(() ->
+                    ReflectionTestUtils.invokeMethod(filmEnrichmentStateService, "validateConfiguration")
+            ).isInstanceOf(IllegalStateException.class);
+
+            // Case 3: lease strictly greater than tick by one millisecond → must NOT throw.
+            ReflectionTestUtils.setField(filmEnrichmentStateService, "leaseDurationMs", 30_001L);
+            ReflectionTestUtils.setField(filmEnrichmentStateService, "schedulerTickMs", 30_000L);
+            assertThatCode(() ->
+                    ReflectionTestUtils.invokeMethod(filmEnrichmentStateService, "validateConfiguration")
+            ).doesNotThrowAnyException();
+        } finally {
+            // Always restore production defaults so subsequent tests are unaffected.
+            ReflectionTestUtils.setField(filmEnrichmentStateService, "leaseDurationMs", originalLease);
+            ReflectionTestUtils.setField(filmEnrichmentStateService, "schedulerTickMs", originalTick);
+        }
     }
 
     // -------------------------------------------------------------------------
