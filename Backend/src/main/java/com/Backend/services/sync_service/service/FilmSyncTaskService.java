@@ -312,12 +312,14 @@ public class FilmSyncTaskService {
             return;
         }
 
+        TransactionTemplate txTemplate = new TransactionTemplate(transactionManager);
+
         int nonRecommendationTasks = 0;
         List<SyncTask> recommendationTasks = dueTasks.stream()
                 .filter(task -> {
                     boolean isRecommendation = task.getSyncCategory() == SyncCategory.RECOMMENDATION;
-                    if (!isRecommendation) {    
-                        processTask(task.getId());
+                    if (!isRecommendation) {
+                        txTemplate.executeWithoutResult(status -> processTask(task.getId()));
                     }
                     return isRecommendation;
                 })
@@ -335,7 +337,8 @@ public class FilmSyncTaskService {
         );
 
         for (int i = 0; i < allowedRecommendationTasks; i++) {
-            processTask(recommendationTasks.get(i).getId());
+            final Long taskId = recommendationTasks.get(i).getId();
+            txTemplate.executeWithoutResult(status -> processTask(taskId));
         }
     }
 

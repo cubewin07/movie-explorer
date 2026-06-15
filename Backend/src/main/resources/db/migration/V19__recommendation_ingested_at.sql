@@ -1,0 +1,2 @@
+ALTER TABLE recommendation
+    ADD COLUMN IF NOT EXISTS ingested_at TIMESTAMPTZ NOT NULL DEFAULT now();
