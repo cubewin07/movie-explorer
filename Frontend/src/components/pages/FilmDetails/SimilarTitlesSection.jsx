@@ -1,6 +1,6 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { AlertTriangle, Lock, Sparkles, Clapperboard } from 'lucide-react';
+import { AlertTriangle, Lock, Sparkles, Clapperboard, ArrowRight } from 'lucide-react';
 import MovieCard from '@/components/ui/MovieCard';
 
 const Motion = motion;
@@ -90,15 +90,15 @@ function PremiumIndicator({ variant, mediaType }) {
             icon: Lock,
         },
         error: {
-            title: 'Temporary Signal Loss',
-            description: `We could not fetch similar ${mediaLabel} right now. Please try again in a few moments.`,
+            title: 'Recommendations unavailable',
+            description: `TMDB could not return recommendations for this title right now. Try again in a moment.`,
             chipText: 'Connection issue',
             icon: AlertTriangle,
         },
         empty: {
-            title: `No Similar ${mediaLabel} Yet`,
-            description: `We did not find close matches for this title yet. Check back soon as new recommendations are synced.`,
-            chipText: 'Updating library',
+            title: 'No recommendations yet',
+            description: `TMDB does not have recommendations for this title yet. Try another movie or series.`,
+            chipText: 'No matches',
             icon: Clapperboard,
         },
     };
@@ -186,20 +186,45 @@ export default function SimilarTitlesSection({
     }
 
     const routePrefix = mediaType === 'tv' ? '/tv' : '/movie';
+    const currentLabel = mediaType === 'tv' ? 'series' : 'film';
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {normalizedItems.slice(0, 10).map((item) => (
-                <MovieCard
-                    key={item.id}
-                    title={item.title}
-                    year={item.year}
-                    rating={item.rating}
-                    image={item.image}
-                    type={mediaType}
-                    onClick={() => navigate(`${routePrefix}/${item.id}`)}
-                />
-            ))}
+        <div className="space-y-4">
+            <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-slate-700/70 dark:bg-slate-800/40">
+                <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-300/80 bg-white px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-700 dark:border-slate-600 dark:bg-slate-900/60 dark:text-slate-200">
+                        <Sparkles className="h-3 w-3" />
+                        TMDB picks
+                    </span>
+                    <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                        More like this
+                    </span>
+                </div>
+                <p className="mt-1.5 text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                    Title-based picks from TMDB because you are viewing this {currentLabel}. Your watchlist shapes recommendations on the home page.
+                </p>
+                <Link
+                    to="/"
+                    className="mt-2.5 inline-flex items-center gap-1.5 text-sm font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                >
+                    Want picks based on your watchlist? View your recommendations
+                    <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {normalizedItems.slice(0, 10).map((item) => (
+                    <MovieCard
+                        key={item.id}
+                        title={item.title}
+                        year={item.year}
+                        rating={item.rating}
+                        image={item.image}
+                        type={mediaType}
+                        onClick={() => navigate(`${routePrefix}/${item.id}`)}
+                    />
+                ))}
+            </div>
         </div>
     );
 }

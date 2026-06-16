@@ -38,7 +38,9 @@ export default function useAddToWatchlist(token) {
             queryClient.invalidateQueries({ queryKey: watchlistQueryKey() });
             queryClient.invalidateQueries({ queryKey: ['memberRecommendations'] });
             queryClient.invalidateQueries({ queryKey: ['userInfo', token] });
-            toast.success('Added to your watchlist!');
+            toast.success('Added to watchlist', {
+                description: 'Your home recommendations will refresh as your taste evolves.',
+            });
         },
         onError: (error, variables, context) => {
             if (context?.previous) {

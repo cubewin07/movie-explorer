@@ -41,6 +41,7 @@ export const useMemberRecommendations = (enabled = true) => {
         data: memberRecommendations = [],
         isLoading: isLoadingMemberRecommendations,
         isError: isErrorMemberRecommendations,
+        isFetching: isFetchingMemberRecommendations,
     } = useQuery({
         queryKey: ['memberRecommendations'],
         enabled,
@@ -58,6 +59,7 @@ export const useMemberRecommendations = (enabled = true) => {
         memberRecommendations,
         isLoadingMemberRecommendations,
         isErrorMemberRecommendations,
+        isFetchingMemberRecommendations,
     };
 };
 

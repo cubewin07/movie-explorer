@@ -5,6 +5,8 @@ import { ArrowRight, CalendarDays, Lock, Sparkles, Star } from 'lucide-react';
 import { useAuthen } from '@/context/AuthenProvider';
 import { LoginNotificationModal } from '@/components/react_components/Modal/LoginNotificationModal';
 import { useMemberRecommendations } from '@/hooks/API/recommendations';
+import { useRecommendationsFreshness } from '@/hooks/API/useRecommendationsFreshness';
+import RecommendationFreshnessBanner from '@/components/ui/RecommendationFreshnessBanner';
 
 const Motion = motion;
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
@@ -149,7 +151,14 @@ export default function MemberRecommendationsSection() {
         memberRecommendations,
         isLoadingMemberRecommendations,
         isErrorMemberRecommendations,
+        isFetching: isFetchingMemberRecommendations,
     } = useMemberRecommendations(Boolean(user));
+
+    const { phase: freshnessPhase, lastAddedTitle } = useRecommendationsFreshness({
+        currentData: memberRecommendations,
+        isFetching: isFetchingMemberRecommendations,
+        enabled: Boolean(user) && !isLoadingMemberRecommendations && !isErrorMemberRecommendations,
+    });
 
     const normalizedRecommendations = useMemo(
         () => normalizeRecommendations(memberRecommendations).slice(0, 8),
@@ -207,6 +216,13 @@ export default function MemberRecommendationsSection() {
                                 </button>
                             )}
                         </div>
+
+                        {user && (
+                            <RecommendationFreshnessBanner
+                                phase={freshnessPhase}
+                                lastAddedTitle={lastAddedTitle}
+                            />
+                        )}
 
                         {!user && (
                             <Motion.div
