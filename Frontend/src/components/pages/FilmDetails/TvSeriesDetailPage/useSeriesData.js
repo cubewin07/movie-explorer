@@ -1,5 +1,5 @@
 import { useTVSeriesDetails, useTVSeriesTrailer, useTvSeriesCredits } from '../../../../hooks/API/data';
-import { useSimilarRecommendations } from '@/hooks/API/recommendations';
+import { useTmdbRecommendations } from '@/hooks/API/recommendations';
 
 export function useSeriesData(id) {
     const { series, isLoading, isError } = useTVSeriesDetails(id);
@@ -9,7 +9,7 @@ export function useSeriesData(id) {
         similarItems,
         isLoadingSimilar,
         isErrorSimilar,
-    } = useSimilarRecommendations(id, 'SERIES');
+    } = useTmdbRecommendations(id, 'SERIES');
 
     const cast = credits?.cast?.slice(0, 10) || [];
     const crew = credits?.crew?.slice(0, 5) || [];

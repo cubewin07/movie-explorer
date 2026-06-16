@@ -1,5 +1,5 @@
 import { useMovieDetails, useMovieTrailer, useMovieCredits } from '@/hooks/API/data';
-import { useSimilarRecommendations } from '@/hooks/API/recommendations';
+import { useTmdbRecommendations } from '@/hooks/API/recommendations';
 import { useAuthen } from '@/context/AuthenProvider';
 import useAddToWatchlist from '@/hooks/watchList/useAddtoWatchList';
 import useWatchlist from '@/hooks/watchList/useWatchList';
@@ -27,12 +27,12 @@ export function useMovieData(movieId) {
         isError: isErrorCredits 
     } = useMovieCredits(movieId);
 
-    // Fetch similar recommendations from backend endpoint
+    // Fetch similar recommendations from TMDB recommendations endpoint
     const {
         similarItems,
         isLoadingSimilar,
         isErrorSimilar,
-    } = useSimilarRecommendations(movieId, 'MOVIE');
+    } = useTmdbRecommendations(movieId, 'MOVIE');
 
     // Watchlist operations
     const { mutate: addToWatchlist, isPending } = useAddToWatchlist(token);
