@@ -59,12 +59,12 @@ export default function TvSeriesDetailPage() {
         if (isInWatchlist) {
             return;
         }
-        addToWatchlist({ id: series.id, type: 'SERIES' });
+        addToWatchlist({ id: series.id, type: 'SERIES', title: series.name });
     };
 
     const handleLoginSuccess = () => {
         if (!isInWatchlist) {
-            addToWatchlist({ id: series.id, type: 'SERIES' });
+            addToWatchlist({ id: series.id, type: 'SERIES', title: series.name });
         }
     };
 

@@ -93,12 +93,20 @@ export function TrendingCarousel({ items }) {
             const mIds = Array.isArray(watchlistSnapshot?.moviesId) ? watchlistSnapshot.moviesId : [];
             if (mIds.includes(items[current].id)) return;
         }
-        addToWatchlist({ id: items[current].id, type: isTV ? 'SERIES' : 'MOVIE' });
+        addToWatchlist({
+            id: items[current].id,
+            type: isTV ? 'SERIES' : 'MOVIE',
+            title: items[current].title || items[current].name,
+        });
     };
 
     const handleLoginSuccess = () => {
         const isTV = !!items[current].name;
-        addToWatchlist({ id: items[current].id, type: isTV ? 'SERIES' : 'MOVIE' });
+        addToWatchlist({
+            id: items[current].id,
+            type: isTV ? 'SERIES' : 'MOVIE',
+            title: items[current].title || items[current].name,
+        });
     };
 
     return (

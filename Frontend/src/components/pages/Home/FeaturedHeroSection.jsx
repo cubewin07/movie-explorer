@@ -58,7 +58,7 @@ function FeaturedHeroSection({ featuredContent }) {
 
         setAddingId(item.id);
         addToWatchlist(
-            { id: item.id, type: isTV ? 'SERIES' : 'MOVIE' },
+            { id: item.id, type: isTV ? 'SERIES' : 'MOVIE', title: item.title || item.name },
             {
                 onSettled: () => setAddingId(null),
             }
@@ -85,7 +85,7 @@ function FeaturedHeroSection({ featuredContent }) {
 
             setAddingId(selectedItem.id);
             addToWatchlist(
-                { id: selectedItem.id, type: isTV ? 'SERIES' : 'MOVIE' },
+                { id: selectedItem.id, type: isTV ? 'SERIES' : 'MOVIE', title: selectedItem.title || selectedItem.name },
                 {
                     onSettled: () => setAddingId(null),
                 }

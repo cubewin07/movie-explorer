@@ -71,13 +71,13 @@ export function useMovieData(movieId) {
         if (isInWatchlist) {
             return;
         }
-        addToWatchlist({ id: movie.id, type: 'MOVIE' });
+        addToWatchlist({ id: movie.id, type: 'MOVIE', title: movie.title });
     };
 
     // Handle login success and add to watchlist
     const handleLoginSuccess = () => {
         if (!isInWatchlist) {
-            addToWatchlist({ id: movie.id, type: 'MOVIE' });
+            addToWatchlist({ id: movie.id, type: 'MOVIE', title: movie.title });
         }
     };
 

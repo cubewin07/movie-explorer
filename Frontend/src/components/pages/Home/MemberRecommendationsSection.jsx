@@ -1,13 +1,15 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowRight, Lock, Sparkles, Check } from 'lucide-react';
+import { ArrowRight, Lock, Sparkles, Check, Loader2, Plus } from 'lucide-react';
 import { useAuthen } from '@/context/AuthenProvider';
 import { LoginNotificationModal } from '@/components/react_components/Modal/LoginNotificationModal';
 import { useMemberRecommendations } from '@/hooks/API/recommendations';
 import { useRecommendationsFreshness } from '@/hooks/API/useRecommendationsFreshness';
 import RecommendationFreshnessBanner from '@/components/ui/RecommendationFreshnessBanner';
 import useWatchlist from '@/hooks/watchList/useWatchList';
+import useAddToWatchlist from '@/hooks/watchList/useAddtoWatchList';
+import { useRecommendationFreshnessContext } from '@/context/RecommendationFreshnessProvider';
 
 const Motion = motion;
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w342';
@@ -74,17 +76,18 @@ function RecommendationSkeletonCard({ index }) {
     );
 }
 
-function RecommendationCard({ item, index, onOpen, isInWatchlist }) {
+function RecommendationCard({ item, index, onOpen, isInWatchlist, onAddToWatchlist, isAdding, freshnessPhase, lastAddedItem }) {
+    const isJustAdded = lastAddedItem && lastAddedItem.id === item.id && lastAddedItem.type === item.type;
+
     return (
-        <Motion.button
-            type="button"
+        <Motion.div
             onClick={() => onOpen(item)}
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: index * 0.06, ease: 'easeOut' }}
             whileHover={{ y: -4, scale: 1.01 }}
             whileTap={{ scale: 0.985 }}
-            className="group relative flex flex-col overflow-hidden rounded-2xl border border-emerald-200/70 bg-gradient-to-br from-white to-emerald-50/40 text-left shadow-lg shadow-emerald-100/40 transition-all duration-300 hover:border-emerald-300/80 hover:shadow-xl hover:shadow-emerald-100/60 dark:border-emerald-500/25 dark:from-slate-900 dark:to-emerald-950/20 dark:shadow-emerald-950/20 dark:hover:border-emerald-500/40 dark:hover:shadow-emerald-950/40"
+            className="group cursor-pointer relative flex flex-col overflow-hidden rounded-2xl border border-emerald-200/70 bg-gradient-to-br from-white to-emerald-50/40 text-left shadow-lg shadow-emerald-100/40 transition-all duration-300 hover:border-emerald-300/80 hover:shadow-xl hover:shadow-emerald-100/60 dark:border-emerald-500/25 dark:from-slate-900 dark:to-emerald-950/20 dark:shadow-emerald-950/20 dark:hover:border-emerald-500/40 dark:hover:shadow-emerald-950/40 w-full"
         >
             {/* Poster — 3:4 ratio */}
             <div className="relative aspect-[3/4] w-full overflow-hidden">
@@ -109,12 +112,34 @@ function RecommendationCard({ item, index, onOpen, isInWatchlist }) {
                     {item.type === 'SERIES' ? 'TV Pick' : 'Movie Pick'}
                 </div>
 
-                {/* Watchlist Indicator */}
-                {isInWatchlist && (
+                {/* Watchlist Indicator / Quick Add Button */}
+                {isInWatchlist ? (
                     <div className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-600/90 dark:bg-emerald-500/90 px-2.5 py-1 text-[10px] font-bold text-white shadow-md backdrop-blur-sm z-10 animate-fade-in">
-                        <Check className="h-3 w-3" />
-                        <span>In Watchlist</span>
+                        {(isJustAdded && (freshnessPhase === 'refreshing' || freshnessPhase === 'unchanged')) ? (
+                            <>
+                                <Loader2 className="h-3 w-3 animate-spin text-emerald-200" />
+                                <span>Added (Computing...)</span>
+                            </>
+                        ) : (
+                            <>
+                                <Check className="h-3 w-3" />
+                                <span>In Watchlist</span>
+                            </>
+                        )}
                     </div>
+                ) : (
+                    <button
+                        type="button"
+                        onClick={(e) => onAddToWatchlist(e, item)}
+                        disabled={isAdding}
+                        className="absolute right-3 top-3 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-white/30 bg-black/60 text-white shadow-md backdrop-blur-sm transition-all duration-200 hover:scale-110 hover:bg-emerald-600 hover:border-emerald-500 md:opacity-0 md:group-hover:opacity-100"
+                    >
+                        {isAdding ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        ) : (
+                            <Plus className="h-4 w-4" />
+                        )}
+                    </button>
                 )}
             </div>
 
@@ -129,14 +154,16 @@ function RecommendationCard({ item, index, onOpen, isInWatchlist }) {
                     </span>
                 )}
             </div>
-        </Motion.button>
+        </Motion.div>
     );
 }
 
 export default function MemberRecommendationsSection() {
     const navigate = useNavigate();
-    const { user } = useAuthen();
+    const { user, token } = useAuthen();
     const [showLoginModal, setShowLoginModal] = useState(false);
+    const [addingId, setAddingId] = useState(null);
+    const { lastAddedItem } = useRecommendationFreshnessContext();
 
     const {
         memberRecommendations,
@@ -146,6 +173,7 @@ export default function MemberRecommendationsSection() {
     } = useMemberRecommendations(Boolean(user));
 
     const { data: watchlist } = useWatchlist({ enabled: Boolean(user) });
+    const { mutate: addToWatchlist } = useAddToWatchlist(token);
 
     const isInWatchlist = (item) => {
         if (!watchlist || !item.id) return false;
@@ -157,6 +185,21 @@ export default function MemberRecommendationsSection() {
         return movieIds.includes(item.id);
     };
 
+    const handleAddToWatchlist = (e, item) => {
+        e.stopPropagation();
+        if (!user) {
+            setShowLoginModal(true);
+            return;
+        }
+        setAddingId(item.id);
+        addToWatchlist(
+            { id: item.id, type: item.type, title: item.title },
+            {
+                onSettled: () => setAddingId(null),
+            }
+        );
+    };
+
     const { phase: freshnessPhase, lastAddedTitle } = useRecommendationsFreshness({
         currentData: memberRecommendations,
         isFetching: isFetchingMemberRecommendations,
@@ -164,7 +207,7 @@ export default function MemberRecommendationsSection() {
     });
 
     const normalizedRecommendations = useMemo(
-        () => normalizeRecommendations(memberRecommendations).slice(0, 8),
+        () => normalizeRecommendations(memberRecommendations).slice(0, 12),
         [memberRecommendations]
     );
 
@@ -308,9 +351,9 @@ export default function MemberRecommendationsSection() {
                             </div>
                         )}
 
-                        {/* Cards grid — 4-column poster cards */}
+                        {/* Cards grid — 6-column poster cards on desktop */}
                         {user && !isLoadingMemberRecommendations && !isErrorMemberRecommendations && normalizedRecommendations.length > 0 && (
-                            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+                            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
                                 {normalizedRecommendations.map((item, idx) => (
                                     <RecommendationCard
                                         key={`${item.type}-${item.id}`}
@@ -318,6 +361,10 @@ export default function MemberRecommendationsSection() {
                                         index={idx}
                                         onOpen={openRecommendation}
                                         isInWatchlist={isInWatchlist(item)}
+                                        onAddToWatchlist={handleAddToWatchlist}
+                                        isAdding={addingId === item.id}
+                                        freshnessPhase={freshnessPhase}
+                                        lastAddedItem={lastAddedItem}
                                     />
                                 ))}
                             </div>

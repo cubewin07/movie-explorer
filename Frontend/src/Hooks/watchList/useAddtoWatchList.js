@@ -2,10 +2,26 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import instance from '@/lib/instance';
 import { toast } from 'sonner';
 import { watchlistQueryKey } from './useWatchList';
+import { useRecommendationFreshnessContext } from '@/context/RecommendationFreshnessProvider';
+
+function pickIds(payload) {
+    if (!Array.isArray(payload)) {
+        return [];
+    }
+    return payload
+        .map((item) => {
+            const type = String(item?.type || '').toUpperCase() === 'SERIES' ? 'SERIES' : 'MOVIE';
+            const id = Number(item?.filmId);
+            return Number.isInteger(id) && id > 0 ? `${type}:${id}` : null;
+        })
+        .filter(Boolean)
+        .sort();
+}
 
 // Accepts userId and type (optional)
 export default function useAddToWatchlist(token) {
     const queryClient = useQueryClient();
+    const freshnessContext = useRecommendationFreshnessContext();
 
     return useMutation({
         mutationKey: ['watchlist', 'add'],
@@ -35,10 +51,22 @@ export default function useAddToWatchlist(token) {
 
             return { previous };
         },
-        onSuccess: () => {
+        onSuccess: (data, variables) => {
             queryClient.invalidateQueries({ queryKey: watchlistQueryKey() });
             queryClient.invalidateQueries({ queryKey: ['memberRecommendations'] });
             queryClient.invalidateQueries({ queryKey: ['userInfo', token] });
+
+            // Get current recommendations IDs from React Query cache
+            const recData = queryClient.getQueryData(['memberRecommendations']) || [];
+            const currentIds = pickIds(recData);
+
+            freshnessContext.registerWatchlistAdd(
+                variables.id,
+                variables.type,
+                variables.title || null,
+                currentIds
+            );
+
             toast.success('Added to watchlist', {
                 description: 'The engine will digest this and refresh your picks.',
             });
