@@ -20,6 +20,11 @@ import { useQueryClient } from '@tanstack/react-query';
  * - 'unchanged'    the refetch finished but returned the same set of picks
  * - 'updated'      the refetch finished with a different set of picks
  */
+
+// Minimum time to show the banner after a mutation is detected (ms).
+// Prevents the banner from flickering when cache resolves instantly.
+const MIN_VISIBLE_MS = 4000;
+
 function pickIds(payload) {
     if (!Array.isArray(payload)) {
         return [];
@@ -59,6 +64,8 @@ export function useRecommendationsFreshness({
     const [phase, setPhase] = useState('idle');
     const previousIdsRef = useRef(null);
     const hasInitializedRef = useRef(false);
+    const minVisibleTimerRef = useRef(null);
+    const phaseLockedRef = useRef(false);
 
     // Subscribe to the mutation cache to detect the most recent
     // watchlist add. We snapshot the title/type at the moment of
@@ -115,6 +122,7 @@ export function useRecommendationsFreshness({
     useEffect(() => {
         if (!enabled) {
             setPhase('idle');
+            phaseLockedRef.current = false;
             return undefined;
         }
 
@@ -131,12 +139,57 @@ export function useRecommendationsFreshness({
 
         const recentActivity = lastMutationAt && Date.now() - lastMutationAt <= staleWindowMs;
 
+        // If there's a recent mutation and the data hasn't changed yet,
+        // we want to show a banner. But isFetching may be too brief to catch
+        // (React Query often resolves from cache instantly).
+        // Strategy: when we detect a mutation + no data change, show 'unchanged'
+        // with a minimum visible duration so the user sees the acknowledgment.
+        if (recentActivity && !phaseLockedRef.current) {
+            // The user just did something. Lock in a visible phase.
+            phaseLockedRef.current = true;
+
+            if (minVisibleTimerRef.current) {
+                clearTimeout(minVisibleTimerRef.current);
+            }
+
+            if (isFetching) {
+                setPhase('refreshing');
+            } else {
+                // Fetch already resolved (cache hit). Show 'unchanged' so the
+                // user knows their action was registered, even though data is same.
+                const changed = !arraysEqual(previousIdsRef.current ?? [], ids);
+                if (changed) {
+                    previousIdsRef.current = ids;
+                    setPhase('updated');
+                } else {
+                    setPhase('unchanged');
+                }
+            }
+
+            // After MIN_VISIBLE_MS, allow phase to re-evaluate naturally.
+            minVisibleTimerRef.current = setTimeout(() => {
+                phaseLockedRef.current = false;
+                // Re-evaluate: if still recent activity, check current state
+                const stillRecent = lastMutationAt && Date.now() - lastMutationAt <= staleWindowMs;
+                if (!stillRecent) {
+                    setPhase('idle');
+                }
+            }, MIN_VISIBLE_MS);
+
+            return undefined;
+        }
+
+        // If we're locked in a visible phase, don't override it.
+        if (phaseLockedRef.current) {
+            return undefined;
+        }
+
+        // Natural phase transitions when not locked.
         if (isFetching) {
             setPhase(recentActivity ? 'refreshing' : 'idle');
             return undefined;
         }
 
-        // Not fetching: see if the dataset changed since the last snapshot.
         const changed = !arraysEqual(previousIdsRef.current ?? [], ids);
 
         if (changed) {
@@ -151,12 +204,21 @@ export function useRecommendationsFreshness({
 
         if (recentActivity) {
             setPhase('unchanged');
-        } else if (phase !== 'updated') {
+        } else {
             setPhase('idle');
         }
 
         return undefined;
     }, [currentData, isFetching, lastMutationAt, staleWindowMs, enabled, phase]);
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            if (minVisibleTimerRef.current) {
+                clearTimeout(minVisibleTimerRef.current);
+            }
+        };
+    }, []);
 
     const isActivityStale = useMemo(() => {
         if (!lastMutationAt) {

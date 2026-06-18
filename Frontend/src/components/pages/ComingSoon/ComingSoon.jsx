@@ -1,8 +1,7 @@
 import { useContext, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Tv, Film, Bell, ArrowRight, Sparkles } from 'lucide-react';
+import { Calendar, Tv, Film, ArrowRight, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import SkeletonCard from '@/components/ui/skeletonCard';
 import { Link } from 'react-router-dom';
 import { FilmModalContext } from '@/context/FilmModalProvider';
@@ -37,75 +36,130 @@ export default function ComingSoon() {
     const { upcomingTVShows, isLoadingUpcomingTV, tvGenreMap } = useUpcomingTVSeries();
     const { setIsOpen, setContext } = useContext(FilmModalContext);
 
+    const getHeaderConfig = () => {
+        switch (activeTab) {
+            case 'movies':
+                return {
+                    title: 'Upcoming Movies',
+                    icon: Film,
+                    color: 'text-blue-600 dark:text-blue-400',
+                    bg: 'bg-blue-500/10 dark:bg-blue-400/10',
+                    border: 'border-blue-500/20 dark:border-blue-400/20',
+                    link: '/coming-soon/movies'
+                };
+            case 'tv':
+                return {
+                    title: 'Upcoming TV Shows',
+                    icon: Tv,
+                    color: 'text-indigo-600 dark:text-indigo-400',
+                    bg: 'bg-indigo-500/10 dark:bg-indigo-400/10',
+                    border: 'border-indigo-500/20 dark:border-indigo-400/20',
+                    link: '/coming-soon/tvs'
+                };
+            case 'features':
+                return {
+                    title: 'New Features',
+                    icon: Sparkles,
+                    color: 'text-yellow-600 dark:text-yellow-400',
+                    bg: 'bg-yellow-500/10 dark:bg-yellow-400/10',
+                    border: 'border-yellow-500/20 dark:border-yellow-400/20',
+                    link: null
+                };
+            default:
+                return {
+                    title: 'Upcoming Movies',
+                    icon: Film,
+                    color: 'text-blue-600 dark:text-blue-400',
+                    bg: 'bg-blue-500/10 dark:bg-blue-400/10',
+                    border: 'border-blue-500/20 dark:border-blue-400/20',
+                    link: '/coming-soon/movies'
+                };
+        }
+    };
+    const headerConfig = getHeaderConfig();
+
 
     const renderCard = (item, isMovie = true) => {
         const image = item.poster_path
-            ? `https://image.tmdb.org/t/p/w500${item.poster_path}`
+            ? `https://image.tmdb.org/t/p/w185${item.poster_path}`
             : '/no-image-available.png';
         const genres = (item.genre_ids || [])
             .map((id) => (isMovie ? movieGenreMap[id] : tvGenreMap[id]))
-            .filter(Boolean);
+            .filter(Boolean)
+            .slice(0, 2);
+        const dateStr = item.release_date || item.first_air_date || '';
+        // Parse date for display
+        const displayDate = dateStr
+            ? new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+               })
+            : '';
+
         return (
             <motion.div
                 key={item.id}
-                className="bg-white dark:bg-slate-800 rounded-2xl shadow-md hover:shadow-xl overflow-hidden flex flex-col h-full cursor-pointer"
+                className="relative flex gap-4 rounded-xl border border-slate-200/70 bg-white p-3 shadow-sm cursor-pointer transition-all duration-200 hover:border-indigo-300/60 hover:shadow-md dark:border-slate-700/50 dark:bg-slate-800/80 dark:hover:border-indigo-500/30"
                 variants={itemVariants}
-                whileHover={{ y: -5 }}
+                whileHover={{ y: -2, scale: 1.01 }}
                 onClick={() => {
                     setContext({ ...item, image, genres });
                     setIsOpen(true);
                 }}
             >
-                <div className="relative h-64 w-full bg-gradient-to-br from-indigo-400 to-blue-600 flex items-center justify-center overflow-hidden">
-                    <Badge className="absolute top-3 left-3 bg-indigo-600 text-white shadow text-xs font-semibold px-2 py-0.5 z-10">
-                        Coming Soon
-                    </Badge>
-                    <Badge className="absolute top-3 right-3 bg-yellow-500 text-black shadow text-xs font-semibold px-2 py-0.5 z-10">
-                        ★ {item.vote_average?.toFixed(1)}
-                    </Badge>
+                {/* Subtle date badge hovering on top right edge */}
+                {displayDate && (
+                    <div className="absolute -top-2 right-3.5 z-10 bg-indigo-50/90 dark:bg-indigo-950/90 text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-900/50 text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm flex items-center gap-1 backdrop-blur-sm">
+                        <Calendar className="h-2.5 w-2.5" />
+                        <span>{displayDate}</span>
+                    </div>
+                )}
+
+                {/* Poster thumbnail scaled up to 80x120px */}
+                <div className="relative h-[120px] w-[80px] shrink-0 overflow-hidden rounded-lg bg-slate-100 dark:bg-slate-700">
                     {item.poster_path ? (
                         <img
                             src={image}
                             alt={item.title || item.name}
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                            loading="lazy"
                         />
                     ) : (
-                        <div className="flex flex-col items-center justify-center w-full h-full text-white opacity-80">
-                            {isMovie ? <Film className="w-10 h-10 mb-2" /> : <Tv className="w-10 h-10 mb-2" />}
-                            <span className="text-sm">Poster Coming Soon</span>
+                        <div className="flex items-center justify-center h-full text-slate-300 dark:text-slate-500">
+                            {isMovie ? <Film className="w-5 h-5" /> : <Tv className="w-5 h-5" />}
                         </div>
                     )}
                 </div>
-                <div className="p-4 flex flex-col gap-2 flex-1">
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">
+
+                {/* Info — now with extra vertical space for overview detail */}
+                <div className="flex min-w-0 flex-1 flex-col justify-center gap-1 pr-2">
+                    <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200 line-clamp-2 leading-snug">
                         {item.title || item.name}
                     </h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">
-                        {item.overview || 'No description available.'}
-                    </p>
-                    <div className="flex items-center gap-2 mt-auto flex-wrap">
-                        {genres.length > 0 ? (
-                            genres.map((genre, idx) => (
-                                <Badge
-                                    key={genre + idx}
-                                    variant="outline"
-                                    className="text-xs bg-gradient-to-r from-indigo-500 to-blue-500 text-white font-semibold shadow px-2 py-0.5 border-0 mr-1 mb-1"
-                                >
-                                    {genre}
-                                </Badge>
-                            ))
-                        ) : (
-                            <Badge
-                                variant="outline"
-                                className="text-xs bg-gradient-to-r from-indigo-500 to-blue-500 text-white font-semibold shadow px-2 py-0.5 border-0"
+
+                    {/* Short overview detail */}
+                    {item.overview && (
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                            {item.overview}
+                        </p>
+                    )}
+
+                    {/* Genres + rating row */}
+                    <div className="flex items-center gap-2 flex-wrap mt-auto pt-1">
+                        {genres.map((genre, idx) => (
+                            <span
+                                key={genre + idx}
+                                className="text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500"
                             >
-                                Uncategorized
-                            </Badge>
+                                {genre}
+                            </span>
+                        ))}
+                        {item.vote_average != null && (
+                            <span className="text-[11px] font-semibold text-amber-500 dark:text-amber-400">
+                                ★ {item.vote_average.toFixed(1)}
+                            </span>
                         )}
-                        <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
-                            <Calendar className="w-4 h-4" />
-                            <span>{item.release_date || item.first_air_date}</span>
-                        </div>
                     </div>
                 </div>
             </motion.div>
@@ -119,23 +173,23 @@ export default function ComingSoon() {
 
         return (
             <motion.div
-                className="bg-white/50 dark:bg-slate-800/50 rounded-2xl shadow-sm border-2 border-dashed border-gray-300 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-slate-800/80 flex flex-col h-full cursor-pointer transition-all duration-300 group"
+                key={`see-all-${type}`}
+                className="flex gap-4 rounded-xl border-2 border-dashed border-slate-300/80 bg-white/60 p-3 cursor-pointer transition-all duration-200 hover:border-indigo-400/60 hover:bg-indigo-50/40 dark:border-slate-600 dark:bg-slate-800/40 dark:hover:border-indigo-500/40 dark:hover:bg-slate-800/60"
                 variants={itemVariants}
-                initial="visible"
-                whileHover={{ y: -5 }}
+                whileHover={{ y: -2, scale: 1.01 }}
             >
-                <Link to={link} className="flex flex-col items-center justify-center w-full h-full p-8 text-center">
-                    <div className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
-                        <Icon className="w-8 h-8 text-blue-600 dark:text-blue-400" />
+                <Link to={link} className="flex items-center gap-4 w-full min-w-0">
+                    <div className="flex h-[120px] w-[80px] shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-slate-300/80 bg-slate-100/60 transition-colors group-hover:border-indigo-300 dark:border-slate-500 dark:bg-slate-700/40 dark:group-hover:border-indigo-500">
+                        <Icon className="h-6 w-6 text-slate-400 transition-colors group-hover:text-indigo-500 dark:text-slate-500 dark:group-hover:text-indigo-400" />
                     </div>
-                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-                        View All Upcoming {isMovie ? 'Movies' : 'TV Shows'}
-                    </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-                        Discover more upcoming releases
-                    </p>
-                    <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold group-hover:gap-3 transition-all">
-                        See All <ArrowRight className="w-4 h-4" />
+                    <div className="flex min-w-0 flex-1 flex-col justify-center gap-1.5">
+                        <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                            View All Upcoming {isMovie ? 'Movies' : 'TV Shows'}
+                        </span>
+                        <span className="flex items-center gap-1.5 text-[13px] font-medium text-indigo-500 transition-colors dark:text-indigo-400">
+                            See All
+                            <ArrowRight className="h-3.5 w-3.5" />
+                        </span>
                     </div>
                 </Link>
             </motion.div>
@@ -168,32 +222,57 @@ export default function ComingSoon() {
                 </motion.div>
 
                 <div className="w-full">
-                    <div className="sticky top-16 z-40 py-4 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-8 transition-all duration-300 pointer-events-none">
-                        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-300/50 to-transparent dark:via-slate-600/50" />
-                        <div className="relative flex justify-center pointer-events-auto">
-                            <div className="flex p-1.5 bg-white/40 dark:bg-black/20 backdrop-blur-md rounded-full border border-white/20 dark:border-white/10 shadow-lg">
-                                {tabs.map((tab) => (
-                                    <button
-                                        key={tab.id}
-                                        onClick={() => setActiveTab(tab.id)}
-                                        className={`
-                                            relative flex items-center gap-2 px-6 py-2.5 text-sm font-medium rounded-full transition-all duration-300 outline-none select-none
-                                            ${activeTab === tab.id ? 'text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'}
-                                        `}
-                                    >
-                                        {activeTab === tab.id && (
-                                            <motion.div
-                                                layoutId="active-tab-bg"
-                                                className="absolute inset-0 bg-white/90 dark:bg-slate-800/90 rounded-full shadow-sm border border-slate-200/50 dark:border-slate-700"
-                                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                                            />
-                                        )}
-                                        <span className="relative z-10 flex items-center gap-2">
-                                            <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'animate-pulse-glow' : ''}`} />
-                                            {tab.label}
-                                        </span>
-                                    </button>
-                                ))}
+                    {/* Unified Sticky Header: Title + Navigation */}
+                    <div className="sticky top-[56px] z-40 bg-white/60 dark:bg-slate-950/60 backdrop-blur-lg border-b border-slate-200/50 dark:border-slate-800/50 py-4 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-8 transition-all duration-300">
+                        <div className="max-w-screen-xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            {/* Title & Link */}
+                            <div className="flex items-center justify-between md:justify-start gap-4 w-full md:w-auto">
+                                <div className="flex items-center gap-3">
+                                    <div className={`p-2 ${headerConfig.bg} rounded-xl border ${headerConfig.border}`}>
+                                        <headerConfig.icon className={`w-6 h-6 ${headerConfig.color}`} />
+                                    </div>
+                                    <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white drop-shadow-sm">
+                                        {headerConfig.title}
+                                    </h2>
+                                </div>
+                                {headerConfig.link && (
+                                    <Link to={headerConfig.link}>
+                                        <Button variant="ghost" className={`flex items-center gap-1 group ${headerConfig.color} hover:bg-slate-500/10`}>
+                                            See All 
+                                            <motion.span className="inline-block transition-transform duration-300 group-hover:translate-x-1">
+                                                <ArrowRight className="w-4 h-4" />
+                                            </motion.span>
+                                        </Button>
+                                    </Link>
+                                )}
+                            </div>
+
+                            {/* Tabs Navigation under/next to the Title */}
+                            <div className="flex justify-center">
+                                <div className="flex p-1.5 bg-white/40 dark:bg-black/20 backdrop-blur-md rounded-full border border-white/20 dark:border-white/10 shadow-lg">
+                                    {tabs.map((tab) => (
+                                        <button
+                                            key={tab.id}
+                                            onClick={() => setActiveTab(tab.id)}
+                                            className={`
+                                                relative flex items-center gap-2 px-6 py-2.5 text-sm font-medium rounded-full transition-all duration-300 outline-none select-none
+                                                ${activeTab === tab.id ? 'text-blue-600 dark:text-blue-400' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'}
+                                            `}
+                                        >
+                                            {activeTab === tab.id && (
+                                                <motion.div
+                                                    layoutId="active-tab-bg"
+                                                    className="absolute inset-0 bg-white/90 dark:bg-slate-800/90 rounded-full shadow-sm border border-slate-200/50 dark:border-slate-700"
+                                                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                                />
+                                            )}
+                                            <span className="relative z-10 flex items-center gap-2">
+                                                <tab.icon className={`w-4 h-4 ${activeTab === tab.id ? 'animate-pulse-glow' : ''}`} />
+                                                {tab.label}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -206,38 +285,16 @@ export default function ComingSoon() {
                                 initial="hidden"
                                 animate="visible"
                                 exit={{ opacity: 0, y: 20, transition: { duration: 0.2 } }}
-                                className="space-y-8"
+                                className="relative space-y-8"
                             >
-                                <div className="sticky top-36 z-30 py-4 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-6 transition-all duration-300">
-                                    <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-300/50 to-transparent dark:via-slate-600/50" />
-                                    <div className="relative flex items-center justify-between gap-3">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-blue-500/10 dark:bg-blue-400/10 rounded-xl backdrop-blur-sm border border-blue-500/20 dark:border-blue-400/20">
-                                                <Film className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-                                            </div>
-                                            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white drop-shadow-sm">
-                                                Upcoming Movies
-                                            </h2>
-                                        </div>
-                                        <Link to="/coming-soon/movies">
-                                            <Button variant="ghost" className="flex items-center gap-1 group text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 dark:hover:bg-blue-400/10">
-                                                See All 
-                                                <motion.span className="inline-block transition-transform duration-300 group-hover:translate-x-1">
-                                                    <ArrowRight className="w-4 h-4" />
-                                                </motion.span>
-                                            </Button>
-                                        </Link>
-                                    </div>
-                                </div>
-                                
                                 {isLoadingMovies ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                        {Array.from({ length: 6 }).map((_, i) => (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                                        {Array.from({ length: 8 }).map((_, i) => (
                                             <SkeletonCard key={i} delay={i * 0.08} />
                                         ))}
                                     </div>
                                 ) : upcomingMovies.length > 0 ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                                         {upcomingMovies.map((movie) => renderCard(movie, true))}
                                         {renderSeeAllCard('movie')}
                                     </div>
@@ -261,38 +318,16 @@ export default function ComingSoon() {
                                  initial="hidden"
                                  animate="visible"
                                  exit={{ opacity: 0, y: 20, transition: { duration: 0.2 } }}
-                                 className="space-y-8"
+                                 className="relative space-y-8"
                              >
-                                <div className="sticky top-36 z-30 py-4 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-6 transition-all duration-300">
-                                    <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-300/50 to-transparent dark:via-slate-600/50" />
-                                    <div className="relative flex items-center justify-between gap-3">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-2 bg-indigo-500/10 dark:bg-indigo-400/10 rounded-xl backdrop-blur-sm border border-indigo-500/20 dark:border-indigo-400/20">
-                                                <Tv className="w-6 h-6 text-indigo-600 dark:text-indigo-400" />
-                                            </div>
-                                            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white drop-shadow-sm">
-                                                Upcoming TV Shows
-                                            </h2>
-                                        </div>
-                                        <Link to="/coming-soon/tvs">
-                                            <Button variant="ghost" className="flex items-center gap-1 group text-indigo-600 dark:text-indigo-400 hover:bg-indigo-500/10 dark:hover:bg-indigo-400/10">
-                                                See All 
-                                                <motion.span className="inline-block transition-transform duration-300 group-hover:translate-x-1">
-                                                    <ArrowRight className="w-4 h-4" />
-                                                </motion.span>
-                                            </Button>
-                                        </Link>
-                                    </div>
-                                </div>
-
                                 {isLoadingUpcomingTV ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                                        {Array.from({ length: 6 }).map((_, i) => (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                                        {Array.from({ length: 8 }).map((_, i) => (
                                             <SkeletonCard key={i} delay={i * 0.08} />
                                         ))}
                                     </div>
                                 ) : upcomingTVShows.length > 0 ? (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                                         {upcomingTVShows.map((tv) => renderCard(tv, false))}
                                         {renderSeeAllCard('tv')}
                                     </div>
@@ -316,23 +351,11 @@ export default function ComingSoon() {
                                 initial="hidden"
                                 animate="visible"
                                 exit={{ opacity: 0, y: 20, transition: { duration: 0.2 } }}
-                                className="space-y-8"
+                                className="relative space-y-8"
                             >
-                                <div className="sticky top-36 z-30 py-4 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 mb-6 transition-all duration-300">
-                                    <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-300/50 to-transparent dark:via-slate-600/50" />
-                                    <div className="relative flex items-center gap-3">
-                                        <div className="p-2 bg-yellow-500/10 dark:bg-yellow-400/10 rounded-xl backdrop-blur-sm border border-yellow-500/20 dark:border-yellow-400/20">
-                                            <Sparkles className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
-                                        </div>
-                                        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white drop-shadow-sm">
-                                            New Features
-                                        </h2>
-                                    </div>
-                                </div>
-
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {upcomingFeaturesConfig.map((feature) => (
-                                        <UpcomingFeatureCard key={feature.id} feature={feature} />
+                                    {upcomingFeaturesConfig.map((feature, idx) => (
+                                        <UpcomingFeatureCard key={feature.title || idx} feature={feature} index={idx} />
                                     ))}
                                 </div>
                             </motion.section>

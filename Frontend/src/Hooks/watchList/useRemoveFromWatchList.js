@@ -6,6 +6,7 @@ import { watchlistQueryKey } from './useWatchList';
 function useRemoveFromWatchList(token) {
     const queryClient = useQueryClient();
         return useMutation({
+            mutationKey: ['watchlist', 'remove'],
             mutationFn: async ({ id, type }) => {
                 const res = await instance.delete(`/watchlist`, { params: { id, type } });
                 return res.data;

@@ -8,6 +8,7 @@ export default function useAddToWatchlist(token) {
     const queryClient = useQueryClient();
 
     return useMutation({
+        mutationKey: ['watchlist', 'add'],
         // Accept object with id and type properties
         mutationFn: async ({ id, type }) => {
             const payload = { id, type };
@@ -39,7 +40,7 @@ export default function useAddToWatchlist(token) {
             queryClient.invalidateQueries({ queryKey: ['memberRecommendations'] });
             queryClient.invalidateQueries({ queryKey: ['userInfo', token] });
             toast.success('Added to watchlist', {
-                description: 'Your home recommendations will refresh as your taste evolves.',
+                description: 'The engine will digest this and refresh your picks.',
             });
         },
         onError: (error, variables, context) => {

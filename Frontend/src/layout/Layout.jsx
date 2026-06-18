@@ -3,6 +3,7 @@ import { Sidebar as ShadSidebar, SidebarBody } from '@/components/ui/Sidebar';
 import { useState } from 'react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Toaster } from 'sonner';
+import { useThemeToggle } from '@/hooks/useThemeToggle';
 
 import Sidebar from '@/components/react_components/SideBar/Sidebar';
 import LeftSidebarContent from './LeftSideBarContent';
@@ -24,6 +25,7 @@ function Layout() {
     const [loginOpen, setLoginOpen] = useState(false);
     const [registerOpen, setRegisterOpen] = useState(false);
     const navigate = useNavigate();
+    const [isDark] = useThemeToggle();
 
     return (
         <AuthenProvider>
@@ -74,7 +76,12 @@ function Layout() {
                                 <Register onSuccess={() => setRegisterOpen(false)} />
                             </DialogContent>
                         </Dialog>
-                        <Toaster richColors position="top-right" closeButton />
+                        <Toaster
+                            theme={isDark ? 'dark' : 'light'}
+                            position="top-right"
+                            closeButton
+                            richColors
+                        />
                     </ChatProvider>
                 </WebsocketProvider>
             </FilmModalProvider>
