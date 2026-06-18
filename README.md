@@ -13,6 +13,7 @@ A full‑stack application for discovering movies/series, managing watchlists, w
 - Social graph with friend requests, blocking, and user search
 - Watchlist management with add/remove and profile stats
 - Reviews with replies and episode/season metadata support
+- Recommendation Engine v2: Bounded, idempotent, and failure-tolerant background pipeline with lease-based enrichment, join-based scoring, and precomputed user snapshots
 - Robust JWT security with membership checks on every protected resource
 - Multi‑level cache: Redis (Upstash) + Caffeine with Kryo serialization
 - Observability: Spring Boot Actuator + Prometheus metrics
@@ -65,6 +66,7 @@ A full‑stack application for discovering movies/series, managing watchlists, w
 - AuthZ on chat/messages → Spring Security, JWT, resource membership enforcement
 - Friends & requests → REST design, idempotent mutations, state modeling
 - Watchlist & reviews → JPA mapping, pagination, DTO boundaries, validation
+- Recommendation Engine v2 → Async background worker coordination, lease claim/reclaim concurrency control, multi-pass scoring heuristics, database join optimization, and custom Micrometer metric instrumentation
 - Multi‑level caching → Redis + Caffeine, cache invalidation, Kryo serialization
 - Frontend data layer → TanStack Query, optimistic UI, modular hooks
 - UI/UX polish → Tailwind + shadcn/ui, Framer Motion, accessibility considerations
@@ -141,6 +143,21 @@ A full‑stack application for discovering movies/series, managing watchlists, w
   - Episode/season aware reviews; user‑scoped watchlist mutations
   - [ReviewController.java](file:///Users/letanthang/learning_software/React_projects/movie-explorer/Backend/src/main/java/com/Backend/services/review_service/controller/ReviewController.java#L27-L49)
   - [WatchlistController.java](file:///Users/letanthang/learning_software/React_projects/movie-explorer/Backend/src/main/java/com/Backend/services/watchlist_service/controller/WatchlistController.java#L19-L40)
+- Recommendation Engine v2
+  - Bounded TMDB ingestion of film-to-film recommendations as candidate edges.
+  - Multi-pass join-based scoring: Pass 1 executes cheap metadata scoring (genre/language matching); Pass 2 runs expensive joins (credits/keywords) for the top-K candidates.
+  - Lease-based, prioritized, and failure-tolerant film enrichment state engine to prevent redundant work.
+  - Debounced and coalesced background task scheduler triggering snapshot recomputation on watchlist mutations or enrichment completions.
+  - Structured Micrometer monitoring capturing latency timers, outcome counters, queue depths, and lease metrics.
+  - Backend:
+    - [RecommendationController.java](file:///Users/letanthang/learning_software/React_projects/movie-explorer/Backend/src/main/java/com/Backend/services/recommendation_service/controller/RecommendationController.java#L25-L103)
+    - [RecommendationService.java](file:///Users/letanthang/learning_software/React_projects/movie-explorer/Backend/src/main/java/com/Backend/services/recommendation_service/service/RecommendationService.java)
+    - [RecommendationMetrics.java](file:///Users/letanthang/learning_software/React_projects/movie-explorer/Backend/src/main/java/com/Backend/services/recommendation_service/metrics/RecommendationMetrics.java)
+    - [RecommendationSnapshotRecomputeService.java](file:///Users/letanthang/learning_software/React_projects/movie-explorer/Backend/src/main/java/com/Backend/services/recommendation_service/snapshot/service/RecommendationSnapshotRecomputeService.java#L57-L190)
+    - [FilmEnrichmentStateService.java](file:///Users/letanthang/learning_software/React_projects/movie-explorer/Backend/src/main/java/com/Backend/services/sync_service/service/FilmEnrichmentStateService.java)
+  - Frontend:
+    - [recommendations.js](file:///Users/letanthang/learning_software/React_projects/movie-explorer/Frontend/src/hooks/API/recommendations.js#L5-L30)
+    - [useRecommendationsFreshness.js](file:///Users/letanthang/learning_software/React_projects/movie-explorer/Frontend/src/hooks/API/useRecommendationsFreshness.js#L31-L89)
 - Caching
   - Multi‑level cache that reads/writes via Redis (Upstash) and Caffeine
   - Kryo serializer for efficient Redis object storage
@@ -217,7 +234,7 @@ A full‑stack application for discovering movies/series, managing watchlists, w
 
 - What a reader should understand quickly:
   - Domain coverage: accounts, social graph, chat, watchlist, reviews, and recommendation features.
-  - Evolution path: sections are grouped by rollout phase (existing core, film/director expansion, planned recommendation weights).
+  - Evolution path: sections are grouped by rollout phase (existing core, film/director expansion, and completed recommendation engine v2).
   - Data quality and safety: foreign keys, composite keys, and unique constraints are explicit and co-located with each table.
 
 - Maturity view:
@@ -279,6 +296,9 @@ A full‑stack application for discovering movies/series, managing watchlists, w
   - GET `/watchlist`
   - POST `/watchlist`
   - DELETE `/watchlist?id=...&type=...`
+- Recommendations
+  - GET `/recommendations`
+  - GET `/recommendations/similar?filmId=...&type=...`
  - Admin
   - GET `/admin/users?query=...&page=...&size=...`
   - PATCH `/admin/users/{id}/role` body: `{ "role": "ROLE_ADMIN" | "ROLE_USER" }`
@@ -312,6 +332,7 @@ A full‑stack application for discovering movies/series, managing watchlists, w
 - Orchestrating a social UX with friend requests, presence, notifications
 - Applying clean React architecture (hooks, query, modular components)
 - Operating prod services: DigitalOcean, Supabase, Upstash, and Prometheus
+- Building a distributed, lease-based, and failure-tolerant recommendation pipeline using two-pass scoring and asynchronous recomputation
 
 ## Roadmap
 
@@ -322,7 +343,7 @@ A full‑stack application for discovering movies/series, managing watchlists, w
 
 ## Interview Talk Track (1 minute)
 
-- Outcome: social discovery + real‑time messaging with consistent unread/notification states
+- Outcome: social discovery + real‑time messaging with consistent unread/notification states and personalized recommendation engine v2
 - Security: JWT everywhere, strict membership checks on chat/messages, CORS scoped
 - Real‑time: STOMP topics per chat/user; handshake sets Principal; broadcaster sends targeted notifications
 - Data: Supabase Postgres with Flyway; DTOs isolate domain from transport
