@@ -8,20 +8,7 @@ import { useInfiniteDiscoverList } from '@/hooks/API/data';
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import LoadingState from '@/components/ui/LoadingState';
 import ErrorState from '@/components/ui/ErrorState';
-
-const cardVariants = {
-    hidden: { opacity: 0, y: 20, scale: 0.95 },
-    visible: (i) => ({
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        transition: {
-            delay: Math.min(i * 0.02, 0.4),
-            duration: 0.4,
-            ease: 'easeOut',
-        },
-    }),
-};
+import MovieGrid from '@/components/ui/MovieGrid';
 
 const SORT_OPTIONS = [
     { value: 'popularity', label: 'Most Popular' },
@@ -188,24 +175,14 @@ export default function InfiniteList({ type = 'movie', sortBy = 'popularity.desc
                     {type === 'movie' ? 'Movies' : 'TV Series'}
                 </motion.h1>
 
-                <motion.div
-                    className="grid gap-4 sm:gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={{ once: true }}
-                    variants={{
-                        hidden: {},
-                        visible: { transition: { staggerChildren: 0.08 } },
-                    }}
+                <MovieGrid
+                    items={movies}
+                    getKey={(movie) => `movie-${movie.id}`}
+                    columnsClassName="grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+                    gapClassName="gap-4 sm:gap-6"
                 >
-                    {movies.map((movie, i) => (
+                    {(movie, i) => (
                         <motion.div
-                            key={`movie-${movie.id}`}
-                            custom={i}
-                            variants={cardVariants}
-                            initial="hidden"
-                            whileInView="visible"
-                            viewport={{ once: true }}
                             whileHover={{ y: -4 }}
                             className="bg-white dark:bg-slate-800 border rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 cursor-pointer group"
                             onClick={() => {
@@ -262,8 +239,8 @@ export default function InfiniteList({ type = 'movie', sortBy = 'popularity.desc
                                 </p>
                             </div>
                         </motion.div>
-                    ))}
-                </motion.div>
+                    )}
+                </MovieGrid>
 
                 {hasNextPage && !isPaginating && isRenderComplete && !shouldPreventScroll && (
                     <motion.div 

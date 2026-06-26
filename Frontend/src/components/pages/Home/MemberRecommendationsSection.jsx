@@ -7,6 +7,7 @@ import { LoginNotificationModal } from '@/components/react_components/Modal/Logi
 import { useMemberRecommendations } from '@/hooks/API/recommendations';
 import { useRecommendationsFreshness } from '@/hooks/API/useRecommendationsFreshness';
 import RecommendationFreshnessBanner from '@/components/ui/RecommendationFreshnessBanner';
+import MovieGrid from '@/components/ui/MovieGrid';
 import useWatchlist from '@/hooks/watchList/useWatchList';
 import useAddToWatchlist from '@/hooks/watchList/useAddtoWatchList';
 import { useRecommendationFreshnessContext } from '@/context/RecommendationFreshnessProvider';
@@ -82,9 +83,6 @@ function RecommendationCard({ item, index, onOpen, isInWatchlist, onAddToWatchli
     return (
         <Motion.div
             onClick={() => onOpen(item)}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: index * 0.06, ease: 'easeOut' }}
             whileHover={{ y: -4, scale: 1.01 }}
             whileTap={{ scale: 0.985 }}
             className="group cursor-pointer relative flex flex-col overflow-hidden rounded-2xl border border-emerald-200/70 bg-gradient-to-br from-white to-emerald-50/40 text-left shadow-lg shadow-emerald-100/40 transition-all duration-300 hover:border-emerald-300/80 hover:shadow-xl hover:shadow-emerald-100/60 dark:border-emerald-500/25 dark:from-slate-900 dark:to-emerald-950/20 dark:shadow-emerald-950/20 dark:hover:border-emerald-500/40 dark:hover:shadow-emerald-950/40 w-full"
@@ -353,10 +351,14 @@ export default function MemberRecommendationsSection() {
 
                         {/* Cards grid — 6-column poster cards on desktop */}
                         {user && !isLoadingMemberRecommendations && !isErrorMemberRecommendations && normalizedRecommendations.length > 0 && (
-                            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-                                {normalizedRecommendations.map((item, idx) => (
+                            <MovieGrid
+                                items={normalizedRecommendations}
+                                getKey={(item) => `${item.type}-${item.id}`}
+                                columnsClassName="grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+                                gapClassName="gap-4"
+                            >
+                                {(item, idx) => (
                                     <RecommendationCard
-                                        key={`${item.type}-${item.id}`}
                                         item={item}
                                         index={idx}
                                         onOpen={openRecommendation}
@@ -366,8 +368,8 @@ export default function MemberRecommendationsSection() {
                                         freshnessPhase={freshnessPhase}
                                         lastAddedItem={lastAddedItem}
                                     />
-                                ))}
-                            </div>
+                                )}
+                            </MovieGrid>
                         )}
                     </div>
                 </Motion.div>
