@@ -155,12 +155,12 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - Assert `data-theme` update and token re-render on change (8.2); assert corrupt-value fallback and rollback-with-toast on failure
     - _Requirements: 8.2, 8.4_
 
-- [ ] 10. Implement motion provider
+- [x] 10. Implement motion provider
   - [x] 10.1 Implement `MotionConfigProvider` and `useAppMotion`
     - Create `src/context/MotionConfigProvider.jsx` wrapping framer-motion's `MotionConfig` with `reducedMotion="user"`, reading `useReducedMotion`, and exposing `useAppMotion()` with `resolveVariants(name, opts)` and `staggerDelay(index)` from the responsive core
     - _Requirements: 6.7, 7.1, 7.4_
 
-  - [ ] 10.2 Write unit tests for the motion provider
+  - [x] 10.2 Write unit tests for the motion provider
     - Assert `useAppMotion` returns final-state variants when reduced motion is active and bounded variants otherwise
     - _Requirements: 6.7, 7.1_
 
@@ -168,11 +168,11 @@ All paths are relative to the `Frontend/` project root. The implementation langu
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 12. Wire layout and navigation to the responsive system
-  - [ ] 12.1 Update `Layout.jsx`
+  - [x] 12.1 Update `Layout.jsx`
     - Wrap the content tree in `MotionConfigProvider`; replace header `bg-slate-950/80 text-white` with token classes (`bg-card/80 text-foreground border-border`); change right `<aside>` from `hidden md:block` to `hidden lg:block`; keep header `sticky top-0 z-50`
     - _Requirements: 8.1, 2.5, 1.3, 2.6_
 
-  - [ ] 12.2 Update `Sidebar.jsx`
+  - [x] 12.2 Update `Sidebar.jsx`
     - Switch `MobileSidebar`/`DesktopSidebar` breakpoint from `md` to `lg`; wrap the `Menu`/`X` toggle to a >=44×44 hit area via `normalizeTouchTarget`; drive overlay open/close through `resolveVariants('mobileNav', ...)`; add `aria-label`, `aria-expanded`, `aria-controls`, labeled overlay landmark, keyboard-operable links
     - _Requirements: 2.1, 2.4, 2.7, 3.1, 2.9, 5.1, 5.3_
 
@@ -181,15 +181,15 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - _Requirements: 2.2, 2.3, 2.6, 2.8_
 
 - [ ] 13. Wire content components to the responsive system
-  - [ ] 13.1 Update `MovieCard.jsx`
+  - [x] 13.1 Update `MovieCard.jsx`
     - Replace hardcoded slate/blue palette with theme tokens (keep decorative accent gradients); route hover/entrance animation through `useAppMotion`; ensure poster `<img>` keeps `object-cover`/aspect ratio and always has non-empty `alt`
     - _Requirements: 8.1, 6.2, 6.5, 6.7, 4.4, 5.4_
 
-  - [ ] 13.2 Update `dialog.jsx`
+  - [x] 13.2 Update `dialog.jsx`
     - Ensure open/close durations <=600ms and reduced-motion users get instant show/hide via the motion system or `motion-reduce:` utilities
     - _Requirements: 6.3, 6.4, 6.7_
 
-  - [ ] 13.3 Implement `MovieGrid` wrapper
+  - [x] 13.3 Implement `MovieGrid` wrapper
     - Create a reusable `src/components/ui/MovieGrid.jsx` applying per-breakpoint column counts (`grid-cols-1` / `sm:grid-cols-2` / `lg:grid-cols-3+`) and `staggerDelay` item entrance; adopt it in Home/Discovery/Watchlist grids
     - _Requirements: 1.1, 1.2, 1.3, 6.2_
 
