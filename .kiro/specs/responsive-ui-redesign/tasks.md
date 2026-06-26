@@ -22,7 +22,7 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - `resolveBreakpoint` maps `<768 → 'mobile'`, `768–1023 → 'tablet'`, `>=1024 → 'desktop'`; treat negative/`NaN` widths as `'mobile'`
     - _Requirements: 1.1, 1.2, 1.3_
 
-  - [ ] 2.2 Implement layout selection mapping
+  - [x] 2.2 Implement layout selection mapping
     - In `breakpoints.js` (or a co-located `layoutMap.js`), add `resolveLayout(width)` returning `{ columns, navMode, rightSidebarVisible }` where columns is 1 at mobile, at most 2 at tablet, multi-column at desktop; navMode is `'overlay'` for sub-desktop and `'sidebar'` at desktop; right sidebar visible only at desktop
     - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.4, 2.5_
 
@@ -42,12 +42,12 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - `clampBodySize` returns `>= 16` at mobile and `[16, 20]` at tablet/desktop; `scaleHeading` clamps result into `[1.25x, 2.5x]` of body size
     - _Requirements: 4.1, 4.2, 4.3_
 
-  - [ ] 3.2 Write property test for body text clamping
+  - [x] 3.2 Write property test for body text clamping
     - **Property 4: Body text size stays within the legal band per breakpoint**
     - **Validates: Requirements 4.1, 4.2**
     - `fast-check` body sizes via `fc.integer({ min: 8, max: 40 })` × breakpoint, `{ numRuns: 100 }`, tagged comment
 
-  - [ ] 3.3 Write property test for heading scaling
+  - [x] 3.3 Write property test for heading scaling
     - **Property 5: Heading size scales within the allowed ratio of body size**
     - **Validates: Requirements 4.3**
     - `fast-check` body size × ratio, `{ numRuns: 100 }`, tagged comment
@@ -58,7 +58,7 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - Floor negative sizes to 0; return `minWidth/minHeight >= 44` and symmetric `padX/padY` that compensate without shrinking the visible content box
     - _Requirements: 2.7, 3.1, 3.4_
 
-  - [ ] 4.2 Write property test for touch-target normalization
+  - [x] 4.2 Write property test for touch-target normalization
     - **Property 3: Touch targets meet the minimum activatable area without shrinking content**
     - **Validates: Requirements 2.7, 3.1, 3.4**
     - `fast-check` element sizes via `fc.record({ width: fc.nat(), height: fc.nat() })`, `{ numRuns: 100 }`, tagged comment
@@ -68,7 +68,7 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - Create `src/lib/responsive/media.js` with `fitWidth({ srcWidth, srcHeight }, containerWidth)` returning a display height that fills the container width and preserves source aspect ratio
     - _Requirements: 4.4_
 
-  - [ ] 5.2 Write property test for aspect-ratio preservation
+  - [x] 5.2 Write property test for aspect-ratio preservation
     - **Property 6: Media display preserves source aspect ratio**
     - **Validates: Requirements 4.4**
     - `fast-check` source dims × container width, assert ratio within ±1%, `{ numRuns: 100 }`, tagged comment
@@ -78,11 +78,11 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - Create `src/lib/responsive/motion.js` with `MOTION` budgets, named variant definitions (page enter, item enter, modal enter/exit, card hover, mobileNav), and `staggerDelay(index, perItemMs = 60)` clamped to `[50,150]` ms and returned in seconds
     - _Requirements: 6.2_
 
-  - [ ] 6.2 Implement `resolveVariants` with reduced-motion handling
+  - [x] 6.2 Implement `resolveVariants` with reduced-motion handling
     - Add `resolveVariants(name, { reducedMotion, essential = false })`: enforce duration budgets (<=600ms; <=300ms for hover/card), correct terminal opacity states; under `reducedMotion` for non-essential variants return final state with `duration: 0` and no x/y displacement; for essential variants cap positional displacement at 5px; unknown names return a no-op final-state variant
     - _Requirements: 6.1, 6.3, 6.4, 6.5, 6.6, 6.7, 2.9, 7.1, 7.3_
 
-  - [ ] 6.3 Write property test for stagger delay bounds
+  - [x] 6.3 Write property test for stagger delay bounds
     - **Property 7: List entrance stagger delay stays within bounds**
     - **Validates: Requirements 6.2**
     - `fast-check` indices via `fc.nat({ max: 200 })`, `{ numRuns: 100 }`, tagged comment
@@ -107,22 +107,22 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - **Validates: Requirements 7.3**
     - `fast-check` essential variant × `reducedMotion = true`, assert displacement <= 5px on any axis, `{ numRuns: 100 }`, tagged comment
 
-- [ ] 7. Implement theme reducer and token resolver
+- [x] 7. Implement theme reducer and token resolver
   - [x] 7.1 Implement theme state reducer
     - Create `src/lib/responsive/theme.js` with a pure reducer over `{ theme, previous }` for `light`/`dark`/`dracula`, an `applyTheme` action that rolls back to `previous` and sets an error flag on failure, and a `resolveTokens(theme)` helper that returns token values independent of breakpoint
     - _Requirements: 8.1, 8.3, 8.4_
 
-  - [ ] 7.2 Write property test for breakpoint-independent token resolution
+  - [x] 7.2 Write property test for breakpoint-independent token resolution
     - **Property 12: Theme token resolution is independent of breakpoint**
     - **Validates: Requirements 8.1**
     - `fast-check` theme × two breakpoints, assert identical tokens, `{ numRuns: 100 }`, tagged comment
 
-  - [ ] 7.3 Write property test for theme preservation across breakpoint changes
+  - [x] 7.3 Write property test for theme preservation across breakpoint changes
     - **Property 13: Breakpoint changes preserve the active theme**
     - **Validates: Requirements 8.3**
     - `fast-check` theme × breakpoint-change sequence, `{ numRuns: 100 }`, tagged comment
 
-  - [ ] 7.4 Write property test for failed theme rollback
+  - [x] 7.4 Write property test for failed theme rollback
     - **Property 14: Failed theme application rolls back to the previous theme**
     - **Validates: Requirements 8.4**
     - `fast-check` previous theme × attempted theme with forced failure, assert active equals previous and error flag set, `{ numRuns: 100 }`, tagged comment
