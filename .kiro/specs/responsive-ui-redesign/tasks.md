@@ -127,7 +127,7 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - **Validates: Requirements 8.4**
     - `fast-check` previous theme × attempted theme with forced failure, assert active equals previous and error flag set, `{ numRuns: 100 }`, tagged comment
 
-- [ ] 8. Checkpoint - responsive core complete
+- [x] 8. Checkpoint - responsive core complete
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 9. Implement responsive hooks
@@ -164,10 +164,10 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - Assert `useAppMotion` returns final-state variants when reduced motion is active and bounded variants otherwise
     - _Requirements: 6.7, 7.1_
 
-- [ ] 11. Checkpoint - hooks and motion provider complete
+- [x] 11. Checkpoint - hooks and motion provider complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 12. Wire layout and navigation to the responsive system
+- [x] 12. Wire layout and navigation to the responsive system
   - [x] 12.1 Update `Layout.jsx`
     - Wrap the content tree in `MotionConfigProvider`; replace header `bg-slate-950/80 text-white` with token classes (`bg-card/80 text-foreground border-border`); change right `<aside>` from `hidden md:block` to `hidden lg:block`; keep header `sticky top-0 z-50`
     - _Requirements: 8.1, 2.5, 1.3, 2.6_
@@ -176,11 +176,11 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - Switch `MobileSidebar`/`DesktopSidebar` breakpoint from `md` to `lg`; wrap the `Menu`/`X` toggle to a >=44×44 hit area via `normalizeTouchTarget`; drive overlay open/close through `resolveVariants('mobileNav', ...)`; add `aria-label`, `aria-expanded`, `aria-controls`, labeled overlay landmark, keyboard-operable links
     - _Requirements: 2.1, 2.4, 2.7, 3.1, 2.9, 5.1, 5.3_
 
-  - [ ] 12.3 Write component tests for navigation
+  - [x] 12.3 Write component tests for navigation
     - Toggle opens/closes the mobile overlay (2.2, 2.8); selecting a link navigates (2.3); header stays sticky after scroll (2.6)
     - _Requirements: 2.2, 2.3, 2.6, 2.8_
 
-- [ ] 13. Wire content components to the responsive system
+- [x] 13. Wire content components to the responsive system
   - [x] 13.1 Update `MovieCard.jsx`
     - Replace hardcoded slate/blue palette with theme tokens (keep decorative accent gradients); route hover/entrance animation through `useAppMotion`; ensure poster `<img>` keeps `object-cover`/aspect ratio and always has non-empty `alt`
     - _Requirements: 8.1, 6.2, 6.5, 6.7, 4.4, 5.4_
@@ -193,24 +193,24 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - Create a reusable `src/components/ui/MovieGrid.jsx` applying per-breakpoint column counts (`grid-cols-1` / `sm:grid-cols-2` / `lg:grid-cols-3+`) and `staggerDelay` item entrance; adopt it in Home/Discovery/Watchlist grids
     - _Requirements: 1.1, 1.2, 1.3, 6.2_
 
-  - [ ] 13.4 Write component tests for content components
+  - [x] 13.4 Write component tests for content components
     - Long text applies `line-clamp-3` with ellipsis (4.5); poster renders with non-empty `alt` (5.4); interactive elements show active/hover feedback (3.3); mobile lists keep gap >= 8px (3.2)
     - _Requirements: 3.2, 3.3, 4.5, 5.4_
 
-- [ ] 14. Integration and accessibility verification
-  - [ ] 14.1 Write responsive layout integration tests
+- [x] 14. Integration and accessibility verification
+  - [x] 14.1 Write responsive layout integration tests
     - Render each Primary_Page at 375/768/1024/1440 and assert no horizontal overflow (`scrollWidth <= clientWidth`) and no clipping; simulate `matchMedia` change and assert layout updates
     - _Requirements: 1.4, 1.5, 1.6, 1.7_
 
-  - [ ] 14.2 Write accessibility audit tests
+  - [x] 14.2 Write accessibility audit tests
     - `jest-axe` audits for accessible names, focus order, and no focus traps; per-theme contrast checks over tokens for normal and large text
     - _Requirements: 5.1, 5.2, 5.3, 5.5, 5.6, 5.7_
 
-  - [ ] 14.3 Write reduced-motion integration tests
+  - [x] 14.3 Write reduced-motion integration tests
     - With `prefers-reduced-motion: reduce`, assert controls are immediately present and operable (7.2) and that toggling the preference mid-animation snaps to final state (7.4)
     - _Requirements: 7.2, 7.4_
 
-- [ ] 15. Final checkpoint - full suite green
+- [x] 15. Final checkpoint - full suite green
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes
