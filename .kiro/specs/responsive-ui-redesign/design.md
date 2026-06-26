@@ -20,6 +20,24 @@ The redesign keeps this structure but addresses concrete gaps found in the codeb
 
 The design introduces a small set of **pure helper modules** (`src/lib/responsive`) that encapsulate the testable logic — breakpoint resolution, typography scaling, touch-target normalization, and motion configuration — plus React hooks and a motion provider that consume them. Concentrating the decision logic in pure functions keeps the UI declarative and makes the behavior verifiable with property-based tests, while the visual/layout concerns are validated with example and integration tests.
 
+### Second wave: motion-system compliance for hardcoded-motion components (Requirements 9–20)
+
+The first wave above established the responsive and motion *foundation*: the responsive core (`src/lib/responsive/{breakpoints,typography,touchTarget,media,motion,theme}.js`), the hooks (`useBreakpoint`, `useReducedMotion`, extended `useTheme`/`useThemeToggle`), and the `MotionConfigProvider` that exposes `useAppMotion()` with `resolveVariants()` / `staggerDelay()`.
+
+The second wave **migrates the remaining heavily-animated components onto that existing foundation rather than building a parallel system**. Inspection of the codebase found several components that bypass the motion system with inline `framer-motion` literals, looping `repeat: Infinity` animations, `Math.random()` layout values, hardcoded color literals, and dead transitions:
+
+1. **`TrendingCarousel`** — inline `slideVariants`, a hardcoded `setInterval(…, 8000)` auto-advance with no pause/stop affordance and no reduced-motion gate, absolute-positioned slides inside a fixed `min-h-[400px]`, nav arrows pinned `bottom-8 right-8` over content, and `bg-white/5 dark:bg-slate-800/50` / `text-gray-900 dark:text-white` literals.
+2. **`FeaturedHeroSection`** — `h-[85vh]` height, **two** competing scale sources on the image (an entrance `animate={{ scale: 1 }}` from `1.1` over 10s *and* a scroll-driven `useTransform` scale `1 → 1.1`), plus scroll parallax with no reduced-motion handling.
+3. **`NotFound` + `AnimatedCharater`** — perpetual `repeat: Infinity` sparkles/float/color-cycle loops, pointer-parallax updated on every `mousemove` with no throttle, `AnimatedCharater` hidden CSS-only via `hidden md:flex` (so its loops keep running offscreen), and pink/purple/`#1f2937` literals.
+4. **`EpisodeModal`** — inline `initial/animate` entrance literals and `from-white to-slate-50 dark:from-slate-900` token-bypassing colors.
+5. **`Discovery`** — a **dead `AnimatePresence`** (a single child with no `key`, so it never animates type/sort changes), a magic `sticky top-28` offset, and slate/blue/gray literals.
+6. **`FancyLoader`** — `Math.random()` skeleton widths (layout shift on every render) and **three** different shimmer techniques mixed together (`before:animate-[shimmer]`, `animate-pulse`, and a framer `x: ['-100%','100%']` loop), with slate/indigo literals.
+7. **`DesktopSidebar`** — expands on `onMouseEnter`/`onMouseLeave` only (no keyboard focus path).
+8. **`Toaster`** — `theme={isDark ? 'dark' : 'light'}`, which collapses `dracula` onto the wrong palette.
+9. **`MovieCard`** — already consumes `useAppMotion()` for `itemEnter`/`cardHover`, but layers competing inner `whileHover={{ scale: 1.08 }}` / badge / genre hovers on top, and uses a non-standard `h-30` poster class.
+
+To keep the migration verifiable, the second wave adds a few more **pure helper modules** (`carousel.js`, `stickyOffset.js`, `skeleton.js`, plus small additions to `motion.js` and `media.js`) and **new named variants** (`carouselSlide`, `heroEnter`, `discoveryTransition`) to the existing `VARIANTS` table — reusing the existing `modalEnter`/`modalExit`/`itemEnter`/`cardHover` variants where they already fit. A key constraint drives the design: framer-motion's `MotionConfig reducedMotion="user"` zeroes transform/opacity *transitions*, but it does **not** stop `repeat: Infinity` loops. Components must therefore *also* gate looping/perpetual and parallax animations on the live `reducedMotion` flag (and, for offscreen decoration, on a breakpoint hook) via a pure `shouldRunDecorative()` predicate.
+
 ## Architecture
 
 ### High-level structure
@@ -85,6 +103,54 @@ A `MotionConfigProvider` wraps the app inside `Layout`. It reads the reduced-mot
 - A `useAppMotion()` hook exposing `resolveVariants(variant)` and `staggerDelay(index)` from the responsive core, so components request named variants rather than hardcoding values.
 
 Named variants (page enter, item enter, modal enter/exit, card hover) are defined once in `src/lib/responsive/motion.js` with durations bounded by the requirements (page/modal <=600ms, hover <=300ms, stagger 50–150ms). When reduced motion is active, `resolveVariants` returns the final visual state with `duration: 0` and no positional offset; essential feedback animations (loaders) are flagged and retained with non-positional motion only.
+
+### Motion-system extensions for hardcoded-motion components (Requirements 9–20)
+
+The second wave extends the *existing* motion system instead of duplicating it.
+
+**New named variants** (added to the existing `VARIANTS` table in `motion.js`, so they are automatically covered by the existing `resolveVariants` duration-budget and reduced-motion logic, and by Properties 8/10/11):
+
+| Variant | Purpose | Notes |
+| ------- | ------- | ----- |
+| `carouselSlide` | `TrendingCarousel` slide enter/center/exit | Replaces the inline `slideVariants`. Bounded opacity + small x offset within the <=600ms budget; reduced motion snaps to the centered, displacement-free state. |
+| `heroEnter` | `FeaturedHeroSection` image/content entrance | Single source of scale; reduced motion renders final scale with no zoom. |
+| `discoveryTransition` | `Discovery` type/sort change transition | Opacity + small y; reduced motion renders final state. |
+| `modalEnter` / `modalExit` | `EpisodeModal` open/close | **Reused as-is** — already defined in the first wave; `EpisodeModal` is reconciled onto them rather than adding new modal variants. |
+| `itemEnter` / `cardHover` | `MovieCard` entrance/hover | **Reused as-is**; `MovieCard` already consumes them. The migration removes the competing inner hover transforms so `cardHover` is the single coherent driver. |
+
+**The looping-animation gap.** `MotionConfig reducedMotion="user"` zeroes transform/opacity *transitions*, but a `repeat: Infinity` loop (sparkles, floats, color-cycles, the loader spinner) keeps iterating. The motion core therefore adds a pure predicate consumed by components:
+
+```js
+// motion.js
+shouldRunDecorative({ reducedMotion, visible }) // => visible && !reducedMotion
+```
+
+Components gate every perpetual/decorative loop *and* the `NotFound` pointer-parallax on `shouldRunDecorative(...)`, using the live `useAppMotion().reducedMotion` flag and (for offscreen decoration like `AnimatedCharater`) the `useBreakpoint()` visibility instead of CSS-only `hidden`. This satisfies Requirements 9.3, 16.1, 16.2, and 16.4, which `reducedMotion="user"` alone cannot.
+
+**New pure helper modules** (the property-test surface for the second wave):
+
+```mermaid
+graph TD
+    subgraph Responsive Core lib/responsive
+      MO[motion.js<br/>+ carouselSlide / heroEnter / discoveryTransition<br/>+ shouldRunDecorative]
+      CA[carousel.js<br/>carouselReducer / isAutoAdvancing / nextIndex]
+      SO[stickyOffset.js<br/>stickyOffset]
+      SK[skeleton.js<br/>skeletonDimension]
+      ME[media.js<br/>+ heroMaxHeight]
+    end
+
+    CAR[TrendingCarousel] --> CA
+    CAR --> MO
+    HERO[FeaturedHeroSection] --> ME
+    HERO --> MO
+    DISC[Discovery] --> SO
+    DISC --> MO
+    LOAD[FancyLoader] --> SK
+    NF[NotFound / AnimatedCharater] --> MO
+    NF --> UBP2[useBreakpoint]
+```
+
+These modules contain no DOM/React/timer code: the carousel module is a state reducer plus a derived `isAutoAdvancing` predicate (the React component owns the actual `setInterval`/`clearInterval` and event wiring); `stickyOffset` and `heroMaxHeight` are arithmetic; `skeletonDimension` is a deterministic hash of an index. This keeps the highest-risk new logic cheaply property-testable while leaving layout, timers, and DOM wiring to example/integration tests.
 
 ## Components and Interfaces
 
@@ -189,6 +255,124 @@ export function useTheme() // => { theme, setTheme, themes: ['light','dark','dra
 
 A reusable `MovieGrid` wrapper applies column counts per breakpoint (`grid-cols-1` / `sm:grid-cols-2` / `lg:grid-cols-3+`) and uses `staggerDelay` for item entrance, replacing ad hoc grids across Home/Discovery/Watchlist.
 
+### Motion-system migration: new pure modules (Requirements 9–20)
+
+`src/lib/responsive/carousel.js` — auto-advance state machine (no timers, no DOM)
+
+```js
+export const AUTO_ADVANCE_MS = 8000; // Requirement 10.1
+
+/** Initial state for an N-slide carousel. */
+export function createCarouselState({ count, reducedMotion = false })
+//   => { index, count, hovered, focused, userPaused, reducedMotion }
+
+/** Pure reducer. Actions:
+ *   NEXT | PREV | GOTO(index)
+ *   HOVER_START | HOVER_END
+ *   FOCUS_IN | FOCUS_OUT
+ *   PAUSE (user pause/stop) | RESUME
+ *   SET_REDUCED_MOTION(value) */
+export function carouselReducer(state, action) // => next state (index always in [0, count))
+
+/** Next/previous index with modular wrap-around. */
+export function nextIndex(index, count, direction) // => (index + direction + count) % count
+
+/** Derived predicate: is the timer allowed to auto-advance right now?
+ *  True only when count > 1 AND none of hovered/focused/userPaused/reducedMotion hold. */
+export function isAutoAdvancing(state) // => boolean
+```
+
+`src/lib/responsive/stickyOffset.js` — header-aware sticky offset (Requirement 14)
+
+```js
+export const HEADER_HEIGHT_VAR = '--header-height';
+
+/** The vertical offset (px) at which the Discovery sort control pins:
+ *  exactly the rendered header height, floored to >= 0. Non-finite -> 0.
+ *  Equal offset => no gap and no overlap (14.1, 14.2). */
+export function stickyOffset(headerHeightPx) // => number >= 0
+```
+
+The header bar publishes its measured height into the `--header-height` CSS variable (via a `ResizeObserver` in `Layout`); the sort control pins with `top: var(--header-height)` (replacing the magic `top-28`). `stickyOffset` is the pure arithmetic backing both the CSS-variable value and tests.
+
+`src/lib/responsive/skeleton.js` — deterministic skeleton dimensions (Requirement 15)
+
+```js
+/** Deterministic placeholder size for slot `index`, replacing Math.random().
+ *  Same (index, group, min, max) always yields the same value, so re-renders
+ *  never shift layout (15.1, 15.2). Returns a value within [min, max]. */
+export function skeletonDimension(index, { min, max, group = 0 }) // => number
+```
+
+Implemented as a small integer hash of `(index, group)` mapped into `[min, max]` — pure and stable across renders.
+
+`src/lib/responsive/media.js` — hero height bound (Requirement 17), added beside existing `fitWidth`
+
+```js
+/** Maximum hero height (px) for a viewport: <= 70% of height in portrait,
+ *  <= 80% in landscape (17.1, 17.2). */
+export function heroMaxHeight(viewportHeightPx, { landscape = false }) // => number
+```
+
+`src/lib/responsive/motion.js` — additions
+
+```js
+// New named variants merged into VARIANTS: carouselSlide, heroEnter, discoveryTransition.
+
+/** Should a decorative/looping/parallax animation run at all?
+ *  Loops are NOT stopped by MotionConfig reducedMotion="user", so components
+ *  gate them on this predicate (9.3, 16.1, 16.2, 16.4). */
+export function shouldRunDecorative({ reducedMotion, visible }) // => visible && !reducedMotion
+```
+
+### Component migrations (Requirements 9–20)
+
+- **`TrendingCarousel.jsx`** (R9, R10, R11, R12)
+  - Replace inline `slideVariants` with `resolveVariants('carouselSlide')` from `useAppMotion()`; the perpetual `animate-pulse` background blobs are gated on `shouldRunDecorative({ reducedMotion, visible: true })` (R9.1–9.3).
+  - Drive auto-advance from `carousel.js`: a `useReducer(carouselReducer, …)`; a single `useEffect` starts `setInterval(dispatch(NEXT), AUTO_ADVANCE_MS)` **only while `isAutoAdvancing(state)`**, and clears it otherwise. Pointer `onMouseEnter`/`onMouseLeave` dispatch `HOVER_START`/`HOVER_END`; `onFocus`/`onBlur` (focus-within) dispatch `FOCUS_IN`/`FOCUS_OUT`; reduced-motion changes dispatch `SET_REDUCED_MOTION` (R10.1–10.3, 10.6). The timer is cleared on every state change where `isAutoAdvancing` is false and re-created when it becomes true again, so resume is automatic for hover/focus and explicit for user pause.
+  - Add a labelled pause/stop toggle (`Pause`/`Play` icon) sized via `normalizeTouchTarget`; it dispatches `PAUSE`/`RESUME` and halts until the user explicitly resumes (R10.4, R10.5).
+  - **Content fit (R11):** replace the fixed `min-h-[400px]` + `absolute inset-0` slides with a non-absolute layout. Slides occupy normal flow (a single grid cell, `display: grid; grid-template-areas: 'slide'` with all slides stacked in the same cell so the container sizes to the tallest), so the container height grows to the tallest slide's content per breakpoint with no clipping. Navigation controls move out of the content box (a dedicated control row / gutter) so they never overlap slide content (R11.1–11.4).
+  - **Tokens (R12):** `bg-white/5 dark:bg-slate-800/50` → `bg-card/60`; `text-gray-900 dark:text-white` → `text-foreground`; secondary text → `text-muted-foreground`; chips/borders → `bg-muted` / `border-border`; primary button → `bg-primary text-primary-foreground`.
+
+- **`FeaturedHeroSection.jsx`** (R9, R17)
+  - **Single scale source (R17.3):** remove the 10s entrance `initial={{ scale: 1.1 }} animate={{ scale: 1 }}` on the image and keep only the scroll-driven `useTransform` scale (or vice-versa) — exactly one scale transform feeds the image node. Entrance fade/translate goes through `resolveVariants('heroEnter')`.
+  - **Bounded height (R17.1, R17.2):** replace `h-[85vh]` with a max-height derived from `heroMaxHeight(window.innerHeight, { landscape })`, where `landscape = innerWidth > innerHeight`, applied at the mobile breakpoint (<=70vh portrait, <=80vh landscape).
+  - **Reduced motion (R17.4, R9):** when `reducedMotion`, render the image at final scale with no entrance zoom, and gate the `useScroll`/`useTransform` parallax and the looping scroll-indicator chevron on `shouldRunDecorative`.
+
+- **`EpisodeModal.jsx`** (R9, R12)
+  - Reconcile onto the existing `modalEnter`/`modalExit` variants via `resolveVariants` instead of inline `initial/animate` literals; the banner image entrance and the staggered body sections resolve through the motion system, honoring reduced motion (R9.1, R9.2).
+  - **Tokens (R12):** `from-white to-slate-50 dark:from-slate-900 dark:to-slate-800` → `bg-card`; `text-slate-900 dark:text-white` → `text-foreground`; meta chips `bg-slate-100 dark:bg-slate-800` → `bg-muted text-muted-foreground`; borders → `border-border`. Decorative accent gradients (rating pill, section bars) may stay as accents.
+
+- **`FancyLoader.jsx`** (R9, R12, R15)
+  - **Deterministic dimensions (R15.1, R15.2):** replace every `style={{ width: \`${Math.random()*…}…\` }}` with `skeletonDimension(i, { min, max, group })` so widths are stable across re-renders.
+  - **Single shimmer technique (R15.3):** consolidate the three current mechanisms (`before:animate-[shimmer]`, `animate-pulse`, framer `x` loop) into one shimmer utility applied uniformly. The shimmer is modeled as an **essential** opacity-only variant (loading feedback), so under reduced motion it stays non-positional with <=5px displacement (R15.4, R9.2). The spinner loop is gated on `shouldRunDecorative` for the non-essential parts.
+  - **Tokens (R12):** slate/indigo gradient literals → `bg-muted` / `bg-card` / `border-border`; spinner accent → `border-primary`.
+
+- **`NotFound.jsx` + `AnimatedCharater.jsx`** (R9, R12, R16)
+  - **Offscreen gating (R16.1):** `AnimatedCharater` mounts/animates only when visible at the current breakpoint, decided by `useBreakpoint()` (`isDesktop`/`isTablet`) instead of CSS-only `hidden md:flex`, so its `repeat: Infinity` loops do not run while hidden.
+  - **Reduced motion (R16.2, R9.3):** every perpetual loop (sparkles, 404 float, color-cycle text, character float/blink/limb loops) is gated on `shouldRunDecorative({ reducedMotion, visible })`; when off, the elements render in their final visual state.
+  - **rAF-throttled parallax (R16.3, R16.4):** the `onMouseMove` handler no longer calls `setMouse` synchronously per event; it stores the latest pointer value and commits it inside a single `requestAnimationFrame` callback (at most one state update per frame). When `reducedMotion`, pointer-parallax state updates are disabled entirely (`shouldRunDecorative`).
+  - **Tokens (R12):** replace pink/purple/`text-gray-800 dark:text-white`/`#1f2937` literals with `text-foreground` / `text-muted-foreground` / `bg-background` and accent tokens; decorative gradient sparkles may keep accent colors but follow accent tokens.
+
+- **`Discovery.jsx`** (R13, R14)
+  - **Fix the dead transition (R13):** the `AnimatePresence` wraps a single child with no `key`, so it never animates. Give the motion element a `key` derived from `\`${type}:${sortBy}\`` so changing type or sort unmounts/remounts and re-runs the transition, and resolve its variants from `resolveVariants('discoveryTransition')` (honoring reduced motion via the motion system) (R13.1–13.3).
+  - **Sticky alignment (R14):** replace `sticky top-28` with `style={{ top: 'var(--header-height)' }}` (or a measured offset), where the header height is published by `Layout` and computed by `stickyOffset(headerHeight)`; the offset equals the rendered header height at every breakpoint, eliminating the gap/overlap (R14.1, R14.2).
+  - **Tokens:** tab/border slate/blue/gray literals → `border-border`, `text-foreground`/`text-muted-foreground`, active tab → `text-primary border-primary`.
+
+- **`Sidebar.jsx` → `DesktopSidebar`** (R18)
+  - Expand on **focus-within in addition to hover**: add `onFocus`/`onBlur` (or a `focus-within` state) that sets `open` so any nav control receiving keyboard focus expands the sidebar (R18.1, R18.2).
+  - Keep the main content's horizontal start position stable during expand/collapse by reserving a fixed gutter / overlaying the expansion rather than reflowing layout (R18.3).
+  - The width transition is suppressed under reduced motion (animate width only when `!reducedMotion`) (R18.4).
+
+- **`Layout.jsx` → `Toaster`** (R19)
+  - Drive the Toaster theme from the extended `useTheme()` (all three themes) instead of the boolean `isDark`. A small pure mapping `toasterTheme(theme)` maps `light → 'light'` and both `dark`/`dracula → 'dark'` (sonner supports `light`/`dark`/`system`), and the dracula design tokens style the toast surface so dracula renders correctly rather than collapsing to the light/dark palette (R19.1–19.3).
+
+- **`MovieCard.jsx`** (R20)
+  - **Single coherent hover (R20.1, R20.2):** keep the single `cardHover` variant from `useAppMotion()` and remove the competing inner `whileHover={{ scale: 1.08 }}` on the poster and the badge/genre `whileHover` scales, so one transform drives the hover and it reverses to resting on exit.
+  - **Bounded scale (R20.3):** `cardHover.animate.scale` stays `<= 1.05` (the existing variant uses `1.03`); the design caps it at 5%.
+  - **Aspect ratio (R20.4):** replace the non-standard `h-30` poster class with a standard aspect-ratio utility (e.g. `aspect-[2/3]` with `object-cover`) so the poster preserves the source aspect ratio within +/-1% (validated by `fitWidth`/Property 6).
+  - **Reduced motion (R20.5):** `cardHover` resolved under reduced motion returns the resting state with no hover transition (existing motion-system behavior).
+
 ## Data Models
 
 These are lightweight value objects (plain JS), not persisted entities.
@@ -229,6 +413,46 @@ interface MotionContextValue {
   resolveVariants: (name: string, opts?: { essential?: boolean }) => MotionVariant;
   staggerDelay: (index: number) => number; // seconds
 }
+
+// --- Second wave: motion-system migration value objects (Requirements 9–20) ---
+
+// TrendingCarousel auto-advance state machine (carousel.js). Pure state; the
+// React component owns the actual setInterval/clearInterval and event wiring.
+interface CarouselState {
+  index: number;          // current slide, always in [0, count)
+  count: number;          // number of slides
+  hovered: boolean;       // pointer is over the carousel (pause)
+  focused: boolean;       // keyboard focus is within the carousel (pause)
+  userPaused: boolean;    // explicit pause/stop toggle (halts until resume)
+  reducedMotion: boolean; // prefers-reduced-motion (disables auto-advance)
+}
+
+type CarouselAction =
+  | { type: 'NEXT' }
+  | { type: 'PREV' }
+  | { type: 'GOTO'; index: number }
+  | { type: 'HOVER_START' } | { type: 'HOVER_END' }
+  | { type: 'FOCUS_IN' } | { type: 'FOCUS_OUT' }
+  | { type: 'PAUSE' } | { type: 'RESUME' }
+  | { type: 'SET_REDUCED_MOTION'; value: boolean };
+
+// Deterministic skeleton placeholder spec (skeleton.js).
+interface SkeletonDimensionOpts {
+  min: number;            // lower bound (px or %)
+  max: number;            // upper bound (px or %)
+  group?: number;         // distinguishes layout groups (e.g. meta vs genres)
+}
+
+// Sticky offset for the Discovery sort control (stickyOffset.js).
+// A single number (px) equal to the rendered header height, floored to >= 0,
+// also surfaced as the `--header-height` CSS variable.
+type StickyOffsetPx = number;
+
+// Hero height bound (media.js).
+interface HeroSizeInput {
+  viewportHeightPx: number;
+  landscape: boolean;     // viewport width > height at the mobile breakpoint
+}
 ```
 
 Persistence: only the active theme is persisted (`localStorage['theme']`). Breakpoint and motion states are derived at runtime from `matchMedia`.
@@ -238,6 +462,8 @@ Persistence: only the active theme is persisted (`localStorage['theme']`). Break
 *A property is a characteristic or behavior that should hold true across all valid executions of a system — essentially, a formal statement about what the system should do. Properties serve as the bridge between human-readable specifications and machine-verifiable correctness guarantees.*
 
 The properties below apply to the **responsive core** of this feature — the pure functions that decide breakpoints, typography sizes, touch-target dimensions, motion configuration, and theme state transitions. These functions have large input spaces (any viewport width, any element size, any body size, any theme transition) and clear input/output behavior, so universal properties are meaningful. The visual, layout, contrast, and accessibility concerns are validated separately with example, integration, and accessibility-audit tests (see Testing Strategy), because they are not input-varying pure logic.
+
+Properties 1–14 cover the first wave (responsive/motion/theme foundation). Properties 15–21 cover the second-wave pure logic introduced for the motion-system migration (Requirements 9–20): the carousel auto-advance state machine, the header-aware sticky offset, deterministic skeleton dimensions, the decorative-loop gate, the hero-height bound, and the bounded card-hover scale. The new named variants (`carouselSlide`, `heroEnter`, `discoveryTransition`) are added to the existing `VARIANTS` table, so Properties 8, 10, and 11 — which quantify over *any* named variant — extend to them automatically.
 
 ### Property 1: Breakpoint resolution partitions viewport widths
 
@@ -273,7 +499,7 @@ The properties below apply to the **responsive core** of this feature — the pu
 
 *For any* source image dimensions and any container width, the computed display height fills the container width and preserves the source aspect ratio within a tolerance of plus or minus 1 percent.
 
-**Validates: Requirements 4.4**
+**Validates: Requirements 4.4, 20.4**
 
 ### Property 7: List entrance stagger delay stays within bounds
 
@@ -283,27 +509,27 @@ The properties below apply to the **responsive core** of this feature — the pu
 
 ### Property 8: Animation durations stay within their budgets and terminate in the correct visual state
 
-*For any* named motion variant, `resolveVariants(name)` produces a transition duration no greater than 600 milliseconds (no greater than 300 milliseconds for hover/card variants); page-enter and modal-enter variants terminate at 100% opacity, and the modal-exit variant terminates at 0% opacity.
+*For any* named motion variant, `resolveVariants(name)` produces a transition duration no greater than 600 milliseconds (no greater than 300 milliseconds for hover/card variants); page-enter and modal-enter variants terminate at 100% opacity, and the modal-exit variant terminates at 0% opacity. This holds for the second-wave variants `carouselSlide`, `heroEnter`, and `discoveryTransition` as well.
 
-**Validates: Requirements 6.1, 6.3, 6.4, 6.5, 6.6**
+**Validates: Requirements 6.1, 6.3, 6.4, 6.5, 6.6, 9.1, 13.1, 13.2, 17.4, 20.1**
 
 ### Property 9: Card hover transition returns to its resting state
 
 *For any* card hover variant, the visual state after the hover or focus ends is equal to the resting (initial) state, so hovering and then un-hovering is a round trip with no residual change.
 
-**Validates: Requirements 6.5**
+**Validates: Requirements 6.5, 20.2**
 
 ### Property 10: Reduced motion yields the final state with no transition or displacement
 
-*For any* non-essential named variant resolved with `reducedMotion = true`, the effective transition duration is 0 and the animated state equals the final visual state with no positional (x/y) displacement and no intermediate opacity transition.
+*For any* non-essential named variant resolved with `reducedMotion = true`, the effective transition duration is 0 and the animated state equals the final visual state with no positional (x/y) displacement and no intermediate opacity transition. This includes the second-wave variants `carouselSlide`, `heroEnter`, and `discoveryTransition`.
 
-**Validates: Requirements 2.9, 6.7, 7.1**
+**Validates: Requirements 2.9, 6.7, 7.1, 9.2, 13.3, 17.4, 20.5**
 
 ### Property 11: Essential animations under reduced motion limit positional displacement
 
-*For any* essential named variant resolved with `reducedMotion = true`, the animation is retained but its positional displacement never exceeds 5 pixels on any axis.
+*For any* essential named variant resolved with `reducedMotion = true`, the animation is retained but its positional displacement never exceeds 5 pixels on any axis. This includes the loader/shimmer essential variant.
 
-**Validates: Requirements 7.3**
+**Validates: Requirements 7.3, 9.2, 15.4**
 
 ### Property 12: Theme token resolution is independent of breakpoint
 
@@ -323,6 +549,48 @@ The properties below apply to the **responsive core** of this feature — the pu
 
 **Validates: Requirements 8.4**
 
+### Property 15: Carousel slide index stays in range and wraps
+
+*For any* slide count greater than zero and any sequence of `NEXT`/`PREV` actions, the carousel's current index always remains within `[0, count)`, and advancing `count` times (or retreating `count` times) returns to the original index, so navigation wraps modularly with no out-of-range slide.
+
+**Validates: Requirements 10.1**
+
+### Property 16: Auto-advance runs only when nothing suppresses it
+
+*For any* carousel state, `isAutoAdvancing(state)` is true if and only if the slide count is greater than one and none of `hovered`, `focused`, `userPaused`, or `reducedMotion` hold; consequently a user pause halts auto-advance until an explicit resume, and hover, focus-within, or reduced motion each independently suspend it.
+
+**Validates: Requirements 10.2, 10.3, 10.5, 10.6**
+
+### Property 17: Decorative and parallax animations are gated off when reduced or hidden
+
+*For any* combination of `reducedMotion` and `visible` flags, `shouldRunDecorative({ reducedMotion, visible })` returns true only when the element is visible and reduced motion is not active, so every looping decorative animation and pointer-parallax update is suspended whenever the element is hidden at the current breakpoint or the user prefers reduced motion.
+
+**Validates: Requirements 9.3, 16.1, 16.2, 16.4**
+
+### Property 18: Sticky offset equals the header height with no gap or overlap
+
+*For any* rendered header height, `stickyOffset(height)` returns a non-negative offset equal to that header height (non-finite inputs floor to 0), so the pinned Discovery sort control aligns flush against the header with neither a vertical gap nor an overlap at every breakpoint.
+
+**Validates: Requirements 14.1, 14.2**
+
+### Property 19: Skeleton dimensions are deterministic and bounded
+
+*For any* placeholder index and bounds `{ min, max }`, `skeletonDimension` returns the same value on every call for the same input (so re-renders never shift layout) and that value always lies within `[min, max]`.
+
+**Validates: Requirements 15.1, 15.2**
+
+### Property 20: Hero height is bounded by viewport and orientation
+
+*For any* viewport height, `heroMaxHeight` returns at most 70 percent of the viewport height in portrait orientation and at most 80 percent in landscape orientation.
+
+**Validates: Requirements 17.1, 17.2**
+
+### Property 21: Card hover scale increase is bounded to 5 percent
+
+*For any* resolution of the `cardHover` variant under normal motion, the animated scale is at most 1.05, so a hovered or focused movie card grows by no more than 5 percent relative to its resting size.
+
+**Validates: Requirements 20.3**
+
 ## Error Handling
 
 - **Missing `window`/`matchMedia` (SSR, tests, older runtimes).** `useBreakpoint` and `useReducedMotion` guard on `typeof window` and the presence of `matchMedia`, defaulting to `desktop` and `reducedMotion = false`. The pure resolvers never touch the DOM, so they remain testable in isolation.
@@ -331,6 +599,12 @@ The properties below apply to the **responsive core** of this feature — the pu
 - **Persisted theme corruption.** On load, if `localStorage['theme']` is not one of `light`/`dark`/`dracula`, the app falls back to the OS color-scheme preference (existing behavior) and rewrites a valid value.
 - **Animation/runtime resilience.** Motion is purely presentational; if `framer-motion` variant resolution receives an unknown name, `resolveVariants` returns a no-op variant (final state, duration 0) so rendering never breaks.
 - **Reduced-motion live changes (Requirement 7.4).** The motion provider subscribes to the media query and updates context; in-flight animations are superseded by the final-state variant.
+- **Carousel state edge cases (Requirements 10, 11).** `carouselReducer` floors a slide `count` of 0 or 1 to a single static slide and `isAutoAdvancing` returns `false` (nothing to advance), so an empty/singleton carousel never starts a timer. `GOTO` clamps out-of-range indices into `[0, count)`. The component always clears the interval in the effect cleanup and whenever `isAutoAdvancing` becomes false, so timers never leak across hover/focus/pause transitions or unmount.
+- **Sticky offset / header measurement (Requirement 14).** If the header height has not yet been measured (initial render) or `ResizeObserver` is unavailable, `stickyOffset` receives a non-finite value and returns 0 (control pins to the top, no negative offset); the `--header-height` variable is updated once a measurement is available.
+- **Skeleton determinism (Requirement 15).** `skeletonDimension` never calls `Math.random()`; given malformed bounds (`min > max`) it returns the clamped `min`, and a non-finite index falls back to index 0, guaranteeing a stable, in-range value on every render.
+- **Hero sizing (Requirement 17).** `heroMaxHeight` treats non-positive or non-finite viewport heights as 0, so the hero never receives a negative max-height; orientation defaults to portrait when unknown.
+- **Decorative gating (Requirements 9, 16).** `shouldRunDecorative` is a total boolean function; any missing flag is treated as falsy, so an unknown state errs toward *not* running perpetual animation (the safer, lower-cost default).
+- **Toaster theme mapping (Requirement 19).** `toasterTheme` falls back to `'dark'` for any non-`light` theme (including `dracula`) and to `'light'` only for the explicit `light` theme, so an unexpected theme value never produces an invalid sonner theme.
 
 ## Testing Strategy
 
@@ -350,7 +624,7 @@ The frontend currently has no test runner. This design adds **Vitest** (native V
 - Each property test runs a **minimum of 100 iterations** (`{ numRuns: 100 }`).
 - Each property test is tagged with a comment referencing its design property in the format:
   `// Feature: responsive-ui-redesign, Property {number}: {property_text}`
-- Generators: widths via `fc.nat({ max: 4000 })` (with boundary seeding at 767/768/1023/1024); element sizes via `fc.record({ width: fc.nat(), height: fc.nat() })`; body sizes via `fc.integer({ min: 8, max: 40 })`; themes via `fc.constantFrom('light','dark','dracula')`; indices via `fc.nat({ max: 200 })`; variant names via `fc.constantFrom(...variantNames)`.
+- Generators: widths via `fc.nat({ max: 4000 })` (with boundary seeding at 767/768/1023/1024); element sizes via `fc.record({ width: fc.nat(), height: fc.nat() })`; body sizes via `fc.integer({ min: 8, max: 40 })`; themes via `fc.constantFrom('light','dark','dracula')`; indices via `fc.nat({ max: 200 })`; variant names via `fc.constantFrom(...variantNames)` (including `carouselSlide`, `heroEnter`, `discoveryTransition`); carousel actions via `fc.array(fc.constantFrom('NEXT','PREV','HOVER_START','HOVER_END','FOCUS_IN','FOCUS_OUT','PAUSE','RESUME'))` with slide counts via `fc.integer({ min: 0, max: 50 })`; header heights via `fc.integer({ min: -50, max: 400 })`; viewport heights via `fc.integer({ min: 0, max: 2000 })` with a boolean `landscape` flag; skeleton bounds via `fc.record({ min: fc.nat(), max: fc.nat() })`; decorative gate flags via two `fc.boolean()`.
 
 Property-to-test mapping:
 
@@ -360,10 +634,16 @@ Property-to-test mapping:
 | 3 | `touchTarget.js` | element sizes |
 | 4 | `typography.js` `clampBodySize` | body size × breakpoint |
 | 5 | `typography.js` `scaleHeading` | body size × ratio |
-| 6 | media aspect-ratio helper | source dims × container width |
+| 6 | media aspect-ratio helper (`fitWidth`) | source dims × container width |
 | 7 | `motion.js` `staggerDelay` | index |
-| 8, 9, 10, 11 | `motion.js` `resolveVariants` | variant name × reducedMotion flag |
+| 8, 9, 10, 11 | `motion.js` `resolveVariants` (incl. `carouselSlide`/`heroEnter`/`discoveryTransition`) | variant name × reducedMotion flag |
 | 12, 13, 14 | theme reducer / token resolver | theme × breakpoint sequence |
+| 15, 16 | `carousel.js` `carouselReducer` / `isAutoAdvancing` / `nextIndex` | slide count × action sequences × state flags |
+| 17 | `motion.js` `shouldRunDecorative` | reducedMotion × visible booleans |
+| 18 | `stickyOffset.js` `stickyOffset` | header heights (incl. negative/non-finite) |
+| 19 | `skeleton.js` `skeletonDimension` | index × bounds |
+| 20 | `media.js` `heroMaxHeight` | viewport height × orientation |
+| 21 | `motion.js` `resolveVariants('cardHover')` | (bound assertion; reducedMotion flag) |
 
 ### Example / unit tests
 
@@ -373,6 +653,13 @@ Property-to-test mapping:
 - Long text in a fixed-width container applies `line-clamp-3` with ellipsis (4.5).
 - Poster images render with non-empty `alt` (5.4).
 - Theme change updates `document.documentElement[data-theme]` and re-renders tokens (8.2).
+- **Carousel (R10, R11):** the pause/stop control renders, is labelled, and uses `normalizeTouchTarget` (10.4); the auto-advance interval fires at 8000ms via fake timers (10.1); each refactored component sources its variants from `useAppMotion()` rather than inline literals (9.1).
+- **Discovery (R13):** the motion element's `key` changes with `type`+`sort` so `AnimatePresence` re-animates (13.1, 13.2); structural check that the `key` is present (regression against the dead-transition bug).
+- **FancyLoader (R15):** a single shimmer mechanism is used across placeholders (15.3); skeleton widths are identical across two renders (15.1, 15.2).
+- **Hero (R17):** only one scale transform source feeds the hero image node (17.3).
+- **NotFound (R16):** with fake `requestAnimationFrame`, many synchronous `pointermove` events yield at most one parallax state update per frame (16.3).
+- **Toaster (R19):** for each theme the Toaster receives the correct sonner theme, and `dracula` maps to a dark-based theme with dracula tokens (19.1, 19.2).
+- **MovieCard (R20):** exactly one hover transform driver remains after migration (20.1); the poster uses a standard aspect-ratio utility instead of `h-30` (20.4).
 
 ### Integration / accessibility tests
 
@@ -380,7 +667,12 @@ Property-to-test mapping:
 - Simulate `matchMedia` change events and assert `useBreakpoint` updates state (1.4).
 - `jest-axe` audits for accessible names, focus order, and no focus traps (5.1, 5.2, 5.3, 5.7).
 - Per-theme contrast checks using a contrast utility over the design tokens for normal and large text (5.5, 5.6).
-- Reduced-motion: with `prefers-reduced-motion: reduce`, controls are immediately present and operable (7.2); toggling the preference mid-animation snaps to final state (7.4).
+- Reduced-motion: with `prefers-reduced-motion: reduce`, controls are immediately present and operable (7.2); toggling the preference mid-animation snaps to final state (7.4, 9.4).
+- **Carousel content fit (R11):** render the carousel at 375/768/1024/1440 and assert the container contains the tallest slide (`scrollHeight <= clientHeight` within the slide region), no slide content is clipped, and the nav controls do not overlap the content box (11.1–11.4).
+- **Discovery sticky alignment (R14):** assert the pinned sort control's top offset equals the rendered header height with no gap/overlap across breakpoints (14.1, 14.2).
+- **Animated decoration cost (R16):** with `AnimatedCharater` hidden at the mobile breakpoint, assert it is unmounted (no running loops), not merely visually hidden (16.1); under reduced motion assert decorative elements render in final state (16.2).
+- **Desktop sidebar keyboard a11y (R18):** focusing a nav control expands the sidebar (18.1); the expanded state is reachable by keyboard and touch without hover (18.2); the main content's horizontal start position is unchanged across collapse/expand (18.3); reduced motion suppresses the width transition (18.4).
+- **Theme tokens in animated components (R12, R19):** render `TrendingCarousel`, `EpisodeModal`, `FancyLoader`, `NotFound`, and toasts under each theme and assert computed colors derive from the active theme's tokens (not slate/gray/indigo/white literals), with dracula rendering distinctly (12.1–12.3, 19.1–19.3). A lint/grep guard flags reintroduced color literals in these components.
 
 ### Why property-based testing is scoped to the core
 

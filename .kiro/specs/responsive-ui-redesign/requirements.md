@@ -19,6 +19,19 @@ The application is a React + Vite single-page application styled with Tailwind C
 - **Reduced_Motion_Preference**: The operating-system or browser setting expressed by the `prefers-reduced-motion: reduce` media query.
 - **Primary_Page**: Any of the main routed views: Home, Discovery, Film Details, Watchlist, Profile, Settings, Chat, Notifications, and Authentication.
 - **Theme**: The active visual color scheme selected through daisyUI (light, dark, or dracula).
+- **App_Motion_Interface**: The shared motion system entry points (`useAppMotion`, `resolveVariants`, `staggerDelay`) defined in `src/lib/responsive/motion.js` through which components request named, reduced-motion-aware animation variants instead of hardcoded framer-motion or CSS animation values.
+- **Decorative_Animation**: A non-essential, looping or perpetual animation that conveys no loading, progress, or state-change information (for example sparkles, color-cycling text, perpetual SVG motion, image zoom, or parallax).
+- **Carousel**: The `TrendingCarousel` component that presents trending titles as a sequence of slides with navigation controls.
+- **Auto_Advance**: The Carousel behavior that automatically transitions from the current slide to the next slide after a fixed time interval without user interaction.
+- **Hero_Section**: The `FeaturedHeroSection` component that presents a featured title with a large background image at the top of the Home page.
+- **Episode_Modal**: The `EpisodeModal` dialog component that displays episode details.
+- **Skeleton_Loader**: The `FancyLoader` component that renders placeholder skeleton elements while content is loading.
+- **Not_Found_Page**: The `NotFound` routed view shown for unmatched routes.
+- **Animated_Character**: The `AnimatedCharater` decorative SVG component rendered within the Not_Found_Page.
+- **Discovery_Page**: The Discovery Primary_Page, including its content-type filter and sort control.
+- **Desktop_Sidebar**: The `DesktopSidebar` navigation component shown at the Desktop_Breakpoint.
+- **Toast_System**: The `Toaster` component and the toast notifications it renders.
+- **Movie_Card**: The `MovieCard` component that presents a single movie item.
 
 ## Requirements
 
@@ -124,3 +137,133 @@ The application is a React + Vite single-page application styled with Tailwind C
 2. WHEN a user changes the active Theme, THE UI_System SHALL apply the new Theme to all currently rendered components within 500 milliseconds.
 3. WHEN the viewport width changes across the Mobile_Breakpoint, the Tablet_Breakpoint, or the Desktop_Breakpoint, THE UI_System SHALL retain the active Theme without reverting to any other Theme and without requiring a page reload.
 4. IF applying a changed Theme to one or more rendered components fails, THEN THE UI_System SHALL retain the previously active Theme on all components and present a visible indication that the Theme change did not complete.
+
+### Requirement 9: Motion System Compliance for Hardcoded-Motion Components
+
+**User Story:** As a motion-sensitive user, I want every highly-animated component to honor my reduced-motion setting, so that I am not exposed to animations that bypass the application's motion controls.
+
+#### Acceptance Criteria
+
+1. THE Motion_System SHALL drive the entrance, transition, and looping animations of the Carousel, the Hero_Section, the Not_Found_Page, the Animated_Character, the Episode_Modal, the Discovery_Page transition, and the Skeleton_Loader through the App_Motion_Interface rather than hardcoded framer-motion or CSS animation values.
+2. WHERE the Reduced_Motion_Preference is enabled, THE Motion_System SHALL render the Carousel, the Hero_Section, the Not_Found_Page, the Animated_Character, the Episode_Modal, the Discovery_Page transition, and the Skeleton_Loader in their final visual state with an effective transition duration of 0 milliseconds and no positional displacement exceeding 5 pixels.
+3. WHERE the Reduced_Motion_Preference is enabled, THE Motion_System SHALL halt every looping Decorative_Animation in the listed components such that no new animation iteration begins after the preference becomes active.
+4. WHEN the Reduced_Motion_Preference becomes active while any listed component animation is in progress, THE Motion_System SHALL set the affected component to its final visual state within 100 milliseconds.
+
+### Requirement 10: Carousel Auto-Advance Controls
+
+**User Story:** As a user, I want to pause or stop the trending carousel, so that I can read its content without it moving away from me (WCAG 2.2.2 Pause, Stop, Hide).
+
+#### Acceptance Criteria
+
+1. WHILE Auto_Advance is active, THE Carousel SHALL advance from the current slide to the next slide every 8 seconds.
+2. WHEN a pointer hovers over the Carousel, THE Carousel SHALL pause Auto_Advance for the duration of the hover.
+3. WHILE keyboard focus is within the Carousel, THE Carousel SHALL pause Auto_Advance.
+4. THE Carousel SHALL render a Touch_Target control that allows a user to pause or stop Auto_Advance.
+5. WHEN a user activates the pause or stop control, THE Carousel SHALL halt Auto_Advance until the user explicitly resumes it.
+6. WHERE the Reduced_Motion_Preference is enabled, THE Carousel SHALL disable Auto_Advance such that no automatic slide transition occurs.
+
+### Requirement 11: Carousel Content Fit
+
+**User Story:** As a mobile user, I want every carousel slide to fit its container, so that titles, descriptions, buttons, and navigation arrows are not clipped or overlapping.
+
+#### Acceptance Criteria
+
+1. THE Carousel SHALL size its container height to fully contain the tallest slide's content (image, title, multi-line description, and stacked action controls) at the Mobile_Breakpoint, the Tablet_Breakpoint, and the Desktop_Breakpoint.
+2. THE Carousel SHALL render every slide's content within the container bounds such that no content is visually clipped or truncated at any defined breakpoint.
+3. THE Carousel SHALL position its navigation controls such that the controls do not overlap slide content at the Mobile_Breakpoint, the Tablet_Breakpoint, or the Desktop_Breakpoint.
+4. IF a slide's content height exceeds the current container height, THEN THE Carousel SHALL increase the container height to contain the content without introducing overlap of the navigation controls.
+
+### Requirement 12: Theme Token Compliance in Animated Components
+
+**User Story:** As a user of the dracula theme, I want the animated components to follow my theme, so that the interface stays visually consistent.
+
+#### Acceptance Criteria
+
+1. THE UI_System SHALL render the Carousel, the Episode_Modal, the Skeleton_Loader, and the Not_Found_Page using the active Theme's design tokens for all foreground, background, surface, and accent colors.
+2. WHILE any Theme (light, dark, or dracula) is active, THE UI_System SHALL render the Carousel, the Episode_Modal, the Skeleton_Loader, and the Not_Found_Page using that Theme's defined token values rather than hardcoded slate, gray, indigo, or white color literals.
+3. WHEN a user changes the active Theme, THE UI_System SHALL apply the new Theme to the Carousel, the Episode_Modal, the Skeleton_Loader, and the Not_Found_Page within 500 milliseconds.
+
+### Requirement 13: Discovery View Transition
+
+**User Story:** As a user browsing the Discovery page, I want the content to visibly transition when I change the type or sort order, so that the change is clear and the transition is not dead.
+
+#### Acceptance Criteria
+
+1. WHEN the selected content type changes on the Discovery_Page, THE Motion_System SHALL animate the Discovery_Page content from 0% to 100% opacity into its final position within 600 milliseconds.
+2. WHEN the selected sort order changes on the Discovery_Page, THE Motion_System SHALL animate the Discovery_Page content transition from 0% to 100% opacity into its final position within 600 milliseconds.
+3. WHERE the Reduced_Motion_Preference is enabled, THE Motion_System SHALL render the Discovery_Page content in its final visual state without transition animation when the content type or sort order changes.
+
+### Requirement 14: Discovery Sticky Control Alignment
+
+**User Story:** As a user, I want the Discovery sort control to align with the header as I scroll, so that there is no visual gap or overlap.
+
+#### Acceptance Criteria
+
+1. WHILE the user scrolls the Discovery_Page, THE UI_System SHALL pin the sort control at a vertical offset equal to the rendered height of the header bar at the Mobile_Breakpoint, the Tablet_Breakpoint, and the Desktop_Breakpoint.
+2. THE UI_System SHALL render the pinned sort control with no vertical gap and no overlap between the sort control and the header bar at the Mobile_Breakpoint, the Tablet_Breakpoint, and the Desktop_Breakpoint.
+
+### Requirement 15: Stable Skeleton Placeholders
+
+**User Story:** As a user, I want loading skeletons to stay stable, so that the layout does not flicker or shift while content loads.
+
+#### Acceptance Criteria
+
+1. THE Skeleton_Loader SHALL render each skeleton placeholder element with deterministic dimensions that remain identical across re-renders for the same content layout.
+2. WHEN the Skeleton_Loader re-renders, THE Skeleton_Loader SHALL preserve the width and height of each placeholder element such that no layout shift occurs.
+3. THE Skeleton_Loader SHALL apply a single shimmer animation technique to its placeholder elements.
+4. WHERE the Reduced_Motion_Preference is enabled, THE Skeleton_Loader SHALL present the shimmer as a non-positional change with no positional displacement exceeding 5 pixels.
+
+### Requirement 16: Offscreen and Reduced-Motion Decorative Cost
+
+**User Story:** As a user, I want decorative animations to stop when they are not visible or when I prefer reduced motion, so that the application does not waste resources or cause discomfort.
+
+#### Acceptance Criteria
+
+1. WHILE the Animated_Character is hidden at the current breakpoint, THE Motion_System SHALL suspend the Animated_Character's Decorative_Animation such that no animation iteration runs.
+2. WHERE the Reduced_Motion_Preference is enabled, THE Motion_System SHALL halt all Decorative_Animation on the Not_Found_Page and the Animated_Character and render them in their final visual state.
+3. WHEN the user moves the pointer over the Not_Found_Page, THE Not_Found_Page SHALL update its pointer-parallax state at most once per rendered animation frame (approximately every 16 milliseconds).
+4. WHERE the Reduced_Motion_Preference is enabled, THE Not_Found_Page SHALL disable pointer-parallax state updates.
+
+### Requirement 17: Hero Section Sizing and Scale
+
+**User Story:** As a user on a short or landscape mobile viewport, I want the hero to fit my screen and animate smoothly, so that it does not dominate the view or appear janky.
+
+#### Acceptance Criteria
+
+1. WHILE the viewport is at the Mobile_Breakpoint, THE Hero_Section SHALL constrain its rendered height to no more than 70 percent of the viewport height.
+2. WHILE the viewport is at the Mobile_Breakpoint AND the viewport width is greater than the viewport height (landscape orientation), THE Hero_Section SHALL constrain its rendered height to no more than 80 percent of the viewport height.
+3. THE Hero_Section SHALL apply scale animation from a single source such that no more than one scale transformation is applied to the hero image node at any time.
+4. WHERE the Reduced_Motion_Preference is enabled, THE Hero_Section SHALL render the hero image at its final scale with no entrance zoom and no scroll parallax motion.
+
+### Requirement 18: Desktop Sidebar Keyboard Accessibility
+
+**User Story:** As a keyboard or touch user, I want to reach the expanded desktop navigation, so that I am not limited to mouse hover.
+
+#### Acceptance Criteria
+
+1. WHEN any navigation control within the Desktop_Sidebar receives keyboard focus, THE Navigation_System SHALL render the Desktop_Sidebar in its expanded state.
+2. THE Navigation_System SHALL make the expanded Desktop_Sidebar navigation state reachable through keyboard focus and touch activation without requiring a pointer hover.
+3. WHILE the Desktop_Sidebar transitions between its collapsed and expanded states, THE Layout_Manager SHALL keep the horizontal start position of the main content area unchanged so that pointer crossing does not reflow the main content.
+4. WHERE the Reduced_Motion_Preference is enabled, THE Motion_System SHALL render the Desktop_Sidebar expansion and collapse without transitional motion.
+
+### Requirement 19: Toast Theme Consistency
+
+**User Story:** As a user of the dracula theme, I want toast notifications to match my theme, so that notifications do not render with the wrong colors.
+
+#### Acceptance Criteria
+
+1. WHILE any Theme (light, dark, or dracula) is active, THE Toast_System SHALL render toast notifications using the active Theme's design tokens.
+2. WHILE the dracula Theme is active, THE Toast_System SHALL render toast notifications using the dracula token values rather than the light or dark token values.
+3. WHEN a user changes the active Theme, THE Toast_System SHALL render subsequently displayed toast notifications using the new Theme within 500 milliseconds.
+
+### Requirement 20: Movie Card Hover Coherence
+
+**User Story:** As a user, I want a single coherent hover effect on movie cards, so that the card does not animate in multiple competing directions.
+
+#### Acceptance Criteria
+
+1. WHEN a user hovers or focuses a Movie_Card at the Desktop_Breakpoint, THE Motion_System SHALL apply a single coherent hover transition through the App_Motion_Interface that completes within 300 milliseconds.
+2. WHEN the hover or focus on a Movie_Card ends, THE Motion_System SHALL return the Movie_Card to its resting visual state within 300 milliseconds.
+3. THE Movie_Card SHALL bound its hover scale transformation such that the combined rendered size increases by no more than 5 percent relative to the resting size.
+4. THE Movie_Card SHALL render its poster image at a fixed aspect ratio that preserves the source aspect ratio within plus or minus 1 percent using a standard sizing utility.
+5. WHERE the Reduced_Motion_Preference is enabled, THE Motion_System SHALL render the Movie_Card in its resting visual state without hover transition motion.
