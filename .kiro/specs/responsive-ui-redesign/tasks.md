@@ -8,8 +8,8 @@ All paths are relative to the `Frontend/` project root. The implementation langu
 
 ## Tasks
 
-- [ ] 1. Set up test tooling and responsive core directory
-  - [ ] 1.1 Install and configure the test runner and PBT/a11y libraries
+- [x] 1. Set up test tooling and responsive core directory
+  - [x] 1.1 Install and configure the test runner and PBT/a11y libraries
     - Add dev dependencies: `vitest`, `@testing-library/react`, `@testing-library/jest-dom`, `jsdom`, `fast-check`, `jest-axe`
     - Configure Vitest in `vite.config.js` (or `vitest.config.js`) with `environment: 'jsdom'`, `globals: true`, and a `setupTests.js` that registers `@testing-library/jest-dom` and `jest-axe` matchers
     - Add `test` and `test:run` scripts to `package.json` (use `vitest run` for single-run execution)
