@@ -108,7 +108,7 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - `fast-check` essential variant × `reducedMotion = true`, assert displacement <= 5px on any axis, `{ numRuns: 100 }`, tagged comment
 
 - [ ] 7. Implement theme reducer and token resolver
-  - [ ] 7.1 Implement theme state reducer
+  - [x] 7.1 Implement theme state reducer
     - Create `src/lib/responsive/theme.js` with a pure reducer over `{ theme, previous }` for `light`/`dark`/`dracula`, an `applyTheme` action that rolls back to `previous` and sets an error flag on failure, and a `resolveTokens(theme)` helper that returns token values independent of breakpoint
     - _Requirements: 8.1, 8.3, 8.4_
 
