@@ -130,12 +130,12 @@ All paths are relative to the `Frontend/` project root. The implementation langu
 - [ ] 8. Checkpoint - responsive core complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 9. Implement responsive hooks
+- [x] 9. Implement responsive hooks
   - [x] 9.1 Implement `useBreakpoint`
     - Create `src/hooks/useBreakpoint.js` using `window.matchMedia(breakpointQuery(...))` with change listeners, delegating to `resolveBreakpoint`; return `{ breakpoint, isMobile, isTablet, isDesktop }`; guard `typeof window`/`matchMedia` and default to `desktop`
     - _Requirements: 1.4, 1.1, 1.2, 1.3_
 
-  - [ ] 9.2 Write unit tests for `useBreakpoint`
+  - [x] 9.2 Write unit tests for `useBreakpoint`
     - Simulate `matchMedia` change events and assert state updates; assert SSR-safe `desktop` default
     - _Requirements: 1.4_
 
@@ -143,7 +143,7 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - Create `src/hooks/useReducedMotion.js` tracking `prefers-reduced-motion: reduce` live; guard missing `matchMedia` and default to `false`
     - _Requirements: 7.1, 7.4_
 
-  - [ ] 9.4 Write unit tests for `useReducedMotion`
+  - [x] 9.4 Write unit tests for `useReducedMotion`
     - Assert live updates on media query change and safe default
     - _Requirements: 7.4_
 
@@ -151,12 +151,12 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - Update `src/hooks/useThemeToggle.js` (export `useTheme`) to support `['light','dark','dracula']`, persist to `localStorage['theme']`, set `data-theme` and `.dark` class, fall back to OS preference on corrupt persisted value, and surface a `sonner` toast on apply failure (delegating state to the theme reducer)
     - _Requirements: 8.2, 8.4_
 
-  - [ ] 9.6 Write unit tests for `useTheme`
+  - [x] 9.6 Write unit tests for `useTheme`
     - Assert `data-theme` update and token re-render on change (8.2); assert corrupt-value fallback and rollback-with-toast on failure
     - _Requirements: 8.2, 8.4_
 
 - [ ] 10. Implement motion provider
-  - [ ] 10.1 Implement `MotionConfigProvider` and `useAppMotion`
+  - [x] 10.1 Implement `MotionConfigProvider` and `useAppMotion`
     - Create `src/context/MotionConfigProvider.jsx` wrapping framer-motion's `MotionConfig` with `reducedMotion="user"`, reading `useReducedMotion`, and exposing `useAppMotion()` with `resolveVariants(name, opts)` and `staggerDelay(index)` from the responsive core
     - _Requirements: 6.7, 7.1, 7.4_
 
