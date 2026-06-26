@@ -37,6 +37,44 @@ export function resolveBreakpoint(width) {
 }
 
 /**
+ * Per-breakpoint layout column counts, in CSS-grid terms.
+ *
+ * Mobile is a single stacked column, tablet is capped at two columns, and
+ * desktop uses a multi-column (>2) layout (Requirements 1.1, 1.2, 1.3).
+ * @type {{ mobile: number, tablet: number, desktop: number }}
+ */
+export const LAYOUT_COLUMNS = { mobile: 1, tablet: 2, desktop: 3 };
+
+/**
+ * Resolve the layout selection for a viewport width.
+ *
+ * The three layout facets are decided together from the breakpoint so they stay
+ * mutually consistent (Requirement 2 derives from the same breakpoint as the
+ * column count and right-sidebar visibility):
+ *
+ *   - `columns`             : 1 at mobile, 2 at tablet (the cap), 3+ at desktop.
+ *   - `navMode`             : `'overlay'` for every sub-desktop width (mobile and
+ *                             tablet share the collapsed overlay), `'sidebar'` at
+ *                             desktop (the expandable left sidebar).
+ *   - `rightSidebarVisible` : `true` only at desktop; hidden at mobile and tablet.
+ *
+ * Out-of-range or invalid widths resolve via `resolveBreakpoint` to `'mobile'`,
+ * yielding the smallest, safest layout.
+ *
+ * @param {number} width - Viewport width in CSS pixels.
+ * @returns {{ columns: number, navMode: 'overlay' | 'sidebar', rightSidebarVisible: boolean }}
+ */
+export function resolveLayout(width) {
+    const breakpoint = resolveBreakpoint(width);
+    const isDesktop = breakpoint === 'desktop';
+    return {
+        columns: LAYOUT_COLUMNS[breakpoint],
+        navMode: isDesktop ? 'sidebar' : 'overlay',
+        rightSidebarVisible: isDesktop,
+    };
+}
+
+/**
  * Build a `matchMedia`-compatible query string for a breakpoint name, derived
  * from BREAKPOINTS so CSS and JS stay in sync.
  *

@@ -9,7 +9,13 @@
 // Modules are added by subsequent tasks (breakpoints.js, typography.js,
 // touchTarget.js, media.js, motion.js, theme.js) and re-exported here.
 
-export { BREAKPOINTS, resolveBreakpoint, breakpointQuery } from './breakpoints.js'
+export {
+    BREAKPOINTS,
+    LAYOUT_COLUMNS,
+    resolveBreakpoint,
+    resolveLayout,
+    breakpointQuery,
+} from './breakpoints.js'
 export {
     BODY_MIN,
     BODY_MAX,
