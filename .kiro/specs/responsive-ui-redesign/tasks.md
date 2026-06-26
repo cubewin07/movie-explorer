@@ -17,7 +17,7 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - _Requirements: supports testing strategy for all requirements_
 
 - [ ] 2. Implement breakpoint resolution and layout mapping
-  - [ ] 2.1 Implement `breakpoints.js` core
+  - [x] 2.1 Implement `breakpoints.js` core
     - Create `src/lib/responsive/breakpoints.js` exporting `BREAKPOINTS = { mobile: 0, tablet: 768, desktop: 1024 }`, `resolveBreakpoint(width)`, and `breakpointQuery(name)`
     - `resolveBreakpoint` maps `<768 → 'mobile'`, `768–1023 → 'tablet'`, `>=1024 → 'desktop'`; treat negative/`NaN` widths as `'mobile'`
     - _Requirements: 1.1, 1.2, 1.3_
@@ -36,8 +36,8 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - **Validates: Requirements 1.1, 1.2, 1.3, 2.1, 2.4, 2.5**
     - `fast-check` widths (boundary-seeded), `{ numRuns: 100 }`, tagged comment
 
-- [ ] 3. Implement typography scaling core
-  - [ ] 3.1 Implement `typography.js`
+- [x] 3. Implement typography scaling core
+  - [x] 3.1 Implement `typography.js`
     - Create `src/lib/responsive/typography.js` with `BODY_MIN`, `BODY_MAX`, `HEADING_MIN_RATIO`, `HEADING_MAX_RATIO`, `clampBodySize(px, breakpoint)`, and `scaleHeading(bodyPx, ratio)`
     - `clampBodySize` returns `>= 16` at mobile and `[16, 20]` at tablet/desktop; `scaleHeading` clamps result into `[1.25x, 2.5x]` of body size
     - _Requirements: 4.1, 4.2, 4.3_
@@ -63,8 +63,8 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - **Validates: Requirements 2.7, 3.1, 3.4**
     - `fast-check` element sizes via `fc.record({ width: fc.nat(), height: fc.nat() })`, `{ numRuns: 100 }`, tagged comment
 
-- [ ] 5. Implement media aspect-ratio helper
-  - [ ] 5.1 Implement aspect-ratio helper
+- [x] 5. Implement media aspect-ratio helper
+  - [x] 5.1 Implement aspect-ratio helper
     - Create `src/lib/responsive/media.js` with `fitWidth({ srcWidth, srcHeight }, containerWidth)` returning a display height that fills the container width and preserves source aspect ratio
     - _Requirements: 4.4_
 
@@ -74,7 +74,7 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - `fast-check` source dims × container width, assert ratio within ±1%, `{ numRuns: 100 }`, tagged comment
 
 - [ ] 6. Implement motion core
-  - [ ] 6.1 Implement `motion.js` constants, variants, and `staggerDelay`
+  - [x] 6.1 Implement `motion.js` constants, variants, and `staggerDelay`
     - Create `src/lib/responsive/motion.js` with `MOTION` budgets, named variant definitions (page enter, item enter, modal enter/exit, card hover, mobileNav), and `staggerDelay(index, perItemMs = 60)` clamped to `[50,150]` ms and returned in seconds
     - _Requirements: 6.2_
 
