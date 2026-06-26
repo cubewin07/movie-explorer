@@ -52,8 +52,8 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - **Validates: Requirements 4.3**
     - `fast-check` body size × ratio, `{ numRuns: 100 }`, tagged comment
 
-- [ ] 4. Implement touch-target normalization core
-  - [ ] 4.1 Implement `touchTarget.js`
+- [x] 4. Implement touch-target normalization core
+  - [x] 4.1 Implement `touchTarget.js`
     - Create `src/lib/responsive/touchTarget.js` with `MIN_TOUCH_PX = 44`, `MIN_GAP_PX = 8`, and `normalizeTouchTarget({ width, height })`
     - Floor negative sizes to 0; return `minWidth/minHeight >= 44` and symmetric `padX/padY` that compensate without shrinking the visible content box
     - _Requirements: 2.7, 3.1, 3.4_

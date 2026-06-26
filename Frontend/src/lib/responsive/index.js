@@ -18,5 +18,10 @@ export {
     clampBodySize,
     scaleHeading,
 } from './typography.js'
+export {
+    MIN_TOUCH_PX,
+    MIN_GAP_PX,
+    normalizeTouchTarget,
+} from './touchTarget.js'
 export { fitWidth } from './media.js'
 export { MOTION, VARIANTS, staggerDelay } from './motion.js'
