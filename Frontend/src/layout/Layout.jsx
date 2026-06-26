@@ -15,6 +15,7 @@ import ChatProvider from '@/context/ChatProvider';
 import FilmModalProvider from '@/context/FilmModalProvider';
 import WebsocketProvider from '@/context/Websocket/WebsocketProvider';
 import { RecommendationFreshnessProvider } from '@/context/RecommendationFreshnessProvider';
+import { MotionConfigProvider } from '@/context/MotionConfigProvider';
 
 
 import Login from '@/components/pages/Authentication/Login';
@@ -34,6 +35,7 @@ function Layout() {
                 <FilmModalProvider>
                     <WebsocketProvider>
                         <ChatProvider>
+                            <MotionConfigProvider>
                             <div className="min-h-screen w-full flex justify-center items-start bg-background py-4 sm:py-6 md:py-8 px-2 animate-fade-in">
                                 <div className="w-full flex rounded-2xl shadow-xl bg-card overflow-hidden border border-border h-[calc(100vh-2rem)] sm:h-[calc(100vh-3rem)] md:h-[calc(100vh-4rem)]">
                                     <aside className="h-full">
@@ -48,15 +50,15 @@ function Layout() {
                                         </ShadSidebar>
                                     </aside>
                                     <main className="flex-grow h-full overflow-y-auto bg-background text-foreground">
-                                        <div className="flex items-center justify-between py-3 px-4 sticky top-0 z-50 bg-slate-950/80 backdrop-blur-lg rounded-b-2xl border-b border-slate-800">
-                                            <h1 className="text-xl font-semibold text-white px-2 sm:px-4 cursor-pointer" onClick={() => navigate("/")}>Movie Hub</h1>
+                                        <div className="flex items-center justify-between py-3 px-4 sticky top-0 z-50 bg-card/80 text-foreground backdrop-blur-lg rounded-b-2xl border-b border-border">
+                                            <h1 className="text-xl font-semibold px-2 sm:px-4 cursor-pointer" onClick={() => navigate("/")}>Movie Hub</h1>
                                             <NotificationBell />
                                         </div>
                                         <div className="mt-4">
                                             <Outlet />
                                         </div>
                                     </main>
-                                    <aside className="hidden md:block w-64 sm:w-72 h-full bg-card">
+                                    <aside className="hidden lg:block w-64 sm:w-72 h-full bg-card">
                                         <Sidebar right={true} />
                                     </aside>
                                 </div>
@@ -84,6 +86,7 @@ function Layout() {
                                 closeButton
                                 richColors
                             />
+                            </MotionConfigProvider>
                         </ChatProvider>
                     </WebsocketProvider>
                 </FilmModalProvider>
