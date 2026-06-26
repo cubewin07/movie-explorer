@@ -16,7 +16,7 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - Create the `src/lib/responsive/` directory placeholder
     - _Requirements: supports testing strategy for all requirements_
 
-- [ ] 2. Implement breakpoint resolution and layout mapping
+- [x] 2. Implement breakpoint resolution and layout mapping
   - [x] 2.1 Implement `breakpoints.js` core
     - Create `src/lib/responsive/breakpoints.js` exporting `BREAKPOINTS = { mobile: 0, tablet: 768, desktop: 1024 }`, `resolveBreakpoint(width)`, and `breakpointQuery(name)`
     - `resolveBreakpoint` maps `<768 → 'mobile'`, `768–1023 → 'tablet'`, `>=1024 → 'desktop'`; treat negative/`NaN` widths as `'mobile'`
@@ -26,12 +26,12 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - In `breakpoints.js` (or a co-located `layoutMap.js`), add `resolveLayout(width)` returning `{ columns, navMode, rightSidebarVisible }` where columns is 1 at mobile, at most 2 at tablet, multi-column at desktop; navMode is `'overlay'` for sub-desktop and `'sidebar'` at desktop; right sidebar visible only at desktop
     - _Requirements: 1.1, 1.2, 1.3, 2.1, 2.4, 2.5_
 
-  - [ ] 2.3 Write property test for breakpoint resolution
+  - [x] 2.3 Write property test for breakpoint resolution
     - **Property 1: Breakpoint resolution partitions viewport widths**
     - **Validates: Requirements 1.1, 1.2, 1.3**
     - Use `fast-check` with `fc.nat({ max: 4000 })`, boundary-seed 767/768/1023/1024, `{ numRuns: 100 }`; tag with `// Feature: responsive-ui-redesign, Property 1: ...`
 
-  - [ ] 2.4 Write property test for layout/navigation/right-sidebar selection
+  - [x] 2.4 Write property test for layout/navigation/right-sidebar selection
     - **Property 2: Layout, navigation, and right-sidebar selection follow the breakpoint**
     - **Validates: Requirements 1.1, 1.2, 1.3, 2.1, 2.4, 2.5**
     - `fast-check` widths (boundary-seeded), `{ numRuns: 100 }`, tagged comment
@@ -73,7 +73,7 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - **Validates: Requirements 4.4**
     - `fast-check` source dims × container width, assert ratio within ±1%, `{ numRuns: 100 }`, tagged comment
 
-- [ ] 6. Implement motion core
+- [x] 6. Implement motion core
   - [x] 6.1 Implement `motion.js` constants, variants, and `staggerDelay`
     - Create `src/lib/responsive/motion.js` with `MOTION` budgets, named variant definitions (page enter, item enter, modal enter/exit, card hover, mobileNav), and `staggerDelay(index, perItemMs = 60)` clamped to `[50,150]` ms and returned in seconds
     - _Requirements: 6.2_
@@ -87,22 +87,22 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - **Validates: Requirements 6.2**
     - `fast-check` indices via `fc.nat({ max: 200 })`, `{ numRuns: 100 }`, tagged comment
 
-  - [ ] 6.4 Write property test for animation duration budgets and terminal states
+  - [x] 6.4 Write property test for animation duration budgets and terminal states
     - **Property 8: Animation durations stay within their budgets and terminate in the correct visual state**
     - **Validates: Requirements 6.1, 6.3, 6.4, 6.5, 6.6**
     - `fast-check` variant name via `fc.constantFrom(...variantNames)`, `{ numRuns: 100 }`, tagged comment
 
-  - [ ] 6.5 Write property test for card hover round trip
+  - [x] 6.5 Write property test for card hover round trip
     - **Property 9: Card hover transition returns to its resting state**
     - **Validates: Requirements 6.5**
     - `fast-check` hover variant resolution, assert post-hover state equals initial, `{ numRuns: 100 }`, tagged comment
 
-  - [ ] 6.6 Write property test for reduced-motion final state
+  - [x] 6.6 Write property test for reduced-motion final state
     - **Property 10: Reduced motion yields the final state with no transition or displacement**
     - **Validates: Requirements 2.9, 6.7, 7.1**
     - `fast-check` non-essential variant × `reducedMotion = true`, `{ numRuns: 100 }`, tagged comment
 
-  - [ ] 6.7 Write property test for essential reduced-motion displacement cap
+  - [x] 6.7 Write property test for essential reduced-motion displacement cap
     - **Property 11: Essential animations under reduced motion limit positional displacement**
     - **Validates: Requirements 7.3**
     - `fast-check` essential variant × `reducedMotion = true`, assert displacement <= 5px on any axis, `{ numRuns: 100 }`, tagged comment
@@ -131,7 +131,7 @@ All paths are relative to the `Frontend/` project root. The implementation langu
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 9. Implement responsive hooks
-  - [ ] 9.1 Implement `useBreakpoint`
+  - [x] 9.1 Implement `useBreakpoint`
     - Create `src/hooks/useBreakpoint.js` using `window.matchMedia(breakpointQuery(...))` with change listeners, delegating to `resolveBreakpoint`; return `{ breakpoint, isMobile, isTablet, isDesktop }`; guard `typeof window`/`matchMedia` and default to `desktop`
     - _Requirements: 1.4, 1.1, 1.2, 1.3_
 
@@ -139,7 +139,7 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - Simulate `matchMedia` change events and assert state updates; assert SSR-safe `desktop` default
     - _Requirements: 1.4_
 
-  - [ ] 9.3 Implement `useReducedMotion`
+  - [x] 9.3 Implement `useReducedMotion`
     - Create `src/hooks/useReducedMotion.js` tracking `prefers-reduced-motion: reduce` live; guard missing `matchMedia` and default to `false`
     - _Requirements: 7.1, 7.4_
 
@@ -147,7 +147,7 @@ All paths are relative to the `Frontend/` project root. The implementation langu
     - Assert live updates on media query change and safe default
     - _Requirements: 7.4_
 
-  - [ ] 9.5 Extend `useThemeToggle` to full theme support
+  - [x] 9.5 Extend `useThemeToggle` to full theme support
     - Update `src/hooks/useThemeToggle.js` (export `useTheme`) to support `['light','dark','dracula']`, persist to `localStorage['theme']`, set `data-theme` and `.dark` class, fall back to OS preference on corrupt persisted value, and surface a `sonner` toast on apply failure (delegating state to the theme reducer)
     - _Requirements: 8.2, 8.4_
 
