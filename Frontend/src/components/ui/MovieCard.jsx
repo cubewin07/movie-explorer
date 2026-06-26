@@ -1,9 +1,16 @@
-import { Star, Calendar, Play, MoreHorizontal } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+import { Star, Calendar, Play } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAppMotion } from '@/context/MotionConfigProvider';
 
 function MovieCard({ title, year, rating, genres = [], image, onClick, type }) {
-    // Define gradient colors for different content types
+    // Motion variants resolved through the app motion system so entrance/hover
+    // animations honor the active reduced-motion preference and duration budgets.
+    const { resolveVariants } = useAppMotion();
+    const itemEnter = resolveVariants('itemEnter');
+    const cardHover = resolveVariants('cardHover');
+
+    // Decorative accent gradients per content type. These are intentionally
+    // colorful (not theme tokens) and only apply on hover.
     const getTypeGradient = () => {
         if (type === 'tv') {
             return {
@@ -23,33 +30,22 @@ function MovieCard({ title, year, rating, genres = [], image, onClick, type }) {
 
     const typeGradient = getTypeGradient();
 
-    // Genre color variants for better visual distinction
-    const genreColors = [
-        'bg-gradient-to-r from-blue-500 to-cyan-500 text-white border-transparent',
-        'bg-gradient-to-r from-purple-500 to-pink-500 text-white border-transparent',
-        'bg-gradient-to-r from-emerald-500 to-teal-500 text-white border-transparent',
-        'bg-gradient-to-r from-orange-500 to-red-500 text-white border-transparent',
-        'bg-gradient-to-r from-indigo-500 to-purple-500 text-white border-transparent',
-        'bg-gradient-to-r from-rose-500 to-pink-500 text-white border-transparent'
-    ];
-
     return (
         <motion.div
             onClick={onClick}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            whileHover={{ scale: 1.015 }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
+            initial={itemEnter.initial}
+            animate={itemEnter.animate}
+            whileHover={{ ...cardHover.animate, transition: cardHover.transition }}
+            transition={itemEnter.transition}
             className={`group relative overflow-hidden cursor-pointer 
-                bg-white dark:bg-slate-800/50 backdrop-blur-sm
+                bg-card backdrop-blur-sm
                 hover:bg-gradient-to-br ${typeGradient.hover}
                 p-4 rounded-2xl transition-all duration-300 
-                border border-slate-200 dark:border-slate-700 ${typeGradient.border}
-                hover:shadow-2xl ${typeGradient.shadow}
-                hover:-translate-y-1`}
+                border border-border ${typeGradient.border}
+                hover:shadow-2xl ${typeGradient.shadow}`}
         >
-            {/* Background Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-slate-50/30 dark:to-slate-900/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            {/* Background Gradient Overlay (decorative, theme-aware) */}
+            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-muted/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             
             <div className="relative flex gap-4 items-start">
                 {/* Movie Poster Section */}
@@ -61,10 +57,8 @@ function MovieCard({ title, year, rating, genres = [], image, onClick, type }) {
                     >
                         <img
                             src={image || '/placeholder.svg?height=120&width=80'}
-                            alt={title}
-                            className="w-full h-full object-cover 
-                                bg-gradient-to-br from-slate-200 to-slate-300 
-                                dark:from-slate-600 dark:to-slate-700"
+                            alt={title || 'Movie poster'}
+                            className="w-full h-full object-cover bg-muted"
                         />
                         
                         {/* Play Button Overlay */}
@@ -74,18 +68,18 @@ function MovieCard({ title, year, rating, genres = [], image, onClick, type }) {
                             transition={{ duration: 0.2 }}
                             className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center rounded-xl"
                         >
-                            <div className="bg-white/90 dark:bg-slate-800/90 rounded-full p-2 shadow-lg">
-                                <Play className="w-4 h-4 text-slate-700 dark:text-slate-300 fill-current" />
+                            <div className="bg-card/90 rounded-full p-2 shadow-lg">
+                                <Play className="w-4 h-4 text-foreground fill-current" />
                             </div>
                         </motion.div>
                     </motion.div>
                     
-                    {/* Rating Badge */}
+                    {/* Rating Badge (decorative accent gradient) */}
                     {rating && (
                         <motion.div
                             whileHover={{ scale: 1.1, rotate: 5 }}
                             transition={{ type: 'spring', stiffness: 300 }}
-                            className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center shadow-lg ring-2 ring-white dark:ring-slate-800"
+                            className="absolute -top-2 -right-2 bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center shadow-lg ring-2 ring-card"
                         >
                             <Star className="w-3 h-3 fill-current mr-1" />
                             {rating}
@@ -97,16 +91,16 @@ function MovieCard({ title, year, rating, genres = [], image, onClick, type }) {
                 <div className="flex-1 min-w-0 space-y-2.5">
                     {/* Title */}
                     <div>
-                        <h4 className={`font-bold text-slate-900 dark:text-white ${typeGradient.text} transition-colors duration-300 line-clamp-2 leading-tight text-base sm:text-lg mb-1`}>
+                        <h4 className={`font-bold text-foreground ${typeGradient.text} transition-colors duration-300 line-clamp-2 leading-tight text-base sm:text-lg mb-1`}>
                             {title}
                         </h4>
                     </div>
                     
                     {/* Year and Type - Compact Row */}
                     {year && (
-                        <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <div className="flex items-center">
-                                <Calendar className="w-3.5 h-3.5 mr-1 text-slate-400 dark:text-slate-500" />
+                                <Calendar className="w-3.5 h-3.5 mr-1 text-muted-foreground" />
                                 <span className="font-medium">{year}</span>
                             </div>
                             {type && (
@@ -144,9 +138,8 @@ function MovieCard({ title, year, rating, genres = [], image, onClick, type }) {
                                         animate={{ opacity: 1, scale: 1 }}
                                         transition={{ delay: 0.2 }}
                                         whileHover={{ scale: 1.05 }}
-                                        className="px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-600 transition-all duration-200 cursor-default flex items-center gap-1 flex-shrink-0"
+                                        className="px-2.5 py-1 rounded-full text-xs font-semibold bg-muted text-muted-foreground hover:bg-muted/80 transition-all duration-200 cursor-default flex items-center gap-1 flex-shrink-0"
                                     >
-                                        {/* <MoreHorizontal className="w-3 h-3" /> */}
                                         +{genres.length - 1}
                                     </motion.div>
                                 )}
