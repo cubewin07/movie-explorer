@@ -30,7 +30,7 @@ export {
     normalizeTouchTarget,
 } from './touchTarget.js'
 export { fitWidth } from './media.js'
-export { MOTION, VARIANTS, staggerDelay } from './motion.js'
+export { MOTION, VARIANTS, staggerDelay, resolveVariants } from './motion.js'
 export {
     THEMES,
     DEFAULT_THEME,

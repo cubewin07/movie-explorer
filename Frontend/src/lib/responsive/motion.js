@@ -122,3 +122,152 @@ export function staggerDelay(index, perItemMs = 60) {
     const clampedMs = clamp(rawMs, MOTION.staggerMinMs, MOTION.staggerMaxMs);
     return clampedMs / 1000;
 }
+
+// ---------------------------------------------------------------------------
+// resolveVariants
+// ---------------------------------------------------------------------------
+
+/**
+ * Hard ceilings on transition duration, in seconds.
+ *
+ * Requirements bound every entrance/transition to <=600ms, and hover/card
+ * transitions to <=300ms. These act as defensive caps so a named variant can
+ * never exceed its budget regardless of how it was defined.
+ */
+const MAX_DURATION_S = 0.6;
+const MAX_HOVER_DURATION_S = 0.3;
+
+/** Maximum positional displacement (px) permitted for essential variants under reduced motion. */
+const MAX_ESSENTIAL_DISPLACEMENT_PX = 5;
+
+/**
+ * Whether a variant name denotes a hover/card transition (stricter 300ms budget).
+ * @param {string} name
+ * @returns {boolean}
+ */
+function isHoverOrCard(name) {
+    const n = String(name).toLowerCase();
+    return n.includes('hover') || n.includes('card');
+}
+
+/**
+ * Clamp a transition duration (in seconds) to the budget for the given variant.
+ * Non-finite or negative durations fall back to the ceiling.
+ * @param {number} durationS
+ * @param {string} name
+ * @returns {number}
+ */
+function clampDuration(durationS, name) {
+    const ceiling = isHoverOrCard(name) ? MAX_HOVER_DURATION_S : MAX_DURATION_S;
+    const safe = Number.isFinite(durationS) && durationS >= 0 ? durationS : ceiling;
+    return Math.min(safe, ceiling);
+}
+
+/**
+ * Return a copy of a visual state with positional (x/y) displacement removed.
+ * Opacity and scale targets are preserved.
+ * @param {Record<string, number>} state
+ * @returns {Record<string, number>}
+ */
+function stripDisplacement(state) {
+    const { x, y, ...rest } = state ?? {};
+    return rest;
+}
+
+/**
+ * Return a copy of a visual state whose positional (x/y) displacement is capped
+ * to +/- MAX_ESSENTIAL_DISPLACEMENT_PX on each axis.
+ * @param {Record<string, number>} state
+ * @returns {Record<string, number>}
+ */
+function clampDisplacement(state) {
+    const out = { ...(state ?? {}) };
+    if (typeof out.x === 'number') {
+        out.x = clamp(out.x, -MAX_ESSENTIAL_DISPLACEMENT_PX, MAX_ESSENTIAL_DISPLACEMENT_PX);
+    }
+    if (typeof out.y === 'number') {
+        out.y = clamp(out.y, -MAX_ESSENTIAL_DISPLACEMENT_PX, MAX_ESSENTIAL_DISPLACEMENT_PX);
+    }
+    return out;
+}
+
+/**
+ * Resolve a named framer-motion variant, honoring the active motion budgets and
+ * the user's reduced-motion preference.
+ *
+ * Behavior:
+ * - Unknown `name`: returns a no-op, final-state variant (full opacity, no
+ *   displacement, zero-duration transition) so rendering never breaks.
+ * - `reducedMotion` + non-essential: returns the variant's final visual state
+ *   with `duration: 0` and no x/y displacement, so the element appears directly
+ *   in place with no intermediate animation.
+ * - `reducedMotion` + essential: retains the animation but caps positional
+ *   displacement to +/-5px on any axis, keeping the duration within budget.
+ * - Otherwise: returns the named variant with its transition duration clamped to
+ *   the budget (<=600ms in general, <=300ms for hover/card variants).
+ *
+ * The returned object is always a fresh copy; the shared `VARIANTS` definitions
+ * are never mutated.
+ *
+ * @param {string} name - Named variant key (e.g. 'pageEnter', 'cardHover').
+ * @param {{ reducedMotion?: boolean, essential?: boolean }} [options]
+ * @returns {{ initial: Record<string, number>, animate: Record<string, number>, exit?: Record<string, number>, transition: { duration: number, delay?: number, ease?: string } }}
+ */
+export function resolveVariants(name, options = {}) {
+    const { reducedMotion = false, essential = false } = options;
+    const variant = VARIANTS[name];
+
+    // Unknown variant: no-op final-state variant.
+    if (!variant) {
+        return {
+            initial: { opacity: 1 },
+            animate: { opacity: 1 },
+            transition: { duration: 0 },
+        };
+    }
+
+    if (reducedMotion) {
+        if (!essential) {
+            // Non-essential: snap to the final visual state with no transition
+            // and no positional displacement.
+            const finalState = stripDisplacement(variant.animate);
+            const resolved = {
+                initial: { ...finalState },
+                animate: { ...finalState },
+                transition: { duration: 0 },
+            };
+            if (variant.exit) {
+                resolved.exit = stripDisplacement(variant.exit);
+            }
+            return resolved;
+        }
+
+        // Essential: keep the animation but cap positional displacement.
+        const resolved = {
+            initial: clampDisplacement(variant.initial),
+            animate: clampDisplacement(variant.animate),
+            transition: {
+                ...variant.transition,
+                duration: clampDuration(variant.transition?.duration, name),
+            },
+        };
+        if (variant.exit) {
+            resolved.exit = clampDisplacement(variant.exit);
+        }
+        return resolved;
+    }
+
+    // Normal motion: preserve terminal states, enforce duration budgets.
+    const resolved = {
+        initial: { ...variant.initial },
+        animate: { ...variant.animate },
+        transition: {
+            ...variant.transition,
+            duration: clampDuration(variant.transition?.duration, name),
+        },
+    };
+    if (variant.exit) {
+        resolved.exit = { ...variant.exit };
+    }
+    return resolved;
+}
